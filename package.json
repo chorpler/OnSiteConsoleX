@@ -126,8 +126,7 @@
         "vPrefixedTagName": true,
         "publishAutoUpdate": true,
         "releaseType": "draft",
-        "private": false,
-        "token": "e0e0e16c5ad3ca6af5a546fd0a21e66826fa16c0"
+        "private": false
       }
     ],
     "appId": "com.sesa.onsiteconsolex",
@@ -167,6 +166,7 @@
   },
   "buildComments": {
     "removed": {
+      "token": "e0e0e16c5ad3ca6af5##########a546fd0a21e66826fa16c0",
       "publish": [
         {
           "provider": "generic",
@@ -178,7 +178,7 @@
           "repo": "OnSiteConsoleX",
           "releaseType": "draft",
           "private": true,
-          "token": "560dcb51bdb218a1cfd5d13076cefb8b2680c468"
+          "token": "560dcb51bdb218a1###############cfd5d13076cefb8b2680c468"
           }
       ]
     }
