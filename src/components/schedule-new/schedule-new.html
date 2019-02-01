@@ -1,0 +1,24 @@
+<p-dialog #scheduleNewDialog [styleClass]="'schedule-new-dialog'" [header]="scheduleNewHeader" [(visible)]="isVisible" [draggable]="true" [resizable]="true" [responsive]="true" [contentStyle]="{'overflow':'visible'}" (onHide)="cancel($event)">
+  <div class="schedule-new-container">
+    <div class="schedule-new-list">
+      <div class="pseudo-item">
+        <div class="label">Schedule Start Date</div>
+        <div class="data">
+          <p-calendar class="schedule-new-calendar" dateFormat="dd M yy" disabledDays="[0,1,2,4,5,6]" [(ngModel)]="date" readonlyInput="dateInputReadOnly" [showIcon]="true"></p-calendar>
+        </div>
+      </div>
+
+      <div class="pseudo-item">
+        <div class="label">New Schedule Action</div>
+        <div class="data">
+          <p-dropdown [options]="actionsList" [(ngModel)]="action"></p-dropdown>
+        </div>
+      </div>
+
+    </div>
+    <div class="schedule-new-buttons">
+      <span class="scheduling-new-button button-like-block cancel" (click)="cancel($event)">Cancel</span>
+      <span class="scheduling-new-button button-like-block save"   (click)="createNewSchedule($event)">Create</span>
+    </div>
+  </div>
+</p-dialog>

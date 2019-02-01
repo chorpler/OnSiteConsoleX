@@ -1,0 +1,39 @@
+<p-dialog #addSiteLocaleDialog [styleClass]="'add-site-locale-dialog'" [header]="addSiteLocaleHeader" [(visible)]="isVisible" [draggable]="true" [resizable]="true" [responsive]="true" [contentStyle]="{'overflow':'visible'}" (onHide)="cancel($event)">
+  <div class="add-site-locale-wrapper">
+    <!-- <table class="button-table top"></table> -->
+    <table class="add-site-locale-table">
+      <tbody class="add-site-locale-body">
+        <tr class="error-row" [class.invisible]="!newLocaleError">
+          <td class="col label"><span class="label">ERROR</span></td>
+          <td class="col data data-col">{{errorMessage}}</td>
+        </tr>
+        <tr>
+          <td class="col label" title="Enter code here (exactly {{typeCodeDigits}} uppercase letters)"><span class="label">{{typeDisplay}} Code ({{typeCodeDigits}} letters)</span></td>
+          <td class="col data data-col"><span class="data" [class.error]="errorInCode"><input #addSiteLocaleCodeInput class="add-site-locale-input" type="text" [(ngModel)]="newCLL.code" (ngModelChange)="updateCode($event)" (blur)="checkCode($event)" /></span></td>
+        </tr>
+        <tr>
+          <td class="col label" title="Enter full value here (as many letters as required)"><span class="label">{{typeDisplay}} Value</span></td>
+          <td class="col data data-col"><span class="data" [class.error]="errorInValue"><input #addSiteLocaleValueInput class="add-site-locale-input" type="text" [(ngModel)]="newCLL.value" (ngModelChange)="updateValue($event)" (blur)="checkValue($event)" /></span></td>
+        </tr>
+        <tr>
+          <td class="col label" title="Enter 2-digit ID number here"><span class="label">{{typeDisplay}} ID</span></td>
+          <td class="col data data-col"><span class="data" [class.error]="errorInID"><input #addSiteLocaleIDInput class="add-site-locale-input" type="number" min="10" max="99" step="1" [(ngModel)]="newCLL.id" (ngModelChange)="updateID($event)" (blur)="checkID($event)" /></span></td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="button-table bottom">
+      <tr class="button-row">
+        <td class="cell-button-like" (click)="cancel($event)" title="Cancel adding new site locale">
+          <i class="fa fa-times icon-button-like"></i>
+        </td>
+        <td class="cell-button-like" (click)="submit($event)" title="Save new site locale and close window">
+          <i class="fa fa-check icon-button-like"></i>
+        </td>
+      </tr>
+    </table>
+    <!-- <span class="button-wrapper">
+      <button class="ui-button-danger  cancel" pButton type="button" (click)="cancel($event)"   label="Cancel"></button>
+      <button class="ui-button-success save  " pButton type="button" (click)="onSubmit($event)" label="Save"></button>
+    </span> -->
+  </div>
+</p-dialog>

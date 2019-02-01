@@ -1,0 +1,24 @@
+<ion-content padding>
+
+  <ion-list>
+      <div class="scheduling-new-pseudo-item">
+        <div class="scheduling-new-pseudo-item-label">Schedule Start Date</div>
+        <div class="scheduling-new-pseudo-item-value">
+          <p-calendar class="schedule-date schedule-start-date" [(ngModel)]="date" readonlyInput="readonlyInput" dateFormat="dd M yy" [showIcon]="true"></p-calendar>
+        </div>
+      </div>
+      <ion-item>
+        <ion-label>New Schedule Action</ion-label>
+        <ion-select class="scheduling-new-pseudo-item-select" [(ngModel)]="action">
+          <ion-option value="increment">Increment Current Schedule</ion-option>
+          <ion-option value="keep">Keep Current Schedule</ion-option>
+          <ion-option value="clear">Clear Schedule</ion-option>
+        </ion-select>
+      </ion-item>
+  </ion-list>
+
+  <div class="scheduling-new-pseudo-item">
+    <button ion-button class="sceduling-new-button" color="light" (tap)="cancel()">Cancel</button>
+    <button ion-button class="sceduling-new-button" color="primary" (tap)="createNewSchedule()">Create</button>
+  </div>
+</ion-content>

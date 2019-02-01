@@ -1,0 +1,183 @@
+page-messages-beta {
+  .menu-and-button-wrapper {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+    align-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    .final-buttons {
+      flex: 0 1 auto;
+      display: flex;
+      flex-flow: row nowrap;
+      margin-left: 5px;
+    }
+    .menubar-button {
+      @include button-like-block;
+      display: block;
+      font-size: 24px;
+      // padding-left: 10px;
+      // padding-right: 10px;
+      border-radius: 10px;
+      text-align: center;
+      padding: 5px 10px;
+      pointer-events: all;
+    }
+  }
+
+  ion-content {
+    margin-top: 56px;
+  }
+  .messages-layout-container {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-start;
+    align-content: flex-start;
+    align-items: flex-start;
+    width: 95vw;
+    height: calc(100vh - 100px);
+    border: 1px dotted lightgrey;
+    padding: 4px;
+    margin-left: auto;
+    margin-right: auto;
+    .messages-lisbox-wrapper {
+      min-width: 300px;
+      flex: 0 1 300px;
+      height: 100%;
+      margin-right: 20px;
+      .messages-listbox {
+        overflow-y: auto;
+        height: 100%;
+        width: 100%;
+        .listbox-item {
+          border: 1px dotted lightgrey;
+          .message-header-wrapper {
+            display: flex;
+            flex-flow: row nowrap;
+            justify-content: flex-start;
+            align-content: flex-start;
+            align-items: flex-start;
+            .label {
+              width: 75px;
+              font-weight: bold;
+              text-align: left;
+            }
+            .data {
+              flex: 0 0 auto;
+              width: 75%;
+              font-weight: normal;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+          }
+        }
+      }
+    }
+    .messages-message-wrapper {
+      flex: 0 1 75%;
+      min-width: 600px;
+      width: 75%;
+      // height: 100%;
+      display: flex;
+      flex-flow: column nowrap;
+      justify-content: flex-start;
+      align-content: center;
+      align-items: flex-start;
+      padding: 4px;
+      border: 1px dotted lightgrey;
+      .messages-message-header {
+        // width: 40%;
+        flex: 0 1 auto;
+        display: flex;
+        flex-flow: column nowrap;
+        justify-content: flex-start;
+        align-content: center;
+        align-items: flex-start;
+        .header-item {
+          display: flex;
+          flex: 1 0 100%;
+          flex-flow: row nowrap;
+          justify-content: flex-start;
+          align-content: center;
+          align-items: center;
+          width: 100%;
+          margin-top: 1px;
+          margin-bottom: 1px;
+          .label {
+            width: 60px;
+            font-weight: bold;
+          }
+          .data {
+            // width: 60%;
+            min-width: 200px;
+            font-weight: normal;
+            .messages-message-date-calendar {
+              width: 100%;
+            }
+            .messages-message-input {
+              border: 1px solid lightgrey;
+              width: 100%;
+            }
+            .multiselect-employees {
+              width: 200px;
+              .ui-multiselect-label {
+                white-space: nowrap;
+              }
+            }
+          }
+          .data + .data {
+            margin-left: 4px;
+          }
+          .caption {
+            min-width: 200px;
+            .text {
+              color: blue;
+              font-style: italic;
+              margin-left: 4px;
+            }
+            input {
+              margin-left: 4px;
+              // min-width: 200px;
+              width: 100%;
+            }
+          }
+        }
+      }
+      .messages-message-body {
+        flex: 0 1 auto;
+        // width: 100%;
+        display: flex;
+        flex-flow: column nowrap;
+        justify-content: flex-start;
+        align-content: center;
+        align-items: center;
+        margin-top: 4px;
+        .body-item {
+          width: 100%;
+          .label {
+            display: none;
+            font-weight: bold;
+            width: 60px;
+          }
+          .data {
+            min-height: 250px;
+            height: 250px;
+            .message-text-editor {
+              min-width: 500px;
+              max-width: 800px;
+              width: 700px;
+              // min-height: 200px;
+              // height: 100%;
+              // height:250px;
+              margin-bottom: 5px;
+            }
+          }
+        }
+        .messages-buttons-container {
+          margin-top: 10px;
+        }
+      }
+    }
+  }
+}

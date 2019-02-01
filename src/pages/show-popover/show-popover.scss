@@ -1,0 +1,16 @@
+.video-popover {
+  .popover-content {
+    min-width: 740px;
+    width: 40vw;
+    left: calc(50vw - 40vw/2);
+    video {
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+}
+page-show-popover {
+  .scroll-content {
+    overflow: auto;
+  }
+}

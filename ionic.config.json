@@ -1,0 +1,7 @@
+{
+  "name": "OnSiteConsoleX",
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "ionic-angular"
+}

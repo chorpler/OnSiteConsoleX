@@ -1,0 +1,110 @@
+report-other-view {
+  .svg-icon {
+    width: 20px;
+    height: 24px;
+  }
+  .cell-button-like {
+    font-size: 24px;
+    cursor: pointer;
+    &:hover {
+      background-color: rgba(0, 0, 128, 0.2);
+      color: rgba(255, 0, 128, 0.5);
+    }
+    &:active {
+      background-color: rgba(0, 0, 255, 0.5);
+      color: rgba(255, 0, 255, 0.9);
+    }
+  }
+  .other-view-button-table {
+    width: 100%;
+    table-layout: fixed;
+    text-align: center;
+    overflow: visible;
+    &.top {
+      margin-bottom: 10px;
+      border-bottom: 1px dashed lightgrey;
+    }
+    &.bottom {
+      margin-top: 10px;
+      border-top: 1px dashed lightgrey;
+    }
+    .icon-button-like {
+      font-size: 24px;
+    }
+  }
+  .icon-button-like {
+    cursor: pointer;
+    &:hover {
+      color: rgba(255, 0, 128, 0.5);
+    }
+    &:active {
+      color: rgba(255, 0, 255, 0.9);
+    }
+  }
+  .icon-greyed-out {
+    font-size: 24px;
+    color: lightgrey;
+    cursor: default;
+  }
+  .report-card {
+    width: 500px;
+    max-width: 500px;
+    user-select: text;
+  }
+  .other-view-wrapper {
+    max-width: 50vw;
+    width: 30vw;
+  }
+  .other-view-table {
+    width: 100%;
+    input {
+      width: 100% !important;
+    }
+    .inner-editor {
+      width: 100% !important;
+    }
+    .other-view-row {
+      // width: 100%;
+    }
+    .label {
+      width: 20%;
+      min-width: 120px;
+      text-align: right;
+      font-weight: bold;
+      padding-right: 4px;
+    }
+    .data {
+      box-sizing: border-box;
+      width: 80%;
+      height: 22px;
+      .other-view-input {
+        width: 100%;
+      }
+      .other-view-fake-input {
+        height: 22px;
+        line-height: 16px;
+        margin: 0;
+        border: 1px solid lightgrey;
+        padding: 1px;
+        background-color: white;
+        width: 100%;
+      }
+      .other-view-calendar {
+        // width: 100%;
+        .ui-calendar {
+          // width: 100% !important;
+        }
+      }
+      .other-view-dropdown {
+        // width: 100% !important;
+        .ui-dropdown {
+          // width: 100% !important;
+        }
+      }
+      .other-view-textarea {
+        width: 100% !important;
+      }
+
+    }
+  }
+}

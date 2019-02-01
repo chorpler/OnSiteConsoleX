@@ -1,0 +1,435 @@
+$roboto-font-path: "assets/fonts" !default;
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 300;
+  src: local("Roboto Light"), local("Roboto-Light"), url("../assets/fonts/roboto-light.ttf") format("truetype"), url("../assets/fonts/roboto-light.woff") format("woff");
+}
+
+@font-face {
+  font-family: 'Roboto Condensed';
+  font-style: normal;
+  font-weight: 300;
+  src: local("RobotoCondensed-Light"), local("RobotoCondensed-Light"), url("../assets/fonts/RobotoCondensed-Light.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: 'Roboto Condensed';
+  font-style: normal;
+  font-weight: 400;
+  src: local("RobotoCondensed-Regular"), local("RobotoCondensed-Regular"), url("../assets/fonts/RobotoCondensed-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 400;
+  src: local("Roboto"), local("Roboto-Regular"), url("../assets/fonts/roboto-regular.ttf") format("truetype"), url("../assets/fonts/roboto-regular.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 500;
+  src: local("Roboto Medium"), local("Roboto-Medium"), url("../assets/fonts/roboto-medium.ttf") format("truetype"), url("../assets/fonts/roboto-medium.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 700;
+  src: local("Roboto Bold"), local("Roboto-Bold"), url("../assets/fonts/roboto-bold.ttf") format("truetype"), url("../assets/fonts/roboto-bold.woff") format("woff");
+}
+
+@font-face {
+  font-family: "RobotoMono";
+  font-style: normal;
+  font-weight: 700;
+  src: local("RobotoMono-Bold"), local("RobotoMono-Bold"), url("../assets/fonts/RobotoMono-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "RobotoMono";
+  font-style: italic;
+  font-weight: 700;
+  src: local("RobotoMono-BoldItalic"), local("RobotoMono-BoldItalic"), url("../assets/fonts/RobotoMono-BoldItalic.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "RobotoMono";
+  font-style: normal;
+  font-weight: 300;
+  src: local("RobotoMono-Light"), local("RobotoMono-Light"), url("../assets/fonts/RobotoMono-Light.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "RobotoMono";
+  font-style: italic;
+  font-weight: 300;
+  src: local("RobotoMono-LightItalic"), local("RobotoMono-LightItalic"), url("../assets/fonts/RobotoMono-LightItalic.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "RobotoMono";
+  font-style: normal;
+  font-weight: 500;
+  src: local("RobotoMono-Medium"), local("RobotoMono-Medium"), url("../assets/fonts/RobotoMono-Medium.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "RobotoMono";
+  font-style: italic;
+  font-weight: 500;
+  src: local("RobotoMono-MediumItalic"), local("RobotoMono-MediumItalic"), url("../assets/fonts/RobotoMono-MediumItalic.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "RobotoMono";
+  font-style: normal;
+  font-weight: 400;
+  src: local("RobotoMono-Regular"), local("RobotoMono-Regular"), url("../assets/fonts/RobotoMono-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "RobotoMono";
+  font-style: italic;
+  font-weight: 400;
+  src: local("RobotoMono-Italic"), local("RobotoMono-Italic"), url("../assets/fonts/RobotoMono-Italic.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "RobotoMono";
+  font-style: normal;
+  font-weight: 100;
+  src: local("RobotoMono-Thin"), local("RobotoMono-Thin"), url("../assets/fonts/RobotoMono-Thin.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "RobotoMono";
+  font-style: italic;
+  font-weight: 100;
+  src: local("RobotoMono-ThinItalic"), local("RobotoMono-ThinItalic"), url("../assets/fonts/RobotoMono-ThinItalic.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Lato";
+  font-style: normal;
+  font-weight: 900;
+  src: local("Lato-Black"), local("Lato-Black"), url("../assets/fonts/Lato-Black.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Lato";
+  font-style: italic;
+  font-weight: 900;
+  src: local("Lato-BlackItalic"), local("Lato-BlackItalic"), url("../assets/fonts/Lato-BlackItalic.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Lato";
+  font-style: normal;
+  font-weight: 700;
+  src: local("Lato-Bold"), local("Lato-Bold"), url("../assets/fonts/Lato-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Lato";
+  font-style: italic;
+  font-weight: 700;
+  src: local("Lato-BoldItalic"), local("Lato-BoldItalic"), url("../assets/fonts/Lato-BoldItalic.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Lato";
+  font-style: normal;
+  font-weight: 100;
+  src: local("Lato-Hairline"), local("Lato-Hairline"), url("../assets/fonts/Lato-Hairline.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Lato";
+  font-style: italic;
+  font-weight: 100;
+  src: local("Lato-HairlineItalic"), local("Lato-HairlineItalic"), url("../assets/fonts/Lato-HairlineItalic.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Lato";
+  font-style: normal;
+  font-weight: 400;
+  src: local("Lato-Regular"), local("Lato-Regular"), url("../assets/fonts/Lato-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Lato";
+  font-style: italic;
+  font-weight: 400;
+  src: local("Lato-Italic"), local("Lato-Italic"), url("../assets/fonts/Lato-Italic.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Lato";
+  font-style: normal;
+  font-weight: 300;
+  src: local("Lato-Light"), local("Lato-Light"), url("../assets/fonts/Lato-Light.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Lato";
+  font-style: italic;
+  font-weight: 300;
+  src: local("Lato-LightItalic"), local("Lato-LightItalic"), url("../assets/fonts/Lato-LightItalic.ttf") format("truetype");
+}
+
+// @media print,screen {
+.schedule-print-caption {
+  display: block;
+  text-align: center;
+  font-size: 16px;
+  line-height: 16px;
+}
+
+.schedule-header-caption {
+  display: block;
+  text-align: center;
+  font-size: 16px;
+  line-height: 16px;
+}
+
+.page-break-here {
+  width: 8.12500in;
+  height: 30px;
+}
+
+#PrintPageBody,
+#PrintPageTarget {
+  user-select: text;
+  font-family: "Roboto Condensed";
+  font-weight: 300;
+  .bottomRow {
+    page-break-after: always;
+  }
+  .schedule-print-table-wrapper {
+    display: block;
+    page-break-before: avoid;
+    page-break-after: auto;
+    page-break-inside: avoid;
+  }
+  table,
+  th,
+  tr,
+  td {
+    font-family: "Roboto Condensed";
+    font-weight: 300;
+    border: none;
+    border-collapse: collapse;
+  }
+  #print-area.print-area.schedule-print-wrapper {
+    user-select: text;
+    width: 8.125000in;
+    padding: 0 0 0.5in 0;
+    margin: 0 auto;
+    font-size: 10px;
+    line-height: 12px;
+  }
+  div#page-break-here {
+    width: 8.12500in;
+    height: 30px;
+  } // SUMMARY TABLE
+  .schedule-header-table-wrapper {
+    width: 4.25in;
+    margin-top: 20px;
+  }
+  table.schedule-header-table {
+    border: none;
+    margin: 0 auto 20px 0;
+  }
+  tr.head-row {
+    th {
+      height: 15px;
+      padding-top: 3px;
+    }
+    font-size: 11px;
+    font-weight: 500;
+    background-color: rgba(100,
+    100,
+    180,
+    0.9);
+    color: white;
+  }
+  tr.head-row {
+    font-size: 11px;
+  }
+  th.col-client,
+  td.col-client {
+    width: 1.25in;
+    padding-left: 0.2in;
+    text-align: left;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  th.col-working,
+  td.col-working {
+    width: 0.75in;
+    text-align: center;
+    font-weight: 500;
+  }
+  th.col-off,
+  td.col-off {
+    width: 0.75in;
+    text-align: center;
+    font-weight: 500;
+  }
+  th.col-unassigned,
+  td.col-unassigned {
+    width: 0.75in;
+    text-align: center;
+    font-weight: 500;
+  }
+  th.col-total,
+  td.col-total {
+    width: 0.75in;
+    font-weight: 500;
+    text-align: center;
+  }
+  table.schedule-header-table tr.total-row td {
+    font-weight: 500;
+    background-color: rgba(100, 100, 180, 0.2);
+  } // SCHEDULE TABLE
+  tr.body-row.fake-row {
+    height: 1px;
+  }
+  div#main-schedule.schedule-print-table-wrapper,
+  table.schedule-print-header-table,
+  tbody.body,
+  tr.body-row,
+  thead.schedule-header-head .head-row {
+    width: 780px;
+    padding: 0;
+  }
+  div#main-schedule.schedule-print-table-wrapper {
+    border: thin solid gray;
+    padding-bottom: 3px;
+  }
+  tr#main-schedule-header-row.body-row {
+    border: none;
+    border-collapse: collapse;
+    height: 16px;
+    line-height: 10px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    color: white;
+    background-color: rgba(50, 50, 50, 0.5);
+    td.col-S.empty-col.header {
+      width: 10px;
+    }
+    td.col-A.header {
+      font-family: "Roboto";
+      font-style: normal;
+      font-weight: 500;
+      font-size: 10px;
+      width: 170px;
+      text-align: left;
+    }
+    td.col-B.header {
+      font-family: "Roboto";
+      font-style: normal;
+      font-weight: 500;
+      font-size: 10px;
+      width: 170px;
+      text-align: left;
+    }
+    td.col-C.header {
+      font-family: "Roboto";
+      font-style: normal;
+      font-weight: 500;
+      font-size: 10px;
+      width: 170px;
+      text-align: left;
+    }
+    td.col-D.header {
+      font-family: "Roboto";
+      font-style: normal;
+      font-weight: 500;
+      font-size: 10px;
+      width: 170px;
+      text-align: left;
+    }
+    td.col-V.header {
+      font-family: "Roboto";
+      font-style: normal;
+      font-weight: 500;
+      font-size: 10px;
+      width: 90px;
+      text-align: right;
+      padding-right: 8px;
+    }
+  }
+  tbody#main-schedule-body td.col-B,
+  tbody#main-schedule-body td.col-D {
+    background-color: rgba(246, 247, 250, 1);
+  }
+  tbody#main-schedule-body td.col-A,
+  tbody#main-schedule-body td.col-B,
+  tbody#main-schedule-body td.col-C,
+  tbody#main-schedule-body td.col-D,
+  tbody#main-schedule-body td.col-V {
+    font-family: "Roboto Condensed";
+    font-weight: 300;
+    font-size: 10px;
+    line-height: 11px;
+  }
+  tbody#main-schedule-body.body tr#worksite-name-row.body-row.total-row {
+    border-top: thin solid #0036ff;
+    border-bottom: thin solid #0036ff;
+    background-color: rgb(200, 200, 200);
+    height: 14px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    td.col-S.site-name {
+      padding-left: 5px;
+      height: 11px;
+      line-height: 11px;
+      font-size: 11px;
+      font-family: "Roboto";
+      font-style: normal;
+      font-weight: 500;
+      span.site-schedule-stats {
+        font-size: 9px;
+        text-transform: uppercase;
+        color: rgb(5, 68, 95);
+        font-weight: 400;
+      }
+    }
+  }
+  td.col-S.empty-col {
+    width: 10px;
+  }
+  td.col-A {
+    width: 170px;
+    text-align: left;
+    padding-left: 20px;
+  }
+  td.col-B {
+    width: 170px;
+    text-align: left;
+    padding-left: 20px;
+  }
+  td.col-C {
+    width: 170px;
+    text-align: left;
+    padding-left: 20px;
+  }
+  td.col-D {
+    width: 170px;
+    text-align: left;
+    padding-left: 20px;
+  }
+  td.col-V {
+    width: 90px;
+    text-align: right;
+    padding-right: 8px;
+  }
+}
+
+// }

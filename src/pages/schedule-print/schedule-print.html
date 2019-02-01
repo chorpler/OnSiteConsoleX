@@ -1,0 +1,79 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons left>
+      <button ion-button menuToggle>
+        <ion-icon name="menu"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>{{title}}</ion-title>
+    <ion-buttons right>
+      <button ion-button icon-only (click)="copyTable($event)" title="Copy schedule to clipboard">
+        <ion-icon class="period-reports-add-other-report-button-icon" name="copy"></ion-icon>
+      </button>
+      <button ion-button icon-only (click)="printTable($event)" title="Print schedule">
+        <ion-icon class="period-reports-add-other-report-button-icon" name="print"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  <div class="schedule-print-nodata" *ngIf="!dataReady">No data output 'tawl. Yet.</div>
+  <div #printArea id="print-area" class="print-area schedule-print-wrapper" *ngIf="dataReady">
+    <table class="schedule-header-table">
+      <thead class="schedule-header-head">
+        <tr class="schedule-header-head-tr">
+          <th class="schedule-header-head-th col-client"    >CLIENT</th>
+          <th class="schedule-header-head-th col-working"   >WORKING</th>
+          <th class="schedule-header-head-th col-off"       >OFF</th>
+          <th class="schedule-header-head-th col-unassigned">UNASSIGNED</th>
+          <th class="schedule-header-head-th col-total"     >TOTAL</th>
+        </tr>
+      </thead>
+      <tbody class="schedule-header-table-body">
+        <tr class="schedule-header-table-tr" *ngFor="let row of headerGrid; let j=index">
+          <td class="schedule-header-table-td col-client"    >{{row[0]}}</td>
+          <td class="schedule-header-table-td col-working"   >{{row[1]}}</td>
+          <td class="schedule-header-table-td col-off"       >{{row[2]}}</td>
+          <td class="schedule-header-table-td col-unassigned">&nbsp;</td>
+          <td class="schedule-header-table-td col-total"     >{{row[3]}}</td>
+        </tr>
+        <tr class="schedule-header-table-tr schedule-header-total-row">
+          <td class="schedule-header-total-td col-00 col-client"    >{{headerTotalGrid[0]}}</td>
+          <td class="schedule-header-total-td col-01 col-working"   >{{headerTotalGrid[1]}}</td>
+          <td class="schedule-header-total-td col-02 col-off"       >{{headerTotalGrid[2]}}</td>
+          <td class="schedule-header-total-td col-03 col-unassigned">{{headerTotalGrid[3]}}</td>
+          <td class="schedule-header-total-td col-04 col-total"     >{{headerTotalGrid[4]}}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="schedule-print-table-wrapper" *ngFor="let singleTable of grid; let idx=index">
+      <table class="schedule-print-table">
+        <thead class="schedule-print-table-header" *ngIf="idx===0">
+          <tr class="schedule-print-table-header-row">
+            <th class="schedule-print-table-th col-total"     > &nbsp;</th>
+            <th class="schedule-print-table-th col-seq"       >SEQ</th>
+            <th class="schedule-print-table-th col-site"      >SITE</th>
+            <th class="schedule-print-table-th col-rotation"  >ROTATION</th>
+            <th class="schedule-print-table-th col-shift"     >SHIFT</th>
+            <th class="schedule-print-table-th col-technician">TECHNICIAN</th>
+            <th class="schedule-print-table-th col-working"   >WORKING</th>
+            <th class="schedule-print-table-th col-off"       >OFF</th>
+          </tr>
+        </thead>
+        <tbody class="schedule-print-table-body">
+          <tr class="schedule-print-table-body-row" [class.bottomRow]="row[0]==='TOTAL'" *ngFor="let row of singleTable; let i=index">
+            <td class="schedule-print-table-td col-total"     >{{row[0]}}</td>
+            <td class="schedule-print-table-td col-seq"       >{{row[1]}}</td>
+            <td class="schedule-print-table-td col-site"      >{{row[2]}}</td>
+            <td class="schedule-print-table-td col-rotation"  >{{row[3]}}</td>
+            <td class="schedule-print-table-td col-shift"     >{{row[4]}}</td>
+            <td class="schedule-print-table-td col-technician">{{row[5]}}</td>
+            <td class="schedule-print-table-td col-working"   >{{row[6]}}</td>
+            <td class="schedule-print-table-td col-off"       >{{row[7]}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</ion-content>

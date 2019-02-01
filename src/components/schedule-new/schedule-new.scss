@@ -1,0 +1,129 @@
+schedule-new {
+  .schedule-new-dialog {
+  }
+  .schedule-new-container {
+    width: 100%;
+    display: block;
+    .schedule-new-list {
+      display         : flex        ;
+      flex-flow       : column nowrap  ;
+      justify-content : flex-start  ;
+      align-content   : flex-start  ;
+      align-items     : flex-start  ;
+      width: 100%;
+      .pseudo-item {
+        margin-bottom: 10px;
+        width: 100%;
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content: flex-start;
+        align-content: center;
+        align-items: center;
+        flex: 0 1 auto;
+        .label {
+          display: inline-block;
+          flex: 0 1 auto;
+          text-align: right;
+          width: 40%;
+          padding-right: 5px;
+          font-weight: bold;
+          // width: 50%;
+        }
+        .data {
+          display: inline-block;
+          // width: 50%;
+          flex: 0 1 auto;
+          // text-align: right;
+          text-align: left;
+          padding-left: 5px;
+          width: 60%;
+          .schedule-new-calendar {
+            // width: 10px;
+            input {
+              width: 140px;
+            }
+          }
+        }
+      }
+    }
+    .schedule-new-buttons {
+      display         : flex        ;
+      flex-flow       : row nowrap  ;
+      justify-content : space-between ;
+      align-content   : center ;
+      align-items     : center ;
+      margin-top: 20px;
+
+      .scheduling-new-button {
+        display: table-cell;
+        height: 40px;
+        // font-size: 22px;
+        vertical-align: middle;
+        font-family: "Roboto";
+        font-weight: 500;
+        font-size: 1.4rem;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+        &.cancel {
+          vertical-align: middle;
+          flex: 0 0 auto;
+          width: 49%;
+          height: 100%;
+          text-align: center;
+          border-radius: 5px;
+          background-color: rgba(244, 244, 244, 1.0);
+          display: table-cell;
+          // padding-right: 5px;
+        }
+        &.save {
+          vertical-align: middle;
+          flex: 0 1 auto;
+          display: inline-block;
+          width: 49%;
+          height: 100%;
+          text-align: center;
+          border-radius: 5px;
+          background-color: rgba(72, 138, 255, 1.0);
+          color: white;
+          // padding-left: 5px;
+        }
+      }
+    }
+  }
+}
+//   .scheduling-new-wrapper {
+//     display: flex;
+//     flex-flow: column nowrap;
+//     justify-content: flex-start;
+//     align-content: center;
+//   }
+
+//   .scheduling-new-pseudo-item {
+//     margin-bottom: 10px;
+//     width: 100%;
+//     display: flex;
+//     flex-flow: row nowrap;
+//     justify-content: flex-start;
+//     align-content: center;
+//     flex: 0 1 auto;
+//   }
+//   .scheduling-new-pseudo-item-wrapper {
+//     display: flex;
+//     flex-flow: row nowrap;
+//     justify-content: flex-start;
+//     align-content: center;
+
+//     flex: 0 1 auto;
+//   }
+//   .scheduling-new-pseudo-item-label {
+//     flex: 0 1 auto;
+//   }
+//   .scheduling-new-pseudo-item-value {
+//     flex: 0 1 auto;
+//   }
+//   .scheduling-new-pseudo-item-toggle {
+//     flex: 0 1 auto;
+
+//   }
+// }

@@ -1,0 +1,140 @@
+<ion-header *ngIf="data.ready()">
+  <ion-navbar>
+    <ion-buttons left>
+      <button [disabled]="!currentlyLoggedIn" ion-button menuToggle *ngIf="!data.currentlyOpeningPage">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+      <ion-spinner name="bubbles" [class.spinner-opening-page]="true" *ngIf="data.currentlyOpeningPage"></ion-spinner>
+    </ion-buttons>
+    <ion-title>OnSiteX Console
+      <span *ngIf="!currentlyLoggedIn">(<button ion-button (click)="presentLoginModal()">Login</button>)</span>
+      <span *ngIf="currentlyLoggedIn">({{data.getUsername()}})</span>
+    </ion-title>
+    <ion-buttons right>
+      <button class="console-home-menubar-button notifications developer" ion-button icon-only (click)="testNotifications()" title="Test notification system" *ngIf="currentlyLoggedIn && data.status.role==='dev'">
+        <i class="fa fa-commenting-o"></i>
+      </button>
+      <button class="console-home-menubar-button" ion-button icon-only (click)="showOptions($event)" title="Show Options (global)" *ngIf="currentlyLoggedIn">
+        <i class="fa fa-cog"></i>
+      </button>
+      <button class="console-home-menubar-button logout" ion-button icon-only (click)="logoutOfApp($event)" title="Logout" *ngIf="currentlyLoggedIn">
+        <i class="fa fa-sign-out"></i>
+      </button>
+      <button class="console-home-menubar-button login" ion-button icon-only (click)="presentLoginModal($event)" title="Login" *ngIf="!currentlyLoggedIn">
+        <i class="fa fa-sign-in"></i>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content class="console-home-page-content console-home-page" *ngIf="showHome">
+  <!-- <p-panel [styleClass]="'onsiteconsolex-home-panel onsiteconsolex-home-panel-main'" [style]="mainPanelStyle" [toggleable]="true"> -->
+  <p-panel [class.onsiteconsolex-home-panel]="true" [class.onsiteconsolex-home-panel-main]="true" [style]="mainPanelStyle" [toggleable]="true">
+    <p-header>
+      <span class="panel-main-header">OnSiteX Information</span>
+      <!-- <span class="panel-main-subheader">{{mainPanelSubheader}}</span> -->
+      <span class="panel-main-subheader">(last updated: {{ updateTime | amTimeAgo }})</span>
+    </p-header>
+    <p-panel [class.onsiteconsolex-home-subpanel-first]="true" header="Employees" [toggleable]="true">
+      <table class="console-home-list-table">
+        <tr class="console-home-list-table-row">
+          <td class="table-col col-00">Current Employees</td>
+          <div *ngIf="employees && employees.length; then employeeCount; else noCount"></div>
+          <ng-template #employeeCount>
+            <td class="table-col col-01 button-like" title="View Employees" (click)="viewEmployees('all', $event)">{{employees.length}}</td>
+          </ng-template>
+        </tr>
+        <tr class="console-home-list-table-row">
+          <td class="table-col col-00">Current Technicians</td>
+          <div *ngIf="techs && techs.length; then techsCount; else noCount"></div>
+          <ng-template #techsCount>
+            <td class="table-col col-01 button-like" title="View Employees" (click)="viewEmployees('techs', $event)">{{techs.length}}</td>
+          </ng-template>
+        </tr>
+        <tr class="console-home-list-table-row" title="View Employees" (click)="viewEmployees($event)">
+          <td class="table-col col-00">Office Employees</td>
+          <div *ngIf="office && office.length; then officeCount; else noCount"></div>
+          <ng-template #officeCount>
+            <td class="table-col col-01 button-like" title="View Employees" (click)="viewEmployees('office', $event)">{{office.length}}</td>
+          </ng-template>
+        </tr>
+      </table>
+    </p-panel>
+    <p-panel [class.onsiteconsolex-home-subpanel]="true" header="Tech Reports" [toggleable]="true">
+      <table class="console-home-list-table">
+        <tr class="console-home-list-table-row">
+          <td class="table-col col-00">Work Reports</td>
+          <div *ngIf="reports && reports.length; then reportCount; else noReportCount"></div>
+          <ng-template #reportCount>
+            <td class="table-col col-01 button-like" title="View Reports" (click)="viewReports($event)">{{reports.length}}</td>
+          </ng-template>
+          <ng-template #noReportCount>
+            <td class="table-col col-01 button-like" title="Load Reports" (click)="loadReports($event)"><span class="link-like">Not loaded</span></td>
+          </ng-template>
+        </tr>
+        <tr class="console-home-list-table-row">
+          <td class="table-col col-00">Misc Reports</td>
+          <div *ngIf="others && others.length; then otherCount; else noOtherCount"></div>
+          <ng-template #otherCount>
+            <td class="table-col col-01 button-like" title="View Misc Reports" (click)="viewReportOthers($event)">{{others.length}}</td>
+          </ng-template>
+          <ng-template #noOtherCount>
+            <td class="table-col col-01 button-like" title="Load Misc Reports" (click)="loadReportOthers($event)"><span class="link-like">Not loaded</span></td>
+          </ng-template>
+        </tr>
+        <tr class="console-home-list-table-row">
+            <td class="table-col col-00">Logistics Reports</td>
+            <div *ngIf="logistics && logistics.length; then logisticsCount; else noLogisticsCount"></div>
+            <ng-template #logisticsCount>
+              <td class="table-col col-01 button-like" title="View Logistics Reports" (click)="viewLogisticsReports($event)">{{logistics.length}}</td>
+            </ng-template>
+            <ng-template #noLogisticsCount>
+              <td class="table-col col-01 button-like" title="Load Logistics Reports" (click)="loadLogisticsReports($event)"><span class="link-like">Not loaded</span></td>
+            </ng-template>
+          </tr>
+          <tr class="console-home-list-table-row">
+            <td class="table-col col-00">Timecards</td>
+            <div *ngIf="logistics && logistics.length; then timecardsCount; else noTimeCardsCount"></div>
+            <ng-template #timecardsCount>
+              <td class="table-col col-01 button-like" title="View Timecards" (click)="viewTimeCardReports($event)">{{timecards.length}}</td>
+            </ng-template>
+            <ng-template #noTimeCardsCount>
+              <td class="table-col col-01 button-like" title="Load Timecards" (click)="loadTimeCardReports($event)"><span class="link-like">Not loaded</span></td>
+            </ng-template>
+          </tr>
+          <tr class="console-home-list-table-row">
+          <td class="table-col col-00">Old Work Reports</td>
+          <div *ngIf="oldreports && oldreports.length; then oldReportCount; else noOldReportCount"></div>
+          <ng-template #oldReportCount>
+            <td class="table-col col-01 button-like" title="View Reports" (click)="viewReports($event)">{{oldreports.length}}</td>
+          </ng-template>
+          <ng-template #noOldReportCount>
+            <td class="table-col col-01 button-like" title="Load Old Reports" (click)="loadOldReports($event)"><span class="link-like">Not loaded</span></td>
+          </ng-template>
+        </tr>
+      </table>
+    </p-panel>
+    <p-panel [class.onsiteconsolex-home-subpanel]="true" header="Work Sites" [toggleable]="true">
+      <table class="console-home-list-table">
+        <tr class="console-home-list-table-row">
+          <td class="table-col col-00">Total Work Sites</td>
+          <div *ngIf="totalSites && totalSites.length; then totalSitesCount; else noCount"></div>
+          <ng-template #totalSitesCount>
+            <td class="table-col col-01 button-like" title="View Work Sites" (click)="viewWorkSites('all', $event)">{{totalSites.length}}</td>
+          </ng-template>
+        </tr>
+        <tr class="console-home-list-table-row" title="View Work Sites" (click)="viewWorkSites($event)">
+          <td class="table-col col-00">Active Work Sites</td>
+          <div *ngIf="sites && sites.length; then sitesCount; else noCount"></div>
+          <ng-template #sitesCount>
+            <td class="table-col col-01 button-like" title="View Work Sites" (click)="viewWorkSites('active', $event)">{{sites.length}}</td>
+          </ng-template>
+        </tr>
+      </table>
+    </p-panel>
+    <ng-template #noCount>
+      <td class="table-col col-01">Loading<span class="text-spinner" [ngStyle]="rotateStyle"></span></td>
+    </ng-template>
+  </p-panel>
+  <!-- <work-report-items></work-report-items> -->
+</ion-content>

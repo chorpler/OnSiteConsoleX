@@ -1,0 +1,61 @@
+.ui-dropdown-label {
+  padding-right: 1.8em !important;
+}
+page-config-values {
+  ion-content {
+    &.content, &.content-md {
+      margin-top: 56px;
+    }
+  }
+  .scroll-content {
+    overflow: auto;
+  }
+  .config-wrapper {
+    display: auto;
+  }
+  .config-tables-wrapper {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: flex-start;
+    align-content: space-between;
+    align-items: center;
+  }
+  .table-title-wrapper {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+  }
+  .table-title {
+    flex: 0 1 auto;
+    text-align: center;
+    font-weight: bold;
+  }
+  .table-title-buttons {
+    flex: 0 1 auto;
+  }
+  .config-button {
+    font-size: 16px;
+  }
+  .config-table-wrapper {
+    display: flex;
+    flex-flow: column nowrap;
+    flex: 0 1 auto;
+    justify-content: flex-start;
+    align-content: space-between;
+    align-items: center;
+    max-width: 80%;
+    margin-top: 20px;
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+  p-dataTable {
+    flex: 0 1 auto;
+    max-width: 90%;
+  }
+  .locid-code {
+    font-family: "RobotoMono";
+  }
+}

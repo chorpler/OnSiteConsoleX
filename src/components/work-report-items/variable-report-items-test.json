@@ -1,0 +1,23 @@
+{
+    "keys": [{
+            "key": "unit_number",
+            "value": "Unit No.",
+            "enabled": true
+        },
+        {
+            "key": "work_order_number",
+            "value": "Work Order No.",
+            "enabled": true
+        },
+        {
+            "key": "crew_number",
+            "value": "Crew No.",
+            "enabled": true
+        },
+        {
+            "key": "notes",
+            "value": "Report Notes",
+            "enabled": true
+        }
+    ]
+}

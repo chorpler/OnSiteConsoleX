@@ -1,0 +1,76 @@
+login {
+  .ui-dialog-titlebar {
+    padding: 0.5em 0.5em !important;
+  }
+  .dialog-header {
+    display         : flex        ;
+    flex-flow       : row nowrap  ;
+    justify-content : space-between ;
+    align-content   : center ;
+    align-items     : center ;
+    position: relative;
+    width: 100%;
+    .options-button {
+      @include button-like-block;
+      padding: 5px;
+      border-radius: 5px;
+    }
+  }
+  .login-input-wrapper {
+    width: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: flex-start;
+    align-content: flex-start;
+    input {
+      width: 100%;
+    }
+  }
+  .login-input-and-error-wrapper {
+    // margin-top: 5px;
+    margin-bottom: 5px;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-content: center;
+  }
+  .login-error {
+    background: rgba(255, 0, 0, 0.4);
+    margin-bottom: 1px;
+    text-align: center;
+    align-self: center;
+    width: 100%;
+    border-radius: 5px;
+
+  }
+  .login-invalid-input {
+
+  }
+  .login-problem {
+  }
+  .ui-inputgroup {}
+  .login-username {
+
+  }
+  .login-password {
+  }
+  .login-button-wrapper {
+    width: 100%;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    align-content: flex-start;
+    margin-top: 5px;
+    margin-bottom: 5px;
+  }
+  .login-button {
+    width: 100%;
+    .cancel {
+    }
+    .login {
+    }
+  }
+  .hide {
+    display: none;
+  }
+}

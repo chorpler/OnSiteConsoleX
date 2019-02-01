@@ -1,0 +1,115 @@
+<span class="dps-ancillary-calculations-component">
+  <div #printArea id="print-area" class="dps-ancillary-wrapper" *ngIf="dataReady">
+      <p-panel [class.dps-ancillary-panel]="true" [header]="chartOptions.title" [toggleable]="true">
+        <span class="dps-ancillary-distribution-wrapper">
+          <span class="dps-ancillary-graph">
+              <!-- <google-chart [pieChartData]="chartData" [pieChartOptions]="chartOptions"></google-chart> -->
+            <google-charts #dpsAncillaryPieChart *ngIf="dataReady" [class.dps-ancillary-google-chart]="true" (itemSelect)="chartSliceSelect($event)" [chartType]="chartType" [chartData]="chartData" [chartOptions]="chartOptions"></google-charts>
+          </span>
+          <table #DPSAncillaryCalcTable03 id="dps-ancillary-table-04" class="dps-ancillary-table" *ngIf="ancillaryGrid4 && ancillaryGrid4.length">
+            <thead class="dps-ancillary-calc-table-head">
+              <tr class="dps-ancillary-calc-table-head-row">
+                <th class="dps-ancillary-calc-table-th col-00">Category</th>
+                <th class="dps-ancillary-calc-table-th col-01">Value</th>
+                <th class="dps-ancillary-calc-table-th col-02">Total</th>
+                <th class="dps-ancillary-calc-table-th col-03">% of Total</th>
+              </tr>
+            </thead>
+            <tbody class="dps-ancillary-table-body">
+              <tr class="dps-ancillary-table-body-row" *ngFor="let row of ancillaryGrid4; let i=index">
+                <td class="dps-ancillary-table-td col-00">{{row[0]}}</td>
+                <td class="dps-ancillary-table-td col-01">{{row[1].toNumber() | currency:'USD':'symbol':'1.2-2'}}</td>
+                <td class="dps-ancillary-table-td col-02">{{row[2].toNumber() | currency:'USD':'symbol':'1.2-2'}}</td>
+                <td class="dps-ancillary-table-td col-03">{{row[3].toNumber() | percent:'1.2-2'}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </span>
+      </p-panel>
+      <p-panel [class.dps-ancillary-panel]="true" header="Summary of Revenues" [toggleable]="true">
+      <table #DPSAncillaryCalcTable01 id="dps-ancillary-table-01" class="dps-ancillary-table">
+        <!-- <thead class="dps-ancillary-calc-table-head">
+          <tr class="dps-ancillary-calc-table-head-row">
+            <th class="dps-ancillary-calc-table-th"></th>
+          </tr>
+        </thead> -->
+        <tbody class="dps-ancillary-table-body">
+          <tr class="dps-ancillary-table-body-row">
+            <td class="dps-ancillary-table-td label">Billable Technician Hours</td>
+            <td class="dps-ancillary-table-td data">{{billableHours | number:'1.2-2'}} </td>
+          </tr>
+          <tr class="dps-ancillary-table-body-row">
+            <td class="dps-ancillary-table-td label">Gross Weekly Revenue</td>
+            <!-- <td class="dps-ancillary-table-td data">{{grossRevenue | currency:'USD':'symbol':'1.2-2'}}</td> -->
+            <td class="dps-ancillary-table-td data">{{grossRevenue.toNumber() | currency:'USD':'symbol':'1.2-2'}} </td>
+          </tr>
+          <tr class="dps-ancillary-table-body-row">
+            <td class="dps-ancillary-table-td label">Technician Costs</td>
+            <td class="dps-ancillary-table-td data">{{techCosts.toNumber() | currency:'USD':'symbol':'1.2-2'}} </td>
+          </tr>
+          <tr class="dps-ancillary-table-body-row">
+            <td class="dps-ancillary-table-td label">Estimated Gross Profit</td>
+            <td class="dps-ancillary-table-td data">{{estProfit.toNumber() | currency:'USD':'symbol':'1.2-2'}} </td>
+          </tr>
+          <tr class="dps-ancillary-table-body-row">
+            <td class="dps-ancillary-table-td label">EGP% of Total Billables</td>
+            <td class="dps-ancillary-table-td data" *ngIf="estPercentDP.eq(0)">N/A</td>
+            <td class="dps-ancillary-table-td data" *ngIf="!estPercentDP.eq(0)">{{estPercentDP.toNumber() | percent:'1.2-2'}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </p-panel>
+    <p-panel [class.dps-ancillary-panel]="true" [header]="techCostsBreakdownHeader" [toggleable]="true">
+      <table #DPSAncillaryCalcTable02 id="dps-ancillary-table-02" class="dps-ancillary-table">
+        <thead class="dps-ancillary-calc-table-head">
+          <tr class="dps-ancillary-calc-table-head-row">
+            <th class="dps-ancillary-calc-table-th col-00">Category</th>
+            <th class="dps-ancillary-calc-table-th col-01">Value</th>
+            <th class="dps-ancillary-calc-table-th col-02">% Monthly</th>
+            <th class="dps-ancillary-calc-table-th col-03">Calculated<br/>Monthly Coverage</th>
+          </tr>
+        </thead>
+        <tbody class="dps-ancillary-table-body">
+          <tr class="dps-ancillary-table-body-row" *ngFor="let row of ancillaryGrid2; let i=index">
+            <td class="dps-ancillary-table-td col-00">{{row[0]}}</td>
+            <td class="dps-ancillary-table-td col-01">{{row[1].toNumber() | currency:'USD':'symbol':'1.2-2'}}</td>
+            <td class="dps-ancillary-table-td col-02" *ngIf="row[2] === 0">-</td>
+            <td class="dps-ancillary-table-td col-02" *ngIf="row[2] !== 0">{{row[2].toNumber() | percent:'1.2-2'}}</td>
+            <td class="dps-ancillary-table-td col-03" *ngIf="row[3] === 0">-</td>
+            <td class="dps-ancillary-table-td col-03" *ngIf="row[3] !== 0">{{row[3].toNumber() | percent:'1.2-2'}}</td>
+          </tr>
+          <tr class="dps-ancillary-table-body-row total">
+            <td class="dps-ancillary-table-td col-00">Total Technician Costs</td>
+            <td class="dps-ancillary-table-td col-01" colspan="3">{{totalTechCosts.toNumber() | currency:'USD':'symbol':'1.2-2'}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </p-panel>
+    <p-panel [class.dps-ancillary-panel]="true" header="Category Expenses" [toggleable]="true">
+      <table #DPSAncillaryCalcTable03 id="dps-ancillary-table-03" class="dps-ancillary-table" *ngIf="ancillaryGrid3 && ancillaryGrid3.length">
+        <thead class="dps-ancillary-calc-table-head">
+          <tr class="dps-ancillary-calc-table-head-row">
+            <th class="dps-ancillary-calc-table-th col-00">Category</th>
+            <th class="dps-ancillary-calc-table-th col-01">Value</th>
+            <th class="dps-ancillary-calc-table-th col-02">Total</th>
+            <th class="dps-ancillary-calc-table-th col-03">% of Total</th>
+          </tr>
+        </thead>
+        <tbody class="dps-ancillary-table-body">
+          <tr class="dps-ancillary-table-body-row" *ngFor="let row of ancillaryGrid3; let i=index">
+            <td class="dps-ancillary-table-td col-00">{{row[0]}}</td>
+            <td class="dps-ancillary-table-td col-01">{{row[1].toNumber() | currency:'USD':'symbol':'1.2-2'}}</td>
+            <td class="dps-ancillary-table-td col-02">{{row[2].toNumber() | currency:'USD':'symbol':'1.2-2'}}</td>
+            <td class="dps-ancillary-table-td col-03">{{row[3].toNumber() | percent:'1.2-2'}}</td>
+          </tr>
+          <tr class="dps-ancillary-table-body-row total">
+            <td class="dps-ancillary-table-td col-00">{{ancillaryGrid3Totals[0]}}</td>
+            <td class="dps-ancillary-table-td col-01">{{ancillaryGrid3Totals[1].toNumber() | currency:'USD':'symbol':'1.2-2'}}</td>
+            <td class="dps-ancillary-table-td col-02">{{ancillaryGrid3Totals[2].toNumber() | currency:'USD':'symbol':'1.2-2'}}</td>
+            <td class="dps-ancillary-table-td col-03">{{ancillaryGrid3Totals[3].toNumber() | percent:'1.2-2'}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </p-panel>
+  </div>
+</span>

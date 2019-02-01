@@ -1,0 +1,61 @@
+page-flagged-reports {
+  user-select: text;
+  .menubar-button {
+    font-size: 24px;
+    margin-left: 5px;
+    margin-right: 5px;
+    i {
+      font-size: 24px;
+    }
+  }
+  .button-like {
+    cursor:pointer;
+    &:hover {
+      background-color: rgba(0, 0, 128, 0.6);
+    }
+    &:active {
+      background-color: rgba(0, 0, 255, 0.9);
+    }
+  }
+  .reports-search-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    align-content: flex-start;
+  }
+
+  .reports-search-header-item {
+    display: inline;
+    flex: 1 0 auto;
+    width: 250px;
+    max-width: 250px;
+  }
+  .reports-search-header-items {
+    display: inline-block;
+  }
+  .reports-title {
+    display: inline;
+    flex: 1 0 auto;
+    width: 250px;
+    max-width: 250px;
+  }
+  .tiny-numeric-column {
+    width: 50px;
+    max-width: 50px;
+  }
+  .icon-button-wrapper {
+    display: block;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    margin: 0;
+    @include button-like-block;
+  }
+  .work-reports-button {
+
+  }
+  .icon-button-like {
+
+  }
+}

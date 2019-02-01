@@ -1,0 +1,21 @@
+page-reports-other {
+  user-select: text;
+  .reports-search-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    align-content: flex-start;
+  }
+
+  .reports-search-header-item {
+    display: inline;
+    flex: 1 0 auto;
+    width: 250px;
+    max-width: 250px;
+  }
+  .reports-search-header-items {
+    display: inline-block;
+  }
+
+}

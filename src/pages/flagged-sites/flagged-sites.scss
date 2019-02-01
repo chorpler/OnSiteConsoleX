@@ -1,0 +1,86 @@
+page-flagged-sites {
+  // ion-buttons {
+  //   height: 48px;
+  // }
+  .work-site-buttons {
+    font-size: 28px;
+    margin-left: 15px;
+    margin-right: 15px;
+    color: black;
+    // padding: 10px !important;
+  }
+
+  .work-sites-add-button {
+  }
+
+  .sorting {
+    color: white;
+    background-color: blue;
+  }
+
+
+  .single-row-items {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    align-content: flex-start;
+  }
+  .single-row-item {
+    flex: 1 0 auto;
+    width: 200px;
+    max-width: 220px;
+  }
+  .slot-container {
+    width: 30%;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+  }
+  button.site-button {
+    position: relative;
+    font-size: 14px;
+    font-family: "Roboto";
+    font-weight: bold;
+    background-color: transparent;
+    border: 1px solid lightgrey;
+    box-shadow: 2px 2px 2px lightgrey;
+    text-transform: none;
+    color: rgba(50, 50, 50, .95);
+    padding: 5px;
+    margin: 2px;
+    // border: none;
+    // box-shadow: none;
+    max-height:36px;
+    height: 28px;
+    align-self: flex-start;
+    width: 70%;
+    text-align: left !important;
+    top: -2.5px;
+    white-space: unset;
+    // height: 18px;
+  }
+
+  .single-row-item-group {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    align-content: flex-start;
+  }
+
+  .work-site-toggle-label {
+    display: inline-block;
+    flex: 1 0 auto;
+    width: 70px;
+    max-width: 70px;
+  }
+
+  .work-site-toggle-toggle {
+    display: inline-block;
+    flex: 1 0 auto;
+    width: 36px;
+    max-width: 36px;
+  }
+
+}

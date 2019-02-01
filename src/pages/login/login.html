@@ -1,0 +1,47 @@
+<!--
+  Generated template for the LoginPage page.
+
+  See http://ionicframework.com/docs/components/#navigation for more info on
+  Ionic pages and navigation.
+-->
+<ion-header>
+
+  <ion-navbar>
+    <!--<button ion-button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button>-->
+	    <ion-buttons start>
+	      <button ion-button icon-only (click)="goBack()">
+	        <ion-icon name="ion-android-arrow-back"></ion-icon>
+	      </button>
+	    </ion-buttons>
+    <ion-title>{{title}}</ion-title>
+  </ion-navbar>
+</ion-header>
+
+
+<ion-content padding class="login-modal-content">
+  <form [formGroup]="LoginForm" (ngSubmit)="onSubmit()">
+    <ion-list>
+      <ion-item *ngIf="loginError" color="danger">
+        <span class="center error">Username or password incorrect!</span>
+      </ion-item>
+      <ion-item>
+        <ion-label floating>Username</ion-label>
+        <ion-input type="text" autocapitalize=off name="id" formControlName="formUser" [class.invalid]="!LoginForm.controls.formUser.valid && (LoginForm.controls.formUser.dirty || submitAttempt)" autocomplete="username"></ion-input>
+      </ion-item>
+      <ion-item *ngIf="(!LoginForm.controls.formUser.valid && (LoginForm.controls.formUser.dirty || submitAttempt))">
+        <p>Please enter a valid username.</p>
+      </ion-item>
+      <ion-item>
+        <ion-label floating>Password</ion-label>
+        <ion-input type="password" name="password" formControlName="formPass" [class.invalid]="!LoginForm.controls.formPass.valid && (LoginForm.controls.formPass.dirty || submitAttempt)" autocomplete="current-password"></ion-input>
+      </ion-item>
+      <ion-item *ngIf="(!LoginForm.controls.formPass.valid && (LoginForm.controls.formPass.dirty || submitAttempt))">
+        <p>Please enter a valid password.</p>
+      </ion-item>
+      <div padding></div>
+      <button ion-button color="primary" block color="favorite" [disabled]="(!LoginForm.controls.formUser.valid && (LoginForm.controls.formUser.dirty || submitAttempt)) || (!LoginForm.controls.formPass.valid && (LoginForm.controls.formPass.dirty || submitAttempt))">Sign In</button>
+    </ion-list>
+  </form>
+</ion-content>

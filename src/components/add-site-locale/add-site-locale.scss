@@ -1,0 +1,133 @@
+add-site-locale {
+  .add-site-locale-dialog {
+    width: 600px;
+    max-width: 600px;
+    overflow-y: auto;
+    .add-site-locale-wrapper {
+      // width: 100%;
+      overflow-y: auto;
+      .add-site-locale-table {
+        width: 100%;
+        .add-site-locale-body {
+          tr {
+            td.label {
+              width: 40%;
+            }
+            td.data {
+              width: 60%;
+            }
+            &.error-row {
+              // background: rgba(255, 0, 0, 0.5);
+              color: rgba(255, 0, 0, 1.0);
+            }
+          }
+        }
+      }
+    }
+  }
+  .invisible {
+    visibility: hidden;
+  }
+  .cell-button-like {
+    font-size: 24px;
+    cursor: pointer;
+    &:hover {
+      background-color: rgba(0, 0, 128, 0.2);
+      color: rgba(255, 0, 128, 0.5);
+    }
+    &:active {
+      background-color: rgba(0, 0, 255, 0.5);
+      color: rgba(255, 0, 255, 0.9);
+    }
+  }
+  .cell-button-disabled {
+    font-size: 24px;
+    color: lightgrey;
+  }
+  .button-table {
+    width: 100%;
+    table-layout: fixed;
+    text-align: center;
+    overflow: visible;
+    &.top {
+      margin-bottom: 10px;
+      border-bottom: 1px dashed lightgrey;
+    }
+    &.bottom {
+      margin-top: 10px;
+      border-top: 1px dashed lightgrey;
+    }
+  }
+  .icon-button-like {
+    font-size: 20px;
+    cursor: pointer;
+    &:hover {
+      color: rgba(255, 0, 128, 0.5);
+    }
+    &:active {
+      color: rgba(255, 0, 255, 0.9);
+    }
+  }
+  .icon-greyed-out {
+    font-size: 24px;
+    color: lightgrey;
+    cursor: default;
+  }
+  .add-site-locale-table {
+    table-layout: fixed;
+    border-collapse: collapse;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  // .add-site-locale-body {
+
+  // }
+  .body-row {
+    td {
+      padding-top: 1px;
+      padding-bottom: 1px;
+    }
+  }
+  .label {
+    max-width: 150px;
+    text-align: right;
+    font-weight: bold;
+    padding-right: 2px;
+  }
+  .data {
+    width: 300px;
+    input {
+      width: 100%;
+      background: transparent;
+    }
+    p-dropdown {
+      width: 100%;
+      .ui-dropdown {
+        width: 100% !important;
+      }
+    }
+    textarea {
+      width: 100%;
+    }
+  }
+  .buttoncage {
+    padding: 10px 50px;
+    // button {
+    //   // margin-left: 50px;
+    //   // margin-right: 50px;
+    //   // width: 30%;
+    // }
+  }
+  .button-wrapper {
+    width: 100%;
+    margin-top: 10px;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-around;
+    align-content: center;
+    align-items: center;
+  }
+  .error {
+    background-color: rgba(255, 0, 0, 0.4);
+  }
+}

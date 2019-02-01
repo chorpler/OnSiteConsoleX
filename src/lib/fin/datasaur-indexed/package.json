@@ -1,0 +1,23 @@
+{
+  "name": "datasaur-indexed",
+  "version": "1.0.0",
+  "description": "Indexed record Datasaur module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fin-hypergrid/datasaur-indexed.git"
+  },
+  "author": "Jonathan Eiten",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fin-hypergrid/datasaur-indexed/issues"
+  },
+  "homepage": "https://github.com/fin-hypergrid/datasaur-indexed#readme",
+  "dependencies": {
+    "extend-me": "^2.3",
+    "fin-hypergrid-data-source-base": "^1.0.0"
+  }
+}

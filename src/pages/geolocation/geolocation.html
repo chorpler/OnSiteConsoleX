@@ -1,0 +1,61 @@
+<ion-header>
+  <ion-navbar>
+    <!-- <ion-buttons left>
+      <button ion-button menuToggle>
+        <ion-icon name="menu"></ion-icon>
+      </button>
+    </ion-buttons> -->
+    <ion-buttons left>
+      <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode && !data.currentlyOpeningPage">
+        <i class="fa fa-window-close-o"></i>
+      </button>
+      <button ion-button menuToggle *ngIf="!modalMode && !data.currentlyOpeningPage">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+      <ion-spinner name="bubbles" [class.spinner-opening-page]="true" *ngIf="data.currentlyOpeningPage"></ion-spinner>
+    </ion-buttons>
+    <ion-title>{{title}}</ion-title>
+    <!-- <ion-buttons right>
+      <button ion-button (click)="editSiteHours($event)" title="Edit site hours" >
+        <ion-icon class="icon-normal" name="ios-clock-outline"></ion-icon>
+      </button>
+      <button ion-button (click)="addJobSite()" title="Add work site" >
+        <ion-icon class="icon-normal" name="ios-add-circle-outline"></ion-icon>
+      </button>
+      <button ion-button (click)="saveNoExit()" title="Save but don't exit page" >
+        <ion-icon class="icon-normal" name="checkmark-circle-outline"></ion-icon>
+      </button>
+      <button *ngIf="siteIndex > 1" ion-button (click)="sitePrevious()" title="Previous work site" >
+        <ion-icon class="icon-normal" name="arrow-dropleft"></ion-icon>
+      </button>
+      <button *ngIf="!(siteIndex > 1)" ion-button disabled="true" title="(No previous work site)" >
+        <ion-icon class="icon-greyedout" name="arrow-dropleft"></ion-icon>
+      </button>
+      <button *ngIf="siteIndex < siteCount" ion-button (click)="siteNext()" title="Next work site" >
+        <ion-icon class="icon-normal" name="arrow-dropright"></ion-icon>
+      </button>
+      <button *ngIf="!(siteIndex < siteCount)" ion-button disabled="true" title="(No next work site)" >
+        <ion-icon class="icon-greyedout" name="arrow-dropright"></ion-icon>
+      </button>
+    </ion-buttons> -->
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  <div class="window" *ngIf="dataReady && data.ready()">
+    <div class="overall-page">
+      <div class="left-column">
+        <span class="label">(Tech geolocation records here)</span>
+      </div>
+      <div class="right-column">
+        <div class="map-col">
+          <!-- <agm-map [latitude]="latitude" [longitude]="longitude" [mapTypeId]="mapMode" [(zoom)]="mapZoom">
+            <agm-marker [latitude]="latitude" [longitude]="longitude"></agm-marker>
+          </agm-map> -->
+          <p-gmap #googleMapComponent [styleClass]="'map-pane-class'" [options]="gmapOptions" [overlays]="gmapOverlays" *ngIf="googleMapVisible"></p-gmap>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div #overlayTarget class="overlay-target"></div>
+</ion-content>

@@ -1,0 +1,99 @@
+<ion-header>
+  <ion-navbar>
+    <!-- <ion-buttons left>
+      <button ion-button icon-only menuToggle>
+        <ion-icon name="menu"></ion-icon>
+      </button>
+    </ion-buttons> -->
+    <ion-title>{{title}}</ion-title>
+    <ion-buttons right>
+      <button ion-button icon-only (tap)="newReportOther()">
+        <ion-icon class="period-reports-add-other-report-button-icon" name="add"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+
+<ion-content padding class="period-reports-content" *ngIf="dataReady">
+  <!-- <div class="period-reports-wrapper" *ngFor="let shift of period.getPayrollShifts()"> -->
+  <div class="period-reports-wrapper">
+    <!-- <ion-card class="period-reports-card"> -->
+    <!-- <div class="period-reports-header" *ngIf="shift.getShiftOtherReports().length > 0">{{tech.getFullName()}} &mdash; {{shift.getShiftDate().format("MMM DD")}}</div> -->
+    <!-- <table class="period-reports-table" *ngIf="shift.getShiftOtherReports().length > 0"> -->
+    <table class="period-reports-table">
+      <thead class="period-reports-grid-header">
+        <tr>
+          <!-- <th class="col01" >ID</th> -->
+          <th class="col02">Date</th>
+          <!-- <th class="col03">CLNT</th> -->
+          <!-- <th class="col04">LOC</th> -->
+          <!-- <th class="col05">LocID</th> -->
+          <th class="col06">Type</th>
+          <th class="col07">Hours</th>
+          <th class="col08">Training</th>
+          <th class="col09">Travel</th>
+          <!-- <th class="col08">Unit</th>
+          <th class="col09">WO#</th> -->
+          <!-- <th class="col10 period-reports-col-notes">Notes</th> -->
+        </tr>
+      </thead>
+      <tbody class="period-reports-grid-body" *ngFor="let shift of period.getPayrollShifts()">
+        <!-- <span class="period-reports-row-wrapper"> -->
+          <tr class="table-row-button-like" *ngFor="let report of shift.getShiftOtherReports(); let i=index" (tap)="openReport(report)">
+            <td class="col02">{{report.report_date.format("MMM DD")}}</td>
+            <td class="col06">{{report.type}}</td>
+            <td class="col07">{{report.time}}</td>
+            <td class="col08">{{report.training_type}}</td>
+            <td class="col09">{{report.travel_location}}</td>
+            <!-- <td class="col10 period-reports-col-notes">{{report.notes}}</td> -->
+          </tr>
+        <!-- </span> -->
+      </tbody>
+    </table>
+  </div>
+  <!-- <ion-grid>
+    <span class="shift-reports-grid-header">
+      <ion-row>
+        <ion-col>ID</ion-col>
+        <ion-col>DATE</ion-col>
+        <ion-col>CLNT</ion-col>
+        <ion-col>LOC</ion-col>
+        <ion-col>LocID</ion-col>
+        <ion-col>Tech</ion-col>
+        <ion-col>Hours</ion-col>
+        <ion-col>Unit</ion-col>
+        <ion-col>WO#</ion-col>
+        <ion-col>Notes</ion-col>
+      </ion-row>
+    </span>
+    <span class="shift-reports-grid-body">
+      <ion-row *ngFor="let report of shift.getShiftReports(); let i=index">
+        <ion-col>{{report._id}}</ion-col>
+        <ion-col>{{report.report_date}}</ion-col>
+        <ion-col>{{report.client}}</ion-col>
+        <ion-col>{{report.location}}</ion-col>
+        <ion-col>{{report.location_id}}</ion-col>
+        <ion-col>{{report.technician}}</ion-col>
+        <ion-col>{{report.getRepairHours()}}</ion-col>
+        <ion-col>{{report.unit_number}}</ion-col>
+        <ion-col>{{report.work_order_number}}</ion-col>
+        <ion-col>{{report.notes}}</ion-col>
+      </ion-row>
+    </span>
+  </ion-grid> -->
+</ion-content>
+<ion-footer>
+  <ion-toolbar>
+    <ion-buttons left>
+      <button type="button" ion-button icon-only color="royal" (click)="cancel()">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-buttons right>
+      <button type="submit" ion-button icon-only color="favorite" (click)="cancel()">
+        <ion-icon name="checkmark"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

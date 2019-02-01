@@ -1,0 +1,54 @@
+<ion-header>
+  <ion-navbar>
+    <button ion-button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-title>{{title}}</ion-title>
+    <ion-buttons right>
+      <!-- <span class="menubar-button button-like-block" (click)="getOldReports($event)" title="Download old reports">
+        <i class="fa fa-refresh"></i>
+      </span> -->
+      <!-- <button class="menubar-button" ion-button icon-only (click)="downloadOldReports($event)" title="Download old reports">
+        <i class="fa fa-cloud-download"></i>
+      </button> -->
+      <button class="menubar-button" ion-button icon-only (click)="downloadOldReports($event)" title="Download old reports">
+        <i class="fa fa-cloud-download"></i>
+      </button>
+      <button class="menubar-button" ion-button icon-only (click)="refreshData($event)" title="Reload all reports from server">
+        <i class="fa fa-refresh"></i>
+      </button>
+      <button class="menubar-button" ion-button icon-only title="Export Reports for Payroll" (click)="exportWorkReportsForPayroll($event)">
+        <ion-icon class="payroll-options-button" name="md-grid"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding *ngIf="dataReady && data.ready()">
+  <div class="reports-search-header">
+    <div class="reports-search-header-item">
+      <ion-icon name="search"></ion-icon>
+      <input #globalSearch pInputText type="text" placeholder="Global search" />
+    </div>
+    <div class="reports-search-header-item">From: <p-calendar #dateFrom [(ngModel)]="fromDate" (ngModelChange)="updateFromDate($event)" [showIcon]="true"></p-calendar></div>
+    <div class="reports-search-header-item">To: <p-calendar #dateTo [(ngModel)]="toDate" (ngModelChange)="updateToDate($event)" [minDate]="fromDate" [showIcon]="true"></p-calendar></div>
+    <div class="reports-title">Flagged Work Reports: {{flaggedReports.length}} total<span class="table-filtered" *ngIf="dt && dt.filteredValue && dt.filteredValue.length >= 0">, {{dt.filteredValue.length}} match</span></div>
+  </div>
+  <!-- <p-dataTable #dt [value]="reports" [rows]="500" [paginator]="true" [globalFilter]="globalSearch" [pageLinks]="3" [rowsPerPageOptions]="[50,100,200,500,1000,2000]" selectionMode="single" [(selection)]="selectedReport" (onRowSelect)="onRowSelect($event)" *ngIf="dataReady && reports && reports.length"> -->
+  <p-dataTable #dt [value]="flaggedReports" [resizableColumns]="true" [rows]="rowCount" [paginator]="true" [globalFilter]="globalSearch" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" selectionMode="single" (onRowSelect)="onRowSelect($event)" *ngIf="dataReady && reports && reports.length">
+    <p-column [style]="styleColEdit">
+      <ng-template pTemplate="header">--</ng-template>
+      <ng-template let-report="rowData" pTemplate="body">
+        <!-- <button type="button" pButton (click)="showReport(report)" icon="fa-pencil-square-o"></button> -->
+        <span class="icon-button-wrapper" title="View work report">
+          <i class="fa fa-pencil-square-o work-reports-button-icon" (click)="showReport(report, $event)"></i>
+        </span>
+      </ng-template>
+    </p-column>
+    <p-column [style]="styleColIndex" field="_id" header="#">
+      <ng-template pTemplate="body" let-col let-ri="rowIndex">{{ri+1}}</ng-template>
+    </p-column>
+    <p-column *ngFor="let col of cols" [field]="col.field" [header]="col.header" [sortable]="true" [filter]="col.filter" [filterPlaceholder]="col.filterPlaceholder"></p-column>
+  </p-dataTable>
+</ion-content>
+<report-view-beta #reportView *ngIf="reportViewVisible" [class.report-view-component]="true" [report]="report" [reports]="editReports" [tech]="tech" [site]="site" [sites]="sites" (save)="reportViewSave($event)" (cancel)="reportViewCancel($event)"></report-view-beta>

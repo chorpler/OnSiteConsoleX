@@ -1,0 +1,24 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons left>
+      <button ion-button menuToggle>
+        <ion-icon name="menu"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>{{title}}</ion-title>
+    <ion-buttons right>
+      <button class="menubar-button" ion-button icon-only (click)="showOptions($event)" title="Options">
+        <i class="fa fa-cog" aria-hidden="true"></i>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding *ngIf="dataReady && data.ready()">
+  <div class="schedule-choose-dropdown-wrapper">
+    <p-dropdown [class.dropdown-creator]="true" [options]="creatorList" [(ngModel)]="creator" (onChange)="selectCreator(creator)"></p-dropdown>
+  </div>
+  <div class="schedule-choose-calendar-container">
+    <p-schedule [events]="events" [options]="scheduleOptions" (onEventClick)="openScheduleEvent($event)" [height]="calendarHeight"></p-schedule>
+  </div>
+</ion-content>

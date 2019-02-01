@@ -1,0 +1,28 @@
+<ion-header>
+  <ion-navbar>
+    <button ion-button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-title>{{title}}</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  <ion-card  class="schedule-select-card" id="scheduleCard" *ngIf="dataReady">
+    <ion-list  class="schedule-select-list" id="scheduleList" >
+      <ion-item class="schedule-select-item" >
+        <ion-label floating class="schedule-select-creator-label">Creator</ion-label>
+        <ion-select class="schedule-select-creator-select" [(ngModel)]="creator" (ngModelChange)="selectCreator(creator)">
+          <ion-option *ngFor="let creator of creators" [value]="creator">{{creator.getFullNameNormal()}}</ion-option>
+        </ion-select>
+      </ion-item>
+      <div class="schedule-select-calendar-wrapper">
+        <div class="schedule-select-calendar-container">
+          <p-calendar [inline]="true" class="schedule-date schedule-start-date" [(ngModel)]="dateStart" [disabledDates]="invalidDates" [minDate]="minDate" [maxDate]="maxDate" readonlyInput="readonlyInput" dateFormat="dd M yy" (onSelect)="openScheduleByDate(dateStart)"></p-calendar>
+          <!-- <div class="ion-item-button-like" *ngFor="let schedule of schedules; let i=index" (tap)="openSchedule(schedule)">{{schedule.getStartDate().format("ddd DD MMM YYYY")}} ({{schedule.creator}})</div> -->
+        </div>
+      </div>
+    </ion-list>
+
+  </ion-card>
+</ion-content>

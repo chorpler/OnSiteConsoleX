@@ -1,0 +1,121 @@
+dps-ancillary-calculations-component, .dps-ancillary-calculations-component {
+  #print-area {
+    user-select: text;
+  }
+  .dps-ancillary-panel {
+    .ui-panel, .ui-panel-content {
+      background-color: transparent;
+    }
+  }
+  .dps-ancillary-table {
+    table-layout: fixed;
+    border-collapse: collapse;
+    // width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    .label {
+      text-align: left;
+      font-weight: bold;
+      width: 70%;
+    }
+    .data {
+      width: 30%;
+      font-family: "RobotoMono", "Courier New", monospace;
+      text-align: right;
+    }
+  }
+  .dps-ancillary-table th, .dps-ancillary-table td {
+    border: 1px solid lightgrey;
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+  .dps-ancillary-table td {
+    height: 30px;
+  }
+  tr.total {
+    font-weight: bold;
+    .col-00 {
+      text-align: left;
+    }
+    .col-01 {
+      font-family: "RobotoMono", "Courier New", monospace;
+      text-align: right;
+    }
+  }
+  td.col-00 {
+    font-family: "Roboto", sans-serif;
+    text-align: left;
+  }
+  td.col-01 {
+    font-family: "RobotoMono", "Courier New", monospace;
+    text-align: right;
+  }
+  td.col-02 {
+    font-family: "RobotoMono", "Courier New", monospace;
+    text-align: right;
+  }
+  td.col-03 {
+    font-family: "RobotoMono", "Courier New", monospace;
+    text-align: right;
+  }
+  .dps-calc-input-expenses {
+    width: 75px;
+    .text-input, .text-input-md {
+      margin: 0;
+    }
+  }
+  .dps-calc-select-period {
+    height: 50px;
+    width: 150px;
+    button {
+      width: 150px;
+      height: 50px;
+    }
+  }
+  .dps-calculations-component-inplace-input {
+    width: 50px;
+    max-width: 50px;
+  }
+  .dps-ancillary-distribution-wrapper {
+    height: 500px;
+  }
+  .dps-ancillary-graph {
+    height: 500px;
+    // resize: both;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-content: center;
+    align-items: center;    // overflow: auto;
+    google-charts {
+    // resize: both;
+    // overflow: auto;
+      .ui-widget {
+        height: 500px;
+        resize: both;
+        overflow: auto;
+      }
+    }
+  }
+  .google-pie-chart {
+    height: 500px;
+    svg {
+      height: 500px !important;
+    }
+  }
+  google-charts {
+    height: 500px;
+    .ui-widget {
+      height: 500px;
+    }
+  }
+  .dps-ancillary-google-chart {
+    height: 500px;
+    svg {
+      height: 500px !important;
+    }
+    .ui-widget {
+      height: 500px;
+    }
+  }
+}

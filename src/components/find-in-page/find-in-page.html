@@ -1,0 +1,67 @@
+<p-dialog #findInPageDialog [styleClass]="'find-dialog-box'" [style]="dialogStyle" [minHeight]="dialogStyle['min-height']" [(visible)]="isVisible" [draggable]="dialogDrag" [resizable]="dialogResize" [closable]="true" [modal]="false" (onHide)="closeSearchWindow($event)">
+  <p-header>
+    <span class="dialog-header">
+      <span class="header-title">{{title}}</span>
+      <!-- <span class="options-button" (click)="showOptions($event)"><i class="fa fa-cog"></i></span> -->
+    </span>
+  </p-header>
+  <div class="find-component">
+    <div class="find-body">
+      <!-- <input class="find-input" type="search" placeholder="Search..." autocomplete="off" autofocus [(ngModel)]="search" (ngModelChange)="updateSearch(search, $event)" /> -->
+      <!-- <input #findInput class="find-input" type="search" placeholder="Search..." autocomplete="off" autofocus [(ngModel)]="search" (keypress)="inputKeyPressed($event)" /> -->
+      <div class="find-input-and-controls">
+        <span class="input-wrapper">
+          <input #findInput class="find-input" type="search" placeholder="Search..." autocomplete="off" autofocus [(ngModel)]="search" (keyup)="inputKeyUp($event)" (ngModelChange)="findMatch(search, false)" />
+        </span>
+        <span class="controls-wrapper">
+          <span class="control case-sensitive" [class.checked]="caseSensitive" title="Case sensitive (Alt-C)" (click)="toggleControl(1, $event)"></span>
+          <span class="control prose-only" [class.checked]="proseOnly" title="Search text only, not buttons (Alt-W)" (click)="toggleControl(2, $event)"></span>
+          <span class="control regex" [class.checked]="useRegex" title="Use regular expression (Alt-R)" (click)="toggleControl(3, $event)"></span>
+        </span>
+      </div>
+      <div class="find-matches matches" *ngIf="total > 0">
+        <span class="find-matches-current">{{current}} </span>
+        <!-- <span class="find-matches-divider"> / </span> -->
+        <span class="find-matches-divider"> of </span>
+        <span class="find-matches-total"> {{total}}</span>
+      </div>
+      <div class="find-matches no-matches" *ngIf="total === 0 && search">No results</div>
+      <div class="find-matches no-search" *ngIf="total === 0 && !search">No results</div>
+      <div class="button find-back" title="Previous match (Shift+F3)" (click)="findPrevious($event)"></div>
+      <div class="button find-forward" title="Next match (F3)" (click)="findNext($event)"></div>
+      <!-- <div class="button find-back" title="Previous match (Shift+F3)" (click)="findPrevious($event)">&lt;</div>
+      <div class="button find-forward" title="Next match (F3)" (click)="findNext($event)">&gt;</div> -->
+      <!-- <div class="button find-forward">&darr;</div> -->
+      <!-- <div class="button find-back">&uarr;</div> -->
+      <!-- <div class="button find-forward">&#8681;</div> -->
+      <!-- <div class="button find-back">&#8679;</div> -->
+      <!-- <div class="button find-close" title="Close search (Esc)" (click)="closeSearchWindow($event)">✕</div> -->
+    </div>
+  </div>
+</p-dialog>
+
+<!-- <ion-content padding class="login-modal-content">
+  <form [formGroup]="LoginForm" (ngSubmit)="onSubmit()">
+    <ion-list>
+      <ion-item *ngIf="loginError" color="danger">
+        <span class="center error">Username or password incorrect!</span>
+      </ion-item>
+      <ion-item>rols
+        <ion-label floating>Username</ion-label>
+        <ion-input type="text" autocapitalize=off name="id" formControlName="formUser" [class.invalid]="!LoginForm.controls.formUser.valid && (LoginForm.controls.formUser.dirty || submitAttempt)" autocomplete="username"></ion-input>
+      </ion-item>
+      <ion-item *ngIf="(!LoginForm.controls.formUser.valid && (LoginForm.controls.formUser.dirty || submitAttempt))">
+        <p>Please enter a valid username.</p>
+      </ion-item>
+      <ion-item>
+        <ion-label floating>Password</ion-label>
+        <ion-input type="password" name="password" formControlName="formPass" [class.invalid]="!LoginForm.controls.formPass.valid && (LoginForm.controls.formPass.dirty || submitAttempt)" autocomplete="current-password"></ion-input>
+      </ion-item>
+      <ion-item *ngIf="(!LoginForm.controls.formPass.valid && (LoginForm.controls.formPass.dirty || submitAttempt))">
+        <p>Please enter a valid password.</p>
+      </ion-item>
+      <div padding></div>
+      <button ion-button color="primary" block color="favorite" [disabled]="(!LoginForm.controls.formUser.valid && (LoginForm.controls.formUser.dirty || submitAttempt)) || (!LoginForm.controls.formPass.valid && (LoginForm.controls.formPass.dirty || submitAttempt))">Sign In</button>
+    </ion-list>
+  </form>
+</ion-content> -->

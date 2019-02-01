@@ -1,0 +1,161 @@
+<p-dialog #globalOptionsDialog [class.options-dialog-box]="true" header="Options" [(visible)]="isVisible" [draggable]="true" [resizable]="true" [closable]="false" [modal]="false" [contentStyle]="{'overflow':'visible'}">
+  <div class="options-wrapper">
+    <input class="dummyInputForPrimeNGFivePointTwo" />
+    <p-tabView [styleClass]="'options-tabview'" [activeIndex]="tabIndex">
+      <p-tabPanel [header]="currentPage" *ngIf="showCurrentPage"></p-tabPanel>
+      <p-tabPanel header="Global">
+        <div class="options-main">
+          <span class="options-sectiontitle developer" *ngIf="data.status.role==='dev'">Developer</span>
+          <span class="options-section developer">
+            <span class="options-item-wrapper" title="Default adapter for local PouchDB databases">
+              <span class="options-label">PouchDB Adapter</span>
+              <input class="options-input" type="text" [(ngModel)]="prefs.SERVER.localAdapter" />
+            </span>
+            <span class="options-item-wrapper" title="Number of work reports to load at startup">
+              <span class="options-label">Startup Work Reports</span>
+              <input class="options-input" type="number" min="0" step="1000" [(ngModel)]="prefs.CONSOLE.global.reportsToLoad" />
+            </span>
+            <span class="options-item-wrapper" title="Name of last loaded page (for tweaking)">
+              <span class="options-label">Last Startup Page</span>
+              <input class="options-input" type="text" [(ngModel)]="prefs.CONSOLE.global.lastPage" />
+            </span>
+          </span>
+          <span class="options-sectiontitle">General</span>
+          <span class="options-section">
+            <span class="options-item-wrapper" title="Enable funny sounds for certain actions">
+              <span class="options-label">Enable sounds</span>
+              <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.USER.audio" binary="true" (onChange)="soundToggled($event)"></p-checkbox>
+            </span>
+            <span class="options-item-wrapper" title="Load last page you were on automatically when app starts?">
+              <span class="options-label">Start on Last Page</span>
+              <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.global.goToLastPage" binary="true"></p-checkbox>
+            </span>
+            <span class="options-item-wrapper" title="Load work reports automatically when app starts?">
+              <span class="options-label">Startup Work Reports</span>
+              <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.global.loadReports" binary="true"></p-checkbox>
+            </span>
+            <span class="options-item-wrapper" title="Load non-work reports (training, travel, etc.) automatically when app starts?">
+              <span class="options-label">Startup Misc Reports</span>
+              <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.global.loadMiscReports" binary="true"></p-checkbox>
+            </span>
+            <span class="options-item-wrapper" title="Load old work reports automatically when app starts?">
+              <span class="options-label">Startup Old Reports</span>
+              <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.global.loadOldReports" binary="true"></p-checkbox>
+            </span>
+            <span class="options-item-wrapper" title="How many payroll periods to load">
+              <span class="options-label">Payroll Periods</span>
+              <p-dropdown [class.options-periods-dropdown]="true" [options]="payPeriodsSelect" [(ngModel)]="prefs.CONSOLE.global.payroll_periods" (onChange)="changePayrollPeriods($event)"></p-dropdown>
+            </span>
+            <span class="options-item-wrapper" title="How many payroll periods to load">
+              <span class="options-item-label">(to {{firstPeriodDate.format("DD MMM YYYY")}})</span>
+            </span>
+          </span>
+          <span class="options-sectiontitle">Scheduling</span>
+          <span class="options-section">
+            <span class="options-item-wrapper" title="What weekday should the Schedule-choosing calendar start on?">
+              <span class="options-label">Calendar Start Day</span>
+              <!-- <input [class.options-input]="true" type="number" min="0" max="6" step="1" [(ngModel)]="prefs.CONSOLE.global.weekStartDay" /> -->
+              <p-dropdown [class.options-dropdown]="true" [options]="weekdayMenu" [(ngModel)]="prefs.CONSOLE.global.weekStartDay"></p-dropdown>
+            </span>
+          </span>
+          <span class="options-sectiontitle">Invoices</span>
+          <span class="options-section">
+            <span class="options-item-wrapper has-buttons" title="Current invoice number for Halliburton invoices">
+              <span class="options-label">Halliburton Invoice Number</span>
+              <input class="options-input" type="number" min="0" step="1" [(ngModel)]="halliburtonInvoiceNumber" />
+              <i class="fa fa-check-circle-o options-button save-button" aria-hidden="true" title="Save to server" (click)="saveHalliburtonInvoiceNumber($event)"></i>
+              <i class="fa fa-refresh options-button refresh-button" aria-hidden="true" [class.spin-icon]="spinner1On" [class.stop-icon]="!spinner1On" title="Refresh from server" (click)="refreshHalliburtonInvoiceNumber($event)"></i>
+            </span>
+          </span>
+          <span class="options-section">
+            <span class="options-item-wrapper has-buttons" title="Current invoice number for Keane invoices">
+              <span class="options-label">Keane Invoice Number</span>
+              <input class="options-input" type="number" min="0" step="1" [(ngModel)]="keaneInvoiceNumber" />
+              <i class="fa fa-check-circle-o options-button save-button" aria-hidden="true" title="Save to server" (click)="saveKeaneInvoiceNumber($event)"></i>
+              <i class="fa fa-refresh options-button refresh-button" aria-hidden="true" [class.spin-icon]="spinner2On" [class.stop-icon]="!spinner2On" title="Refresh from server" (click)="refreshKeaneInvoiceNumber($event)"></i>
+            </span>
+          </span>
+          <span class="options-sectiontitle">Data Tables</span>
+          <span class="options-section">
+            <span class="options-item-wrapper" title="Default number of employees shown on each page">
+              <span class="options-label">Employees / Page</span>
+              <input class="options-input" type="number" min="1" step="1" [(ngModel)]="prefs.CONSOLE.pages.employees" />
+            </span>
+            <span class="options-item-wrapper" title="Default number of work reports shown on each page">
+              <span class="options-label">Work Reports / Page</span>
+              <input class="options-input" type="number" min="1" step="1" [(ngModel)]="prefs.CONSOLE.pages.reports" />
+            </span>
+            <span class="options-item-wrapper" title="Default number of non-work reports shown on each page">
+              <span class="options-label">Misc Reports / Page</span>
+              <input class="options-input" type="number" min="1" step="1" [(ngModel)]="prefs.CONSOLE.pages.reports_other" />
+            </span>
+            <span class="options-item-wrapper" title="Default number of work sites shown on each page">
+              <span class="options-label">Work Sites / Page</span>
+              <input class="options-input" type="number" min="1" step="1" [(ngModel)]="prefs.CONSOLE.pages.jobsites" />
+            </span>
+          </span>
+        </div>
+      </p-tabPanel>
+      <p-tabPanel header="Advanced">
+        <div class="options-main">
+          <span class="options-sectiontitle">Server</span>
+          <span class="options-section">
+            <table class="db-table">
+              <thead>
+                <tr class="header-row">
+                  <th class="label"><span class="label-text">Key</span></th>
+                  <th class="data"><span class="label-text">Value</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="body-row">
+                  <td class="label">Server</td>
+                  <td class="data">
+                    <input class="advanced-input" type="text" [(ngModel)]="prefs.SERVER.server" />
+                  </td>
+                </tr>
+                <tr class="body-row">
+                  <td class="label">Protocol</td>
+                  <td class="data">
+                    <input class="advanced-input" type="text" [(ngModel)]="prefs.SERVER.protocol" />
+                  </td>
+                </tr>
+                <tr class="body-row">
+                  <td class="label">Port</td>
+                  <td class="data">
+                    <input class="advanced-input" type="number" step="1" min="0" [(ngModel)]="prefs.SERVER.port" />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </span>
+          <span class="options-sectiontitle">Databases</span>
+          <span class="options-section">
+            <table class="db-table">
+              <thead>
+                <tr class="header-row">
+                  <th class="label"><span class="label-text">Key Code</span></th>
+                  <th class="data" ><span class="label-text">DB Name</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="body-row" *ngFor="let key of prefs.getDBKeys(true)">
+                  <td class="label"><span class="label-text">{{key}}</span></td>
+                  <td class="data">
+                    <input class="advanced-input" [(ngModel)]="prefs.DB[key]" />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </span>
+        </div>
+      </p-tabPanel>
+    </p-tabView>
+  </div>
+  <p-footer>
+    <div class="options-buttons">
+      <button class="ui-button-danger  cancel" pButton type="button" (click)="cancel($event)"   label="Cancel"></button>
+      <button class="ui-button-success save  " pButton type="button" (click)="save($event)"     label="Save"  ></button>
+    </div>
+  </p-footer>
+</p-dialog>

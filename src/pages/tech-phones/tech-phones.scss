@@ -1,0 +1,86 @@
+page-tech-phones {
+  .tech-phones-menubar-button {
+    font-size: 28px;
+    margin-left: 10px;
+    margin-right: 10px;
+    &.button {
+      @include button-like-block;
+      width: 32px;
+    }
+    &.reset-icon {
+      &::before {
+        content: url('assets/images/reset_icon.svg');
+        // width: 24px;
+        position: relative;
+        top: 7px;
+      }
+    }
+  }
+  .phones-table {
+    // width: 50%;
+    .col-01 {
+      max-width: 250px;
+    }
+    .col-02,.col-03,.col-04 {
+      // max-width: 100px;123
+      // max-width: 50px;
+    }
+  }
+  .table-header-contents {
+    width: 100%;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    align-content: flex-start;
+    align-items: flex-start;
+    .column-choose-wrapper {
+      flex: 1 1 300px;
+      text-align: left;
+    }
+    .global-filter-wrapper {
+      flex: 1 1 300px;
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: flex-end;
+      align-content: center;
+      align-items: center;
+      .global-filter-icon {
+        flex: 0 1 30px;
+        text-align: right;
+      }
+      .global-filter-input {
+        flex: 0 1 250px;
+        text-align: left;
+      }
+    }
+  }
+  .phones-table-caption {
+
+  }
+  .header-col-button {
+    width: 30px;
+    max-width: 30px;
+  }
+  .header-col {
+
+  }
+  .header-col-button {
+
+  }
+  .col-filter-header {
+    .phones-col-filter {
+      width: 100%;
+    }
+  }
+  .icon-button-wrapper {
+    .phones-button-icon {
+
+    }
+  }
+  .body-col {
+
+  }
+  .cell-body-data {
+
+  }
+}

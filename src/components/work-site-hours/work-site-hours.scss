@@ -1,0 +1,114 @@
+// .edit-site-hours-modal {
+//   .modal-wrapper {
+//     width: 50%;
+//     left: calc(50% - (50%/2));
+//     height: 85%;
+//     top: calc(50% - (85%/2));
+//   }
+// }
+
+// $hours-col1-width: 85px;
+
+work-site-hours {
+  .site-hours-dialog {
+    min-width: 600px;
+    min-height: 600px;
+  }
+  .work-site-hours-component-wrapper {
+    background-color: white;
+  }
+  .work-site-hours-all-tables {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    width: 100%;
+  }
+  .work-site-hours-table-wrapper {
+    flex: 0 1 auto;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+    width: 100%;
+  }
+  .work-site-hours-title-and-hours-wrapper {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 4px;
+    padding-bottom: 10px;
+    // margin-top: 10px;
+    margin-bottom: 4px;
+    background-color: lightgrey;
+  }
+  .work-site-hours-table-title {
+    flex: 0 1 auto;
+    width: 50%;
+    font-weight: bold;
+    font-size: 24px;
+    text-align: left;
+    padding-left: 4px;
+    border-radius: 4px;
+  }
+  .work-site-hours-table-hours {
+    flex: 0 1 auto;
+    width: 50%;
+    text-align: right;
+    padding-left: 4px;
+  }
+  .work-site-hours-dropdown-label {
+    font-size: 16px;
+    text-align: right;
+    font-weight: bold;
+    padding-right: 2px;
+  }
+  .work-site-dropdown-starttime {
+    text-align: left;
+    min-width: 70px;
+    .ui-dropdown {
+      min-width: 70px;
+    }
+  }
+  .work-site-hours-table {
+    // table-layout: fixed;
+    border-collapse: collapse;
+    width: 100%;
+    // max-width: 600px;
+    td.col-00, th.col-00 {
+      max-width: 100px;
+      width: 20%;
+      // max-width: 150px;
+    }
+    td:not(.col-00), th:not(.col-00) {
+      width: 11%;
+      max-width: 50px;
+    }
+    .hours-data-input {
+      width: 100%;
+    }
+      // width: 70px;
+      // max-width: 75px;
+  }
+  .col-body, .col-head {
+      // width: 70px;
+      // max-width: 75px;
+  }
+  .col-label {
+    min-width: 120px;
+    width: 120px;
+    font-weight: bold;
+    text-align: right;
+    padding-right: 4px;
+  }
+  .hours-default-hours-input {
+    width: 50px;
+  }
+
+}

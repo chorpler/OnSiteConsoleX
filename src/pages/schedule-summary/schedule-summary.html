@@ -1,0 +1,32 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons left>
+      <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode' && !dataServ.currentlyOpeningPage">
+        <i class="fa fa-window-close-o"></i>
+      </button>
+      <button ion-button menuToggle *ngIf="modalMode && !dataServ.currentlyOpeningPage">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+      <ion-spinner name="bubbles" [class.spinner-opening-page]="true" *ngIf="dataServ.currentlyOpeningPage"></ion-spinner>
+    </ion-buttons>
+    <ion-title>Schedule Summary</ion-title>
+  </ion-navbar>
+
+</ion-header>
+
+
+<ion-content padding>
+  <p *ngIf="!dataReady">Tain't no output data here 'tawl.</p>
+  <table *ngIf="dataReady">
+    <thead>
+      <tr>
+        <th *ngFor="let head of data.header">{{head}}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let row of data.rows">
+        <td *ngFor="let col of row">{{col}}</td>
+      </tr>
+    </tbody>
+  </table>
+</ion-content>

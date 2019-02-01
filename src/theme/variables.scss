@@ -1,0 +1,97 @@
+// Ionic Variables and Theming. For more info, please see:
+// http://ionicframework.com/docs/v2/theming/
+$font-path: "../assets/fonts";
+
+@import "ionic.globals";
+
+
+// Shared Variables
+// --------------------------------------------------
+// To customize the look and feel of this app, you can override
+// the Sass variables found in Ionic's source scss files.
+// To view all the possible Ionic variables, see:
+// http://ionicframework.com/docs/v2/theming/overriding-ionic-variables/
+
+
+
+
+// Named Color Variables
+// --------------------------------------------------
+// Named colors makes it easy to reuse colors on various components.
+// It's highly recommended to change the default colors
+// to match your app's branding. Ionic uses a Sass map of
+// colors so you can add, rename and remove colors as needed.
+// The "primary" color is the only required color in the map.
+
+$colors: (
+  primary:    #488aff,
+  secondary:  #32db64,
+  danger:     #f53d3d,
+  light:      #f4f4f4,
+  dark:       #222
+);
+
+
+// App iOS Variables
+// --------------------------------------------------
+// iOS only Sass variables can go here
+
+
+
+
+// App Material Design Variables
+// --------------------------------------------------
+// Material Design only Sass variables can go here
+
+
+
+
+// App Windows Variables
+// --------------------------------------------------
+// Windows only Sass variables can go here
+
+
+
+
+// App Theme
+// --------------------------------------------------
+// Ionic apps can have different themes applied, which can
+// then be future customized. This import comes last
+// so that the above variables are used and Ionic's
+// default are overridden.
+
+@import "ionic.theme.default";
+
+
+// Ionicons
+// --------------------------------------------------
+// The premium icon font for Ionic. For more info, please see:
+// http://ionicframework.com/docs/v2/ionicons/
+
+@import "ionic.ionicons";
+
+
+// Fonts
+// --------------------------------------------------
+
+@import "../assets/fonts/roboto";
+// @import "../assets/fonts/noto-sans";
+
+
+// $popover-ios-width: 50%;
+// $popover-md-width: 50%;
+// $popover-ios-height: 50%;
+// $popover-md-height: 50%;
+// $popover-ios-min-height: 400px;
+// $popover-md-min-height: 400px;
+
+// These are background colors used for Halliburton and other clients in Scheduling and whatnot
+$bgHB: rgba(217, 225, 242, 1.0);
+$bgKN: rgba(226, 239, 218, 1.0);
+$bgBE: rgba(248, 203, 173, 1.0);
+
+// Foreground colors for clients, used in Scheduling summary and whatnot
+$fgHB: rgba(32, 55, 100, 1.0);
+$fgKN: rgba(198, 89, 17, 1.0);
+$fgBE: rgba(55, 86, 35, 1.0);
+$fgSE: rgba(204, 0, 153, 1.0);

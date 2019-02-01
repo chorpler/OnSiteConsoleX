@@ -1,0 +1,298 @@
+<options-generic #optionsComponent *ngIf="optionsVisible" [type]="optionsType" (onCancel)="optionsClosed($event)" (onSave)="optionsSaved($event)"></options-generic>
+
+<ion-header>
+  <ion-navbar>
+    <!-- <ion-buttons left>
+      <button ion-button menuToggle *ngIf="!modalMode">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+      <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode">
+        <i class="fa fa-window-close-o"></i>
+      </button>
+    </ion-buttons> -->
+    <ion-buttons left>
+      <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode && !data.currentlyOpeningPage">
+        <i class="fa fa-window-close-o"></i>
+      </button>
+      <button ion-button menuToggle *ngIf="!modalMode && !data.currentlyOpeningPage">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+      <ion-spinner name="bubbles" [class.spinner-opening-page]="true" *ngIf="data.currentlyOpeningPage"></ion-spinner>
+    </ion-buttons>
+    <ion-title>
+      <span class="title">
+        {{title}}
+        <!-- <span class="reports-limited" *ngIf="mode==='ro'">
+          <span class="report-empty" *ngIf="!(reports && reports.length)" (click)="refreshReportData($event)">(NO REPORTS LOADED)</span>
+          <span class="report-count" *ngIf="reports && reports.length">({{reports.length}} reports loaded)</span>
+        </span>
+        <span class="reports-all" *ngIf="mode==='rw'">
+          <span class="report-empty" *ngIf="!(allReports && allReports.length)" (click)="refreshReportData($event)">(NO REPORTS LOADED)</span>
+          <span class="report-count" *ngIf="allReports && allReports.length">({{allReports.length}} reports loaded)</span>
+        </span> -->
+        <span class="reports-all">
+          <span class="report-empty" *ngIf="!(allReports && allReports.length)">
+            (<span class="action-link" (click)="refreshReportData($event)" title="Load reports and recalculate">REPORTS NOT LOADED</span>)
+          </span>
+          <span class="report-count" *ngIf="allReports && allReports.length">(<span class="report-count" *ngIf="reports">{{reports.length}} / </span><span class="report-count" *ngIf="matchReports">{{matchReports.length}} / </span>{{allReports.length}} reports loaded)</span>
+        </span>
+      </span>
+    </ion-title>
+    <ion-buttons right>
+      <span class="menubar-right-wrapper" *ngIf="dataReady && data.ready()">
+        <span class="buttons-enabled-normally">
+
+
+          <!-- Menubar dropdowns -->
+          <span class="menubar-wrapper">
+
+            <!-- Work Site dropdown -->
+            <span class="menubar-flexbox">
+              <span class="menubar-dropdown-label">Site</span>
+              <span class="menubar-dropdown-menu">
+                <p-dropdown #siteDropdown [class.dropdown-menubar]="true" [options]="siteMenu" [(ngModel)]="site" (onChange)="updateSite(site, $event)"></p-dropdown>
+              </span>
+            </span>
+
+            <!-- Shift/Date dropdown -->
+            <span class="menubar-flexbox">
+              <span class="menubar-dropdown-label">Shifts</span>
+              <span class="menubar-dropdown-menu">
+                <!-- <p-multiSelect #shiftDropdownMenu [class.menubar-multiselect]="true" maxSelectedLabels="0" [options]="shiftMenu" [(ngModel)]="selectedDates" (onChange)="updateShifts(selectedDates, $event)"> -->
+                <p-multiSelect #shiftDropdownMenu [styleClass]="'shift-multiselect'" [class.menubar-multiselect]="true" maxSelectedLabels="0" [options]="shiftMenu" [(ngModel)]="selectedDates" (onChange)="checkShiftSelections(selectedDates, $event)">
+                  <ng-template let-shift let-i="index" pTemplate="item">
+                    <div class="menu-item-period" [ngStyle]="shift.style" *ngIf="shift.divider" >{{shift.label}}</div>
+                    <div class="menu-item-shift"  [ngStyle]="shift.style" *ngIf="!shift.divider">{{shift.label}}</div>
+                  </ng-template>
+                </p-multiSelect>
+              </span>
+            </span>
+
+            <!-- Technician multiselect -->
+            <span class="menubar-flexbox">
+              <span class="menubar-dropdown-label link" >Technician</span>
+              <span class="menubar-dropdown-menu">
+                <!-- <p-dropdown #techDropdown [class.dropdown-menubar]="true" [options]="techMenu" [(ngModel)]="tech" (onChange)="updateTech(tech)"></p-dropdown> -->
+                <!-- <p-multiSelect #techDropdown [class.dropdown-menubar]="true" [options]="techMenu" [(ngModel)]="selectedTechs" (onChange)="updateTechs(selectedTechs, $event)"></p-multiSelect> -->
+                <p-multiSelect #techDropdown [styleClass]="'tech-multiselect'" [class.dropdown-menubar]="true" [options]="techMenu" defaultLabel="Choose Tech(s) ({{techMenu.length}})" maxSelectedLabels="0" [(ngModel)]="selTechs" (onChange)="checkSelectedTechs(selTechs, $event)"></p-multiSelect>
+              </span>
+            </span>
+
+            <!-- <button class="menubar-button" ion-button icon-only (click)="generateSelectedReports($event)" title="Generate selected shift report(s)">
+              <i class="fa fa-file-text-o"></i>
+            </button>
+            <button class="menubar-button" ion-button icon-only (click)="clearReports($event)" title="Clear reports">
+              <i class="fa fa-trash-o"></i>
+            </button>
+            <button class="menubar-button" ion-button icon-only (click)="printReports($event)" title="Print shift report(s)">
+              <i class="fa fa-print"></i>
+            </button> -->
+            <span class="menubar-buttons">
+              <button class="menubar-button" ion-button icon-only (click)="resetMenus($event)" title="Reset menus">
+                <i class="fa fa-refresh"></i>
+              </button>
+
+              <button class="menubar-button" ion-button icon-only (click)="showOptions($event)" title="Show options">
+                <i class="fa fa-cog"></i>
+              </button>
+
+              <button class="menubar-button" ion-button icon-only (click)="generateInvoices($event)" title="Generate invoices using these selections">
+                <i class="fa fa-file-text-o"></i>
+              </button>
+              <button class="menubar-button" ion-button icon-only (click)="clearInvoices($event)" title="Clear existing invoice display">
+                <i class="fa fa-ban"></i>
+              </button>
+              <button class="menubar-button" ion-button icon-only (click)="openInvoices($event)" title="Open existing invoices">
+                <i class="fa fa-folder-open-o"></i>
+              </button>
+              <button class="menubar-button" ion-button icon-only (click)="refreshData($event)" title="Refresh data and recalculate">
+                <i class="fa fa-refresh"></i>
+              </button>
+              <button class="menubar-button" ion-button icon-only (click)="numberInvoices($event)" title="Number invoices">
+                <i class="fa fa-hashtag"></i>
+              </button>
+              <button class="menubar-button" ion-button icon-only (click)="copyTable($event)" title="Copy Invoice">
+                <i class="fa fa-table"></i>
+              </button>
+              <button class="menubar-button" ion-button icon-only (click)="saveInvoices($event)" title="Save Invoices">
+                <i class="fa fa-save"></i>
+              </button>
+              <button class="menubar-button" ion-button icon-only (click)="printInvoices($event)" title="Print Invoices">
+                <i class="fa fa-print"></i>
+              </button>
+            </span>
+          </span>
+        </span>
+      </span>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding *ngIf="!(dataReady && data.ready())">
+  <div class="background-spinner"></div>
+</ion-content>
+<ion-content padding *ngIf="dataReady && invoices && invoices.length">
+  <div #printArea class="invoice-hb print-area" *ngFor="let invoice of invoices; let i=index">
+    <invoice-hb #invoiceHB [maxRows]="MAX_ROWS" [sorts]="sorts" [invoice]="invoice" [period]="period" [site]="site" [reports]="reports"></invoice-hb>
+  </div>
+</ion-content>
+<ion-content padding *ngIf="dataReady && !(invoices && invoices.length)">
+  <span class="no-invoices">No invoices generated.</span>
+</ion-content>
+<invoices-open *ngIf="dataReady && data.ready() && invoiceOpenVisible" type="HB" (cancel)="cancelOpen($event)" (open)="invoicesOpen($event)"></invoices-open>
+  <!-- <ion-content padding *ngIf="dataReady && data.ready()">
+  <div class="no-invoices" *ngIf="!(invoices && invoices.length > 0)">(No invoices loaded or generated)</div>
+  <div #printArea id="print-area" class="print-area invoice-basic-energy" *ngIf="invoices && invoices.length > 0">
+    <div class="invoice-wrapper" *ngFor="let invoice of invoices; let iIdx = index">
+      <table class="invoice-table-header">
+        <thead class="invoice-basic-energy-header"></thead>
+        <tbody class="invoice-basic-energy-body">
+          <tr class="header-group-row row-top">
+            <td class="col-01" rowspan="6">
+              <img class="sesa-logo" [src]="logoPath" />
+            </td>
+            <td class="col-02"></td>
+            <td class="col-03 sesa-address" colspan="2">2801 Corporate Drive</td>
+            <td class="col-05"></td>
+            <td class="col-06 invoice-label"><span class="formatter">Invoice</span></td>
+          </tr>
+          <tr class="header-group-row">
+            <td class="col-02"></td>
+            <td class="col-03 sesa-address" colspan="2">Weslaco TX 78599</td>
+            <td class="col-05"></td>
+            <td class="col-06 invoice-data"><span class="formatter"><input class="input-data" [(ngModel)]="invoice.invoice_number" /></span></td>
+          </tr>
+          <tr class="header-group-row">
+            <td class="col-02"></td>
+            <td class="col-03 sesa-address" colspan="2">Phone: (956) 647-5119</td>
+            <td class="col-05"></td>
+            <td class="col-06"></td>
+          </tr>
+          <tr class="header-group-row">
+            <td class="col-02"></td>
+            <td class="col-03" colspan="2"></td>
+            <td class="col-05"></td>
+            <td class="col-06 date-label"><span class="formatter">Date</span></td>
+          </tr>
+          <tr class="header-group-row">
+            <td class="col-02"></td>
+            <td class="col-03 sesa-address" colspan="2">www.sesafleetservices.com</td>
+            <td class="col-05"></td>
+            <td class="col-06 date-data"><span class="formatter">{{invoice.date.format("MMM DD, YYYY")}}</span></td>
+          </tr>
+          <tr class="header-group-row row-bottom">
+            <td class="col-02"></td>
+            <td class="col-03"></td>
+            <td class="col-04"></td>
+            <td class="col-05"></td>
+            <td class="col-06"></td>
+          </tr>
+          <tr class="address-row">
+            <td class="col-01 billing-label">Billed to:</td>
+            <td class="col-02 billing-data" colspan="2">{{invoice.customer_name}}</td>
+            <td class="col-04"></td>
+            <td class="col-05"></td>
+            <td class="col-06"></td>
+          </tr>
+          <tr class="address-row">
+            <td class="col-01 billing-label">Address:</td>
+            <td class="col-02 billing-data" colspan="2">{{invoice.address.street.street1}}</td>
+            <td class="col-04"></td>
+            <td class="col-05"></td>
+            <td class="col-06"></td>
+          </tr>
+          <tr class="address-row">
+            <td class="col-01 billing-label"></td>
+            <td class="col-02 billing-data" colspan="2">{{invoice.address.city}} {{invoice.address.state}} {{invoice.address.zipcode}}</td>
+            <td class="col-04"></td>
+            <td class="col-05"></td>
+            <td class="col-06"></td>
+          </tr>
+          <tr class="shift-row">
+            <td class="col-01 shift-label">Shift:</td>
+            <td class="col-02 shift-data" colspan="3" >{{invoice.site_name}}</td>
+            <td class="col-05 customer-label">Customer No.</td>
+            <td class="col-06 customer-data" >{{invoice.customer_number}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <table class="invoice-table-grid">
+        <thead class="invoice-basic-energy-header"></thead>
+        <tbody class="invoice-basic-energy-body">
+          <tr class="pseudo-header">
+            <td class="col-01 col-date">Date</td>
+            <td class="col-02 col-tech" colspan="2">Technician</td>
+            <td class="col-04 col-unit">Unit No.</td>
+            <td class="col-04-1 col-wonum">Work Order</td>
+            <td class="col-05 col-hours">Hours</td>
+            <td class="col-06 col-billed">Total</td>
+          </tr>
+          <tr class="grid-row" [class.button-like]="row[gridcol.report] !== ''" (click)="viewReport(row[gridcol.report])" [title]="getReportTooltip(row[gridcol.report])" *ngFor="let row of invoice.grid; let i=index">
+            <td class="col-01 col-date"><span class="cell-wrapper">{{row[gridcol.date]}}</span></td>
+            <td class="col-02 col-tech" colspan="2"><span class="cell-wrapper">{{row[gridcol.tech]}}</span></td>
+            <td class="col-04 col-unit" ><span class="cell-wrapper">{{row[gridcol.unit]}}</span></td>
+            <td class="col-04-1 col-wonum" ><span class="cell-wrapper">{{row[gridcol.wonum]}}</span></td>
+            <td class="col-05 col-hours" *ngIf="row[4]===''"><span class="cell-wrapper">{{row[gridcol.hours]}}</span></td>
+            <td class="col-05 col-hours" *ngIf="row[4]!==''"><span class="cell-wrapper">{{row[gridcol.hours] | number:'1.1-1'}}</span></td>
+            <td class="col-06 col-billed" *ngIf="row[5] === ''"><span class="cell-wrapper">{{row[gridcol.total]}}</span></td>
+            <td class="col-06 col-billed" *ngIf="row[5] !== ''"><span class="cell-wrapper">{{row[gridcol.total] | number:'1.2-2'}}</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <table class="invoice-table-summary">
+        <thead class="invoice-basic-energy-header"></thead>
+        <tbody class="invoice-basic-energy-body">
+          <tr class="summary-wrapper-header">
+            <td class="col-01" colspan="6">Summary</td>
+          </tr>
+          <tr class="summary-header">
+            <td class="col-01 col-unit">Unit No.</td>
+            <td class="col-02 col-hours">Total (Hrs)</td>
+            <td class="col-03 col-billed">Total ($)</td>
+            <td class="col-04" colspan="2"><span class="header-cell-wrapper">Invoice No. <span class="cell-inner-wrapper">{{invoice.number}}</span></span></td>
+            <td class="col-06"><span class="header-cell-wrapper">Total Hours Billed: <span class="cell-inner-wrapper">{{invoice.total_hours_billed | number:'1.1-1'}}</span></span></td>
+          </tr>
+          <tr class="summary-row" *ngFor="let row of invoice.summary_grid; let j=index">
+            <td class="col-01 col-unit" ><span class="cell-wrapper">{{row[sumcol.unit]}}</span></td>
+            <td class="col-02 col-hours" *ngIf="row[sumcol.hours]===''"><span class="cell-wrapper">{{row[sumcol.hours]}}</span></td>
+            <td class="col-02 col-hours" *ngIf="row[sumcol.hours]!==''"><span class="cell-wrapper">{{row[sumcol.hours] | number:'1.1-1'}}</span></td>
+            <td class="col-03 col-billed" *ngIf="row[sumcol.total] === ''"><span class="cell-wrapper">{{row[sumcol.total]}}</span></td>
+            <td class="col-03 col-billed" *ngIf="row[sumcol.total] !== ''"><span class="cell-wrapper">{{row[sumcol.total] | number:'1.2-2'}}</span></td>
+            <td class="col-04"><span class="cell-wrapper">{{row[sumcol.fill1]}}</span></td>
+            <td class="col-05"><span class="cell-wrapper">{{row[sumcol.fill2]}}</span></td>
+            <td class="col-06"><span class="cell-wrapper">{{row[sumcol.fill3]}}</span></td>
+          </tr>
+          <tr class="summary-footer">
+            <td class="col-01">Total</td>
+            <td class="col-02">{{invoice.total_unit_hours | number:'1.1-1'}}</td>
+            <td class="col-03">{{invoice.total_unit_billed | number:'1.2-2'}}</td>
+            <td class="col-04"></td>
+            <td class="col-05"></td>
+            <td class="col-06"></td>
+          </tr>
+          <tr class="blank blank-footer">
+            <td class="col-01" colspan="6"></td>
+          </tr>
+          <tr class="total-header">
+            <td class="col-01 amount-label" colspan="3">Amount Due</td>
+            <td class="col-04"></td>
+            <td class="col-05"></td>
+            <td class="col-06 total-label">Total</td>
+          </tr>
+          <tr class="total-data-row">
+            <td class="col-01 amount-data" colspan="3">{{invoice.total_astext}}</td>
+            <td class="col-04"></td>
+            <td class="col-05"></td>
+            <td class="col-06 total-data">{{invoice.total_billed | currency:'USD':'symbol':'1.2-2'}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</ion-content> -->
+
+<report-view-beta #reportViewComponent *ngIf="reportViewVisible" [report]="report" [reports]="reports" [tech]="tech" [site]="site" [sites]="sites" (finished)="updateReport($event)" (reportChange)="changeReport($event)"></report-view-beta>
+<!-- <div #reportViewTarget id="report-view-target" class="report-view-target"></div> -->
+<!-- <p-dialog #reportViewDialog styleClass="report-view-dialog" [header]="reportViewTitle" [(visible)]="reportViewVisible" [modal]="false" [responsive]="true" [draggable]="true" [resizable]="true" [positionLeft]="dialogLeft" [positionTop]="dialogTop" *ngIf="dataReady && data.ready() && reportViewVisible"> -->
+  <!-- <report-view-beta #reportViewComponent [report]="report" [reports]="reports" [tech]="tech" [site]="site" [sites]="sites" (finished)="updateReport($event)" (reportChange)="changeReport($event)"></report-view-beta> -->
+<!-- </p-dialog> -->

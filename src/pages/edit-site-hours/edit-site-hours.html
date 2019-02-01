@@ -1,0 +1,56 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>{{title}}</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  <form [formGroup]="hoursForm" (ngSubmit)="saveSiteHours()" *ngIf="dataReady">
+    <ion-list formGroupName="timeList">
+      <ion-item-group *ngFor="let time of jobsite.techShifts" [formGroupName]="time">
+        <ion-item-divider color="light">
+          <div class="hours-header-label">{{time}} Shift</div>
+        </ion-item-divider>
+        <ion-grid class="hours-grid">
+          <ion-row class="hours-header-row">
+            <ion-col class="hours-header-blank"></ion-col>
+            <ion-col class="hours-header-col" text-center *ngFor="let day of weekdays">{{day}}</ion-col>
+          </ion-row>
+          <ion-row class="hours-data-row" *ngFor="let rot of jobsite.shiftRotations; let idx=index">
+            <ion-col class="hours-data-label">{{rot.fullName}}</ion-col>
+            <ion-col class="hours-data-col" *ngFor="let day of weekdays; let i=index" [formArrayName]="rot.name">
+              <input class="hours-data-input" text-center type="text" [formControlName]="i" />
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-item-group>
+    </ion-list>
+    <span class="hours-button-group">
+      <button ion-button type="button" (tap)="cancel()">Cancel</button>
+      <button ion-button type="submit">Save Hours</button>
+      <ion-input class="hours-default-hours-input" type="number" formControlName="defaultHours"></ion-input>
+      <button ion-button type="button" (tap)="fillDefaultHours()">Fill Default</button>
+      <button ion-button type="button" (tap)="copyAM2PM()">AM&rarr;PM</button>
+    </span>
+  </form>
+  <div class="hours-col-container">
+    <div class="hours-col">
+      <div class="hours-start-times-group">
+        <div class="hours-start-times-select-group">
+          <div class="hours-header-group-label">AM Shift Start</div>
+          <div class="hours-datetime-icon-group">
+            <ion-datetime #shiftStartDatetimeAM id="shift-start-datetime-am" class="hours-datetime-display" [(ngModel)]="startAM" (ngModelChange)="startTimeUpdated('AM', startAM)" [ngModelOptions]="{standalone: true}" displayFormat="HH:mm" pickerFormat="HH:mm" minuteValues="0,15,30,45"></ion-datetime>
+            <ion-icon class="datetime-icon-dropdown" name="md-arrow-dropdown"></ion-icon>
+          </div>
+        </div>
+        <div class="hours-start-times-select-group">
+          <div class="hours-header-group-label">PM Shift Start</div>
+          <div class="hours-datetime-icon-group">
+            <ion-datetime #shiftStartDatetimePM id="shift-start-datetime-pm" class="hours-datetime-display" [(ngModel)]="startPM" (ngModelChange)="startTimeUpdated('PM', startPM)" [ngModelOptions]="{standalone: true}" displayFormat="HH:mm" pickerFormat="HH:mm" minuteValues="0,15,30,45"></ion-datetime>
+            <ion-icon class="datetime-icon-dropdown" name="md-arrow-dropdown"></ion-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

@@ -1,0 +1,14 @@
+<!-- <div [class]="showSpinner ? 'visible spinner center' : 'hidden spinner center'" [innerHTML]="_template"></div> -->
+<!-- <h1 [class]="showSpinner ? 'visible loading-text' : 'hidden loading-text'"> {{_loadingText}} </h1> -->
+
+<!-- <div class="spinner-container" [class.nonopaque]="opaqueness">
+  <div class="spinner-image"></div>
+  <div class="spinner-text">{{loadingText}}</div>
+</div> -->
+
+
+<div class="loading-container" [class.nonopaque]="isTransparent">
+  <div class="spinner"></div>
+  <div class="spinner-center"></div>
+  <div class="loading-text">{{loadingText}}</div>
+</div>

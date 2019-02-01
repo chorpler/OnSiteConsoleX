@@ -1,0 +1,169 @@
+<span class="dps-daily-summary-component">
+  <div class="dps-daily-summary-wrapper" *ngIf="dataReady">
+    <div class="dps-daily-site-summary-title">{{title}}</div>
+    <div #printArea class="dps-daily-site-summary-wrapper" *ngIf="tableMode === 'summary'">
+      <table #DPSDailySummaryTable class="dps-daily-site-summary-table" *ngFor="let entry of siteGrid">
+        <thead class="dps-daily-site-summary-head">
+          <tr class="dps-daily-site-summary-head-row">
+            <th class="dps-daily-site-summary-th" colspan="2">{{entry[0].getScheduleName()}}</th>
+          </tr>
+        </thead>
+        <tbody class="dps-daily-site-summary-body">
+          <tr class="dps-daily-site-summary-row">
+            <td class="dps-daily-site-summary-td col-label">Billed Rate</td>
+            <td class="dps-daily-site-summary-td col-data" >{{entry[1].billed.toFixed(2) | currency:'USD':'symbol':'1.2-2'}}</td>
+          </tr>
+          <tr class="dps-daily-site-summary-row">
+            <td class="dps-daily-site-summary-td col-label">Losses</td>
+            <td class="dps-daily-site-summary-td col-data" >{{entry[1].expenses.toFixed(2) | currency:'USD':'symbol':'1.2-2'}}</td>
+          </tr>
+          <tr class="dps-daily-site-summary-row">
+            <td class="dps-daily-site-summary-td col-label">Profit</td>
+            <td class="dps-daily-site-summary-td col-data" >{{entry[1].profit.toFixed(2) | currency:'USD':'symbol':'1.2-2'}}</td>
+          </tr>
+          <tr class="dps-daily-site-summary-row">
+            <td class="dps-daily-site-summary-td col-label">%DP</td>
+            <td class="dps-daily-site-summary-td col-data" *ngIf="entry[1].billed.eq(0)">NA</td>
+            <td class="dps-daily-site-summary-td col-data" *ngIf="!entry[1].billed.eq(0)">{{entry[1].percent.toFixed(2)}}%</td>
+          </tr>
+        </tbody>
+      </table>
+      <table class="dps-daily-site-total-table" *ngIf="siteTotals">
+        <thead class="dps-daily-site-total-head">
+          <tr class="dps-daily-site-total-head-row">
+            <th class="dps-daily-site-total-th" colspan="2">Total</th>
+          </tr>
+        </thead>
+        <tbody class="dps-daily-site-total-body">
+          <tr class="dps-daily-site-total-row">
+            <td class="dps-daily-site-total-td col-label">Billed Rate</td>
+            <td class="dps-daily-site-total-td col-data" >{{siteTotals.billed.toFixed(2) | currency:'USD':'symbol':'1.2-2'}}</td>
+          </tr>
+          <tr class="dps-daily-site-total-row">
+            <td class="dps-daily-site-total-td col-label">Losses</td>
+            <td class="dps-daily-site-total-td col-data" >{{siteTotals.expenses.toFixed(2) | currency:'USD':'symbol':'1.2-2'}}</td>
+          </tr>
+          <tr class="dps-daily-site-total-row">
+            <td class="dps-daily-site-total-td col-label">Profit</td>
+            <td class="dps-daily-site-total-td col-data" >{{siteTotals.profit.toFixed(2) | currency:'USD':'symbol':'1.2-2'}}</td>
+          </tr>
+          <tr class="dps-daily-site-total-row">
+            <td class="dps-daily-site-total-td col-label">%DP</td>
+            <td class="dps-daily-site-total-td col-data" *ngIf="siteTotals.billed.eq(0)">NA</td>
+            <td class="dps-daily-site-total-td col-data" *ngIf="!siteTotals.billed.eq(0)">{{siteTotals.percent.toFixed(2)}}%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <table class="dps-daily-summary-table" *ngIf="tableMode === 'detail'">
+      <thead class="dps-daily-summary-head">
+        <tr class="dps-daily-summary-head-row">
+          <th class="dps-daily-summary-th col-itemnumber">&nbsp;</th>
+          <th class="dps-daily-summary-th col-00">&nbsp;</th>
+          <th class="dps-daily-summary-th col-01 col-numeric">Payroll</th>
+          <th class="dps-daily-summary-th col-02 col-numeric">Lodging</th>
+          <th class="dps-daily-summary-th col-03 col-numeric">PerDiem</th>
+          <th class="dps-daily-summary-th col-04 col-numeric">Misc</th>
+          <th class="dps-daily-summary-th col-05 col-numeric">VAC</th>
+          <th class="dps-daily-summary-th col-06 col-numeric">TRV</th>
+          <th class="dps-daily-summary-th col-07 col-numeric">TRN</th>
+          <th class="dps-daily-summary-th col-08 col-numeric">STBY</th>
+          <th class="dps-daily-summary-th col-09 col-numeric">TRANS</th>
+          <th class="dps-daily-summary-th col-10 col-numeric">FUEL</th>
+          <th class="dps-daily-summary-th col-11 col-numeric">INS</th>
+          <th class="dps-daily-summary-th col-12 col-numeric">Office</th>
+          <th class="dps-daily-summary-th col-13 col-numeric">Billed</th>
+          <th class="dps-daily-summary-th col-14 col-numeric">Expenses</th>
+          <th class="dps-daily-summary-th col-15 col-numeric">Profit</th>
+        </tr>
+      </thead>
+      <tbody class="dps-daily-summary-body">
+        <tr class="dps-daily-summary-body-row" *ngFor="let row of dataGrid; let i=index">
+          <td *ngIf="row.length===2; else dataRow" class="dps-daily-summary-td dps-daily-summary-site-header-row" colspan="17">{{row[0]}}</td>
+          <ng-template #dataRow>
+            <td class="dps-daily-summary-td col-00-1 col-itemnumber">{{row[rowval.status].sequence}}</td>
+            <td class="dps-daily-summary-td col-00">{{row[rowval.tech]}}</td>
+            <td class="dps-daily-summary-td col-01 col-numeric">
+              <span *ngIf="row[rowval.payroll].eq(0)"> </span>
+              <span *ngIf="!row[rowval.payroll].eq(0)">{{row[rowval.payroll].toFixed(2) | currency:'USD':'symbol':'1.2-2'}}</span>
+            </td>
+            <td class="dps-daily-summary-td col-02 col-numeric">
+              <span *ngIf="row[rowval.lodging].eq(0)"> </span>
+              <span *ngIf="!row[rowval.lodging].eq(0)">{{row[rowval.lodging].toFixed(2) | currency:'USD':'symbol':'1.2-2'}}</span>
+            </td>
+            <td class="dps-daily-summary-td col-03 col-numeric">
+              <span *ngIf="row[rowval.perDiem].eq(0)"> </span>
+              <span *ngIf="!row[rowval.perDiem].eq(0)">{{row[rowval.perDiem].toFixed(2) | currency:'USD':'symbol':'1.2-2'}}</span>
+            </td>
+            <td class="dps-daily-summary-td col-04 col-numeric col-input">
+              <p-inplace closable="closable">
+                <span pInplaceDisplay>
+                  <span *ngIf="row[rowval.miscExps]===0">&nbsp;</span>
+                  <span *ngIf="row[rowval.miscExps]!==0">${{decimalize(row[rowval.miscExps]).toFixed(2)}}</span>
+                </span>
+                <span pInplaceContent>
+                  <input [class.dps-daily-summary-input]="true" type="number" step="0.01" [(ngModel)]="row[rowval.miscExps]" pInputText>
+                </span>
+              </p-inplace>
+            </td>
+            <td class="dps-daily-summary-td col-05 col-numeric">
+              <span *ngIf="row[rowval.vacation].eq(0)"> </span>
+              <span *ngIf="!row[rowval.vacation].eq(0)">{{row[rowval.vacation].toFixed(2) | currency:'USD':'symbol':'1.2-2'}}</span>
+            </td>
+            <td class="dps-daily-summary-td col-06 col-numeric">
+              <span *ngIf="row[rowval.travel].eq(0)"> </span>
+              <span *ngIf="!row[rowval.travel].eq(0)">{{row[rowval.travel].toFixed(2) | currency:'USD':'symbol':'1.2-2'}}</span>
+            </td>
+            <td class="dps-daily-summary-td col-07 col-numeric">
+              <span *ngIf="row[rowval.training].eq(0)"> </span>
+              <span *ngIf="!row[rowval.training].eq(0)">{{row[rowval.training].toFixed(2) | currency:'USD':'symbol':'1.2-2'}}</span>
+            </td>
+            <td class="dps-daily-summary-td col-08 col-numeric">
+              <span *ngIf="row[rowval.standby].eq(0)"> </span>
+              <span *ngIf="!row[rowval.standby].eq(0)">{{row[rowval.standby].toFixed(2) | currency:'USD':'symbol':'1.2-2'}}</span>
+            </td>
+            <td class="dps-daily-summary-td col-09 col-numeric">
+              <span *ngIf="row[rowval.transportation].eq(0)"> </span>
+              <span *ngIf="!row[rowval.transportation].eq(0)">
+                {{row[rowval.transportation].toFixed(2) | currency:'USD':'symbol':'1.2-2'}}
+              </span>
+            </td>
+            <td class="dps-daily-summary-td col-10 col-numeric">
+              <span *ngIf="row[rowval.fuel].eq(0)"> </span>
+              <span *ngIf="!row[rowval.fuel].eq(0)">
+                {{row[rowval.fuel].toFixed(2) | currency:'USD':'symbol':'1.2-2'}}
+              </span>
+            </td>
+            <td class="dps-daily-summary-td col-11 col-numeric">
+              <span *ngIf="row[rowval.insurance].eq(0)"> </span>
+              <span *ngIf="!row[rowval.insurance].eq(0)">
+                {{row[rowval.insurance].toFixed(2) | currency:'USD':'symbol':'1.2-2'}}
+              </span>
+            </td>
+            <td class="dps-daily-summary-td col-12 col-numeric">
+              <span *ngIf="row[rowval.office].eq(0)"> </span>
+              <span *ngIf="!row[rowval.office].eq(0)">
+                {{row[rowval.office].toFixed(2) | currency:'USD':'symbol':'1.2-2'}}
+              </span>
+            </td>
+            <td class="dps-daily-summary-td col-13 col-numeric">
+              <span *ngIf="row[rowval.billing].eq(0)"> </span>
+              <span *ngIf="!row[rowval.billing].eq(0)">{{row[rowval.billing].toFixed(2) | currency:'USD':'symbol':'1.2-2'}}</span>
+            </td>
+            <td class="dps-daily-summary-td col-14 col-numeric">
+              <span *ngIf="row[rowval.expenses].eq(0)"> </span>
+              <span *ngIf="!row[rowval.expenses].eq(0)">{{row[rowval.expenses].toFixed(2) | currency:'USD':'symbol':'1.2-2'}}</span>
+            </td>
+            <td class="dps-daily-summary-td col-15 col-numeric">
+              <span *ngIf="row[rowval.profit].eq(0)"> </span>
+              <span *ngIf="!row[rowval.profit].eq(0)">{{row[rowval.profit].toFixed(2) | currency:'USD':'symbol':'1.2-2'}}</span>
+            </td>
+          </ng-template>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</span>
+
+

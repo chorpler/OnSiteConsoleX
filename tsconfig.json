@@ -1,0 +1,55 @@
+{
+  "compilerOptions": {
+    "baseUrl": "src",
+    "paths": {
+      "app/*"        : [ "app/*"        ] ,
+      "assets/*"     : [ "assets/*"     ] ,
+      "components/*" : [ "components/*" ] ,
+      "config/*"     : [ "config/*"     ] ,
+      "domain/*"     : [ "domain/*"     ] ,
+      "directives/*" : [ "directives/*" ] ,
+      "pages/*"      : [ "pages/*"      ] ,
+      "pipes/*"      : [ "pipes/*"      ] ,
+      "providers/*"  : [ "providers/*"  ]
+    },
+    "allowJs": false,
+    "allowSyntheticDefaultImports": true,
+    "declaration": false,
+    "downlevelIteration": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "lib": [
+      "dom"
+      ,"es2015"
+    ],
+    "module": "es2015",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "target": "es2015",
+    "noImplicitAny": false,
+    "noImplicitThis": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "Docs",
+    "**/*.spec.ts",
+    "lib",
+    "dist"
+  ],
+  "compileOnSave": false,
+  "angularCompilerOptions": {
+    "fullTemplateTypeCheck": false,
+    "preserveWhiteSpaces": false,
+    "preserveSymlinks": true,
+    "trace": true
+  },
+ "atom": {
+    "rewriteTsconfig": false
+  }
+}

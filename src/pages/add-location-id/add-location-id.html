@@ -1,0 +1,28 @@
+<!--
+  Generated template for the AddLocationIdPage page.
+
+  See http://ionicframework.com/docs/components/#navigation for more info on
+  Ionic pages and navigation.
+-->
+<ion-header>
+
+  <ion-navbar>
+    <ion-title>{{title}}</ion-title>
+  </ion-navbar>
+
+</ion-header>
+
+
+<ion-content padding>
+  <form [formGroup]="locIDForm" (ngSubmit)="saveLocID()">
+    <ion-item>
+      <ion-label>Location ID</ion-label>
+      <ion-input type="text" formControlName="locIDName"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Abbreviation</ion-label>
+      <ion-input formControlName="locIDAbbreviation"></ion-input>
+    </ion-item>
+    <button ion-button type="submit">Save Location ID</button>
+  </form>
+</ion-content>

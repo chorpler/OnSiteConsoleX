@@ -1,0 +1,29 @@
+video-play {
+  .video-popover {
+    .popover-content {
+      min-width: 740px;
+      width: 40vw;
+      left: calc(50vw - 40vw/2);
+      video {
+        margin-left: auto;
+        margin-right: auto;
+      }
+    }
+  }
+  .scroll-content {
+    overflow: auto;
+  }
+  .video-dialog-box {
+    min-width: 740px;
+    width: 40vw;
+    left: calc(50vw - 40vw/2);
+    .video-play-wrapper {
+      width: 100%;
+      text-align: center;
+      video {
+        margin-left: auto;
+        margin-right: auto;
+      }
+    }
+  }
+}

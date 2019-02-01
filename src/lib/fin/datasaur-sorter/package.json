@@ -1,0 +1,22 @@
+{
+  "name": "datasaur-sorter",
+  "version": "1.0.1",
+  "description": "Multi-column sort Datasaur module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fin-hypergrid/datasaur-sorter.git"
+  },
+  "author": "Jonathan Eiten",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fin-hypergrid/datasaur-sorter/issues"
+  },
+  "homepage": "https://github.com/fin-hypergrid/datasaur-sorter#readme",
+  "dependencies": {
+    "datasaur-indexed": "^1.0.0"
+  }
+}

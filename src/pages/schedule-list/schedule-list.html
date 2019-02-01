@@ -1,0 +1,45 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>{{title}}</ion-title>
+    <ion-buttons right>
+      <button ion-button icon-only (tap)="toggleShowAll()">
+        <ion-icon *ngIf="showAll" class="schedule-list-options-button" name="md-eye"></ion-icon>
+        <ion-icon *ngIf="!showAll" class="schedule-list-options-button" name="md-eye-off"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  <ion-list *ngIf="dataReady">
+    <ion-item-group class="ion-item-button-like schedule-list-group-container" *ngFor="let schedule of schedules; let i=index" (tap)="openSchedule(schedule)">
+      <ion-item-divider color="light" class="schedule-list-header">{{schedule.getScheduleID()}}</ion-item-divider>
+      <ion-item class="schedule-list-item">
+        <!-- <span class="schedule-list-group">
+          <span class="schedule-list-name">{{schedule.getScheduleID()}}</span>
+        </span> -->
+        <ion-grid>
+          <ion-row>
+            <ion-col class="schedule-list-label">Starts</ion-col><ion-col class="schedule-list-data">{{schedule.getStartDate().format("ddd DD MMM YYYY")}}</ion-col>
+            <ion-col class="schedule-list-label">Ends</ion-col><ion-col class="schedule-list-data">{{schedule.getEndDate().format("ddd DD MMM YYYY")}}</ion-col>
+          </ion-row>
+        </ion-grid>
+        <!-- <span class="schedule-list-group">
+          <span class="schedule-list-label">Starts</span>
+          <span class="schedule-list-data">{{schedule.getStartDate().format("ddd DD MMM YYYY")}}</span>
+        </span> -->
+      </ion-item>
+    </ion-item-group>
+  </ion-list>
+  <button ion-button color="light" type="button" (tap)="cancel()">Cancel</button>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-buttons left>
+      <button type="button" ion-button icon-only color="royal" (click)="cancel()">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

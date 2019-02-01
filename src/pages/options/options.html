@@ -1,0 +1,42 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons left>
+      <button ion-button menuToggle *ngIf="mode !== 'modal'">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>{{title}}</ion-title>
+  </ion-navbar>
+</ion-header>
+
+
+<ion-content padding>
+  <ion-list>
+    <ion-item-group>
+      <ion-list-header class="options-list-header">Scheduling Options</ion-list-header>
+      <ion-item>
+        <ion-label>Show All Sites</ion-label>
+        <ion-toggle [(ngModel)]="showAllSites" (ngModelChange)="updateSiteDisplay()"></ion-toggle>
+      </ion-item>
+      <ion-item>
+        <ion-label>Enable Custom Schedule Dates</ion-label>
+        <ion-toggle [(ngModel)]="enableAllDates" (ngModelChange)="toggleAllDatesAvailable()"></ion-toggle>
+      </ion-item>
+    </ion-item-group>
+  </ion-list>
+</ion-content>
+
+<!-- <ion-footer>
+  <ion-toolbar>
+    <ion-buttons left>
+      <button type="button" ion-button icon-only color="royal" (click)="cancel()">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-buttons right>
+      <button type="submit" ion-button icon-only color="favorite" (click)="save()">
+        <ion-icon name="checkmark"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer> -->

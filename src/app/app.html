@@ -1,0 +1,183 @@
+<!-- <notification #notificationElement class="app-notification" [(value)]="notices" [immutable]="immutableNotify" [life]="3000"></notification> -->
+
+<find-in-page #findInPageComponent (close)="toggleFindInPage(false)" *ngIf="findVisible"></find-in-page>
+
+<p-toast [position]="toastPosition" [style]="toastStyle"></p-toast>
+
+<!-- <p-dialog #loginDialog [class.login-dialog-box]="true" header="Login" [(visible)]="requireLogin" [draggable]="true" [resizable]="true" [closable]="false" [modal]="false" [appendTo]="loginTarget"> -->
+<login #loginComponent *ngIf="requireLogin && !globalOptionsVisible" (loginAttempt)="receiveLoginAttempt($event)"></login>
+<!-- </p-dialog> -->
+<!-- <p-dialog #globalOptionsDialog *ngIf="globalOptionsVisible" [class.options-dialog-box]="true" header="Options" [(visible)]="globalOptionsVisible" [draggable]="true" [resizable]="true" [closable]="false" [modal]="false" [appendTo]="loginTarget" [contentStyle]="{'overflow':'visible'}"> -->
+<options #globalOptionsComponent *ngIf="globalOptionsVisible" [type]="globalOptionsType" (onCancel)="optionsClosed($event)" (onSave)="optionsSaved($event)"></options>
+<!-- </p-dialog> -->
+
+<!-- <database-progress #databaseProgressComponent *ngIf="progressVisible" [(dbProgress)]="dbProgress" (onPause)="progressPause($event)" (onClose)="progressClosed($event)" (onAbort)="progressAborted($event)"></database-progress> -->
+<database-progress #databaseProgressComponent *ngIf="progressVisible" [(percentage)]="dbDownloadPercentage" [(status)]="downloadStatus" (onClose)="progressClosed($event)" (onAbort)="progressAborted($event)"></database-progress>
+
+<!-- <editor-json #jsonEditor [options]="jsonEditorOptions" [data]="jsonData" (onCancel)="editPrefsCanceled($event)" (onUpdate)="editPrefsSaved($event)" *ngIf="jsonEditorVisible"></editor-json> -->
+
+<!-- <json-editor #jsonEditorComponent [options]="jsonEditorOptions" [data]="jsonData" *ngIf="jsonEditorVisible"></json-editor> -->
+<!-- <div #confirmTarget></div> -->
+<div #loginTarget class="onsitex-login-overlay-target"></div>
+
+<ion-menu [content]="content" (ionClose)="menuClosed()" *ngIf="menuEnabled">
+  <ion-header>
+    <ion-toolbar>
+      <!-- <ion-title>{{title}}<span [class.side-menu-icon]="true" [class.developer-icon]="data.status.role==='dev'" *ngIf="data.isDeveloper"><i class="fa fa-github fake-button" (click)="data.toggleDeveloperMode()"></i></span></ion-title> -->
+      <ion-title>
+        <span class="menu-title">
+          {{title}}
+        </span>
+        <span class="menu-version" *ngIf="appVersion">
+          {{appVersion}}
+        </span>
+      </ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content class="menu-side-content">
+
+    <!-- MENU TYPE 1: Nested style (CURRENT FAVORITE) -->
+    <span class="nested-menu-wrapper" *ngIf="menuType==='nested'">
+
+      <!-- Top menu buttons -->
+      <ng-container *ngIf="true; then menuTopButtons; else menuTopButtonsEmpty"></ng-container>
+
+      <!-- Main menu items (main button, possibly sub-buttons) -->
+      <!-- <span [@menuButtonTrigger]="p.showSubMenu ? 'opened' : 'closed'" class="menu-item-wrapper" *ngFor="let p of pagesNested; let i=index"> -->
+      <span class="menu-item-wrapper" *ngFor="let p of pagesNested; let i=index" [class.developer-hidden]="p.role==='dev' && data.status.role!=='dev'">
+        <div class="menu-item" [class.next-menu-item]="i > 0 && pagesNested[i-1].showSubMenu" [class.single-item]="p.hasSubmenu===false" [class.parent-item]="p.showSubMenu"  (click)="menu.menuItemClick(p, null, $event)" [title]="p.tooltip">
+          <div class="menu-list-item-text">
+            <span class="menu-icon"><i [ngClass]="p.icon.class" ></i></span>
+            <span class="menu-title">{{p?.title}}</span>
+            <span class="menu-right">
+              <!-- <span [@rotateArrowTrigger]="p.showSubmenu ? 'down' : 'right'" class="menu-icon-right" [class.invisible]="p.hasSubmenu===false"><i class="icomoon-arrowhead-right"></i></span> -->
+              <span class="menu-icon-right" *ngIf="p.hasSubmenu && !p.showSubMenu"><i class="icomoon-arrowhead-right"></i></span>
+              <span class="menu-icon-right" *ngIf="p.hasSubmenu && p.showSubMenu"><i class="icomoon-arrowhead-down"></i></span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Submenu -->
+        <div [@openSubmenuTrigger]="p.showSubMenu ? 'open' : 'closed'" class="submenu-wrapper">
+          <div class="submenu-item" *ngFor="let sub of p.submenu" (click)="menu.menuItemClick(sub, p, $event)" [title]="sub?.tooltip">
+            <div class="menu-list-item-text">
+              <span class="menu-icon"><i [class]="sub?.icon?.class"></i></span>
+              <span class="menu-title">{{sub?.title}}</span>
+              <span class="menu-right"></span>
+            </div>
+          </div>
+        </div>
+      </span>
+    </span>
+
+    <!-- MENU TYPE 2: List-style (non-nested) -->
+    <ion-list class="menu-list" *ngIf="menuType==='list'">
+      <!-- Top menu buttons -->
+      <ng-container *ngIf="true; then menuTopButtons; else menuTopButtonsEmpty"></ng-container>
+
+      <!-- Side menu items -->
+      <span [@openSubmenuTrigger]="pages[p[0]?.parent]?.showSubMenu ? 'open' : 'closed'" class="menu-item-wrapper" *ngFor="let p of pageList; let i=index">
+        <!-- <div class="menu-item" *ngIf="isArray(p); then subMenuTemplate; else singleItemTemplate" [class.submenu-wrapper]="isArray(p)"></div> -->
+
+        <!-- Submenu -->
+        <div class="submenu-wrapper" *ngIf="isArray(p)">
+          <!-- <div class="submenu-item" *ngFor="let sub of p" (click)="menuItemClick(sub)" [title]="sub?.tooltip" [ngStyle]="sub?.style"> -->
+          <div class="submenu-item" *ngFor="let sub of p" (click)="menuItemClick(sub, $event)" [title]="sub?.tooltip">
+            <div class="menu-list-item-text">
+              <span class="menu-icon"><i [ngClass]="sub?.icon?.class"></i></span>
+              <span class="menu-title">{{sub?.title}}</span>
+              <span class="menu-right"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Single item, first -->
+        <div class="menu-item" *ngIf="!isArray(p) && i === 0" [class.single-item]="p.hasSubmenu===false" [class.parent-item]="p.showSubMenu" [class.developer-hidden]="p.role==='dev' && data.status.role!=='dev'" (click)="menuItemClick(p)" [title]="p.tooltip">
+            <!-- <div [class.parent-item]="p.showSubMenu" [class.developer-hidden]="p.role==='dev' && data.status.role!=='dev'" (click)="menuItemClick(p)" [title]="p.tooltip" [ngStyle]="p.style"> -->
+            <div class="menu-list-item-text">
+              <span class="menu-icon"><i [ngClass]="p.icon.class" ></i></span>
+              <span class="menu-title">{{p?.title}}</span>
+              <span class="menu-right">
+                <span [@rotateArrowTrigger]="p.showSubMenu ? 'open' : 'closed'" class="menu-icon-right" *ngIf="p.hasSubmenu"><i class="icomoon-arrowhead-right"></i></span>
+              </span>
+            </div>
+          </div>
+
+        <!-- Single item, not first -->
+        <div class="menu-item" *ngIf="!isArray(p) && i !== 0" [class.single-item]="p.hasSubmenu===false" [class.parent-item]="p.showSubMenu" [class.next-menu-item]="isArray(pageList[i-1]) && pages[pageList[i-1][0].parent].showSubMenu" [class.developer-hidden]="p.role==='dev' && data.status.role!=='dev'" (click)="menuItemClick(p)" [title]="p.tooltip">
+          <!-- <div [class.parent-item]="p.showSubMenu" [class.developer-hidden]="p.role==='dev' && data.status.role!=='dev'" (click)="menuItemClick(p)" [title]="p.tooltip" [ngStyle]="p.style"> -->
+          <div class="menu-list-item-text">
+            <span class="menu-icon"><i [ngClass]="p.icon.class" ></i></span>
+            <span class="menu-title">{{p?.title}}</span>
+            <span class="menu-right">
+              <span class="menu-icon-right" *ngIf="p.hasSubmenu"><i class="icomoon-arrowhead-right"></i></span>
+            </span>
+          </div>
+        </div>
+      </span>
+    </ion-list>
+
+    <!-- MENU TYPE 3: Panel style (from primeng) -->
+    <span class="panel-menu-wrapper" *ngIf="menuType==='panel'">
+      <!-- Top menu buttons -->
+      <ng-container *ngIf="true; then menuTopButtons; else menuTopButtonsEmpty"></ng-container>
+
+      <!-- Menu items (somewhat simple and anticlimactic ... also gains us nothing because it still won't animate properly) -->
+      <p-panelMenu #mainPanelMenu [model]="mainMenu" [style]="mainMenuStyle" [styleClass]="'main-panel-menu'" [multiple]="false"></p-panelMenu>
+    </span>
+
+  </ion-content>
+</ion-menu>
+
+<ion-nav [class.blocked-for-login]="requireLogin" [root]="rootPage" #content swipeBackEnabled="false" [class.mainHidden]="!data.isAppReady()" class="onsite-main-content"></ion-nav>
+<spinner *ngIf="spinnerService.visible"></spinner>
+<ng-template #spinnerTemplate></ng-template>
+
+<!-- Top menu buttons (same in all menus) -->
+<ng-template #menuTopButtons>
+  <span class="menu-button-container">
+    <span class="side-menu-icon first" title="Toggle developer mode" [class.developer-icon]="data.status.role==='dev'" *ngIf="data.isDeveloper">
+      <i class="icomoon-developer fake-button button-like-icon" (click)="toggleDeveloperMode($event)"></i>
+    </span>
+    <span class="side-menu-icon second" title="Re-authenticate to server (in case app has not been used for more than 15 minutes)">
+      <i class="icomoon-authenticate fake-button button-like-icon" (click)="reauthenticate($event)"></i>
+    </span>
+    <span class="side-menu-icon third" title="Refresh data (generally for reports)">
+      <i class="icomoon-data-refresh fake-button button-like-icon" (click)="updateData($event)"></i>
+    </span>
+  </span>
+</ng-template>
+<ng-template #menuTopButtonsEmpty>
+  <span class="menu-button-container">
+
+  </span>
+</ng-template>
+<!-- <p-dialog #editorJsonDialog class="editor-json-dialog" [(visible)]="jsonEditorVisible" [draggable]="true" [resizable]="true" [responsive]="true" [contentStyle]="jsonEditorDialogStyle" (onHide)="cancel($event)" *ngIf="jsonEditorVisible">
+  <p-header>
+    <div class="p-grid">
+      <div class="p-col">
+        <span class="dialog-title">{{editorJsonHeader}}</span>
+      </div>
+    </div>
+  </p-header>
+  <div class="editor-json-wrapper">
+    <json-editor #jsonEditorComponent [options]="jsonEditorOptions" [data]="jsonData"></json-editor>
+  </div>
+  <p-footer>
+    <div class="footer-buttons">
+      <div class="p-grid p-justify-around">
+        <div class="p-col-5">
+          <span class="cell-button-like" (click)="cancel($event)" title="Cancel">
+            <i class="fa fa-times icon-button-like"></i>
+          </span>
+        </div>
+        <div class="p-col-5">
+          <td class="cell-button-like" (click)="onSubmit($event)" title="Save and Close Window">
+            <i class="fa fa-check icon-button-like"></i>
+          </td>
+        </div>
+      </div>
+    </div>
+  </p-footer>
+</p-dialog> -->

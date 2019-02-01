@@ -1,0 +1,13 @@
+{
+  "name": "OnSiteX Console",
+  "short_name": "OnSiteConsoleX",
+  "start_url": "index.html",
+  "display": "standalone",
+  "icons": [{
+    "src": "assets/images/favicon192.png",
+    "sizes": "192x192",
+    "type": "image/png"
+  }],
+  "background_color": "#4e8ef7",
+  "theme_color": "#4e8ef7"
+}

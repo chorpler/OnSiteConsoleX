@@ -1,0 +1,145 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons left>
+      <button ion-button menuToggle *ngIf="!data.currentlyOpeningPage">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+      <ion-spinner name="bubbles" [class.spinner-opening-page]="true" *ngIf="data.currentlyOpeningPage"></ion-spinner>
+    </ion-buttons>
+    <!-- <ion-buttons left>
+      <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode && !data.currentlyOpeningPage">
+        <i class="fa fa-window-close-o"></i>
+      </button>
+      <button ion-button menuToggle *ngIf="!modalMode && !data.currentlyOpeningPage">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+      <ion-spinner name="bubbles" [class.spinner-opening-page]="true" *ngIf="data.currentlyOpeningPage"></ion-spinner>
+    </ion-buttons> -->
+    <ion-title>{{title}}</ion-title>
+    <ion-buttons right>
+      <button ion-button icon-only (click)="copyTable($event)" title="Copy schedule to clipboard">
+        <ion-icon class="menubar-icon" name="copy"></ion-icon>
+      </button>
+      <button ion-button icon-only (click)="printTable($event)" title="Print schedule">
+        <ion-icon class="menubar-icon" name="print"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  <div class="schedule-print-nodata" *ngIf="!dataReady">No data output yet...</div>
+  <div #printArea id="print-area" class="print-area schedule-print-wrapper" *ngIf="dataReady">
+
+    <!-- SCHEDULE GRID - HEADER AND BODY (PRINT) -->
+    <div id="main-schedule" class="schedule-print-table-wrapper">
+
+      <!-- Schedule Grid Header -->
+      <span class="schedule-print-caption">Week of {{schedule.start.format("MMM DD, YYYY")}} — {{schedule.end.format("MMM DD, YYYY")}}</span>
+      <table class="schedule-print-header-table" >
+        <tbody class="body">
+          <tr id="main-schedule-header-row" class="body-row">
+            <td class="col-S empty-col header"></td>
+            <td class="col-A header">FIRST WEEK </td>
+            <td class="col-B header">CONTN WEEK </td>
+            <td class="col-C header">FINAL WEEK </td>
+            <td class="col-D header">DAYS OFF </td>
+            <td class="col-V header">VACATION </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Schedule Grid Body -->
+      <ng-container *ngFor="let site of sites; let idx=index">
+        <div class="schedule-print-table-wrapper" *ngIf="site.site_number > 10 && (prefs.CONSOLE.scheduling.showOffice || site.site_number != 1075) && (prefs.CONSOLE.scheduling.showAllSites || stats.SITES[site.schedule_name].total != 0)">
+          <table class="schedule-print-table">
+            <tbody id="main-schedule-body" class="body">
+              <tr id="worksite-name-row" class="body-row total-row">
+                <td class="col-S site-name" colspan="6">{{site.schedule_name}}
+                  <span class="site-schedule-stats">(
+                    {{stats.SITES[site.schedule_name].total}} total,
+                    {{stats.SITES[site.schedule_name].working}} working,
+                    {{stats.SITES[site.schedule_name].off}} off)
+                  </span>
+                </td>
+              </tr>
+              <tr class="body-row">
+                <td class="col-S empty-col"></td>
+                <td class="col-A">
+                  <span class="tech-names-wrapper">
+                    <span class="tech-name" *ngFor="let tech of schedule.schedule[site.schedule_name]['FIRST WEEK']">{{tech.toString()}}<br></span>
+                  </span>
+                </td>
+                <td class="col-B">
+                  <span class="tech-names-wrapper">
+                    <span class="tech-name" *ngFor="let tech of schedule.schedule[site.schedule_name]['CONTN WEEK']">{{tech.toString()}}<br></span>
+                  </span>
+                </td>
+                <td class="col-C">
+                  <span class="tech-names-wrapper">
+                    <span class="tech-name" *ngFor="let tech of schedule.schedule[site.schedule_name]['FINAL WEEK']">{{tech.toString()}}<br></span>
+                  </span>
+                </td>
+                <td class="col-D">
+                  <span class="tech-names-wrapper">
+                    <span class="tech-name" *ngFor="let tech of schedule.schedule[site.schedule_name]['DAYS OFF']">{{tech.toString()}}<br></span>
+                  </span>
+                </td>
+                <td class="col-V">
+                  <span class="tech-names-wrapper">
+                    <span class="tech-name" *ngFor="let tech of schedule.schedule[site.schedule_name]['VACATION']">{{tech.toString()}}<br></span>
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+
+    </div>
+    <!-- /SCHEDULE TABLE -->
+
+    <div class="page-break-here"></div>
+    <hr/>
+
+    <!-- SUMMARY TABLE -->
+    <div class="schedule-header-table-wrapper">
+
+      <!-- Summary Table Header -->
+      <span class="schedule-header-caption">Week of {{schedule.start.format("MMM DD, YYYY")}} — {{schedule.end.format("MMM DD, YYYY")}}</span>
+      <table class="schedule-header-table">
+        <thead class="schedule-header-head">
+          <tr class="head-row">
+            <th class="col-client"    >CLIENT</th>
+            <th class="col-working"   >WORKING</th>
+            <th class="col-off"       >OFF</th>
+            <th class="col-unassigned" *ngIf="prefs.CONSOLE.scheduling.showUnassigned">UA</th>
+            <th class="col-total"     >TOTAL</th>
+          </tr>
+        </thead>
+
+        <!-- Summary Table Body -->
+        <tbody class="schedule-header-table-body">
+          <tr class="body-row" *ngFor="let row of headerGrid; let j=index">
+            <td class="col-client"    >{{row[0]}}</td>
+            <td class="col-working"   >{{row[1]}}</td>
+            <td class="col-off"       >{{row[2]}}</td>
+            <td class="col-unassigned" *ngIf="prefs.CONSOLE.scheduling.showUnassigned">&nbsp;</td>
+            <td class="col-total"     >{{row[3]}}</td>
+          </tr>
+          <ng-container *ngFor="let totalRow of headerTotalGrids; let k=index">
+            <tr class="body-row total-row" [ngClass]="totalRow[5]">
+              <td class="col-00 col-client"    >{{totalRow[0]}}</td>
+              <td class="col-01 col-working"   >{{totalRow[1]}}</td>
+              <td class="col-02 col-off"       >{{totalRow[2]}}</td>
+              <td class="col-03 col-unassigned" *ngIf="prefs.CONSOLE.scheduling.showUnassigned">{{totalRow[3]}}</td>
+              <td class="col-04 col-total"     >{{totalRow[4]}}</td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+    <!-- /SUMMARY TABLE -->
+  </div>
+</ion-content>
+

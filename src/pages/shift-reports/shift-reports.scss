@@ -1,0 +1,39 @@
+.shift-reports-modal {
+  .modal-wrapper {
+    width: 50%;
+    left: calc(50% - 50%/2);
+  }
+}
+page-shift-reports {
+
+  .shift-reports-table {
+    table-layout: fixed;
+    box-sizing: border-box;
+    width: 100%;
+    td {
+      border: 1px solid lightgrey;
+    }
+  }
+  .col01 {
+    width: 10%;
+    max-width: 100px;
+    text-overflow: ellipsis;
+  }
+  .shift-reports-col-notes {
+    width: 10%;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+  .table-row-button-like {
+    cursor: pointer;
+    &:hover {
+      background-color: rgba(0, 0, 220, 0.2);
+      // border: 2px solid red;
+    }
+    &:active {
+      background-color: rgba(0, 0, 220, 0.8);
+      color: white;
+    }
+  }
+}

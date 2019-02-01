@@ -1,0 +1,47 @@
+<div class="preauth-open-wrapper">
+  <p-dialog #preauthOpenDialog styleClass="preauth-open-dialog" header="Open Preauths" [(visible)]="visible" [modal]="false" [responsive]="true" [draggable]="true" [resizable]="true" [positionLeft]="dialogLeft" [positionTop]="dialogTop">
+    <div *ngIf="dataReady; then preauthsLoadedTemplate; else loadingPreauthsTemplate"></div>
+    <ng-template #preauthsLoadedTemplate>
+      <div *ngIf="(preauths && preauths.length > 0); then somePreauthsTemplate; else noPreauthsTemplate"></div>
+    </ng-template>
+    <ng-template #somePreauthsTemplate>
+      <div *ngIf="mode===ListMode.listbox; then primeListboxTemplate; else manualListTemplate"></div>
+    </ng-template>
+    <ng-template #primeListboxTemplate>
+      <div class="preauths-listbox-container">
+        <p-listbox [class.preauths-listbox]="true" [options]="preauthList" [(ngModel)]="selectedPreauths" [multiple]="multipleMode" [checkbox]="checkboxMode" [filter]="filterMode"></p-listbox>
+        <span class="preauths-buttonbar">
+          <span class="preauths-button cancel" title="Cancel" (click)="cancelClicked($event)"                 ><i class="fa fa-close icon-button cancel"></i></span>
+          <span class="preauths-button open"   title="Open"   (click)="openPreauths(selectedPreauths, $event)"><i class="fa fa-check icon-button open"  ></i></span>
+        </span>
+      </div>
+    </ng-template>
+    <ng-template #manualListTemplate>
+      <div class="preauth-list">
+        <div class="preauth-item button-like" *ngFor="let preauth of preauths; let i=index" (click)="openPreauth(preauth, $event)">
+          <div class="preauth-row">
+            <span class="preauth-label">Preauth: </span>
+            <span class="preauth-data">{{preauth._id}}</span>
+            <span class="preauth-label">Period: </span>
+            <span class="preauth-data">{{preauth.period_start}}</span>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+    <ng-template #noPreauthsTemplate>
+      <div class="preauth-list">
+        <div class="preauth-item">
+          <span class="no-preauths">(No preauths found)</span>
+        </div>
+      </div>
+    </ng-template>
+    <ng-template #loadingPreauthsTemplate>
+      <div class="preauth-item">
+        <span class="loading-preauths">
+          <span class="spinner-label">Loading preauths...</span>
+          <span class="spinner-image"><span class="text-spinner"></span></span>
+        </span>
+      </div>
+    </ng-template>
+  </p-dialog>
+</div>

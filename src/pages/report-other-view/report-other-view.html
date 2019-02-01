@@ -1,0 +1,120 @@
+<ion-header>
+  <ion-navbar>
+    <!-- <ion-buttons left>
+      <button ion-button icon-only menuToggle>
+        <ion-icon name="menu"></ion-icon>
+      </button>
+    </ion-buttons> -->
+    <ion-title>{{title}}</ion-title>
+    <ion-buttons right>
+      <button ion-button icon-only (tap)="deleteReport()">
+        <ion-icon class="schedule-clear-button" name="ios-trash-outline"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+
+<ion-content padding>
+  <ion-list class="report-card" *ngIf="dataReady">
+    <ion-item>
+      <ion-label>ID</ion-label>
+      <ion-input [(ngModel)]="report._id"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Rev</ion-label>
+      <ion-input [(ngModel)]="report._rev"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Username</ion-label>
+      <ion-input [(ngModel)]="report.username"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Timestamp</ion-label>
+      <ion-input type="number" step="0.000000001" [(ngModel)]="timestampXL" (ngModelChange)="modifyTimestamp(report.timestamp)"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>TimestampM</ion-label>
+      <!-- <ion-input [(ngModel)]="report.timestampM" readonly="readonly">{{report.timestampM.format()}}</ion-input> -->
+      <ion-datetime [(ngModel)]="timestampDate" (ionChange)="modifyTimestampM(timestampDate)" displayFormat="YYYY-MM-DD HH:mm:ss" pickerFormat="YYYY MM DD HH mm ss"></ion-datetime>
+    </ion-item>
+    <ion-item>
+      <ion-label>Date</ion-label>
+      <ion-datetime [(ngModel)]="report_date" (ionChange)="updateReportDate(report_date)" pickerFormat="MMM DD YYYY" displayFormat="MMM DD YYYY"></ion-datetime>
+    </ion-item>
+    <ion-item>
+      <ion-label>Type</ion-label>
+      <ion-select [(ngModel)]="report_type" (ionChange)="setReportType(report_type)">
+        <ion-option *ngFor="let report_type of report_types" [value]="report_type">{{report_type.value}}</ion-option>
+      </ion-select>
+    </ion-item>
+    <ion-item *ngIf="report.type==='Training'">
+      <ion-label>Training Type</ion-label>
+      <ion-select [(ngModel)]="training_type" (ionChange)="setTrainingType(training_type)">
+        <ion-option *ngFor="let training_type of training_types" [value]="training_type">{{training_type.value}}</ion-option>
+      </ion-select>
+    </ion-item>
+    <ion-item *ngIf="report.type==='Travel'">
+      <ion-label>Travel Location</ion-label>
+      <ion-select [(ngModel)]="site" (ionChange)="setTravelLocation(site)">
+        <ion-option *ngFor="let site of sites" [value]="site">{{site.getSiteID()}}</ion-option>
+      </ion-select>
+    </ion-item>
+    <ion-item>
+      <ion-label>Hours</ion-label>
+      <ion-input type="number" step="0.25" min="0" [(ngModel)]="report.time"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Tech Last Name</ion-label>
+      <ion-input [(ngModel)]="report.last_name"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Tech First Name</ion-label>
+      <ion-input [(ngModel)]="report.first_name"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Client</ion-label>
+      <ion-select [(ngModel)]="client" (ionChange)="updateReportCLL('client', client)">
+        <ion-option *ngFor="let client of clients" [value]="client">{{client.fullName}}</ion-option>
+      </ion-select>
+    </ion-item>
+    <ion-item>
+      <ion-label>Location</ion-label>
+      <ion-select [(ngModel)]="location" (ionChange)="updateReportCLL('location', location)">
+        <ion-option *ngFor="let location of locations" [value]="location">{{location.fullName}}</ion-option>
+      </ion-select>
+    </ion-item>
+    <ion-item>
+      <ion-label>LocID</ion-label>
+      <ion-select [(ngModel)]="locID" (ionChange)="updateReportCLL('locID', locID)">
+        <ion-option *ngFor="let locID of locIDs" [value]="locID">{{locID.name}}</ion-option>
+      </ion-select>
+    </ion-item>
+    <ion-item>
+      <ion-label>Shift Serial</ion-label>
+      <ion-input [(ngModel)]="report.shift_serial"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Payroll Period</ion-label>
+      <ion-input [(ngModel)]="report.payroll_period"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label floating>Notes</ion-label>
+      <ion-textarea [(ngModel)]="report.notes"></ion-textarea>
+    </ion-item>
+  </ion-list>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-buttons left>
+      <button type="button" ion-button icon-only color="royal" (click)="cancel()">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-buttons right>
+      <button type="button" ion-button icon-only color="favorite" (click)="save()">
+        <ion-icon name="checkmark"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>

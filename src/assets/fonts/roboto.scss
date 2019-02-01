@@ -1,0 +1,302 @@
+// Roboto Font
+// Google
+// Apache License, version 2.0
+// http://www.apache.org/licenses/LICENSE-2.0.html
+// $roboto-font-path: $font-path !default;
+$roboto-font-path: "assets/fonts" !default;
+@font-face {
+    font-family: "Roboto";
+    font-style: normal;
+    font-weight: 300;
+    src:
+    url("#{$roboto-font-path}/Roboto-Light.ttf") format("truetype"),
+    url("#{$roboto-font-path}/Roboto-Light.woff") format("woff");
+}
+
+@font-face {
+    font-family: 'Roboto Condensed';
+    font-style: normal;
+    font-weight: 300;
+    src:
+    url("#{$roboto-font-path}/RobotoCondensed-Light.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: 'Roboto Condensed';
+    font-style: normal;
+    font-weight: 400;
+    src:
+    url("#{$roboto-font-path}/RobotoCondensed-Regular.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Roboto";
+    font-style: normal;
+    font-weight: 400;
+    src:
+    url("#{$roboto-font-path}/Roboto-Regular.ttf") format("truetype"),
+    url("#{$roboto-font-path}/Roboto-Regular.woff") format("woff");
+}
+
+@font-face {
+    font-family: "Roboto";
+    font-style: normal;
+    font-weight: 500;
+    src:
+    url("#{$roboto-font-path}/Roboto-Medium.ttf") format("truetype"),
+    url("#{$roboto-font-path}/Roboto-Medium.woff") format("woff");
+}
+
+@font-face {
+    font-family: "Roboto";
+    font-style: normal;
+    font-weight: 700;
+    src:
+    url("#{$roboto-font-path}/Roboto-Bold.ttf") format("truetype"),
+    url("#{$roboto-font-path}/Roboto-Bold.woff") format("woff");
+}
+
+
+/* RobotoMono */
+
+@font-face {
+    font-family: "RobotoMono";
+    font-style: normal;
+    font-weight: 700;
+    src:
+    url("#{$roboto-font-path}/RobotoMono-Bold.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "RobotoMono";
+    font-style: italic;
+    font-weight: 700;
+    src:
+    url("#{$roboto-font-path}/RobotoMono-BoldItalic.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "RobotoMono";
+    font-style: normal;
+    font-weight: 300;
+    src:
+    url("#{$roboto-font-path}/RobotoMono-Light.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "RobotoMono";
+    font-style: italic;
+    font-weight: 300;
+    src:
+    url("#{$roboto-font-path}/RobotoMono-LightItalic.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "RobotoMono";
+    font-style: normal;
+    font-weight: 500;
+    src:
+    url("#{$roboto-font-path}/RobotoMono-Medium.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "RobotoMono";
+    font-style: italic;
+    font-weight: 500;
+    src:
+    url("#{$roboto-font-path}/RobotoMono-MediumItalic.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "RobotoMono";
+    font-style: normal;
+    font-weight: 400;
+    src:
+    url("#{$roboto-font-path}/RobotoMono-Regular.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "RobotoMono";
+    font-style: italic;
+    font-weight: 400;
+    src:
+    url("#{$roboto-font-path}/RobotoMono-Italic.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "RobotoMono";
+    font-style: normal;
+    font-weight: 100;
+    src:
+    url("#{$roboto-font-path}/RobotoMono-Thin.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "RobotoMono";
+    font-style: italic;
+    font-weight: 100;
+    src:
+    url("#{$roboto-font-path}/RobotoMono-ThinItalic.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Roboto Mono";
+  font-style: normal;
+  font-weight: 700;
+  src:
+  url("#{$roboto-font-path}/RobotoMono-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Roboto Mono";
+  font-style: italic;
+  font-weight: 700;
+  src:
+  url("#{$roboto-font-path}/RobotoMono-BoldItalic.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Roboto Mono";
+  font-style: normal;
+  font-weight: 300;
+  src:
+  url("#{$roboto-font-path}/RobotoMono-Light.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Roboto Mono";
+  font-style: italic;
+  font-weight: 300;
+  src:
+  url("#{$roboto-font-path}/RobotoMono-LightItalic.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Roboto Mono";
+  font-style: normal;
+  font-weight: 500;
+  src:
+  url("#{$roboto-font-path}/RobotoMono-Medium.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Roboto Mono";
+  font-style: italic;
+  font-weight: 500;
+  src:
+  url("#{$roboto-font-path}/RobotoMono-MediumItalic.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Roboto Mono";
+  font-style: normal;
+  font-weight: 400;
+  src:
+  url("#{$roboto-font-path}/RobotoMono-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Roboto Mono";
+  font-style: italic;
+  font-weight: 400;
+  src:
+  url("#{$roboto-font-path}/RobotoMono-Italic.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Roboto Mono";
+  font-style: normal;
+  font-weight: 100;
+  src:
+  url("#{$roboto-font-path}/RobotoMono-Thin.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Roboto Mono";
+  font-style: italic;
+  font-weight: 100;
+  src:
+  url("#{$roboto-font-path}/RobotoMono-ThinItalic.ttf") format("truetype");
+}
+
+/* Lato */
+
+@font-face {
+    font-family: "Lato";
+    font-style: normal;
+    font-weight: 900;
+    src:
+    url("#{$roboto-font-path}/Lato-Black.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Lato";
+    font-style: italic;
+    font-weight: 900;
+    src:
+    url("#{$roboto-font-path}/Lato-BlackItalic.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Lato";
+    font-style: normal;
+    font-weight: 700;
+    src:
+    url("#{$roboto-font-path}/Lato-Bold.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Lato";
+    font-style: italic;
+    font-weight: 700;
+    src:
+    url("#{$roboto-font-path}/Lato-BoldItalic.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Lato";
+    font-style: normal;
+    font-weight: 100;
+    src:
+    url("#{$roboto-font-path}/Lato-Hairline.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Lato";
+    font-style: italic;
+    font-weight: 100;
+    src:
+    url("#{$roboto-font-path}/Lato-HairlineItalic.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Lato";
+    font-style: normal;
+    font-weight: 400;
+    src:
+    url("#{$roboto-font-path}/Lato-Regular.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Lato";
+    font-style: italic;
+    font-weight: 400;
+    src:
+    url("#{$roboto-font-path}/Lato-Italic.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Lato";
+    font-style: normal;
+    font-weight: 300;
+    src:
+    url("#{$roboto-font-path}/Lato-Light.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Lato";
+    font-style: italic;
+    font-weight: 300;
+    src:
+    url("#{$roboto-font-path}/Lato-LightItalic.ttf") format("truetype");
+}

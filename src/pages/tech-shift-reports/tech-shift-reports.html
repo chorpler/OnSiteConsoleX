@@ -1,0 +1,168 @@
+<options-generic #optionsComponent *ngIf="optionsVisible" [type]="optionsType" (onCancel)="optionsClosed($event)" (onSave)="optionsSaved($event)"></options-generic>
+
+<ion-header>
+  <ion-navbar>
+    <ion-buttons left>
+      <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode && !data.currentlyOpeningPage">
+        <i class="fa fa-window-close-o"></i>
+      </button>
+      <button ion-button menuToggle *ngIf="!modalMode && !data.currentlyOpeningPage">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+      <ion-spinner name="bubbles" [class.spinner-opening-page]="true" *ngIf="data.currentlyOpeningPage"></ion-spinner>
+    </ion-buttons>
+    <!-- <ion-buttons left>
+      <button ion-button menuToggle *ngIf="!modalMode">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+      <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode">
+        <i class="fa fa-window-close-o"></i>
+      </button>
+    </ion-buttons> -->
+    <ion-title>
+      <span class="title">
+        {{title}}
+        <span class="reports-limited" *ngIf="mode==='ro'">
+          <span class="report-empty" *ngIf="!(reports && reports.length)">(NO REPORTS LOADED)</span>
+          <span class="report-count" *ngIf="reports && reports.length">({{reports.length}} reports loaded)</span>
+        </span>
+        <span class="reports-all" *ngIf="mode==='rw'">
+          <span class="report-empty" *ngIf="!(allReports && allReports.length)">(NO REPORTS LOADED)</span>
+          <span class="report-count" *ngIf="allReports && allReports.length">({{allReports.length}} reports loaded)</span>
+        </span>
+      </span>
+    </ion-title>
+    <ion-buttons right>
+      <span class="menubar-right-wrapper" *ngIf="dataReady && data.ready()">
+        <span class="buttons-enabled-normally" *ngIf="mode==='rw'">
+
+          <button class="menubar-button" ion-button icon-only (click)="showOptions($event)" title="Show options">
+            <i class="fa fa-cog"></i>
+          </button>
+
+          <button class="menubar-button" ion-button icon-only (click)="generateDropdownMenus($event)" title="Reset menus">
+            <i class="fa fa-refresh"></i>
+          </button>
+
+          <!-- Menubar dropdowns -->
+          <span class="menubar-wrapper">
+
+            <!-- Work Site dropdown -->
+            <span class="menubar-flexbox">
+                <span class="menubar-dropdown-label">Work Site</span>
+                <span class="menubar-dropdown-menu">
+                  <p-dropdown #siteDropdown [class.dropdown-menubar]="true" [options]="siteMenu" [(ngModel)]="site" (onChange)="updateSite(site, $event)"></p-dropdown>
+                </span>
+              </span>
+            </span>
+
+            <!-- Shift/Date dropdown -->
+            <span class="menubar-flexbox">
+              <span class="menubar-dropdown-label">Shifts</span>
+              <span class="menubar-dropdown-menu">
+                <!-- <p-multiSelect #shiftDropdownMenu [class.menubar-multiselect]="true" maxSelectedLabels="0" [options]="shiftMenu" [(ngModel)]="selectedDates" (onChange)="updateShifts(selectedDates, $event)"> -->
+                <p-multiSelect #shiftDropdownMenu [styleClass]="'shift-multiselect'" [class.menubar-multiselect]="true" maxSelectedLabels="0" [options]="shiftMenu" [(ngModel)]="selectedDates" (onChange)="checkShiftSelections(selectedDates, $event)">
+                  <ng-template let-shift let-i="index" pTemplate="item">
+                    <div class="menu-item-period" [ngStyle]="shift.style" *ngIf="shift.divider" >{{shift.label}}</div>
+                    <div class="menu-item-shift"  [ngStyle]="shift.style" *ngIf="!shift.divider">{{shift.label}}</div>
+                  </ng-template>
+                </p-multiSelect>
+              </span>
+            </span>
+
+            <!-- Technician multiselect -->
+            <span class="menubar-flexbox">
+              <span class="menubar-dropdown-label link" >Technician</span>
+              <span class="menubar-dropdown-menu">
+                <!-- <p-dropdown #techDropdown [class.dropdown-menubar]="true" [options]="techMenu" [(ngModel)]="tech" (onChange)="updateTech(tech)"></p-dropdown> -->
+                <!-- <p-multiSelect #techDropdown [class.dropdown-menubar]="true" [options]="techMenu" [(ngModel)]="selectedTechs" (onChange)="updateTechs(selectedTechs, $event)"></p-multiSelect> -->
+                <p-multiSelect #techDropdown [styleClass]="'tech-multiselect'" [class.dropdown-menubar]="true" [options]="techMenu" defaultLabel="Choose Tech(s) ({{techMenu.length}})" maxSelectedLabels="0" [(ngModel)]="selTechs" (onChange)="checkSelectedTechs(selTechs, $event)"></p-multiSelect>
+              </span>
+            </span>
+
+          <button class="menubar-button" ion-button icon-only (click)="generateSelectedReports($event)" title="Generate selected shift report(s)">
+            <i class="fa fa-file-text-o"></i>
+          </button>
+          <button class="menubar-button" ion-button icon-only (click)="clearReports($event)" title="Clear reports">
+            <i class="fa fa-trash-o"></i>
+          </button>
+        </span>
+        <button class="menubar-button" ion-button icon-only (click)="printReports($event)" title="Print shift report(s)">
+          <i class="fa fa-print"></i>
+        </button>
+      </span>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding *ngIf="!(dataReady && data.ready())">
+  <div class="background-spinner"></div>
+</ion-content>
+<ion-content padding *ngIf="dataReady && data.ready()">
+  <div #printArea class="shift-reports-wrapper print-area">
+    <div class="shift-report-wrapper" *ngFor="let shiftreport of shiftreports; let i=index">
+      <table #preauthTable class="shift-reports-table print-area">
+        <tbody class="shift-reports-body">
+          <tr class="header-row">
+            <td class="label date">Date</td>
+            <td class="data date">{{shiftreport.date}}</td>
+            <td class="title">Technician Shift Report</td>
+            <td class="label hours">Hours</td>
+            <td class="data hours" colspan="2">{{shiftreport.total_hours | number:'1.1-1'}}</td>
+          </tr>
+          <tr class="subheader-row">
+            <td class="label" colspan="2">Company:</td>
+            <td class="data" colspan="4">
+              <span class="input-like">{{shiftreport.site.client.name}} {{shiftreport.site.location.name}} {{shiftreport.site.locID.name}}</span>
+            </td>
+          </tr>
+          <tr class="subheader-row">
+            <td class="label" colspan="2">Technician:</td>
+            <td class="data" colspan="4">
+              <span class="input-like">{{shiftreport.tech.getTechName()}}</span>
+            </td>
+          </tr>
+          <tr class="dataheader">
+            <td class="col-unit">Unit No.</td>
+            <td class="col-order">Order No.</td>
+            <td class="col-notes">Notes</td>
+            <td class="col-start">Start</td>
+            <td class="col-end">End</td>
+            <td class="col-hours">Hrs</td>
+          </tr>
+          <div *ngIf="shiftreport && shiftreport.grid && shiftreport.grid.length; then showGrid; else emptyGrid"></div>
+          <ng-template #showGrid>
+            <tr class="databody" *ngFor="let row of shiftreport.grid">
+              <td class="col-unit">
+                <span class="text-cell">{{row[0]}}</span>
+              </td>
+              <td class="col-order">
+                <span class="text-cell">{{row[1]}}</span>
+              </td>
+              <td class="col-notes">
+                <span class="text-cell">{{row[2]}}</span>
+              </td>
+              <td class="col-start">{{row[3]}}</td>
+              <td class="col-end">{{row[4]}}</td>
+              <td class="col-hours" *ngIf="row[5]===''">{{row[5]}}</td>
+              <td class="col-hours" *ngIf="row[5]!==''">{{row[5] | number:'1.1-1'}}</td>
+            </tr>
+          </ng-template>
+          <ng-template #emptyGrid>
+            <tr class="databody">
+              <td class="col-unit">&mdash;</td>
+              <td class="col-order">&mdash;</td>
+              <td class="col-notes">&mdash;</td>
+              <td class="col-start">&mdash;</td>
+              <td class="col-end">&mdash;</td>
+              <td class="col-hours">&mdash;</td>
+            </tr>
+          </ng-template>
+          <tr class="sesa-fleet-services-row">
+            <td class="company-info" colspan="6">SESA Fleet Services LLC, 2801 Corporate Dr. Weslaco TX 78599</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</ion-content>

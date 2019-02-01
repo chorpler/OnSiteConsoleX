@@ -1,0 +1,303 @@
+employee-view {
+  .employee-view-dialog {
+    width: 720px;
+    min-width: 720px;
+    overflow-y: auto;
+    .ui-dialog-titlebar {
+      padding-bottom: 2px !important;
+    }
+    .ui-dialog-footer {
+      padding: 3px;
+    }
+    .button-grid {
+      width: 100%;
+      text-align: center;
+      border-top: 1px dotted black;
+      margin-top: 2px;
+      .p-col {
+        padding-bottom: 0px;
+      }
+      .cell-button-like {
+        width: 100%;
+        height: 25px;
+        line-height: 25px;
+        display: inline-block;
+        &:not(.disabled) {
+          @include button-like-block;
+        }
+        &.disabled {
+          color: lightgrey;
+          cursor: default;
+        }
+      }
+    }
+    .p-grid {
+      align-items: center;
+    }
+    .ui-dialog-content {
+      @include fancy-scrollbar-console;
+    }
+  }
+  .employee-view-wrapper {
+    width: 575px;
+    // width: 500px;
+    // min-width: 700px;
+    // height: 100%;
+    // border: 1px dotted lightgrey;
+    // overflow-x: hidden;
+    // overflow-y: auto;
+  }
+  p-header {
+    .dialog-title {
+      color: red;
+    }
+  }
+  .ui-dialog-titlebar-icon {
+    font-size: 24px;
+    position: absolute;
+    right: 5px;
+    top: 5px;
+  }
+  .svg-icon {
+    width: 20px;
+    height: 24px;
+  }
+  // .cell-button-like {
+  //   font-size: 24px;
+  //   cursor: pointer;
+  //   &:hover {
+  //     background-color: rgba(0, 0, 128, 0.2);
+  //     color: rgba(255, 0, 128, 0.5);
+  //   }
+  //   &:active {
+  //     background-color: rgba(0, 0, 255, 0.5);
+  //     color: rgba(255, 0, 255, 0.9);
+  //   }
+  // }
+  .button-table {
+    width: 100%;
+    table-layout: fixed;
+    text-align: center;
+    overflow: visible;
+    &.top {
+      margin-bottom: 10px;
+      border-bottom: 1px dashed lightgrey;
+    }
+    &.bottom {
+      margin-top: 10px;
+      border-top: 1px dashed lightgrey;
+    }
+  }
+  .footer-buttons {
+    text-align: center;
+    .cell-button-like {
+      display: inline-block;
+      width: 100%;
+      height: 30px;
+      text-align: center;
+      @include button-like-block;
+    }
+  }
+  .icon-button-like {
+    font-size: 20px;
+    cursor: pointer;
+    &:hover {
+      color: rgba(255, 0, 128, 0.5);
+    }
+    &:active {
+      color: rgba(255, 0, 255, 0.9);
+    }
+  }
+  .icon-greyed-out {
+    // font-size: 24px;
+    font-size: 20px;
+    color: lightgrey;
+    cursor: default;
+  }
+  .employee-table {
+    display: flex;
+    display         : flex         ;
+    flex-flow       : column nowrap;
+    justify-content : flex-start   ;
+    align-content   : center  ;
+    align-items     : center  ;
+    width: 100%;
+    .table-body {
+      flex: 0 0 100%;
+      width: 100%;
+      .table-row {
+        display: flex;
+        display         : flex        ;
+        flex-flow       : row nowrap  ;
+        justify-content : flex-start ;
+        align-content   : center ;
+        align-items     : center ;
+
+        flex: 0 0 100%;
+        width: 100%;
+        &:not(.double) {
+          .table-cell {
+            &.label {
+              flex: 0 1 30%;
+              max-width: 150px;
+              min-width: 150px;
+              width: 30%;
+              text-align: right;
+              font-weight: bold;
+              padding-right: 2px;
+            }
+            &.data {
+              flex: 1 0 70%;
+              min-width: 300px;
+              input {
+                width: 100%;
+              }
+              p-dropdown {
+                width: 100%;
+                .ui-dropdown {
+                  width: 100% !important;
+                }
+              }
+              textarea {
+                width: 100%;
+              }
+            }
+          }
+        }
+        &.double {
+
+        }
+        .label {
+          max-width: 150px;
+          text-align: right;
+          font-weight: bold;
+          padding-right: 2px;
+        }
+        .data {
+          width: 300px;
+          // column-span: 3;
+          input {
+            width: 100%;
+          }
+          p-dropdown {
+            width: 100%;
+            .ui-dropdown {
+              width: 100% !important;
+            }
+          }
+          textarea {
+            width: 100%;
+          }
+        }
+      }
+    }
+  }
+  .employee-view-table {
+    table-layout: fixed;
+    border-collapse: collapse;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .employee-view-body {
+
+  }
+  .body-row {
+    td {
+      padding-top: 1px;
+      padding-bottom: 1px;
+    }
+    &.double {
+      td.data {
+        column-span: 1;
+      }
+    }
+    &:not(.double) {
+      td.data {
+        column-span: 3;
+      }
+    }
+  }
+  .buttoncage {
+    padding: 10px 50px;
+    button {
+      // margin-left: 50px;
+      // margin-right: 50px;
+      // width: 30%;
+    }
+  }
+  .button-wrapper {
+    width: 100%;
+    margin-top: 10px;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-around;
+    align-content: center;
+    align-items: center;
+  }
+  .error {
+    background-color: rgba(255, 0, 0, 0.4);
+  }
+  .test-grid {
+    display         : flex         ;
+    flex-flow       : column nowrap;
+    justify-content : flex-start  ;
+    align-content   : center  ;
+    align-items     : center  ;
+    .grid-row {
+      width: 100%;
+      display         : flex        ;
+      flex-flow       : row nowrap  ;
+      justify-content : flex-start ;
+      align-content   : center ;
+      align-items     : center ;
+      .grid-col {
+        flex: 0 1 auto;
+      }
+      .grid-col-2 {
+        // width: 16.6667%;
+        width: 20%;
+      }
+      .grid-col-4 {
+        // width: 33.3333%;
+        width: 30%;
+      }
+      .grid-col-10 {
+        // width: 83.3333%;
+        width: 80%;
+      }
+    }
+    .label {
+      // height: 35px;
+      text-align: right;
+      // padding: 2px;
+      padding-right: 2px;
+      font-weight: bold;
+      // min-width: 120px;
+    }
+    .data {
+      // height: 35px;
+      // padding: 2px;
+      padding-top: 1px;
+      input {
+        width: 100%;
+        // min-width: 50%;
+      }
+      textarea {
+        width: 100%;
+        height: 100%;
+      }
+      .ui-dropdown {
+        min-width: 50%;
+      }
+      .ui-calendar {
+        min-width: calc(50% - 27px);
+      }
+    }
+    .labeldata {
+      text-align: center;
+    }
+  }
+  .input-data {
+    // width: 100%;
+  }
+}

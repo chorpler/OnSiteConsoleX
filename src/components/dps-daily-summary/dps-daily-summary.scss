@@ -1,0 +1,117 @@
+dps-daily-summary-component, .dps-daily-summary-component {
+  user-select: text;
+  ion-header {
+    * {
+      overflow: visible !important;
+    }
+  }
+
+  .dps-daily-site-summary-title {
+    width: 100%;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid lightgrey;
+  }
+  .dps-daily-summary-menu {
+    width: 300px;
+    height: 30px;
+  }
+
+  .dps-daily-summary-table {
+    table-layout: fixed;
+    width: 90vw;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .dps-daily-summary-menu-button {
+    font-family: "FontAwesome" !important;
+    font-size: 24px;
+    width: 50px;
+    height: 50px;
+    background-color: transparent;
+    position: absolute;
+    z-index: 10001;
+    left: 20px;
+    top: 5px;
+    &:before {
+      content: '\f0c9';
+    }
+  }
+  .ui-tieredmenu {
+    top: calc(50px + 5px) !important;
+  }
+  .dps-daily-summary-site-header-row {
+    background-color: rgba(217, 217, 217, 1.0);
+  }
+  .dps-daily-summary-body-row {
+    height: 30px;
+  }
+  .dps-daily-summary-td {
+    border: 1px solid lightgrey;
+  }
+  td {
+    padding-left: 3px;
+    padding-right: 3px;
+  }
+  .col-00 {
+    width: 200px;
+  }
+  .col-numeric {
+    width: 50px;
+    text-align: right;
+  }
+  .dps-daily-site-summary-wrapper {
+    margin-left: auto;
+    margin-right: auto;
+    width: 30vw;
+    max-width: 1000px;
+    display: flex;
+    // height: 90vh;
+    flex-flow: row wrap;
+    justify-content: space-between;
+    align-content: flex-start;
+  }
+  .dps-daily-site-summary-table, .dps-daily-site-total-table {
+    flex: 0 1 auto;
+    table-layout: fixed;
+    border: 1px solid lightgrey;
+    width: 250px;
+    margin-bottom: 10px;
+    td, th {
+      border: 1px solid lightgrey;
+    }
+  }
+  .dps-daily-site-total-table {
+    td, th {
+      font-weight: bold;
+    }
+  }
+  .dps-daily-site-summary-grid {
+    width: 250px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .col-data {
+    text-align: right;
+  }
+  .col-itemnumber {
+    width: 25px;
+  }
+  .dps-daily-summary-input {
+    height: 30px;
+    margin: 0;
+    margin-top: 5px;
+    padding: 0;
+    input {
+      margin: 0;
+      margin-top: 5px;
+      padding: 0;
+      // text-align: right;
+      // border: 1px solid lightgrey;
+    }
+  }
+}

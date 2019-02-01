@@ -1,0 +1,116 @@
+page-messages {
+  ion-card {
+    max-width: 600px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  // .messages-date-container {
+  //   // .item-inner {
+  //   //   // overflow:
+  //   // }
+  // }
+  .ion-item-button-like {
+    cursor:pointer;
+    &:hover {
+      background-color: rgba(0, 0, 128, 0.2);
+    }
+    &:active {
+      background-color: rgba(0, 0, 255, 0.5);
+    }
+  }
+  .messages-list-container {
+    margin-top: 50px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-content: flex-start;
+    max-width: calc(100vw - 50px);
+    margin-left: auto;
+    margin-right: auto;
+  }
+  // .messages-button-new-message {
+
+  // }
+  .messages-list-list {
+    flex: 0 1 auto;
+    width: 300px;
+    max-width: 30vw;
+    border: 1px solid lightgrey;
+  }
+  .message-list-card {
+    flex: 0 1 auto;
+    // width: 50vw;
+    max-width: 60vw;
+    border: 1px solid lightgrey;
+
+  }
+  // .messages-list-item {
+  // }
+  .messages-list-header-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+  }
+  .messages-list-header-label {
+    flex: 0 1 auto;
+    font-weight: bold;
+    text-align: left;
+    padding-right: 5px;
+    max-width: 100px;
+    width: 75px;
+  }
+  .messages-list-data {
+    flex: 0 1 auto;
+    font-weight: normal;
+    text-align: left;
+    padding-left: 2px;
+    width: 200px;
+  }
+  // .messages-list-header {
+
+  // }
+  // .messages-list-data {
+
+  // }
+  // .messages-list-header {
+
+  // }
+  // .messages-list-data {
+
+  // }
+  // .messages-message-date {
+
+  // }
+  // .messages-message-list {
+
+  // }
+  // .messages-message-date-calendar {
+
+  // }
+  .messages-message-input {
+    padding-left: 100px;
+    *:focus {
+      padding-left: 0;
+    }
+  }
+   .input-has-focus {
+     * {
+       padding-left: 0 !important;
+     }
+   }
+  // .messages-message-text-item {
+
+  // }
+  .messages-message-text-area {
+    padding-left: 100px;
+    *:focus {
+      padding-left: 0;
+    }
+  }
+
+  .message-text-editor {
+    height: 320px;
+  }
+}

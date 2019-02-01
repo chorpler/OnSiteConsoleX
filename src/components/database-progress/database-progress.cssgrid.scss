@@ -1,0 +1,243 @@
+// database-progress {
+//   .db-progres-dialog {
+//     .ui-dialog {
+//       width: 40%;
+//     }
+//   }
+//   .progress-sectiontitle {
+//     text-align: center;
+//     font-size: 32px;
+//     font-weight: bold;
+//     border-top: 1px solid lightgrey;
+//     border-bottom: 1px solid lightgrey;
+//     width: 100%;
+//     background-color: rgb(230, 225, 225);
+//     margin-top: 30px;
+//     margin-bottom: 15px;
+//     &:first-of-type {
+//       margin-top: 0;
+//       border-top: 0;
+//     }
+//   }
+//   .wrapper {
+//     margin-left: 1em;
+//     margin-right: 1em;
+//     margin-top: 5px;
+//     margin-bottom: 15px;
+//     width: 100%;
+//     display: grid;
+//     grid-template-columns: 1fr 1fr 2fr;
+//     grid-template-rows: auto repeat(auto-fill, 1fr) auto;
+//     grid-row-gap: 2px;
+//     grid-column-gap: 0px;
+//   }
+//   .header {
+//     display: contents;
+//     grid-area: header;
+//     grid-column: 1 / -1;
+//     .cell {
+//       text-align: center;
+//       font-weight: bold;
+//       text-decoration: underline;
+//     }
+//   }
+//   .content {
+//     display: contents;
+//     grid-area: content;
+//     grid-column: 1 / -1;
+//     .cell {
+//       padding-top: 4px;
+//       padding-bottom: 4px;
+//       &.cell-01 {
+//         min-width: 150px;
+//         font-weight: bold;
+//         text-align: right;
+//       }
+//       &.cell-02 {
+//         min-width: 75px;
+//         text-align: center;
+//         padding-right: 0;
+//       }
+//       &.cell-03 {
+//         text-align: right;
+//       }
+//     }
+//     > div.cell {
+//       border: 1px solid lightgrey;
+//       &:nth-child(3n+1) {
+//         border-top-left-radius: 5px;
+//         border-bottom-left-radius: 5px;
+//         border-right: 0;
+//         padding-left: 4px;
+//       }
+//       &:nth-child(3n+2) {
+//         // border: 1px dotted lightgrey;
+//         border-left: 0;
+//         border-right: 0;
+//       }
+//       &:nth-child(3n+3) {
+//         border-top-right-radius: 5px;
+//         border-bottom-right-radius: 5px;
+//         // border: 1px dotted lightgrey;
+//         padding-right: 4px;
+//         border-left: 0;
+//       }
+//     }
+//   }
+
+//   .footer {
+//   //  display: contents;
+//     // display: flex;
+//     // grid-area: footer;
+//     // grid-column: 1 / -1;
+//     width: 100%;
+//     display: flex;
+//     flex-flow: row nowrap;
+//     justify-content: space-around;
+//     align-content: center;
+//     align-items: center;
+//     .cell {
+//       flex: 0 1 auto;
+//       font-size: 24px;
+//       &.cell-01 {
+//         min-width: 150px;
+//         // font-weight: bold;
+//         text-align: right;
+//       }
+//       &.cell-02 {
+//         min-width: 75px;
+//         text-align: center;
+//         padding-right: 0;
+//       }
+//       &.cell-03 {
+//         text-align: right;
+//         .progress-bar-wrapper {
+//           width: 280px;
+//           .db-progress-bar {
+//             width: 250px;
+//           }
+//         }
+//       }
+//       .time-wrapper {
+//         .label {
+//           font-weight: bold;
+//         }
+//         .time  {
+//         }
+//       }
+//       }
+//     }
+//   .db-progress-dialog {
+//     // width: 40%;
+//     .ui-dialog {
+//       width: 40%;
+//     }
+//   }
+//   .db-progress-wrapper {
+//     width: 100%;
+//     display: flex;
+//     flex-flow: column nowrap;
+//     justify-content: flex-start;
+//     align-content: center;
+//     align-items: center;
+
+//   }
+//   .progress-section {
+//     width: 100%;
+//     display: block;
+//     flex: 0 1 auto;
+//   }
+//   .db-table {
+//     width: 100%;
+//     border-collapse: separate;
+//     border-spacing: 2px;
+//     // min-width: 350px;
+//     // border-collapse: collapse;
+//     margin-top: 4px;
+//     margin-left: auto;
+//     margin-right: auto;
+//     margin-bottom: 4px;
+//     .header-row {
+//       font-weight: bold;
+//       text-align: center;
+//       th {
+//         padding-left: 4px;
+//         padding-right: 4px;
+//         .label-text {
+//           width: 98%;
+//           text-decoration: underline;
+//         }
+//         &.col-percent {
+//           text-align: center;
+//           min-width: 280px;
+//         }
+//         *.col-records {
+//           text-align: center;
+//         }
+//       }
+//     }
+//     .body-row {
+//       border: 1px dotted lightgrey;
+//       td {
+//         padding-left: 4px;
+//         padding-right: 4px;
+//         &.col-name {
+//           min-width: 150px;
+//           font-weight: bold;
+//           text-align: right;
+//         }
+//         &.col-loaded {
+//           min-width: 75px;
+//           text-align: right;
+//           padding-right: 0;
+//         }
+//         &.col-total {
+//           min-width: 75px;
+//           text-align: left;
+//           padding-left: 0;
+//         }
+//         &.col-percent {
+//           text-align: right;
+//         }
+//       }
+//     }
+//     .col-name {
+//       min-width: 150px;
+//     }
+//     .label-text {
+
+//     }
+//     .body-row {
+
+//     }
+//     .text-row {
+
+//     }
+//     .data-text {
+
+//     }
+//   }
+//   // .time-wrapper {
+//   //   display: flex;
+//   //   flex-flow: row nowrap;
+//   //   justify-content: center;
+//   //   align-content: center;
+//   //   align-items: center;
+//   //   .start-time-wrapper {
+//   //     margin-right: 10px;
+//   //     .label {
+//   //       font-weight: bold;
+//   //     }
+//   //     .time {
+//   //     }
+//   //   }
+//   //   .elapsed-time-wrapper {
+//   //     margin-left: 10px;
+//   //     .label {
+//   //       font-weight: bold;
+//   //     }
+//   //     .time {
+//   //     }
+//   //   }
+//   // }
+// }

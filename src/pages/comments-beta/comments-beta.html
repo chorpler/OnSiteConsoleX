@@ -1,0 +1,52 @@
+<ion-header>
+  <ion-navbar>
+    <button ion-button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-title>{{title}}</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding id="page1" *ngIf="dataReady && data.ready()">
+  <div class="comments-list-container">
+    <ion-list class="comments-list-list" *ngIf="comments && comments.length > 0">
+      <ion-item class="ion-item-button-like comments-list-item" *ngFor="let comment of comments" (tap)="openComment(comment)">
+        <span class="comments-list-header-container"><span class="comments-list-header-label">Date:</span><span class="comments-list-data">{{comment.date.format("MMM DD, YYYY")}}</span></span>
+        <span class="comments-list-header-container"><span class="comments-list-header-label">From:</span><span class="comments-list-data">{{comment.technician}} ({{comment.username}})</span></span>
+        <span class="comments-list-header-container"><span class="comments-list-header-label">Subject:</span><span class="comments-list-data">{{comment.subject}}</span></span>
+      </ion-item>
+    </ion-list>
+    <ion-card class="comments-message-card">
+      <ion-list class="comments-message-list">
+        <!-- <ion-item class="comments-date-container">
+          <div class="comments-message-date">Date:
+            <p-calendar class="comments-message-date-calendar" #date [(ngModel)]="messageDate" (ngModelChange)="updateFromDate($event)" [showIcon]="true"></p-calendar>
+          </div>
+        </ion-item> -->
+        <ion-item class="comments-date-container">
+          <ion-label>Date</ion-label>
+          <p>{{comment.date}}</p>
+        </ion-item>
+        <ion-item id="comments-input21">
+          <ion-label floating>From</ion-label>
+          <ion-input class="comments-message-input" type="text" name="author" readOnly [(ngModel)]="comment.technician"></ion-input>
+        </ion-item>
+        <ion-item id="comments-input24">
+          <ion-label floating>
+            Subject
+          </ion-label>
+          <ion-input #inputSubject class="comments-message-input" type="text" name="msgTitle" readOnly [(ngModel)]="comment.subject"></ion-input>
+        </ion-item>
+        <ion-item class="comments-message-text-item" id="comments-textarea2">
+          <ion-label floating>
+            Commment
+          </ion-label>
+          <ion-textarea class="comments-message-text-area" readOnly [(ngModel)]="comment.message"></ion-textarea>
+        </ion-item>
+      </ion-list>
+      <div class="comments-buttons-container">
+        <button ion-button color="light" type="button" (tap)="done()">OK</button>
+      </div>
+    </ion-card>
+  </div>
+</ion-content>

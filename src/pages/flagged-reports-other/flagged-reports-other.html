@@ -1,0 +1,29 @@
+<ion-header>
+  <ion-navbar>
+    <button ion-button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-title>{{title}}</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  <div class="reports-search-header">
+    <div class="reports-search-header-item">
+      <ion-icon name="search"></ion-icon>
+      <input #globalSearch pInputText type="text" placeholder="Global search" />
+    </div>
+    <div class="reports-search-header-item">From: <p-calendar #dateFrom [(ngModel)]="fromDate" (ngModelChange)="updateFromDate($event)" [showIcon]="true"></p-calendar></div>
+    <div class="reports-search-header-item">To: <p-calendar #dateTo [(ngModel)]="toDate" (ngModelChange)="updateToDate($event)" [minDate]="fromDate" [showIcon]="true"></p-calendar></div>
+    <div class="reports-search-header-item"><button ion-button color="primary" (tap)="mikeTemporaryDab()">A Little Dab</button></div>
+  </div>
+   <!-- <p-dataTable #dt [value]="reports" [rows]="500" [paginator]="true" [globalFilter]="globalSearch" [pageLinks]="3" [rowsPerPageOptions]="[50,100,200,500,1000,2000]" selectionMode="single" [(selection)]="selectedReport" (onRowSelect)="onRowSelect($event)" *ngIf="dataReady && reports && reports.length"> -->
+   <p-dataTable #dt [value]="others" [resizableColumns]="true" [rows]="rowCount" [paginator]="true" [globalFilter]="globalSearch" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" selectionMode="single" (onRowSelect)="onRowSelect($event)" *ngIf="dataReady && others && others.length">
+     <p-column field="_id" header="#">
+       <ng-template pTemplate="body" let-col let-ri="rowIndex">{{ri+1}}</ng-template>
+     </p-column>
+     <p-column *ngFor="let col of cols" [field]="col.field" [header]="col.header" [sortable]="true" [filter]="col.filter" [filterPlaceholder]="col.filterPlaceholder">
+       <!-- <ng-template *ngIf="col.field==='report_date'" pTemplate="body" let-col>{{col.format("YYYY-MM-DD")}}</ng-template> -->
+     </p-column>
+   </p-dataTable>
+</ion-content>

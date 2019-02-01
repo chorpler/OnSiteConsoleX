@@ -1,0 +1,31 @@
+<!-- Generated template for the WorkReportItemsComponent component -->
+<div id="report-item-list">
+    <ion-list>
+        <ion-list-header class="report-items-list-header">
+            Site-Required Report Items:
+        </ion-list-header>
+        <ion-item *ngFor="let item of reportItems">
+            <ion-label>{{item.value}}</ion-label>
+            <ion-toggle color="primary" checked="true" [(ngModel)]="item.enabled"></ion-toggle>
+        </ion-item>
+        <ion-list-header>&nbsp;</ion-list-header>
+        <ion-list-header>Add New Report Item</ion-list-header>
+        <ion-item>
+            <ion-label color="primary" class="item-label">Report Item Name</ion-label>
+            <ion-input #keyBox type="text" [(ngModel)]="newReportItem.key" required placeholder="new_report_item" (keyup.enter)="updateItemKey(keyBox.value)" (ngModelChange)="updateItemKey(keyBox.value)">
+            </ion-input>
+        </ion-item>
+        <ion-item>
+            <ion-label color="primary" class="item-label">Item Display Name</ion-label>
+            <ion-input #valBox type="text" [(ngModel)]="newReportItem.value" required placeholder="New Report Item" (keyup.enter)="updateItemValue(valBox.value)" (ngModelChange)="updateItemValue(valBox.value)">
+            </ion-input>
+            <button *ngIf="validItem" ion-button secondary item-end (click)="addItem()">Add</button>
+        </ion-item>
+    </ion-list>
+    <div padding>
+        <button ion-button color="primary" block (click)="updateWorkSite()">Update WorkSite</button>
+    </div>
+    <div padding>
+        <button ion-button color="light" block>Cancel</button>
+    </div>
+</div>

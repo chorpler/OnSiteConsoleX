@@ -1,0 +1,182 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons left>
+      <button ion-button icon-only menuToggle *ngIf="!modal">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+      <button type="button" ion-button icon-only (click)="cancelAndExitModal($event)" *ngIf="modal">
+        <ion-icon name="close"></ion-icon>
+      </button>
+      </ion-buttons>
+    <ion-title>{{title}}</ion-title>
+    <ion-buttons right>
+      <button class="scheduling-menubar-button" ion-button icon-only (click)="newSchedule($event)" title="New Schedule">
+        <i class="fa fa-plus-square-o"></i>
+      </button>
+      <button class="scheduling-menubar-button" ion-button icon-only (click)="openSchedule($event)" title="Open Schedule">
+        <i class="fa fa-folder-open-o"></i>
+      </button>
+      <button class="scheduling-menubar-button" ion-button icon-only (click)="persistSchedule($event)" title="Save Schedule">
+        <i class="fa fa-floppy-o"></i>
+      </button>
+      <button class="scheduling-menubar-button" ion-button icon-only (click)="printSchedule($event)" title="Print Schedule">
+        <i class="fa fa-print"></i>
+      </button>
+      <button class="scheduling-menubar-button" ion-button icon-only (click)="incrementRotation($event)" title="Increment Rotation">
+        <i class="fa fa-angle-double-right scheduling-menubar-button-circled"></i>
+      </button>
+      <button class="scheduling-menubar-button" ion-button icon-only (click)="addTech($event)" title="Add Tech">
+        <i class="fa fa-user-plus"></i>
+      </button>
+      <button class="scheduling-menubar-button" ion-button icon-only (click)="showOptions($event)" title="Options">
+        <i class="fa fa-cog"></i>
+      </button>
+      <button class="scheduling-menubar-button" ion-button icon-only (click)="clearCurrentSchedule($event)" title="Clear Schedule">
+        <i class="fa fa-trash-o"></i>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content id="Schedule" padding>
+  <div class="schedule-main-columns-wrapper" *ngIf="scheduleReady && data.ready()">
+    <div class="stats">
+      <div class="schedule-date-range">
+          <div class="schedule-date-item schedule-start-date-item">
+            <p-calendar class="schedule-date schedule-start-date" [(ngModel)]="dateStart" readonlyInput="readonlyInput" [disabledDates]="invalidDates" [disabledDays]="[0,1,2,4,5,6]" readonlyInput="readonlyInput" dateFormat="dd M yy" (onSelect)="updateDate()" *ngIf="!prefs.CONSOLE.scheduling.enableAllDates"></p-calendar>
+            <p-calendar class="schedule-date schedule-start-date" [(ngModel)]="dateStart" readonlyInput="readonlyInput" dateFormat="dd M yy" (onSelect)="updateDate()" *ngIf="prefs.CONSOLE.scheduling.enableAllDates"></p-calendar>
+          </div>
+        <p class="schedule-date-divider">through</p>
+        <div class="schedule-date-item schedule-start-date-item">
+          <p-calendar class="schedule-date schedule-start-date" [(ngModel)]="dateEnd" readonlyInput="readonlyInput" dateFormat="dd M yy" (onSelect)="updateEndDate()"  *ngIf="prefs.CONSOLE.scheduling.enableAllDates"></p-calendar>
+          <div class="schedule-date schedule-end-date-div" *ngIf="!prefs.CONSOLE.scheduling.enableAllDates">{{strDateEnd}}</div>
+        </div>
+      </div>
+      <div class="client-totals" [class.hidden]="!prefs.CONSOLE.scheduling.showAllSites && stats.CLIENTS[client.name].total === 0" *ngFor="let client of clients; let i01 = index">
+        <div class="client-totals-header" *ngIf="client.name!=='SE' && client.name!=='XX' && client.name!=='AA'" [class.halliburton]="client.name==='HB'" [class.keane]="client.name==='KN'" [class.basic]="client.name==='BE'" [class.psc]="client.name==='PS'">{{client.getScheduleName()}}</div>
+        <div ion-grid class="client-totals-grid" *ngIf="client.name!=='SE' && client.name!=='XX' && client.name!=='AA'">
+          <div ion-row class="client-totals-row" *ngFor="let key of keys(stats.CLIENTS[client.name]); let i02=index">
+            <div ion-col class="client-col client-totals-col-label">{{key}}</div>
+            <div ion-col class="client-col client-totals-col-data">{{stats.CLIENTS[client.name][key]}}</div>
+          </div>
+        </div>
+      </div>
+      <div ion-grid class="site-totals-grid">
+        <div ion-row class="site-totals-row" *ngFor="let site of sites" [class.hb-sites]="site.client.name==='HB'" [class.kn-sites]="site.client.name==='KN'" [class.be-sites]="site.client.name==='BE'" [class.se-sites]="site.client.name==='SE'" [class.psc-sites]="site.client.name==='PS'">
+          <div ion-col class="site-totals-col site-totals-col-label" [class.hidden]="(stats.SITES[site.schedule_name].total < 1 && !prefs.CONSOLE.scheduling.showAllSites) || (site.locID.name === 'OFFICE' && !prefs.CONSOLE.scheduling.showOffice)">{{site.schedule_name}}</div>
+          <div ion-col class="site-totals-col site-totals-col-data" [class.hidden]="(stats.SITES[site.schedule_name].total < 1 && !prefs.CONSOLE.scheduling.showAllSites) || (site.locID.name === 'OFFICE' && !prefs.CONSOLE.scheduling.showOffice)">{{stats.SITES[site.schedule_name].total}}</div>
+        </div>
+      </div>
+      <div ion-grid class="tech-totals-grid">
+        <div ion-row class="tech-totals-row">
+          <div ion-col class="tech-totals-col tech-totals-col-label">Total Techs</div>
+          <div ion-col class="tech-totals-col tech-totals-col-data">{{stats.TECHS.total}}</div>
+        </div>
+        <div ion-row class="tech-totals-row">
+          <div ion-col class="tech-totals-col tech-totals-col-label">Techs Working</div>
+          <div ion-col class="tech-totals-col tech-totals-col-data">{{stats.TECHS.working}}</div>
+        </div>
+        <div ion-row class="tech-totals-row">
+          <div ion-col class="tech-totals-col tech-totals-col-label">Techs Days Off</div>
+          <div ion-col class="tech-totals-col tech-totals-col-data">{{stats.TECHS.off}}</div>
+        </div>
+        <div ion-row class="tech-totals-row techs-unassigned-row">
+          <div ion-col class="tech-totals-col tech-totals-col-label">Techs Unassigned</div>
+          <div ion-col class="tech-totals-col tech-totals-col-data">{{techs.length}}</div>
+        </div>
+      </div>
+    </div>
+    <div class="schedulehypercontainer" #printArea id="print-area">
+      <div ion-grid class="jobsiteheadergrid">
+        <div ion-row class="jobsite_header_grid_row">
+          <div ion-col class="shiftnames" *ngFor="let header of shiftHeaders">{{header.name}} ({{stats.ROTATIONS[header.name].total}})</div>
+        </div>
+      </div>
+      <div class="schedulecontainer">
+        <div ion-grid class="jobsitegrid">
+          <div ion-row class='wrapper slot_row' [class.hidden]="(stats.SITES[site.schedule_name].total < 1 && !prefs.CONSOLE.scheduling.showAllSites) || (site.locID.name === 'OFFICE' && !prefs.CONSOLE.scheduling.showOffice)" *ngFor="let site of sites; let idx=index;" [attr.id]="'DestRow' + idx">
+            <div ion-col class="sitenames">
+              <button ion-button class="site-button" (click)="editSite(site)">{{site.schedule_name}} ({{stats.SITES[site.schedule_name].total}})</button>
+            </div>
+            <!-- <div ion-col class="slot-container" [class.potential-drop]="dropHighlightArray[idx][idx2]" pDroppable="techcontainer" *ngFor="let shft of shiftTypes; let idx2=index" [attr.id]="'DestCol' + idx + '_' + idx2" (onDrop)="techDroppedInto($event, site.schedule_name, shft.name)" (onDragEnter)="dragEnter(idx, idx2, $event)" (onDragLeave)="techDraggedFrom(site.schedule_name, shft.name, $event)"> -->
+            <div ion-col class="slot-container" [class.potential-drop]="dropHighlightArray[idx][idx2]" pDroppable="techcontainer" *ngFor="let shft of shiftTypes; let idx2=index" (onDrop)="techDroppedInto($event, site.schedule_name, shft.name)" (onDragEnter)="dragEnter(idx, idx2, $event)" (onDragLeave)="dragExit(idx, idx2, $event)">
+              <div class="slot" *ngFor="let tech of schedule.schedule[site.schedule_name][shft.name]; let idx4 = index" pDraggable="techcontainer">
+                <button ion-button class="tech-button">
+                  <span class="tech-shift-symbol" title="Toggle shift between night/day" [class.night]="tech.shift==='PM'" [class.day]="tech.shift==='AM'" (click)="toggleShift(tech, $event)"> </span>&nbsp;
+                  <span class="button-tech-name" title="Edit employee" (click)="editTech(tech, $event)">{{tech.toString()}}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="employeecontainer">
+      <div ion-grid class="employeegrid" *ngIf="scheduleReady">
+        <div ion-row>
+          <div ion-col class="employeenameslabel unassigned-techs-header">UNASSIGNED ({{unassignedTechs?.length}})</div>
+        </div>
+        <div ion-row class="employeerow">
+          <div ion-col class="employeecol">
+            <ion-scroll scrollY="true" class="employeescroller">
+              <div class="wrapper">
+                <div class="container" [class.potential-drop]="unassignedDropHighlight" pDroppable="techcontainer" (onDrop)="techDroppedIntoUnassigned($event)" (onDragEnter)="dragEnterUnassigned($event)" (onDragLeave)="dragExitUnassigned($event)">
+                  <div class="slot" *ngFor="let tech of schedule.unassigned; let y = index" pDroppable="techcontainer" pDraggable="techcontainer" (onDragEnter)="dragEnterUnassigned($event)">
+                    <button ion-button class="tech-button">
+                      <span class="tech-shift-symbol" title="Toggle shift between night/day" [class.night]="tech.shift==='PM'" [class.day]="tech.shift==='AM'" (click)="toggleShift(tech, $event)">&nbsp;</span>&nbsp;
+                      <span class="button-tech-name" title="Edit employee" (click)="editTech(tech, $event)">{{tech.toString()}}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </ion-scroll>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="new-employeecontainer">
+      <div ion-grid class="new-employeegrid" *ngIf="scheduleReady">
+        <div ion-row>
+          <div ion-col class="employeenameslabel unassigned-techs-header">NOT ON SCHEDULE ({{newTechs?.length}})</div>
+        </div>
+        <div ion-row class="employeerow">
+          <div ion-col class="employeecol">
+            <ion-scroll scrollY="true" class="employeescroller">
+              <div class="wrapper">
+                <div class="container" [class.potential-drop]="newTechsDropHighlight" pDroppable="techcontainer" (onDrop)="techDroppedIntoNewTechList($event)" (onDragEnter)="dragEnterNewTechs($event)" (onDragLeave)="dragExitNewTechs($event)">
+                  <div class="slot" *ngFor="let tech of newTechs; let y1 = index" pDraggable="techcontainer">
+                    <button ion-button class="tech-button">
+                      <span class="tech-shift-symbol" title="Toggle shift between night/day" [class.night]="tech.shift==='PM'" [class.day]="tech.shift==='AM'" (click)="toggleShift(tech, $event)">&nbsp;</span>&nbsp;
+                      <span class="button-tech-name" title="Edit employee" (click)="editTech(tech, $event)">{{tech.toString()}}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </ion-scroll>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer *ngIf="modal">
+  <ion-toolbar>
+    <ion-buttons left>
+      <button type="button" ion-button icon-only color="royal" (click)="cancelAndExitModal($event)">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-buttons right>
+      <button type="submit" ion-button icon-only color="favorite" (click)="saveAndExitModal($event)">
+        <ion-icon name="checkmark"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>
+
+<!-- <span *ngIf="componentsAreReady"> -->
+  <!-- <employee-view #employeeView *ngIf="employeeViewVisible" [mode]="mode" [employee]="employee" [employees]="editEmployees" (onUpdate)="employeeUpdated($event)" (onCancel)="employeeCanceled($event)" (onDelete)="employeeDeleted($event)"></employee-view>   <!-- <options-generic #optionsComponent *ngIf="optionsVisible" [type]="optionsType" (onCancel)="optionsClosed($event)" (onSave)="optionsSaved($event)"></options-generic> -->
+  <!-- <video-play #videoComponent *ngIf="videoVisible" (onEnd)="videoEnded($event)"></video-play> -->
+  <!-- <schedule-open #scheduleOpenTemplate *ngIf="scheduleOpenVisible" (onClose)="closeScheduleChoose($event)" (onChoose)="scheduleChosen($event)"></schedule-open> -->
+  <!-- </span> -->

@@ -1,0 +1,42 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons left>
+      <button ion-button menuToggle>
+        <ion-icon name="menu"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>{{title}}</ion-title>
+    <ion-buttons right>
+      <button class="work-site-buttons work-sites-csv-export" type="button" ion-button icon-only (click)="dt.exportCSV()" title="Export CSV">
+        <i class="fa fa-table" aria-hidden="true"></i>
+      </button>
+      <button class="work-site-buttons work-sites-fields-list" type="button" ion-button icon-only (click)="showFields()" title="Visible Fields">
+        <i class="fa fa-address-card-o" aria-hidden="true"></i>
+      </button>
+      <button class="work-site-buttons work-sites-sort-button" type="button" [class.sorting]="sortMode" ion-button icon-only (click)="toggleSortMode()" title="Sort Mode">
+        <i class="fa fa-sort-numeric-asc" aria-hidden="true"></i>
+      </button>
+      <button class="work-site-buttons work-sites-add-button" type="button" ion-button icon-only (click)="addJobSite()" title="Add Work Site">
+        <i class="fa fa-plus-square-o" aria-hidden="true"></i>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  <p-dataTable #dt [value]="jobsites" [resizableColumns]="true" sortMode="multiple" [responsive]="true" reorderableColumns="true" [rows]="rowCount" [paginator]="true" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" selectionMode="single" [(selection)]="selectedJobsite" (onRowSelect)="onRowSelect($event)" *ngIf="dataReady && jobsites && jobsites.length && !sortMode">
+    <p-column *ngFor="let col of cols" [field]="col.field" [header]="col.header" [sortable]="true" [filter]="col.filter" [filterPlaceholder]="col.filterPlaceholder"></p-column>
+  </p-dataTable>
+  <div class="sort-work-sites" *ngIf="dataReady && jobsites && jobsites.length && sortMode">
+    <div ion-col class="slot-container" dnd-sortable-container [sortableData]="jobsites" draggable="true" [dropZones]="['container-sites']" [attr.id]="'DestCol' + idx + '_' + idx2" (onDropInto)="workSiteDroppedInto($event)">
+      <div class="slot" *ngFor="let site of jobsites; let i=index" dnd-sortable [sortableIndex]="i" [dragData]="site" (onDropSuccess)="workSiteDropped($event)">
+        <button ion-button class="site-button" (click)="editSite(site, $event)">
+          <span class="button-site-name">{{sprintf("%02d", i+1)}}: {{site.getSiteID()}}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="single-row-items" *ngIf="sortMode">
+    <div class="single-row-item"><button class="work-sites-sort-button" ion-button button-block color="primary" (click)="saveSortOrder()">Save Sort Order</button></div>
+  </div>
+</ion-content>

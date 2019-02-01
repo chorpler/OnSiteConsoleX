@@ -1,0 +1,187 @@
+<p-dialog #optionsDialog class="options-dialog-box" header="Options" [(visible)]="isVisible" [draggable]="true" [resizable]="true" [closable]="false" [responsive]="true" [modal]="false" [contentStyle]="{'overflow':'visible'}" (onHide)="cancel($event)">
+  <!-- Dummy input for PrimeNG 5.x checkbox bug -->
+  <input class="dummyInputForPrimeNGFivePointTwo" />
+  <div class="options-wrapper" *ngIf="dataReady">
+
+    <!-- Employee View Component -->
+    <div class="options-main" *ngIf="optionType==='employeeView'">
+      <div class="options-item" title="Show all work sites, including inactive sites">
+        <span class="data-item-wrapper">
+          <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.employeeView.showAllSites" binary="true"></p-checkbox>
+        </span>
+        <span class="data-label-wrapper">
+          <span class="label">Show Inactive Sites</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Work Sites Page -->
+    <div class="options-main" *ngIf="optionType==='jobsites'">
+      <div class="options-item" title="Size table columns automatically, based on contents. (Otherwise, table is always full-page.)">
+        <span class="data-item-wrapper">
+          <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.jobsites.autoLayoutTable" binary="true"></p-checkbox>
+        </span>
+        <span class="data-label-wrapper">
+          <span class="label">Size columns automatically</span>
+        </span>
+      </div>
+      <div class="options-item" title="Table column resize mode when columns are manually resized">
+        <span class="data-item-wrapper">
+          <p-dropdown #tableResizeModeDropdown [class.options-dropdown]="true" [options]="tableResizeModes" [(ngModel)]="prefs.CONSOLE.jobsites.tableResizeMode"></p-dropdown>
+        </span>
+        <span class="data-label-wrapper">
+          <span class="label">Manual resize mode</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- HB Preauth Page -->
+    <div class="options-main" *ngIf="optionType==='hbpreauth'">
+      <div class="options-item" title="Show all work sites, even non-Halliburton ones">
+        <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.hbpreauth.showAllSites" binary="true"></p-checkbox>
+        <span class="label">Show All Sites</span>
+      </div>
+      <div class="options-item" title="Generate this many payroll periods (weeks)">
+        <input class="options-input" type="number" min="1" step="1" [(ngModel)]="prefs.CONSOLE.hbpreauth.payroll_periods" (ngModelChange)="updateStartDate($event)" />
+        <span class="options-label">Payroll Periods</span>
+      </div>
+      <div class="options-item" title="Generate this many payroll periods (weeks)">
+        <span class="options-label-full">(to {{firstPeriodDate.format("DD MMM YYYY")}})</span>
+      </div>
+    </div>
+
+    <!-- TechShiftReports Page -->
+    <div class="options-main" *ngIf="optionType==='techshiftreports'">
+      <div class="options-item" title="Show all work sites, even inactive ones">
+        <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.techshiftreports.showAllSites" binary="true"></p-checkbox>
+        <span class="label">Show All Sites</span>
+      </div>
+      <div class="options-item" title="Show all techs, even inactive ones">
+        <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.techshiftreports.showAllTechs" binary="true"></p-checkbox>
+        <span class="label">Show All Techs</span>
+      </div>
+      <div class="options-item" title="Generate this many payroll periods (weeks)">
+        <input class="options-input" type="number" min="1" step="1" [(ngModel)]="prefs.CONSOLE.techshiftreports.payroll_periods" (ngModelChange)="updateStartDate($event)" />
+        <span class="options-label">Payroll Periods</span>
+      </div>
+      <div class="options-item" title="Generate this many payroll periods (weeks)">
+        <span class="options-label-full">(to {{firstPeriodDate.format("DD MMM YYYY")}})</span>
+      </div>
+    </div>
+
+    <!-- Tech Phones Page -->
+    <div class="options-main" *ngIf="optionType==='techphones'">
+      <div class="options-item" title="Size table columns automatically, based on contents. (Otherwise, table is always full-page.)">
+        <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.techphones.autoLayoutTable" binary="true"></p-checkbox>
+        <span class="label">Size columns automatically</span>
+      </div>
+      <div class="options-item" title="Table column resize mode when columns are manually resized">
+        <p-dropdown #tableResizeModeDropdown [class.options-dropdown]="true" [options]="tableResizeModes" [(ngModel)]="prefs.CONSOLE.techphones.tableResizeMode"></p-dropdown>
+        <span class="label">Manual resize mode</span>
+      </div>
+    </div>
+
+    <!-- Payroll Page -->
+    <div class="options-main" *ngIf="optionType==='payroll'">
+      <div class="options-item" title="Generate this many payroll periods (weeks)">
+        <input class="options-input" type="number" min="1" step="1" [(ngModel)]="prefs.CONSOLE.payroll.payroll_periods" (ngModelChange)="updateStartDate($event)" />
+        <span class="options-label">Payroll Periods</span>
+      </div>
+      <div class="options-item" title="Generate this many payroll periods (weeks)">
+        <span class="options-label-full">(to {{firstPeriodDate.format("DD MMM YYYY")}})</span>
+      </div>
+      <div class="options-item" title="Show colors">
+        <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.payroll.showColors" binary="true"></p-checkbox>
+        <span class="label">Show Colors</span>
+      </div>
+      <div class="options-item" title="Show line numbers">
+        <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.payroll.showLineNumbers" binary="true"></p-checkbox>
+        <span class="label">Show Line Numbers</span>
+      </div>
+      <div class="options-item" title="Show unassigned techs">
+        <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.payroll.showUnassignedTechs" binary="true"></p-checkbox>
+        <span class="label">Show Unassigned Techs</span>
+      </div>
+      <div class="options-item" title="Show ex-techs (that have not been deactivated)">
+        <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.payroll.showExTechs" binary="true"></p-checkbox>
+        <span class="label">Show Ex-Techs</span>
+      </div>
+      <div class="options-item" title="Show shift length">
+        <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.payroll.showShiftLength" binary="true"></p-checkbox>
+        <span class="label">Show Shift Length</span>
+      </div>
+      <div class="options-item" title="Show potential problems with scheduling">
+        <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.payroll.showAlerts" binary="true"></p-checkbox>
+        <span class="label">Show Alerts</span>
+      </div>
+      <div class="options-item" title="Use QuickBooks-style employee names for payroll export">
+        <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.payroll.exportUseQuickbooksName" binary="true"></p-checkbox>
+        <span class="label">QuickBooks format export</span>
+      </div>
+      <div class="options-item" title="Below this number of hours, show an alert if the user is scheduled to work">
+        <input class="options-input" type="number" min="1" step="1" [(ngModel)]="prefs.CONSOLE.payroll.minHoursWhenOn" />
+        <span class="options-label">Min Working Hours</span>
+      </div>
+      <div class="options-item" title="Above this number of hours, show an alert if the user is not scheduled to work">
+        <input class="options-input" type="number" min="1" step="1" [(ngModel)]="prefs.CONSOLE.payroll.maxHoursWhenOff" />
+        <span class="options-label">Max Nonworking Hours</span>
+      </div>
+    </div>
+
+    <!-- Scheduling Page -->
+    <div class="options-main" *ngIf="optionType==='scheduling'">
+      <div class="options-item" title="Save employee records automatically when they are moved">
+        <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.scheduling.persistTechChanges" binary="true"></p-checkbox>
+        <span class="label">Persist Tech Changes</span>
+      </div>
+      <div class="options-item" title="Show non-SESA sites (RGV Solar, etc)">
+        <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.scheduling.showNonSESA" binary="true"></p-checkbox>
+        <span class="label">Show non-SESA Sites</span>
+      </div>
+      <div class="options-item" title="Show SESA office site in schedule">
+        <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.scheduling.showOffice" binary="true"></p-checkbox>
+        <span class="label">Show Office</span>
+      </div>
+      <div class="options-item" title="Show empty sites (sites with no techs assigned)">
+        <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.scheduling.showAllSites" binary="true"></p-checkbox>
+        <span class="label">Show Empty Sites</span>
+      </div>
+      <div class="options-item" title="Show empty clients (clients with no assigned techs)">
+        <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.scheduling.showEmptyClients" binary="true"></p-checkbox>
+        <span class="label">Show Empty Clients</span>
+      </div>
+      <div class="options-item" title="Show unassigned column">
+        <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.scheduling.showUnassigned" binary="true"></p-checkbox>
+        <span class="label">Show Unassigned Column</span>
+      </div>
+      <!-- <div class="options-item" title="Show new/ex-employees column">
+        <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.scheduling.showLegrave" binary="true"></p-checkbox>
+        <span class="label">Show New/Ex Column</span>
+      </div> -->
+      <div class="options-item" title="Show test sites (usually only for developers)">
+        <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.scheduling.showTestSites" binary="true"></p-checkbox>
+        <span class="label">Show Test Sites</span>
+      </div>
+      <!-- <div class="options-item" title="Enable schedules that are not weekly">
+        <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.scheduling.allDatesAvailable" binary="true"></p-checkbox>
+        <span class="label">Enable Custom Schedule Dates</span>
+      </div> -->
+    </div>
+
+    <!-- Unknown page -->
+    <div class="options-main" *ngIf="optionType==='other' || optionType === 'invoicinghb'">
+      <div class="options-item" title="No options specific to this page at this time">
+        <span class="data-item-wrapper"></span>
+        <span class="data-label-wrapper">
+          <span class="label">NO OPTIONS FOR THIS PAGE</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Save/Cancel buttons -->
+    <div class="options-buttons">
+      <button class="ui-button-danger  cancel" pButton type="button" (click)="cancel($event)"   label="Cancel"></button>
+      <button class="ui-button-success save  " pButton type="button" (click)="save($event)"     label="Save"  ></button>
+    </div>
+  </div>
+</p-dialog>

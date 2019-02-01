@@ -1,0 +1,170 @@
+<!--
+  Generated template for the AddEmployeePage page.
+
+  See http://ionicframework.com/docs/components/#navigation for more info on
+  Ionic pages and navigation.
+-->
+<ion-header>
+  <ion-navbar>
+    <ion-title>{{title}}</ion-title>
+    <ion-buttons end>
+      <button ion-button icon-only (click)="deleteEmployee(employee)" *ngIf="mode=='Edit'">
+        <ion-icon class="work-order-delete-button" name="ios-trash-outline"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  <ion-list class="list-add-employee">
+    <form [formGroup]="employeeForm" class="add-employee-form" *ngIf="dataReady" (ngSubmit)="onSubmit()">
+      <ion-item>
+        <ion-label>Prefix</ion-label>
+        <ion-select formControlName='prefix'>
+          <ion-option *ngFor="let prefix of prefixes" [value]="prefix">{{prefix}}</ion-option>
+        </ion-select>
+      </ion-item>
+      <ion-item>
+        <ion-label>First Name</ion-label>
+        <ion-input type="text" formControlName="firstName"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label>Middle Name</ion-label>
+        <ion-input type="text" formControlName="middleName"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label>Last Name</ion-label>
+        <ion-input type="text" formControlName="lastName"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label>Suffix</ion-label>
+        <ion-select formControlName='suffix'>
+          <ion-option *ngFor='let suffix of suffixes' [value]='suffix'>{{suffix}}</ion-option>
+        </ion-select>
+      </ion-item>
+      <ion-item>
+        <ion-label>Avatar Name (username)</ion-label>
+        <ion-input #avatarName type="text" formControlName="avatarName"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label>Avatar Name as User</ion-label>
+        <ion-toggle formControlName="avtrNameAsUser"></ion-toggle>
+      </ion-item>
+      <ion-item>
+        <ion-label>User Class</ion-label>
+        <ion-input type="text" formControlName="userClass"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label>Work Site</ion-label>
+        <ion-select formControlName='jobsite'>
+          <ion-option *ngFor="let site of sites" [value]="site">{{site.schedule_name}}</ion-option>
+        </ion-select>
+      </ion-item>
+       <!-- <ion-item>
+        <ion-label>Client</ion-label>
+        <ion-select formControlName='client'>
+          <ion-option *ngFor='let client of clients' [value]='client'> {{client.fullName}} </ion-option>
+        </ion-select>
+      </ion-item>
+      <ion-item>
+        <ion-label>Location</ion-label>
+        <ion-select formControlName='location'>
+          <ion-option *ngFor='let location of locations' [value]='location'> {{location.fullName}} </ion-option>
+        </ion-select>
+      </ion-item>
+      <ion-item>
+        <ion-label>Location ID</ion-label>
+        <ion-select formControlName='locID'>
+          <ion-option *ngFor='let locID of locids' [value]='locID'> {{locID.fullName}} </ion-option>
+        </ion-select>
+      </ion-item>
+      <ion-item>
+        <ion-label>Auxiliary Location</ion-label>
+        <ion-select formControlName='loc2nd'>
+          <ion-option *ngFor='let loc2nd of loc2nds' [value]='loc2nd'> {{loc2nd.fullName}} </ion-option>
+        </ion-select>
+      </ion-item> -->
+      <ion-item>
+        <ion-label>Shift</ion-label>
+        <ion-select formControlName='shift'>
+          <ion-option *ngFor='let shift of shifts' [value]='shift'> {{shift.fullName}} </ion-option>
+        </ion-select>
+      </ion-item>
+      <ion-item>
+        <ion-label>Shift Length</ion-label>
+        <ion-select formControlName='shiftLength'>
+          <ion-option *ngFor='let shiftLength of shiftlengths' [value]='shiftLength'> {{shiftLength.fullName}} </ion-option>
+        </ion-select>
+      </ion-item>
+      <ion-item>
+        <ion-label>Shift Start Time</ion-label>
+        <ion-select formControlName='shiftStartTime'>
+          <ion-option *ngFor='let shiftStartTime of shiftstarttimes' [value]='shiftStartTime'> {{shiftStartTime.fullName}} </ion-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item>
+        <ion-label>E-mail Address</ion-label>
+        <ion-input type="email" formControlName="email"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label>Phone Number</ion-label>
+        <ion-input type="phone" formControlName="phone"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label>Mobile Number</ion-label>
+        <ion-input type="phone" formControlName="cell"></ion-input>
+      </ion-item>
+      <ion-item-group formGroupName="address">
+        <ion-item formGroupName="street">
+          <ion-label>Address</ion-label>
+          <ion-input formControlName="street1"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label>City</ion-label>
+          <ion-input formControlName="city"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label>State</ion-label>
+          <ion-input formControlName="state"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-label>ZIP</ion-label>
+          <ion-input formControlName="zip"></ion-input>
+        </ion-item>
+      </ion-item-group>
+      <ion-item>
+        <ion-label floating>Rate</ion-label>
+        <ion-input type="number" step="0.01" formControlName="payRate"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label>Active</ion-label>
+        <ion-toggle formControlName="active"></ion-toggle>
+      </ion-item>
+      <ion-grid>
+        <ion-row>
+          <ion-col class="buttoncage"><button type="button" ion-button block color="light" (click)="cancel()">Cancel</button></ion-col>
+          <ion-col class="buttoncage"><button type="submit" ion-button block color="favorite">Save</button></ion-col>
+        </ion-row>
+      </ion-grid>
+    </form>
+    <ion-item *ngIf="developerMode">
+      <ion-label>Rotation</ion-label>
+      <ion-input [(ngModel)]="employee.rotation"></ion-input>
+    </ion-item>
+  </ion-list>
+</ion-content>
+<ion-footer>
+  <ion-toolbar>
+    <ion-buttons left>
+      <button type="button" ion-button icon-only color="royal" (click)="cancel()">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-buttons right>
+      <button type="submit" ion-button icon-only color="favorite" (click)="onSubmit()">
+        <ion-icon name="checkmark"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

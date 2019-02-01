@@ -1,0 +1,15 @@
+<div #wrapper class="notification-component-wrapper">
+  <div #container [ngClass]="'ui-notification ui-widget'" [style.zIndex]="zIndex" [ngStyle]="style" [class]="styleClass">
+    <div #msgel *ngFor="let msg of value;let i = index" class="ui-notification-item-container ui-state-highlight ui-corner-all ui-shadow" aria-live="polite" [ngClass]="{'ui-notification-message-info':msg.severity === 'info', 'ui-notification-message-warn':msg.severity === 'warn', 'ui-notification-message-error':msg.severity === 'error','ui-notification-message-success':msg.severity === 'success'}" (click)="onMessageClick(i)" (mouseenter)="onMessageHover(i)">
+      <div class="ui-notification-item">
+        <div class="ui-notification-icon-close fa fa-close" (click)="remove(i,msgel)"></div>
+        <span class="ui-notification-image fa fa-2x" [ngClass]="{'fa-info-circle':msg.severity == 'info', 'fa-exclamation-circle':msg.severity == 'warn', 'fa-exclamation-triangle':msg.severity == 'error','fa-check':msg.severity == 'success'}"></span>
+        <div class="ui-notification-message">
+          <span class="ui-notification-title">{{msg.summary}}</span>
+          <p [innerHTML]="msg.detail"></p>
+        </div>
+        <div style="clear: both;"></div>
+      </div>
+    </div>
+  </div>
+</div>

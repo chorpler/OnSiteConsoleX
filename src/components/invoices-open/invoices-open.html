@@ -1,0 +1,47 @@
+<div class="invoices-open-wrapper">
+  <p-dialog #invoiceOpenDialog styleClass="invoices-open-dialog" header="Open Invoices" [(visible)]="visible" [modal]="false" [responsive]="true" [draggable]="true" [resizable]="true" [positionLeft]="dialogLeft" [positionTop]="dialogTop">
+    <div *ngIf="dataReady; then invoicesLoadedTemplate; else loadingInvoicesTemplate"></div>
+    <ng-template #invoicesLoadedTemplate>
+      <div *ngIf="(invoices && invoices.length > 0); then someInvoicesTemplate; else noInvoicesTemplate"></div>
+    </ng-template>
+    <ng-template #someInvoicesTemplate>
+      <div *ngIf="mode===ListMode.listbox; then primeListboxTemplate; else manualListTemplate"></div>
+    </ng-template>
+    <ng-template #primeListboxTemplate>
+      <div class="invoices-listbox-container">
+        <p-listbox [class.invoices-listbox]="true" [options]="invoiceList" [(ngModel)]="selectedInvoices" [multiple]="multipleMode" [checkbox]="checkboxMode" [filter]="filterMode"></p-listbox>
+        <span class="invoices-buttonbar">
+          <span class="invoices-button cancel" title="Cancel" (click)="cancelClicked($event)"                 ><i class="fa fa-close icon-button cancel"></i></span>
+          <span class="invoices-button open"   title="Open"   (click)="openInvoices(selectedInvoices, $event)"><i class="fa fa-check icon-button open"  ></i></span>
+        </span>
+      </div>
+    </ng-template>
+    <ng-template #manualListTemplate>
+      <div class="invoice-list">
+        <div class="invoice-item button-like" *ngFor="let invoice of invoices; let i=index" (click)="openInvoice(invoice, $event)">
+          <div class="invoice-row">
+            <span class="invoice-label">Invoice: </span>
+            <span class="invoice-data">{{invoice._id}}</span>
+            <span class="invoice-label">Period: </span>
+            <span class="invoice-data">{{invoice.period_start}}</span>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+    <ng-template #noInvoicesTemplate>
+      <div class="invoice-list">
+        <div class="invoice-item">
+          <span class="no-invoices">(No invoices found)</span>
+        </div>
+      </div>
+    </ng-template>
+    <ng-template #loadingInvoicesTemplate>
+      <div class="invoice-item">
+        <span class="loading-invoices">
+          <span class="spinner-label">Loading invoices...</span>
+          <span class="spinner-image"><span class="text-spinner"></span></span>
+        </span>
+      </div>
+    </ng-template>
+  </p-dialog>
+</div>

@@ -1,0 +1,16 @@
+<ion-content padding>
+  <ion-list *ngIf="dataReady">
+    <ion-item-group class="ion-item-button-like schedule-list-group-container" *ngFor="let invoice of invoices; let i=index" (click)="openInvoices(invoice, $event)">
+      <ion-item-divider color="light" class="schedule-list-header">{{schedule.getScheduleID()}}</ion-item-divider>
+      <ion-item class="schedule-list-item">
+        <ion-grid>
+          <ion-row>
+            <ion-col class="schedule-list-label">Starts</ion-col><ion-col class="schedule-list-data">{{schedule.getStartDate().format("ddd DD MMM YYYY")}}</ion-col>
+            <ion-col class="schedule-list-label">Ends</ion-col><ion-col class="schedule-list-data">{{schedule.getEndDate().format("ddd DD MMM YYYY")}}</ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-item>
+    </ion-item-group>
+  </ion-list>
+  <button ion-button color="light" type="button" (click)="cancel($event)">Cancel</button>
+</ion-content>

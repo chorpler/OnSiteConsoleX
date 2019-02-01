@@ -1,0 +1,675 @@
+'use strict';
+const WHATWG    = require('whatwg-url');
+const URL       = WHATWG.URL;
+// const electron  = require('electron');
+const PDFWindow = require('electron-pdf-window');
+const windowStateKeeper = require('electron-window-state');
+// const windowPlus = require('electron-window-plus');
+// Module to control application life.
+const { app, BrowserWindow, dialog, ipcMain } = require('electron');
+const { autoUpdater } = require('electron-updater');
+const fspath = require('path');
+const process = require('process');
+const logger = require('electron-log');
+const nativeImage = require('electron').nativeImage;
+
+logger.transports.file.level = 'debug';
+autoUpdater.logger = logger;
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = false;
+// const log = logger;
+const updateWindowTimeout = 3000;
+
+// log.transports.rendererConsole.level = 'verbose';
+
+process.on('warning', e => console.warn(e.stack));
+
+const conlog = function(...args) {
+  // let args = Array.from(arguments);
+  logger.info(...args);
+  sendEventToWindow('log-from-app', ...args);
+  // if(con) {
+  //   con.log(args);
+  // }
+};
+
+const log = {
+  info: conlog,
+};
+
+function getFilePath(filename) {
+  let fullPath = fspath.join(__dirname, filename);
+  return fullPath;
+}
+
+function getFilePathAsURL(filename) {
+  let fullPath = getFilePath(filename);
+  let parsedURL = WHATWG.parseURL(fullPath);
+  let fileURL = parsedURL;
+  if(!(parsedURL && parsedURL.scheme && parsedURL.scheme === 'file')) {
+    fileURL = new URL(`file:///${fullPath}`).href;
+  }
+  return fileURL;
+}
+
+const icon_name = '/../www/onsitexconsole.ico';
+const icon_path = getFilePath(icon_name);
+const icon_url  = getFilePathAsURL(icon_name);
+logger.info(`app icon path is: '${icon_path}'\nand icon URL is: '${icon_url}'`);
+
+const app_icon = nativeImage.createFromPath(icon_path);
+
+
+// let con, win, winUpdate, startupWin, pdfWin, mainWindowState;
+let win, winUpdate, pdfWin, mainWindowState, splashWindow;
+
+function createPDFWindow(pdfFile, loadDevTools) {
+  if(!win) {
+    log.info(`createPDFWindow() has no parent window! Can't create it.`);
+    return;
+  } else {
+
+    // let pdfWindowOptions = {
+    //   'x': mainWindowState.x,
+    //   'y': mainWindowState.y,
+    //   'width': mainWindowState.width,
+    //   'height': mainWindowState.height,
+    //   'parent': win,
+    // };
+
+    // let height =
+
+    let pdfWindowOptions = {
+      // 'x': mainWindowState.x,
+      // 'y': mainWindowState.y,
+      'width': 1024,
+      'height': 768,
+      // 'parent': win,
+    };
+
+    pdfWin = new BrowserWindow(pdfWindowOptions);
+    // pdfWin = new PDFWindow(pdfWindowOptions);
+
+    let parsedURL = WHATWG.parseURL(pdfFile);
+    let pdfURL = pdfFile;
+    if(!(parsedURL && parsedURL.scheme && parsedURL.scheme === 'file')) {
+      pdfURL = new URL(`file:///${pdfFile}`).href;
+    }
+
+    log.info(`createPDFWin(): Loading URL '${pdfURL}'`);
+
+    PDFWindow.addSupport(pdfWin);
+    // pdfWin.loadURL(pdfURL);
+    pdfWin.loadURL(pdfFile);
+    pdfWin.show();
+    pdfWin.setMenu(null);
+    pdfWin.setTitle('PRINT PREVIEW (OnSiteX Console)');
+    // windowPlus.loadURL(win, url);
+
+    // Open the DevTools.
+    if(loadDevTools) {
+      log.info("Developer tools loading.");
+      pdfWin.webContents.openDevTools();
+    }
+
+    sendEventToWindow('pdf-window-created', pdfWin);
+
+
+    // Emitted when the window is closed.
+    pdfWin.on('closed', () => {
+      // Dereference the window object, usually you would store windows
+      // in an array if your app supports multi windows, this is the time
+      // when you should delete the corresponding element.
+      sendEventToWindow('pdf-window-closed');
+      pdfWin = null;
+    });
+  }
+}
+
+function createWindow() {
+  // Create the browser window.
+  // win = new BrowserWindow({
+  //     width: 1600,
+  //     height: 900
+  // });
+  // Load the previous state with fallback to defaults
+  mainWindowState = windowStateKeeper({
+    // defaultWidth: 1600,
+    // defaultHeight: 900,
+    defaultWidth: 1024,
+    defaultHeight: 768,
+    maximize: false,
+    fullScreen: false,
+  });
+
+  let defaultWindowOptions = {
+    x: mainWindowState.x,
+    y: mainWindowState.y,
+    width: mainWindowState.width,
+    height: mainWindowState.height,
+    // width: 1600,
+    // height: 900,
+    // width: 1024,
+    // height: 768,
+    frame: true,
+    kiosk: false,
+    experimentalFeatures: true,
+    experimentalCanvasFeatures: true,
+    show: false,
+    icon: app_icon,
+    webPreferences: {
+      nodeIntegration: true,
+      defaultEncoding: 'UTF-8',
+      webSecurity: false,
+      allowRunningInsecureContent: true,
+    },
+  };
+
+  // Create the window using the state information
+  win = new BrowserWindow(defaultWindowOptions);
+
+  // win = Splashscreen.initSplashScreen(splashConfig);
+  // if(!windowPlus.restore()) {
+  //   win = new BrowserWindow(defaultWindowOptions);
+  //   windowPlus.manage(win);
+  // }
+  mainWindowState.manage(win);
+  win.once('ready-to-show', () => {
+  // win.once('did-finish-load', () => {
+    log.info(`Main window 'ready-to-show' event fired`);
+    closeSplashWindow();
+    // win.maximize();
+    win.show();
+    // Open the DevTools.
+    if(loadDevTools) {
+      log.info("Developer tools loading.");
+      win.webContents.openDevTools();
+    } else {
+      log.info("Developer tools not being loaded.");
+      if(win.webContents.isDevToolsOpened()) {
+        win.webContents.closeDevTools();
+      }
+    }
+  });
+
+
+  // win = new PDFWindow({
+  //   'x': mainWindowState.x,
+  //   'y': mainWindowState.y,
+  //   'width': mainWindowState.width,
+  //   'height': mainWindowState.height
+  // });
+
+  // PDFWindow.addSupport(win);
+
+  // Let us register listeners on the window, so we can update the state
+  // automatically (the listeners will be removed when the window is closed)
+  // and restore the maximized or full screen state
+  var url = 'file://' + __dirname + '/../www/index.html';
+  var Args = process.argv.slice(1);
+  // let loadDevTools = false, unFullScreen = false;
+  let loadDevTools = false, unFullScreen = false;
+  for(let val of Args) {
+    let arg = val.toLowerCase();
+    if(arg === "test") {
+      log.info("Starting in test mode...");
+      url = 'http://localhost:8110';
+      loadDevTools = true;
+    }
+    if(arg.indexOf('dev') > -1) {
+      log.info("Caught developer flag, turning devtools on.");
+      loadDevTools = true;
+    }
+    unFullScreen = win.isFullScreen();
+    if(arg === "sizeReset" && unFullScreen) {
+      // unFullScreen = true;
+      win.setFullScreen(false);
+    }
+  }
+  // Args.forEach(function (val) {
+  // });
+  // and load the index.html of the app.
+  win.loadURL(url);
+  // windowPlus.loadURL(win, url);
+
+  log.info("Done with createWindow()!")
+
+  // Emitted when the window is closed.
+  win.on('closed', () => {
+    // Dereference the window object, usually you would store windows
+    // in an array if your app supports multi windows, this is the time
+    // when you should delete the corresponding element.
+    win = null;
+  });
+}
+
+function createSplashWindow(loadDevTools) {
+  splashWindow = new BrowserWindow({
+    width       : 500   ,
+    height      : 500   ,
+    center      : true  ,
+    resizable   : false ,
+    movable     : false ,
+    alwaysOnTop : true  ,
+    skipTaskbar : true  ,
+    frame       : false ,
+    transparent : true  ,
+  });
+  splashWindow.loadURL(getFilePathAsURL('/../www/splash-screen.html'));
+  if(loadDevTools) {
+    splashWindow.webContents.openDevTools();
+  }
+}
+
+function closeSplashWindow() {
+  if(splashWindow) {
+    splashWindow.close();
+    splashWindow = null;
+  }
+}
+
+function sendStatusToWindow(evt) {
+  log.info(`Sending status to winUpdate: '${evt}'`);
+  if(winUpdate && winUpdate.webContents) {
+    winUpdate.webContents.send('message', evt);
+  }
+}
+
+function sendEventToUpdateWindow(channel, object) {
+  log.info(`Sending event to winUpdate: '${channel}':\n`, object);
+  if(winUpdate && winUpdate.webContents) {
+    winUpdate.webContents.send(channel, object);
+  }
+}
+
+function sendEventToWindow(channel, event) {
+  if(channel !== 'log-from-app') {
+    logger.info(`ELECTRON MAIN: sending '${channel}' event to window`);
+  }
+  if(win && win.webContents) {
+    win.webContents.send(channel, event);
+  }
+}
+function createUpdateStatusWindow(updateVersion, showDevTools) {
+  winUpdate = new BrowserWindow({
+    width  : 400  ,
+    height : 400  ,
+    frame  : true ,
+    parent : win  ,
+    show   : false,
+  });
+  winUpdate.on('closed', () => {
+    winUpdate = null;
+  });
+  let currentVersion = app.getVersion();
+  let newVersion = updateVersion ? updateVersion : currentVersion;
+  // let newVersion     = app.getVersion();
+  let url = `file://${__dirname}/../www/version.html#${currentVersion}#${newVersion}`;
+  log.info(`createUpdateStatusWindow(): Loading with url '${url}' ...`);
+  winUpdate.loadURL(url);
+  winUpdate.once('ready-to-show', () => {
+    winUpdate.show();
+    winUpdate.setMenu(null);
+    // winUpdate.setTitle(`DOWNLOADING UPDATE`);
+    if(showDevTools) {
+      winUpdate.webContents.openDevTools();
+    }
+    setTimeout(() => {
+      winUpdate.setMenu(null);
+    }, 500);
+  });
+  return winUpdate;
+}
+
+function closeUpdateWindow() {
+  if(winUpdate) {
+    log.info(`closeUpdateWindow(): Closing the update window.`);
+    winUpdate.close();
+    winUpdate = null;
+  } else {
+    log.info(`closeUpdateWindow(): Update window did not exist.`);
+  }
+}
+
+// This method will be called when Electron has finished
+// initialization and is ready to create browser windows.
+// Some APIs can only be used after this event occurs.
+app.on('ready', () => {
+  log.info("Electron: got app ready event!");
+  createSplashWindow();
+  setTimeout(createWindow, 3000);
+  // createWindow();
+  // // if(!winUpdate) {
+  // //   createDefaultWindow();
+  // // }
+  // startupWin = new BrowserWindow({width: 800, height: 600, frame: false})
+  // startupWin.on('closed', () => {
+  //   startupWin = null;
+  // });
+  // startupWin.loadURL(`file://${__dirname}/../www/startup.html`)
+  // autoUpdater.checkForUpdatesAndNotify().then((res) => {
+  //   log.info("Done checking for updates, now creating window.");
+  //   if(startupWin) {
+  //     startupWin.close();
+  //   }
+  //   createWindow();
+  // }).catch(err => {
+  //   log.info("Error checking for update, asking if should continue.");
+  //   const dialogOpts = {
+  //     type: 'info',
+  //     buttons: ['OK'],
+  //     title: 'Error',
+  //     message: "Error contacting update server",
+  //     detail: 'An error was encountered checking for app update. The server updates.sesa.us is probably offline.'
+  //   };
+
+  //   dialog.showMessageBox(dialogOpts, (response) => {
+  //     createWindow();
+  //   });
+  // });
+});
+
+
+// Quit when all windows are closed.
+app.on('window-all-closed', () => {
+  // On OS X it is common for applications and their menu bar
+  // to stay active until the user quits explicitly with Cmd + Q
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
+app.on('activate', () => {
+  // On OS X it's common to re-create a window in the app when the
+  // dock icon is clicked and there are no other windows open.
+  // if(startupWin) {
+  //   startupWin.close();
+  // }
+  if (win === null) {
+    createWindow();
+  }
+});
+
+
+
+autoUpdater.on('checking-for-update', () => {
+  log.info(`autoUpdater(): received event 'checking-for-update'.`);
+  sendStatusToWindow('Checking for update...');
+});
+autoUpdater.on('update-available', (info) => {
+  log.info(`autoUpdater(): received event 'update-available':\n`, JSON.stringify(info));
+  sendEventToWindow('update-available');
+  let currentVersion = app.getVersion();
+  let newVersion = info.version;
+  let message = `Found update from ${currentVersion} to ${newVersion}. Do you want to update now?`;
+  dialog.showMessageBox({
+    type: 'info',
+    title: 'Found Updates',
+    message: message,
+    buttons: ['Yes', 'No']
+  }, (buttonIndex) => {
+    if (buttonIndex === 0) {
+      if(!winUpdate) {
+        createUpdateStatusWindow(newVersion);
+      }
+      sendStatusToWindow('Begining download of update...');
+      sendEventToWindow('update-downloading');
+      autoUpdater.downloadUpdate();
+    } else {
+      // if(updater && typeof updater['enabled'] !== 'undefined') {
+      //   updater.enabled = true;
+      //   updater = null;
+      // }
+      sendStatusToWindow('Not downloading update.');
+      sendEventToWindow('update-not-downloaded');
+      setTimeout(() => {
+        closeUpdateWindow();
+      }, updateWindowTimeout);
+    }
+  });
+});
+
+autoUpdater.on('error', (ev, err) => {
+  if(err && err.message) {
+    log.info(`autoUpdater(): received event 'error':\n`, err.message);
+  }
+  sendStatusToWindow('Error while running updater!');
+  sendEventToWindow('update-error-event', err);
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+  log.info(`autoUpdater(): received event 'progress':\n`, JSON.stringify(progressObj));
+  if(progressObj && progressObj.bytesPerSecond) {
+    // let log_message = "Download speed: " + progressObj.bytesPerSecond;
+    // log_message += ' - Downloaded ' + progressObj.percent + '%';
+    // log_message += ' (' + progressObj.transferred + "/" + progressObj.total + ')';
+    // sendEventToWindow('update-download-progress', log_message);
+    // sendStatusToWindow('progress-message', progressObj);
+    sendEventToUpdateWindow('progress-message', progressObj);
+  }
+});
+
+autoUpdater.on('update-downloaded', (ev, info) => {
+  log.info(`autoUpdater(): received event 'update-downloaded':\n`, JSON.stringify(info));
+  // Wait 5 seconds, then quit and install
+  // In your application, you don't need to wait 5 seconds.
+  // You could call autoUpdater.quitAndInstall(); immediately
+  // let releaseNotes = info.releaseNotes || "None";
+  // let releaseName = info.releaseName || "None";
+  let msg = info && info.releaseNotes ? info.releaseNotes : "Updated version available";
+  sendStatusToWindow("Update downloaded");
+  const dialogOpts = {
+    type: 'info',
+    buttons: ['Restart', 'Later'],
+    title: 'Application Update',
+    message: msg,
+    detail: 'A new version has been downloaded. Restart now to install the update?'
+  };
+
+  dialog.showMessageBox(dialogOpts, (response) => {
+    closeUpdateWindow();
+    if (response === 0) {
+      autoUpdater.quitAndInstall();
+    }
+  });
+});
+
+autoUpdater.on('update-not-available', (ev, info) => {
+  log.info(`autoUpdater(): received event 'update-not-available':\n`, ev, `\n`, info);
+  // sendStatusToWindow('No new update available.');
+  const dialogOpts = {
+    type: 'info',
+    'buttons': ['OK'],
+    'title': 'Update not found',
+    message: 'No update found.',
+    detail: 'This version is up to date!',
+  };
+  dialog.showMessageBox(dialogOpts, (response) => {
+    sendEventToWindow('update-not-available');
+    log.info("autoUpdater(): dialogbox received back response:\n", response);
+    setTimeout(() => {
+      closeUpdateWindow();
+    }, updateWindowTimeout);
+  });
+  // createWindow();
+});
+
+ipcMain.on('manual-check-update', (event) => {
+  log.info(`IPC: Received manual-check-update event, event:\n`, event);
+  autoUpdater.checkForUpdates().then((res) => {
+    log.info("Done checking for updates. Result:");
+    // let out = JSON.stringify(res);
+    log.info(res);
+    sendEventToWindow('done-checking-update');
+  }).catch(err => {
+    logger.error("Error checking for update.");
+    sendStatusToWindow('Error contacting update server!');
+    sendEventToWindow('update-server-error');
+    const dialogOpts = {
+      type: 'info',
+      buttons: ['OK'],
+      title: 'Error',
+      message: "Error contacting update server",
+      detail: 'An error was encountered checking for app update. The server http://updates.sesa.us is probably offline.'
+    };
+    dialog.showMessageBox(dialogOpts, (response) => {
+      logger.info(`Error dialog box closed, response:\n`, response);
+      sendEventToWindow('update-check-error', err);
+      setTimeout(() => {
+        closeUpdateWindow();
+      }, updateWindowTimeout);
+    });
+  });
+});
+
+function showDialog(dialogOpts) {
+  let opts = {};
+  let keys = Object.keys(dialogOpts);
+  for(let key of keys) {
+    if(dialogOpts[key] !== undefined) {
+      opts[key] = dialogOpts[key];
+    }
+  }
+  if(!opts['type']) {
+    opts.type = 'info';
+  }
+  if(!opts['buttons']) {
+    opts.buttons = ['OK'];
+  }
+  log.info(`showDialog(): Showing '${opts.type}' dialog box, title '${opts.title}'...`);
+  dialog.showMessageBox(win, opts, (response) => {
+    log.info(`showDialog(): user responded '${response}'.`);
+    return response;
+  });
+}
+
+function showDialogPromise(dialogOpts) {
+  let opts = {};
+  let keys = Object.keys(dialogOpts);
+  for(let key of keys) {
+    if(dialogOpts[key] !== undefined) {
+      opts[key] = dialogOpts[key];
+    }
+  }
+  if(!opts['type']) {
+    opts.type = 'info';
+  }
+  if(!opts['buttons']) {
+    opts.buttons = ['OK'];
+  }
+  log.info(`showDialog(): Showing '${opts.type}' dialog box from app, title '${opts.title}'...`);
+  return new Promise((resolve) => {
+    dialog.showMessageBox(win, opts, (response) => {
+      log.info(`showDialog(): user responded '${response}', sending response to app...`);
+      resolve(response);
+    }).catch(err => {
+      logger.error(`showDialog(): Error showing dialog message box!`);
+      logger.error(err);
+    });
+  });
+}
+
+ipcMain.on('dialog-show', (event, dialogOpts) => {
+  let stringOpts = JSON.stringify(dialogOpts);
+  log.info(`IPC: Got dialog request with options:\n`, stringOpts);
+  showDialog(dialogOpts);
+  // const genericOpts = {
+  //   type: 'info',
+  //   buttons: ['OK'],
+  //   title: 'Dialog',
+  //   message: 'Generic dialog box',
+  //   detail: 'This is a generic dialog box.'
+  // };
+});
+
+ipcMain.on('kill-update-status-window', (event, options) => {
+  log.info(`IPC: Got kill-update-status-window event, options:\n`, options);
+  closeUpdateWindow();
+});
+
+ipcMain.on('show-update-status-window', (event, options) => {
+  log.info(`IPC: Got show-update-status-window event.`);
+  if(typeof options === 'object' && options['text']) {
+    log.info(`IPC: Sending text '${options['text']}' to update window.`);
+    sendStatusToWindow(options['text']);
+  }
+  // let version = app.getVersion();
+  let version  = options && options.version ? options.version : "X.Y.Z";
+  let opts = {
+    version: version,
+  };
+  if(!winUpdate) {
+    log.info(`IPC: Creating update window...`);
+    if(options === true || options && options['showDevTools'] === true) {
+      createUpdateStatusWindow(opts, true);
+    } else {
+      createUpdateStatusWindow(opts, false);
+    }
+  } else {
+    log.info(`IPC: update window already exists!`);
+  }
+});
+
+ipcMain.on('show-about', (event, options) => {
+  log.info(`IPC: Got show-about event, options:\n`, options);
+  let thisAppVersion = app.getVersion();
+  let opts = {
+    type: 'info',
+    title: 'About OnSiteX Console',
+    buttons: ['OK'],
+    message: `Version: ${thisAppVersion}`,
+  };
+  showDialogPromise(opts).then(res => {
+    sendEventToWindow('dialog-response', res);
+  });
+});
+
+ipcMain.on('exit-app', (event, options) => {
+  log.info(`IPC: got exit-app event, options:\n`, options);
+  app.quit();
+});
+
+ipcMain.on('window-console', (event, windowConsole) => {
+  log.info(`IPC: got window-console event with options:\n`, windowConsole);
+  // con = windowConsole;
+});
+
+ipcMain.on('show-pdf', (event, options) => {
+  let strOptions = JSON.stringify(options);
+  log.info(`IPC: got show-pdf event with options:\n${strOptions}`);
+  let pdfURL = options.url;
+  let loadDevTools = typeof options.loadDevTools !== 'boolean' ? options.loadDevTools : false;
+  createPDFWindow(pdfURL, loadDevTools);
+});
+
+ipcMain.on('show-splash', (event, options) => {
+  log.info(`IPC: got show-splash event`);
+  createSplashWindow(options);
+});
+
+ipcMain.on('hide-splash', () => {
+  log.info(`IPC: got hide-splash event`);
+  closeSplashWindow();
+});
+
+ipcMain.on('show-update', (event, appInfo) => {
+  log.info(`IPC: got show-update event`);
+  let version = appInfo && appInfo.version ? appInfo.version : "X.Y.Z";
+  let devTools = appInfo && appInfo.devTools ? appInfo.devTools : false;
+  // let opts = {
+  //   version: version,
+  // };
+  createUpdateStatusWindow(version, devTools);
+});
+
+ipcMain.on('hide-update', () => {
+  log.info(`IPC: got hide-update event`);
+  closeUpdateWindow();
+});
+
+ipcMain.on('progress-message', (event, progressObject) => {
+  log.info(`IPC: got progress-message event:\n`, progressObject);
+  if(winUpdate && winUpdate.webContents) {
+    winUpdate.webContents.send('progress-message', progressObject);
+  }
+});
+

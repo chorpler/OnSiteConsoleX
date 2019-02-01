@@ -1,0 +1,22 @@
+.popover-options-show {
+  .popover-content {
+    width: 50vw;
+    // max-width: 50vw;
+    height: 30vh;
+    // transform-origin: unset !important;
+    left: calc(50vw - 50vw/2) !important;
+    top: calc(50vh - 30vh/2) !important;
+    ion-header {
+      // display: none;
+    }
+    ion-content {
+      margin-top: 56px;
+      .scroll-content {
+        overflow: auto;
+      }
+    }
+  }
+}
+page-options {
+
+}

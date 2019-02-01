@@ -1,0 +1,24 @@
+<p-dialog #scheduleOpenDialog [styleClass]="'schedule-open-dialog'" [header]="'Choose Schedule'" [closable]="true" [modal]="false" [(visible)]="isVisible" [draggable]="true" [resizable]="true" [responsive]="true" [contentStyle]="{'overflow':'visible'}" (onHide)="cancel($event)">
+  <div class="schedule-open-container">
+    <!-- <div class="schedule-open-schedule-container"> -->
+      <div class="schedule-open-dropdown-wrapper">
+        <p-dropdown #scheduleOpenDropdown [styleClass]="'dropdown-creator'" [options]="creatorList" [(ngModel)]="creator" (onChange)="selectCreator(creator)"></p-dropdown>
+      </div>
+      <div class="schedule-open-calendar-and-list-container">
+        <div class="schedule-open-list-container">
+          <p-listbox #scheduleListBox [styleClass]="'schedule-listbox'" [options]="scheduleList" [(ngModel)]="schedule" (onChange)="openSchedule($event)">
+            <ng-template let-schedule let-i="index" pTemplate="item">
+              <div class="listbox-item">
+                <span class="schedule-item-wrapper"><span class="label">Date:</span><span class="data">{{schedule?.value?.start?.format("DD MMM YYYY")}}</span></span>
+                <span class="schedule-item-wrapper"><span class="label">Techs:</span><span class="data">{{schedule?.value?.techs?.length}}</span></span>
+              </div>
+            </ng-template>
+          </p-listbox>
+        </div>
+        <div class="schedule-open-calendar-container">
+          <p-schedule #scheduleOpenSchedule [events]="events" [options]="scheduleOptions" (onEventClick)="openScheduleEvent($event)" [height]="calendarHeight"></p-schedule>
+        </div>
+      </div>
+    <!-- </div> -->
+  </div>
+</p-dialog>

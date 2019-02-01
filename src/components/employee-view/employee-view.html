@@ -1,0 +1,259 @@
+<p-dialog #employeeViewDialog class="employee-view-dialog" [(visible)]="isVisible" [draggable]="true" [resizable]="true" [responsive]="true" [contentStyle]="dialogStyle"  (onHide)="cancel($event)">
+  <p-header>
+    <div class="p-grid">
+      <div class="p-col">
+        <span class="dialog-title">{{employeeHeader}}</span>
+      </div>
+    </div>
+    <div class="p-grid button-grid">
+      <div class="p-col">
+        <span class="cell-button-like" (click)="defaultFill($event)" title="Fill in default test user info" *ngIf="data.status.role==='dev'">
+          <i class="fa fa-id-card-o icon-button-like"></i>
+        </span>
+      </div>
+      <div class="p-col">
+        <span class="cell-button-like" (click)="showOptions($event)" title="Show options">
+          <i class="fa fa-cog icon-button-like"></i>
+        </span>
+      </div>
+      <div class="p-col">
+        <span class="cell-button-like" (click)="deleteEmployee(employee, $event)" title="Delete Employee">
+          <i class="fa fa-trash-o icon-button-like"></i>
+        </span>
+      </div>
+      <div class="p-col">
+        <span class="cell-button-like" (click)="refreshEmployeeView($event)" title="Refresh employee view">
+          <i class="fa fa-refresh icon-button-like"></i>
+        </span>
+      </div>
+      <div class="p-col">
+        <span class="cell-button-like" (click)="saveNoExit(employee, $event)" title="Save, don't exit">
+          <i class="fa fa-save icon-button-like"></i>
+        </span>
+      </div>
+      <div class="p-col">
+        <div *ngIf="idx > 0; then previousAvailable; else previousUnavailable"></div>
+        <ng-template #previousAvailable>
+          <span class="cell-button-like" (click)="previous($event)" title="Previous employee">
+            <i class="icon-button-like fa fa-chevron-circle-left"></i>
+          </span>
+        </ng-template>
+        <ng-template #previousUnavailable>
+          <span class="cell-button-like disabled" title="No previous employee">
+            <i class="fa fa-chevron-circle-left icon-greyed-out"></i>
+          </span>
+        </ng-template>
+      </div>
+      <div class="p-col">
+        <div *ngIf="idx+1 < count; then nextAvailable; else nextUnavailable"></div>
+        <ng-template #nextAvailable>
+          <span class="cell-button-like" (click)="next($event)" title="Next employee">
+            <i class="icon-button-like fa fa-chevron-circle-right"></i>
+          </span>
+        </ng-template>
+        <ng-template #nextUnavailable>
+          <span class="cell-button-like disabled" title="No next employee">
+            <i class="fa fa-chevron-circle-right icon-greyed-out"></i>
+          </span>
+        </ng-template>
+      </div>
+    </div>
+  </p-header>
+  <div class="employee-view-wrapper">
+    <div class="test-grid">
+      <div class="grid-row" *ngIf="developerMode">
+        <div class="grid-col grid-col-2 label">Rotation</div><div class="grid-col grid-col-10 data"><p-dropdown appendTo="body" [options]="rotationList" [(ngModel)]="rotation" (onChange)="updateEmployee('rotation', rotation)"></p-dropdown></div>
+      </div>
+      <div class="grid-row">
+        <div class="grid-col grid-col-2 label">Birthdate</div><div class="grid-col grid-col-10 data">
+          <p-calendar appendTo="body" class="employee-view-calendar" dateFormat="yy-mm-dd" [(ngModel)]="birthdate" [readonlyInput]="isBirthdateReadOnly" [monthNavigator]="true" [yearNavigator]="true" [yearRange]="yearRange" [showIcon]="true" (ngModelChange)="updateBirthdate($event)"></p-calendar>
+        </div>
+      </div>
+      <div class="grid-row">
+        <div class="grid-col grid-col-2 label">Prefix</div><div class="grid-col grid-col-10 data"><p-dropdown appendTo="body" [options]="prefixList" [(ngModel)]="employee.prefix" [placeholder]="strBlank"></p-dropdown></div>
+      </div>
+      <div class="grid-row">
+        <div class="grid-col grid-col-2 label">First Name</div><div class="grid-col grid-col-10 data"><input [(ngModel)]="employee.firstName" (ngModelChange)="updateName($event)" /></div>
+      </div>
+      <div class="grid-row">
+        <div class="grid-col grid-col-2 label">Middle Name</div><div class="grid-col grid-col-10 data"><input [(ngModel)]="employee.middleName" /></div>
+      </div>
+      <div class="grid-row">
+        <div class="grid-col grid-col-2 label">Last Name</div><div class="grid-col grid-col-10 data"><input [(ngModel)]="employee.lastName" (ngModelChange)="updateName($event)" /></div>
+      </div>
+      <div class="grid-row">
+        <div class="grid-col grid-col-2 label">Suffix</div><div class="grid-col grid-col-10 data"><p-dropdown [options]="suffixList" [(ngModel)]="employee.suffix" [placeholder]="strBlank"></p-dropdown></div>
+      </div>
+      <div class="grid-row">
+        <!-- <div class="grid-col grid-col-2 label" [class.error]="errors.username">Username <i class="fa fa-envelope-o icon-button-like" title="Create E-mail Address" (click)="createEmail($event)"></i></div><div class="grid-col grid-col-10 data"><input #avatarName [(ngModel)]="employee.avatarName" (ngModelChange)="setError('username', false)" (blur)="updateUserEmail(employee.avatarName + '@sesafleetservices.com')"/></div> -->
+        <div class="grid-col grid-col-2 label" [class.error]="errors.username">Username <i class="fa fa-envelope-o icon-button-like" title="Create E-mail Address" (click)="createEmail($event)"></i></div><div class="grid-col grid-col-10 data"><input #avatarName [(ngModel)]="employee.avatarName" (ngModelChange)="setError('username', false)" /></div>
+      </div>
+      <div class="grid-row">
+        <div class="grid-col grid-col-2 label">User Class</div><div class="grid-col grid-col-10 data"><textarea [(ngModel)]="userClass" (ngModelChange)="updateUserClass(userClass)"></textarea></div>
+      </div>
+      <div class="grid-row">
+        <div class="grid-col grid-col-2 label">Employee Type</div><div class="grid-col grid-col-10 data"><p-dropdown appendTo="body" [options]="employeeTypeList" [(ngModel)]="employee.employeeType" (onChange)="updateEmployeeType($event)"></p-dropdown></div>
+      </div>
+      <div class="grid-row">
+        <div class="grid-col grid-col-2 label">Work Site</div><div class="grid-col grid-col-10 data"><p-dropdown appendTo="body" [options]="jobsiteList" [(ngModel)]="jobsite" (onChange)="updateEmployee('jobsite', jobsite)"></p-dropdown></div>
+      </div>
+      <div class="grid-row">
+        <div class="grid-col grid-col-2 label">Shift</div><div class="grid-col grid-col-10 data"><p-dropdown appendTo="body" [options]="shiftList" [(ngModel)]="shift" (onChange)="updateEmployee('shift', shift)"></p-dropdown></div>
+      </div>
+      <div class="grid-row">
+        <div class="grid-col grid-col-2 label">Shift Length</div><div class="grid-col grid-col-10 data"><p-dropdown appendTo="body" [options]="shiftLengthList" [(ngModel)]="shiftLength" (onChange)="updateEmployee('shiftLength', shiftLength)"></p-dropdown></div>
+      </div>
+      <div class="grid-row">
+        <div class="grid-col grid-col-2 label">Shift Start Time</div><div class="grid-col grid-col-10 data"><p-dropdown appendTo="body" [options]="shiftStartList" [(ngModel)]="shiftStartTime" (onChange)="updateEmployee('shiftStart', shiftStartTime)"></p-dropdown></div>
+      </div>
+      <div class="grid-row">
+        <div class="grid-col grid-col-2 label">E-mail</div><div class="grid-col grid-col-10 data"><textarea #emailTextArea [(ngModel)]="userEmail" (ngModelChange)="updateUserEmail(userEmail)"></textarea></div>
+      </div>
+      <div class="grid-row">
+        <div class="grid-col grid-col-2 label">Phone <i class="fa fa-arrow-circle-o-down icon-button-like" title="Copy to Cell" (click)="copyPhone('phone', 'cell')"></i></div><div class="grid-col grid-col-10 data"><input [(ngModel)]="employee.phone" (keyup)="checkKeyUp('phone', $event)" /></div>
+      </div>
+      <div class="grid-row">
+        <div class="grid-col grid-col-2 label">Cell <i class="fa fa-arrow-circle-o-up icon-button-like" title="Copy to Phone" (click)="copyPhone('cell', 'phone')"></i></div><div class="grid-col grid-col-10 data"><input [(ngModel)]="employee.cell" (keyup)="checkKeyUp('cell', $event)" /></div>
+      </div>
+      <div class="grid-row">
+        <div class="grid-col grid-col-2 label">Address</div>
+        <div class="grid-col grid-col-10 data"><input class="input-data" type="text" [(ngModel)]="employee.address.street.street1" /></div>
+      </div>
+      <div class="grid-row">
+        <div class="grid-col grid-col-2 label">City</div>
+        <div class="grid-col grid-col-10 data"><input class="input-data" type="text" [(ngModel)]="employee.address.city" /></div>
+      </div>
+      <div class="grid-row">
+        <div class="grid-col grid-col-2 label">State</div>
+        <div class="grid-col grid-col-4 data"><input class="input-data" type="text" [(ngModel)]="employee.address.state" /></div>
+        <div class="grid-col grid-col-2 label">ZIP</div>
+        <div class="grid-col grid-col-4 data"><input class="input-data" type="text" [(ngModel)]="employee.address.zipcode" /></div>
+      </div>
+      <div class="grid-row">
+        <div class="grid-col grid-col-2 label">Notes</div>
+        <div class="grid-col grid-col-10 data"><textarea class="employee-view-notes" [(ngModel)]="employee.notes"></textarea></div>
+      </div>
+      <div class="grid-row">
+        <div class="grid-col grid-col-4 labeldata">
+          <p-checkbox binary="true" [(ngModel)]="employee.active" label="Active"></p-checkbox>
+        </div>
+        <div class="grid-col grid-col-4 labeldata">
+          <p-checkbox binary="true" [(ngModel)]="employee.salaried" label="Salaried"></p-checkbox>
+        </div>
+        <div class="grid-col grid-col-2 label">Rate</div>
+        <div class="grid-col grid-col-2 data"><input class="input-data" type="number" step="0.01" [(ngModel)]="employee.payRate" /></div>
+      </div>
+      <div class="grid-row" *ngIf="data.status.role==='dev'">
+        <div class="grid-col grid-col-12 labeldata">
+          <p-checkbox binary="true" [(ngModel)]="employee.isTestUser" label="Test User"></p-checkbox>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p-footer>
+    <!-- <table class="button-table bottom">
+      <tr class="button-row">
+        <td class="cell-button-like" (click)="cancel($event)" title="Cancel">
+          <i class="fa fa-times icon-button-like"></i>
+        </td>
+        <td class="cell-button-like" (click)="onSubmit($event)" title="Save and Close Window">
+          <i class="fa fa-check icon-button-like"></i>
+        </td>
+      </tr>
+    </table> -->
+    <div class="footer-buttons">
+      <div class="p-grid p-justify-around">
+        <div class="p-col-5">
+          <span class="cell-button-like" (click)="cancel($event)" title="Cancel">
+            <i class="fa fa-times icon-button-like"></i>
+          </span>
+        </div>
+        <div class="p-col-5">
+          <td class="cell-button-like" (click)="onSubmit($event)" title="Save and Close Window">
+            <i class="fa fa-check icon-button-like"></i>
+          </td>
+        </div>
+      </div>
+    </div>
+  </p-footer>
+
+    <!-- <table class="employee-view-table">
+      <tbody class="employee-view-body">
+        <tr class="body-row" *ngIf="developerMode">
+          <td class="label">Rotation</td><td class="data"><p-dropdown [options]="rotationList" [(ngModel)]="rotation" (onChange)="updateEmployee('rotation', rotation)"></p-dropdown></td>
+        </tr>
+        <tr class="body-row">
+          <td class="label">Birthdate</td><td class="data">
+            <p-calendar class="employee-view-calendar" dateFormat="yy-mm-dd" [(ngModel)]="birthdate" [readonlyInput]="isBirthdateReadOnly" [monthNavigator]="true" [yearNavigator]="true" yearRange="1900:2015" [showIcon]="true" (ngModelChange)="updateBirthdate($event)"></p-calendar>
+          </td>
+        </tr>
+        <tr class="body-row">
+          <td class="label">Prefix</td><td class="data"><p-dropdown [options]="prefixList" [(ngModel)]="employee.prefix" [placeholder]="strBlank"></p-dropdown></td>
+        </tr>
+        <tr class="body-row">
+          <td class="label">First Name</td><td class="data"><input [(ngModel)]="employee.firstName" (ngModelChange)="updateName($event)" /></td>
+        </tr>
+        <tr class="body-row">
+          <td class="label">Middle Name</td><td class="data"><input [(ngModel)]="employee.middleName" /></td>
+        </tr>
+        <tr class="body-row">
+          <td class="label">Last Name</td><td class="data"><input [(ngModel)]="employee.lastName" (ngModelChange)="updateName($event)" /></td>
+        </tr>
+        <tr class="body-row">
+          <td class="label">Suffix</td><td class="data"><p-dropdown [options]="suffixList" [(ngModel)]="employee.suffix" [placeholder]="strBlank"></p-dropdown></td>
+        </tr>
+        <tr class="body-row">
+          <td class="label" [class.error]="errors.username">Username <i class="fa fa-envelope-o icon-button-like" title="Create E-mail Address" (click)="createEmail($event)"></i></td><td class="data"><input #avatarName [(ngModel)]="employee.avatarName" (ngModelChange)="setError('username', false)" (blur)="updateUserEmail(employee.avatarName + '@sesafleetservices.com')"/></td>
+        </tr>
+        <tr class="body-row">
+          <td class="label">User Class</td><td class="data"><textarea [(ngModel)]="userClass" (ngModelChange)="updateUserClass(userClass)"></textarea></td>
+        </tr>
+        <tr class="body-row">
+          <td class="label">Employee Type</td><td class="data"><p-dropdown [options]="employeeTypeList" [(ngModel)]="employee.employeeType" (onChange)="updateEmployeeType($event)"></p-dropdown></td>
+        </tr>
+        <tr class="body-row">
+          <td class="label">Work Site</td><td class="data"><p-dropdown [options]="jobsiteList" [(ngModel)]="jobsite" (onChange)="updateEmployee('jobsite', jobsite)"></p-dropdown></td>
+        </tr>
+        <tr class="body-row">
+          <td class="label">Shift</td><td class="data"><p-dropdown [options]="shiftList" [(ngModel)]="shift" (onChange)="updateEmployee('shift', shift)"></p-dropdown></td>
+        </tr>
+        <tr class="body-row">
+          <td class="label">Shift Length</td><td class="data"><p-dropdown [options]="shiftLengthList" [(ngModel)]="shiftLength" (onChange)="updateEmployee('shiftLength', shiftLength)"></p-dropdown></td>
+        </tr>
+        <tr class="body-row">
+          <td class="label">Shift Start Time</td><td class="data"><p-dropdown [options]="shiftStartList" [(ngModel)]="shiftStartTime" (onChange)="updateEmployee('shiftStart', shiftStartTime)"></p-dropdown></td>
+        </tr>
+        <tr class="body-row">
+          <td class="label">E-mail</td><td class="data"><textarea #emailTextArea [(ngModel)]="userEmail" (ngModelChange)="updateUserEmail(userEmail)"></textarea></td>
+        </tr>
+        <tr class="body-row">
+          <td class="label">Phone <i class="fa fa-arrow-circle-o-down icon-button-like" title="Copy to Cell" (click)="copyPhone('phone', 'cell')"></i></td><td class="data"><input [(ngModel)]="employee.phone" (keyup)="checkKeyUp('phone', $event)" /></td>
+        </tr>
+        <tr class="body-row">
+          <td class="label">Cell <i class="fa fa-arrow-circle-o-up icon-button-like" title="Copy to Phone" (click)="copyPhone('cell', 'phone')"></i></td><td class="data"><input [(ngModel)]="employee.cell" (keyup)="checkKeyUp('cell', $event)" /></td>
+        </tr>
+        <tr class="body-row">
+          <td class="label">Address</td><td class="data"><input [(ngModel)]="employee.address.street.street1" /></td>
+        </tr>
+        <tr class="body-row">
+          <td class="label">City</td><td class="data"><input [(ngModel)]="employee.address.city" /></td>
+        </tr>
+        <tr class="body-row double">
+          <td class="label col-01">State</td><td class="data col-01"><input [(ngModel)]="employee.address.state" /></td>
+          <td class="label col-02">ZIP</td  ><td class="data col-02"><input [(ngModel)]="employee.address.zipcode" /></td>
+        </tr>
+        <tr class="body-row">
+          <td class="label">Notes</td><td class="data"><textarea class="employee-view-notes" [(ngModel)]="employee.notes"></textarea></td>
+        </tr>
+        <tr class="body-row double">
+          <td class="label col-01">Salaried</td><td class="data col-01"><p-checkbox [(ngModel)]="employee.salaried" binary="true"></p-checkbox></td>
+          <td class="label col-02">Rate</td    ><td class="data col-02"><input type="number" step="0.01" [(ngModel)]="employee.payRate" /></td>
+        </tr>
+        <tr class="body-row">
+          <td class="label">Active</td><td class="data"><p-checkbox [(ngModel)]="employee.active" binary="true"></p-checkbox></td>
+        </tr>
+      </tbody>
+    </table> -->
+</p-dialog>
+
+<options-generic #employeeViewOptionsComponent *ngIf="evOptionsVisible" [type]="optionsType" (onCancel)="optionsClosed($event)" (onSave)="optionsSaved($event)"></options-generic>

@@ -1,0 +1,107 @@
+<ion-header>
+  <ion-navbar>
+    <!-- <ion-buttons left>
+      <button ion-button menuToggle *ngIf="mode !== 'modal'">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+    </ion-buttons> -->
+    <ion-buttons left>
+      <button ion-button icon-only (click)="closeModal($event)" *ngIf="mode === 'modal' && !data.currentlyOpeningPage">
+        <i class="fa fa-window-close-o"></i>
+      </button>
+      <button ion-button menuToggle *ngIf="mode !== 'modal' && !data.currentlyOpeningPage">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+      <ion-spinner name="bubbles" [class.spinner-opening-page]="true" *ngIf="data.currentlyOpeningPage"></ion-spinner>
+    </ion-buttons>
+    <ion-title>{{title}}</ion-title>
+    <ion-buttons right>
+      <button class="dps-main-menubar-button" ion-button icon-only (click)="copyTable($event)" *ngIf="tabIndex==1 || tabIndex==3" title="Copy Table">
+        <i class="fa fa-clipboard"></i>
+      </button>
+      <button class="dps-main-menubar-button" ion-button icon-only (click)="toggleDPSSettings($event, actualTarget)" title="Options">
+        <i class="fa fa-cog"></i>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding *ngIf="dataReady">
+  <div class="dps-main-wrapper">
+    <div class="dps-calc-select-period-wrapper">
+      <p-dropdown [options]="periodList" [(ngModel)]="period" (onChange)="updatePeriod(period)"></p-dropdown>
+      <p-tieredMenu class="dps-daily-summary-menu" #tieredMenu [model]="menuItems" [popup]="popupMode"></p-tieredMenu>
+      <button *ngIf="tabIndex==3" class="dps-daily-summary-menu-button" pButton type="button" #tieredMenuButton icon="fa-bars" (click)="tieredMenu.toggle($event)"></button>
+    </div>
+    <p-tabView [activeIndex]="tabIndex" (onChange)="tabChange($event)">
+      <p-tabPanel *ngFor="let tab of tabs; let idx=index" [header]="tab.header" [leftIcon]="tab.icon" [selected]="tab.selected">
+        <div class="dps-main-tab-content" *ngIf="idx===0; then dpsReportTab"></div>
+        <div class="dps-main-tab-content" *ngIf="idx===1; then dpsCalculationsTab"></div>
+        <div class="dps-main-tab-content" *ngIf="idx===2; then dpsAncillaryCalculationsTab"></div>
+        <div class="dps-main-tab-content" *ngIf="idx===3; then dpsDailySummaryTab"></div>
+
+        <!-- DPS Report Tab (0) -->
+        <ng-template #dpsReportTab>
+          <div class="dps-report-tab">
+            <dps-report #dpsReportComponent [PayrollPeriod]="period" [PayrollPeriods]="periods" [DPSReportData]="reportData"></dps-report>
+          </div>
+        </ng-template>
+
+
+
+
+
+
+
+
+        <!-- DPS Calculations Tab (1) -->
+        <ng-template #dpsCalculationsTab>
+          <div class="dps-calculations-tab" *ngIf="tabIndex==1">
+            <dps-calculations #dpsCalculationsComponent [PayrollPeriod]="period" [PayrollPeriods]="periods" [DPSGridInput]="DPSCalcsDataGrid" (DPSCalculationsGrid)="receiveDPSCalculations($event)"></dps-calculations>
+          </div>
+        </ng-template>
+
+
+
+
+
+
+
+        <!-- DPS Ancillary Calculations Tab (2) -->
+        <!-- <ng-template #dpsAncillaryCalculations pTemplate="content"> -->
+        <ng-template #dpsAncillaryCalculationsTab>
+          <!-- <div class="dps-ancillary-calculations-tab" *ngIf="tabIndex==2"> -->
+          <div class="dps-ancillary-calculations-tab" *ngIf="tabIndex==2">
+            <dps-ancillary-calculations #dpsAncillaryComponent [ePeriod]="ePeriod" [PayrollPeriod]="period" [PayrollPeriods]="periods" [calcGrid]="DPSCalcsDataGrid"></dps-ancillary-calculations>
+          </div>
+        </ng-template>
+
+
+
+
+
+
+        <!-- DPS Daily Summary Tab (3) -->
+        <!-- <ng-template #dpsDailySummary pTemplate="content"> -->
+        <ng-template #dpsDailySummaryTab>
+          <div class="dps-daily-summary-tab" *ngIf="tabIndex==3">
+          <!-- <div class="dps-daily-summary-tab"> -->
+            <dps-daily-summary #dpsDailySummaryComponent [ePeriod]="ePeriod" [PayrollPeriod]="period" [PayrollPeriods]="periods" [shift]="shift" [tableMode]="tableMode" [calcMode]="calcMode"></dps-daily-summary>
+          </div>
+        </ng-template>
+      </p-tabPanel>
+    </p-tabView>
+    <div *ngIf="true; then dpsSettingsTemplate"></div>
+    <!-- Settings overlay -->
+    <ng-template #dpsSettingsTemplate>
+      <!-- <p-overlayPanel #settingsOverlay [class.dps-settings-overlay-panel]="true" [dismissable]="soDismissable" [showCloseIcon]="soShowClose"> -->
+      <p-dialog #optionsDialog *ngIf="settingsVisible" [class.options-dialog-box]="true" header="Options" [(visible)]="settingsVisible" [draggable]="true" [resizable]="true" [closable]="false" [modal]="false" [appendTo]="actualTarget">
+        <div class="dps-settings-overlay">
+          <dps-settings #dpsSettingsComponent [target]="actualTarget" (save)="settingsSaved($event)" (cancel)="settingsCanceled($event)"></dps-settings>
+        </div>
+      </p-dialog>
+      <!-- </p-overlayPanel> -->
+    </ng-template>
+  </div>
+  <div #actualTargetElement class="dps-settings-overlay-wrapper"></div>
+</ion-content>

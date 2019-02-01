@@ -1,0 +1,405 @@
+@page {
+  margin: 0.5in;
+}
+page-invoicing-be {
+  $margin: 0.1in;
+  @media screen {
+    ion-header, ion-navbar {
+      contain: none !important;
+      overflow: visible !important;
+    }
+    .toolbar, .toolbar-background, .toolbar-title {
+      contain: none !important;
+      overflow: visible !important;
+    }
+    ion-content > .scroll-content {
+      overflow: auto;
+      margin-top: 56px;
+    }
+  }
+  @media print {
+    ion-header, ion-navbar {
+      display: none;
+    }
+    .toolbar, .toolbar-background, .toolbar-title, ion-content, ion-nav {
+      contain: none !important;
+      overflow: visible !important;
+    }
+    ion-content > .scroll-content {
+      contain: none !important;
+      overflow: visible !important;
+      margin-top: 56px;
+    }
+  }
+  .hidden {
+    display: none;
+  }
+  .report-view-target {
+    position: absolute;
+    top: 60;
+    left: 25vw;
+    height: 1px;
+    width: 1px;
+    z-index: 50000;
+  }
+  .report-view-dialog {
+    .ui-dialog-content {
+      overflow: visible;
+    }
+  }
+  .menubar-button {
+    font-size: 28px;
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+  .button-like {
+    cursor:pointer;
+    &:hover {
+      background-color: rgba(0, 0, 128, 0.2);
+    }
+    &:active {
+      background-color: rgba(0, 0, 255, 0.5);
+    }
+  }
+  .dropdown-wrapper {
+    display: inline-block;
+    vertical-align: -webkit-baseline-middle;
+  }
+  .dropdown-flexbox {
+    display: flex;
+    flex: 0 1 auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-content: center;
+    align-items: center;
+  }
+  .dropdown-period-label {
+    font-weight: bold;
+    text-align: right;
+    padding-right: 5px;
+    flex: 0 1 auto;
+    align-self: center;
+  }
+  .dropdown-period-menu {
+    flex: 0 1 auto;
+    align-self: center;
+  }
+  .dropdown-menubar {
+    flex: 0 1 auto;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    position: relative;
+    display: inline-block;
+    line-height: 1;
+    text-overflow: ellipsis;
+    text-transform: none;
+    white-space: nowrap;
+    cursor: pointer;
+    // vertical-align: top;
+    vertical-align: -webkit-baseline-middle;
+    user-select: none;
+
+  }
+
+
+  .invoice-basic-energy, .invoice-wrapper {
+    user-select: text;
+    margin-left: auto;
+    margin-right: auto;
+    padding: calc($margin / 2);
+    page-break-after: always;
+    @media screen {
+      margin-top: 20px;
+    }
+  }
+  .invoice-table-header, .invoice-table-grid, .invoice-table-summary {
+    table-layout: fixed;
+    page-break-after: always;
+    page-break-inside: avoid;
+    width: 7.5in;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid lightgrey;
+    border-collapse: collapse;
+    .invoice-basic-energy-body {
+      padding: 10px;
+    }
+    .cell-wrapper {
+      display: block;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+    .header-group-row {
+      background-color: rgba(250, 249, 240, 1.0);
+      border-left: 1px solid lightgrey;
+      border-right: 1px solid lightgrey;
+      &.row-top {
+        border-top: 1px solid lightgrey;
+        .col-01 {
+          border-bottom: 1px solid lightgrey;
+        }
+      }
+      &.row-bottom {
+        border-bottom: 1px solid lightgrey;
+      }
+
+      .sesa-address {
+        text-align: center;
+        color: blue;
+      }
+      img {
+        width: 100%;
+      }
+      .sesa-logo {
+        // background-image: url('../assets/images/SESALogoBlue.svg');
+        padding: 5px;
+      }
+
+      .invoice-label, .date-label, .crew-header {
+        text-align: center;
+        padding: 0;
+        padding-left: 1px;
+        padding-right: 1px;
+        padding-top: 1px;
+        .formatter {
+          display: block;
+          width: 100%;
+          height: 100%;
+          color: white;
+          background-color: blue;
+        }
+      }
+      .invoice-data, .date-data, .crew-body {
+        text-align: center;
+        padding: 0;
+        padding-left: 1px;
+        padding-right: 1px;
+        .formatter {
+          display: block;
+          width: 100%;
+          height: 21px;
+          background-color: white;
+          border: 0;
+          border-left  : 1px solid lightgrey;
+          border-right : 1px solid lightgrey;
+          border-bottom: 1px solid lightgrey;
+        }
+      }
+      .invoice-data {
+        input.input-data {
+          width: 100%;
+          border: 0;
+          text-align: center;
+        }
+      }
+    }
+    .customer-label {
+      text-align: right;
+      padding-right: 2px;
+    }
+    .customer-data {
+      text-align: center;
+    }
+    .crew-label {
+      text-align: right;
+      padding-right: 5px;
+    }
+    .crew-data {
+      text-align: center;
+    }
+    .pseudo-header {
+      background-color: rgba(217, 217, 217, 1.0);
+      font-weight: bold;
+      text-align: center;
+    }
+    .grid-row {
+      height: 18px;
+      td {
+        border: 1px solid lightgrey;
+        padding-left: 3px;
+        padding-right: 3px;
+      }
+    }
+    .pseudo-header, .grid-row {
+      font-size: 12px;
+      .col-date {
+        // max-width: 160px;
+        // width: 160px;
+      }
+      .col-tech {
+        // max-width: 190px;
+        // width: 190px;
+      }
+      .col-unit {
+
+      }
+      .col-hours {
+        // max-width: 70px;
+        // width: 70px;
+        text-align: center;
+      }
+      .col-billed {
+        // max-width: 70px;
+        // width: 70px;
+        text-align: center;
+      }
+    }
+    .grid-row {
+      .col-hours, .col-billed {
+        font-family: "RobotoMono";
+        text-align: right;
+        padding-right: 2px;
+      }
+
+    }
+
+    .summary-wrapper-header {
+      background-color: rgba(250, 249, 240, 1.0);
+    }
+    .summary-header {
+      font-size: 12px;
+      td {
+        border-top: 1px solid lightgrey;
+        border-left: 1px solid lightgrey;
+        border-right: 1px solid lightgrey;
+        border-bottom: 1px solid lightgrey;
+        font-size: 12px;
+        padding-left: 3px;
+        padding-right: 3px;
+      }
+      .col-01, .col-02, .col-03 {
+        text-align: center;
+        font-weight: bold;
+      }
+      // .col-04, .col-06 {
+      //   text-align: right;
+      //   // font-size: 11px;
+      // }
+      .col-04 {
+        border-right: 0;
+        text-align: center;
+        font-weight: bold;
+      }
+      .col-06 {
+        text-align: right;
+        overflow: visible;
+        border-left: 0;
+        font-weight: bold;
+        .header-cell-wrapper {
+          display: block;
+          margin-left: -20px;
+          // position: relative;
+          right: 0;
+          white-space: nowrap;
+          overflow: visible;
+        }
+      }
+    }
+    .summary-footer {
+      font-size: 12px;
+      td {
+        border: 1px solid lightgrey;
+        padding-left: 3px;
+        padding-right: 3px;
+      }
+      .col-01 {
+        font-weight: bold;
+      }
+      .col-02, .col-03 {
+        font-weight: bold;
+        font-family: "RobotoMono";
+        text-align: right;
+        padding-right: 2px;
+      }
+    }
+    .summary-row {
+      font-size: 12px;
+      height: 18px;
+      td {
+        border: 1px solid lightgrey;
+        padding-left: 3px;
+        padding-right: 3px;
+      }
+      .col-unit {
+
+      }
+      .col-hours {
+        font-family: "RobotoMono";
+        text-align: right;
+        padding-right: 2px;
+      }
+      .col-billed {
+        font-family: "RobotoMono";
+        text-align: right;
+        padding-right: 2px;
+      }
+      .col-invoice {
+
+      }
+      .col-total-billed {
+
+      }
+      .hours {
+        font-family: "RobotoMono";
+        text-align: right;
+        padding-right: 2px;
+      }
+    }
+    .blank {
+
+    }
+    .blank-footer {
+      height: 18px;
+      background-color: rgba(250,249,240,1.0);
+      border: 1px solid lightgrey;
+    }
+    .amount-label {
+      color: white;
+      background-color: blue;
+      text-align: center;
+      border-right: 1px solid lightgrey;
+    }
+    .total-label {
+      color: white;
+      background-color: blue;
+      text-align: center;
+    }
+    .amount-data {
+      text-align: center;
+      vertical-align: middle;
+      border: 1px solid lightgrey;
+    }
+    .total-data {
+      font-family: "RobotoMono";
+      text-align: right;
+      vertical-align: middle;
+      padding-right: 10px;
+      border: 1px solid lightgrey;
+    }
+    .total-header {
+
+    }
+    .total-data {
+      height: 54px;
+    }
+    .crew-col {
+      text-align: center;
+      .formatter {
+
+      }
+      .label-crew {
+        font-weight: bold;
+      }
+      .data-crew {
+
+      }
+
+    }
+  }
+  .invoice-table-summary {
+    margin-top: -1px;
+  }
+}

@@ -1,0 +1,2 @@
+npm uninstall --save pouchdb pouchdb-all-dbs pouchdb-auth pouchdb-authentication pouchdb-collections pouchdb-find pouchdb-md5  pouchdb-seamless-auth pouchdb-upsert pouchdb-utils transform-pouch
+npm install --save pouchdb pouchdb-all-dbs pouchdb-auth pouchdb-authentication pouchdb-collections pouchdb-find pouchdb-md5  pouchdb-seamless-auth pouchdb-upsert pouchdb-utils transform-pouch

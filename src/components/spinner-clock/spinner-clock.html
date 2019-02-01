@@ -1,0 +1,23 @@
+<!-- Generated template for the ClockComponent component -->
+<div class="clock-steampunk">
+  <div class="clkbkg"></div>
+  <div class="g1 rotateCog"></div>
+  <div class="g2 rotateGears"></div>
+  <div class="g3"></div>
+  <div class="g4 rotateGears"></div>
+  <div class="g5 rotateGears"></div>
+  <div class="g6 rotateGears2"></div>
+  <div class="g10 rotateGears2"></div>
+  <div class="g8 rotateGears"></div>
+  <div class="g9 rotateGears2"></div>
+  <div class="g10 rotateGears2"></div>
+  <div class="g11"></div>
+  <div class="clock"></div>
+  <div class="clock2"></div>
+  <div #containerSeconds id="containerSeconds" class="containerSeconds" [style.transform]="rotate(seconds)"><div class="secondsHnd rotateSeconds"></div></div>
+  <div #containerMinutes id="containerMinutes" class="containerMinutes" [style.transform]="rotate(minutes)"><div class="minutesHnd rotateMinutes"></div></div>
+  <div #containerHours   id="containerHours"   class="containerHours"   [style.transform]="rotate(hours)"  ><div class="hoursHnd rotateHours"    ></div></div>
+  <!-- <div #containerSeconds id="containerSeconds" class="containerSeconds" [ngStyle]="sStyle"><div class="secondsHnd rotateSeconds"></div></div>
+  <div #containerMinutes id="containerMinutes" class="containerMinutes" [ngStyle]="mStyle"><div class="minutesHnd rotateMinutes"></div></div>
+  <div #containerHours   id="containerHours"   class="containerHours"   [ngStyle]="hStyle"><div class="hoursHnd rotateHours"    ></div></div> -->
+</div>

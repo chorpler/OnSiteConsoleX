@@ -1,0 +1,70 @@
+<ion-header>
+  <ion-navbar>
+    <button ion-button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button>
+    <ion-title>{{title}}</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding id="page1" *ngIf="dataReady && data.ready()">
+  <div class="messages-list-container">
+    <button class="messages-button-new-message" ion-button color="primary" (tap)="newMessage()">New Message</button>
+    <ion-list class="messages-list-list" *ngIf="messages && messages.length > 0">
+      <ion-item class="ion-item-button-like messages-list-item" *ngFor="let message of messages" (tap)="openMessage(message)">
+        <span class="messages-list-header-container"><span class="messages-list-header-label">Date:</span><span class="messages-list-data">{{message.date.format("MMM DD, YYYY")}}</span></span>
+        <span class="messages-list-header-container"><span class="messages-list-header-label">From:</span><span class="messages-list-data">{{message.from}}</span></span>
+        <span class="messages-list-header-container"><span class="messages-list-header-label">Subject:</span><span class="messages-list-data">{{message.subject}}</span></span>
+      </ion-item>
+    </ion-list>
+    <ion-card class="messages-message-card">
+      <ion-list class="messages-message-list">
+        <div class="messages-date-container">
+          <div class="reports-search-header-item">Date
+            <p-calendar class="messages-message-date-calendar" #date [(ngModel)]="messageDate" (ngModelChange)="updateFromDate($event)" [showIcon]="true"></p-calendar>
+          </div>
+        </div>
+        <ion-item id="messages-input21">
+          <ion-label floating>
+            From
+          </ion-label>
+          <ion-input class="messages-message-input" type="text" placeholder="Your Name" name="author" [(ngModel)]="message.from"></ion-input>
+        </ion-item>
+        <ion-item id="messages-input23">
+          <ion-label floating>
+            Duration
+          </ion-label>
+          <ion-input class="messages-message-input" type="number" placeholder="Number of days to display" name="duration" [(ngModel)]="message.duration"></ion-input>
+        </ion-item>
+        <ion-item id="messages-input24">
+          <ion-label floating>
+            Subject
+          </ion-label>
+          <ion-input #inputSubject class="messages-message-input" type="text" placeholder="Message Subject" name="msgTitle" [(ngModel)]="message.subject"></ion-input>
+        </ion-item>
+        <ion-item class="messages-message-text-item" id="messages-textarea2">
+          <ion-label floating>
+            Text
+          </ion-label>
+          <ion-textarea class="messages-message-text-area" placeholder="Message text...." [(ngModel)]="message.text"></ion-textarea>
+        </ion-item>
+        <ion-item id="messages-input25">
+          <ion-label floating>
+            Tema
+          </ion-label>
+          <ion-input class="messages-message-input" type="text" placeholder="Subject en Español" name="titleEs" [(ngModel)]="message.subjectES"></ion-input>
+        </ion-item>
+        <ion-item class="messages-message-text-item" id="messages-textarea3">
+          <ion-label floating>
+            Texto
+          </ion-label>
+          <ion-textarea class="messages-message-text-area" placeholder="Es Translation of message..." [(ngModel)]="message.textES"></ion-textarea>
+        </ion-item>
+      </ion-list>
+      <div class="messages-buttons-container">
+        <button ion-button color="light" type="button" (tap)="cancel($event)">Cancel</button>
+        <button ion-button color="primary" type="submit" (tap)="postMessage($event)">Post Message</button>
+      </div>
+    </ion-card>
+  </div>
+</ion-content>

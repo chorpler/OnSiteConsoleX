@@ -1,0 +1,53 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons left>
+      <button ion-button menuToggle *ngIf="mode !== 'modal'">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>{{title}}</ion-title>
+    <ion-buttons right>
+      <span class="menubar-dropdown-wrapper" *ngIf="dataReady && data.ready()">
+        <span class="menubar-dropdown-flexbox">
+          <span class="menubar-dropdown-label">Work Site</span>
+          <span class="menubar-dropdown-menu">
+            <p-dropdown #siteDropdown [class.menubar-dropdown]="true" [options]="siteMenu" [(ngModel)]="site" (onChange)="updateSite(site)"></p-dropdown>
+          </span>
+        </span>
+      </span>
+      <span class="menubar-dropdown-wrapper" *ngIf="dataReady && data.ready()">
+        <span class="menubar-dropdown-flexbox">
+          <span class="menubar-dropdown-label">Pay Period</span>
+          <span class="menubar-dropdown-menu">
+            <p-dropdown #periodDropdown [class.menubar-dropdown]="true" [options]="periodMenu" [(ngModel)]="period" (onChange)="updatePeriod(period)"></p-dropdown>
+          </span>
+        </span>
+      </span>
+      <button class="menubar-button" ion-button icon-only (click)="clearInvoices($event)" title="Clear displayed invoice(s)">
+        <i class="fa fa-ban"></i>
+      </button>
+      <button class="menubar-button" ion-button icon-only (click)="openInvoices($event)" title="Open existing invoices">
+        <i class="fa fa-folder-open-o"></i>
+      </button>
+      <button class="menubar-button" ion-button icon-only (click)="refreshData($event)" title="Refresh Data and Recalculate">
+        <i class="fa fa-refresh"></i>
+      </button>
+      <button class="menubar-button" ion-button icon-only (click)="saveInvoices($event)" title="Save Invoice(s)">
+        <i class="fa fa-save"></i>
+      </button>
+      <button class="menubar-button" ion-button icon-only (click)="copyTable($event)" title="Copy Invoice">
+        <i class="fa fa-clipboard"></i>
+      </button>
+      <button class="menubar-button" ion-button icon-only (click)="printInvoices($event)" title="Print Invoice(s)">
+        <i class="fa fa-print"></i>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding *ngIf="dataReady">
+  <div #printArea class="invoice-hb print-area" *ngFor="let invoice of invoices; let i=index">
+    <invoice-hb #invoiceHB [invoice]="invoice" [period]="period" [site]="site" [reports]="reports"></invoice-hb>
+  </div>
+</ion-content>
+<invoices-open *ngIf="dataReady && data.ready() && invoiceOpenVisible" type="HB" (cancel)="cancelOpen($event)" (open)="invoicesOpen($event)"></invoices-open>

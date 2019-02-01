@@ -1,0 +1,22 @@
+{
+  "name": "datasaur-filter",
+  "version": "1.0.1",
+  "description": "Filter Datasaur module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fin-hypergrid/datasaur-filter.git"
+  },
+  "author": "Jonathan Eiten",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fin-hypergrid/datasaur-filter/issues"
+  },
+  "homepage": "https://github.com/fin-hypergrid/datasaur-filter#readme",
+  "dependencies": {
+    "datasaur-indexed": "^1.0.0"
+  }
+}

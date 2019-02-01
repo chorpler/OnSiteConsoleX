@@ -1,0 +1,26 @@
+{
+
+  "hotkeys": {
+    "f3"             : [ "SearchText.searchNext"            , ],
+    // "ctrl+f"         : [ "OnSiteConsoleX.showSearch"        , "Searchtext.search"                , ],
+    // "esc"            : [ "OnSiteConsoleX.hideSearch"        , "SearchText.close"                 , ],
+    "ctrl+alt+o"     : [ "OnSiteConsoleX.showOptions"       , ],
+    "ctrl+meta+o"    : [ "OnSiteConsoleX.showOptions"       , ],
+    "cmd+meta+o"     : [ "OnSiteConsoleX.showOptions"       , ],
+    "ctrl+p"         : [ "SchedulingPage.printSchedule"     , ],
+    "alt+o"          : [ "SchedulingPage.showOptions"       ,   "PayrollPage.showOptions"  , "DPSMainPage.openDPSSettings" , "TechShiftReportsPage.showOptions", ],
+    "alt+n"          : [ "SchedulingPage.newSchedule"       , ],
+    "ctrl+o"         : [ "SchedulingPage.openSchedule"      , ],
+    "ctrl+s"         : [ "SchedulingPage.persistSchedule"   , "AddWorkSitePage.saveNoExit" , "WorkSitePage.saveNoExit"     , ],
+    "ctrl+up"        : [ "AddWorkSitePage.sitePrevious"     , "WorkSitePage.sitePrevious"  , ],
+    "ctrl+down"      : [ "AddWorkSitePage.siteNext"         , "WorkSitePage.siteNext"      , ],
+    "ctrl+shift+s"   : [ "AddWorkSitePage.onSubmit"         , "WorkSitePage.onSubmit"      , ],
+    "pageup"         : [ "ReportViewPage.previous"          , "ReportView.previous"        , "EmployeeView.previous"       , ],
+    "pagedown"       : [ "ReportViewPage.next"              , "ReportView.next"            , "EmployeeView.next"           , ],
+    "shift+pageup"   : [ "ReportViewPage.previous"          , "ReportView.previous"        , "EmployeeView.previous"       , ],
+    "shift+pagedown" : [ "ReportViewPage.next"              , "ReportView.next"            , "EmployeeView.next"           , ],
+    "ctrl+alt+d"     : [ "EmployeeView.default"             , ],
+    "cmd+meta+d"     : [ "EmployeeView.default"             , ],
+    "alt+w"          : [ "DPSMainPage.whichElementHasFocus" , ],
+  },
+}

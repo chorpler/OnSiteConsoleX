@@ -1,0 +1,22 @@
+page-reports-payroll {
+  table {
+    user-select: text;
+    // table-layout: fixed;
+    border-collapse: collapse;
+    width: 80%;
+    margin-left: auto;
+    margin-right: 5%;
+  }
+  th {
+    text-align: center;
+    font-weight: bold;
+    padding: 2px;
+    white-space: normal;
+    border: 1px solid lightgrey;
+  }
+  td {
+    text-align: center;
+    padding: 2px;
+    border: 1px solid lightgrey;
+  }
+}

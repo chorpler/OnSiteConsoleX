@@ -1,0 +1,91 @@
+<ion-header>
+  <ion-navbar>
+    <!-- <ion-buttons left>
+      <button ion-button menuToggle>
+        <ion-icon name="menu"></ion-icon>
+      </button>
+    </ion-buttons> -->
+    <ion-buttons left>
+      <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode && !data.currentlyOpeningPage">
+        <i class="fa fa-window-close-o"></i>
+      </button>
+      <button ion-button menuToggle *ngIf="!modalMode && !data.currentlyOpeningPage">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+      <ion-spinner name="bubbles" [class.spinner-opening-page]="true" *ngIf="data.currentlyOpeningPage"></ion-spinner>
+    </ion-buttons>
+    <ion-title>{{title}}</ion-title>
+    <ion-buttons right>
+      <span class="tech-phones-menubar-button button reset-icon" (click)="tableReset($event)" title="Reset Table (clears filters, sorting, etc.)">
+        <!-- <i class="fa fa-times-circle-o" aria-hidden="true"></i> -->
+      </span>
+      <button class="tech-phones-menubar-button" ion-button icon-only (click)="showOptions()" title="Options">
+        <i class="fa fa-cog" aria-hidden="true"></i>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  <div class="tech-phones-wrapper">
+    <!-- <p-dataTable #dt [value]="techPhoneLogins" [globalFilter]="globalSearch" [(rows)]="rowCount" [paginator]="true" [pageLinks]="3" [rowsPerPageOptions]="[30,50,100,150,500,1000]" sortField="username" rowGroupMode="subheader" groupField="username" expandableRowGroups="true" [sortableRowGroup]="false" *ngIf="dataReady && techPhoneLogins && techPhoneLogins.length > 0">
+      <p-column *ngFor="let col of cols; let i=index" class="dt-column column-{{i}}" [field]="col.field" [header]="col.header" [style]="col.style" [sortable]="true" [filter]="col.filter" [filterPlaceholder]="col.filterPlaceholder"></p-column>
+    </p-dataTable> -->
+      <p-table #dt [styleClass]="'phones-table'" [rowHover]="'true'" [resizableColumns]="'true'" [loading]="!dataReady" [columns]="selectedColumns" [value]="techPhoneLogins" [sortMode]="multiple" [(rows)]="rowCount" [paginator]="true" [pageLinks]="3" [rowsPerPageOptions]="[30,50,100,150,500,1000]" [autoLayout]="prefs.CONSOLE.techphones.autoLayoutTable" [columnResizeMode]="prefs.CONSOLE.techphones.tableResizeMode" *ngIf="dataReady && techPhoneLogins && techPhoneLogins.length > 0">
+        <ng-template pTemplate="caption">
+          <div class="table-header-contents">
+            <div class="column-choose-wrapper">
+              <p-multiSelect class="tech-phones-multiselect" optionLabel="header" [options]="cols" [(ngModel)]="selectedColumns" selectedItemsLabel="{0} columns visible" defaultLabel="Choose columns" (onChange)="orderColumns($event)"></p-multiSelect>
+              <!-- (onChange)="selectionChanged()"></p-multiSelect> -->
+            </div>
+            <div class="global-filter-wrapper">
+              <i class="global-filter-icon fa fa-search" style="margin:4px 4px 0 0"></i>
+              <input class="global-filter-input" type="text" pInputText size="50" placeholder="Global Filter" (input)="dt.filterGlobal($event.target.value, 'contains')" style="width:auto">
+            </div>
+          </div>
+        </ng-template>
+        <ng-template pTemplate="header" let-columns>
+          <tr [class.phones-table-caption]="true">
+            <th [class.header-col-button]="true" [ngStyle]="styleColEdit"></th>
+            <th *ngFor="let col of columns; let i=index" [class.header-col]="true" [class]="col.class" [pSortableColumn]="col.field" [ngStyle]="col.style">
+              {{col.header}}
+              <p-sortIcon [field]="col.field"></p-sortIcon>
+            </th>
+          </tr>
+          <tr>
+            <th [class.header-col-button]="true"></th>
+            <th *ngFor="let col of columns" class="col-filter-header" [class]="col.class">
+              <input [class.phones-col-filter]="true" pInputText type="text" (input)="dt.filter($event.target.value, col.field, 'contains')">
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-rowData let-columns="columns">
+          <tr>
+            <td [class.button-col]="true">
+              <span class="icon-button-wrapper" title="View work report">
+                <i class="fa fa-pencil-square-o phones-button-icon" (click)="showReport(rowData, $event)"></i>
+              </span>
+            </td>
+            <td *ngFor="let col of columns; let i=index" class="body-col" [class]="col.class">
+              <span class="cell-body-data" *ngIf="col.subfield; then deviceFieldTemplate; else nondeviceFieldTemplate"></span>
+              <ng-template #deviceFieldTemplate>
+                {{rowData['device'][col.subfield]}}
+              </ng-template>
+              <ng-template #nondeviceFieldTemplate>
+                {{rowData[col.field]}}
+              </ng-template>
+              <!-- <span class="cell-body-data" *ngIf="col.format===''">
+                {{rowData[col.field]}}
+              </span>
+              <span class="cell-body-data" *ngIf="col.format==='HH:mm'">
+                {{rowData[col.field].format("YYYY-MM-DD HH:mm")}}
+              </span> -->
+            </td>
+          </tr>
+        </ng-template>
+            <!-- <ng-template pTemplate="rowgroupheader" let-rowData>{{rowData['username']}}</ng-template> -->
+      <!-- <p-column *ngFor="let col of cols; let i=index" class="dt-column column-{{i}}" [field]="col.field" [header]="col.header" [style]="col.style" [sortable]="true" [filter]="col.filter" [filterPlaceholder]="col.filterPlaceholder"></p-column> -->
+    </p-table>
+  </div>
+</ion-content>
+<options-generic #optionsComponent *ngIf="optionsVisible" [type]="optionsType" (onCancel)="optionsClosed($event)" (onSave)="optionsSaved($event)"></options-generic>

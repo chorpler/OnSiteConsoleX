@@ -1,0 +1,203 @@
+<ion-header [class.header-alert]="updatedDataCount">
+  <ion-navbar>
+    <ion-buttons left>
+      <!-- <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode && !data.currentlyOpeningPage">
+        <i class="fa fa-window-close-o"></i>
+      </button> -->
+      <!-- <button type="button" ion-button icon-only (click)="cancelAndExitModal($event)" *ngIf="modalMode && !data.currentlyOpeningPage">
+        <ion-icon name="close"></ion-icon>
+      </button> -->
+      <button ion-button menuToggle *ngIf="!data.currentlyOpeningPage">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+      <ion-spinner name="bubbles" [class.spinner-opening-page]="true" *ngIf="data.currentlyOpeningPage"></ion-spinner>
+    </ion-buttons>
+    <ion-title class="app-title">
+      <span class="app-page-title">{{title}}</span>
+      <span class="title-data" *ngIf="dataReady && data.ready()">
+        <span class="payroll-no-reports-alert" *ngIf="!(allData.reports.length > 0)"> (<span class="action-link" (click)="refreshReports(false, $event)" title="Load reports and recalculate">REPORTS</span>)</span>
+        <span class="payroll-title" *ngIf="allData.reports.length > 0 && reports"> (Reports: {{reports.length}})</span>
+        <span class="payroll-no-reports-alert" *ngIf="!(allData.others.length > 0)"> (<span class="action-link" (click)="refreshOthers(false, $event)" title="Load misc reports and recalculate">MISC</span>)</span>
+        <span class="payroll-title" *ngIf="allData.others.length > 0 && others"> (Misc: {{others.length}})</span>
+        <span class="payroll-no-reports-alert" *ngIf="!(allData.logistics.length > 0)"> (<span class="action-link" (click)="refreshLogistics(false, $event)" title="Load logistics reports and recalculate">LOGISTICS</span>)</span>
+        <span class="payroll-title" *ngIf="allData.logistics.length > 0 && logistics"> (LOGISTICS: {{logistics.length}})</span>
+        <span class="payroll-title updated-alert" *ngIf="updatedDataCount"> ({{updatedDataCount}} NEW/UPDATED)</span>
+      </span>
+    </ion-title>
+    <ion-buttons right>
+      <span class="menubar-items-wrapper">
+        <span class="start-buttons">
+          <span class="menubar-button payroll-header-button block-button-like" (click)="toggleFlags($event)" title="Toggle display of flags">
+            <i class="icomoon-flag" [class.active]="prefs.CONSOLE.payroll.showAlerts"></i>
+          </span>
+          <span class="menubar-button payroll-header-button block-button-like" (click)="showOptions($event)" title="Options">
+            <i class="fa fa-cog"></i>
+          </span>
+        </span>
+        <span class="payroll-select-wrapper" *ngIf="dataReady && data.ready()">
+          <span class="payroll-select-flexbox">
+            <span class="payroll-select-period-label">Payroll Period</span>
+            <span class="payroll-select-period-menu">
+              <p-dropdown #menubarDropdown [class.payroll-dropdown-menubar]="true" [options]="periodList" [(ngModel)]="period" (onChange)="updatePeriod(period)"></p-dropdown>
+            </span>
+          </span>
+        </span>
+        <span class="final-buttons">
+          <span class="menubar-button payroll-header-button block-button-like" (click)="rerunPayroll($event)" title="Rerun payroll (for new data)">
+            <i class="fa fa-calculator"></i>
+          </span>
+          <span class="menubar-button payroll-header-button block-button-like" (click)="refreshData($event)" title="Refresh data and recalculate">
+            <i class="fa fa-refresh"></i>
+          </span>
+          <span class="menubar-button payroll-header-button block-button-like" (click)="exportForInvoicing($event)" title="Export for Invoices">
+            <i class="fa fa-file-text-o"></i>
+          </span>
+          <span class="menubar-button payroll-header-button block-button-like" (click)="exportForPayroll($event)" title="Export for Payroll">
+            <ion-icon name="ios-contact"></ion-icon>
+          </span>
+          <!-- <button class="payroll-header-button" ion-button icon-only (click)="refreshData($event)" title="Refresh data and recalculate">
+            <i class="fa fa-refresh"></i>
+          </button>
+          <button class="payroll-header-button" ion-button icon-only (click)="showOptions($event)" title="Options">
+            <ion-icon class="payroll-options-button" name="ios-settings-outline"></ion-icon>
+          </button>
+          <button class="payroll-header-button" ion-button icon-only (click)="exportForInvoicing($event)" title="Export for Invoices">
+            <i class="fa fa-file-text-o"></i>
+          </button>
+          <button class="payroll-header-button" ion-button icon-only (click)="exportForPayroll($event)" title="Export for Payroll">
+            <ion-icon class="payroll-options-button" name="ios-contact"></ion-icon>
+          </button> -->
+        </span>
+      </span>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding #ionContent class="payroll-page-content">
+  <!-- <div class="background-spinner"></div> -->
+  <!-- <div class="payroll-wrapper" *ngIf="!(dataReady && data.ready())">Loading...</div> -->
+  <div class="background-spinner-sad" *ngIf="scheduleMissing">
+    <span class="missing-schedule">A schedule must be created.</span>
+  </div>
+  <div class="background-spinner" *ngIf="!(dataReady && data.ready()) && !scheduleMissing">
+    <div class="spinner-wrapper">
+      <span class="spinner-label">{{spinnerLabel}}</span>
+    </div>
+  </div>
+  <div class="payroll-wrapper" *ngIf="dataReady && data.ready()">
+<!--  **************************************************************************  Payroll Grid  **************************************************************************   -->
+    <div class="page">
+      <div class="page-header-row">
+        <div class="center-txt col-number" *ngIf="prefs.CONSOLE.payroll.showLineNumbers">#</div>
+        <div class="center-txt col-alert" *ngIf="prefs.CONSOLE.payroll.showAlerts">!</div>
+        <div class="left-align-txt col-rotn">ROTN</div>
+        <div class="left-align-txt col-cl">CL</div>
+        <div class="left-align-txt col-loc">LOC</div>
+        <div class="left-align-txt col-locid">LocID</div>
+        <div class="left-align-txt col-tech">Tech</div>
+        <div class="center-txt col-day" *ngFor="let shift of period.shifts; let i2=index">{{shift.getShiftDate().format("ddd DD")}}</div>
+        <div class="center-txt col-xpns">XP$</div>
+        <div class="center-txt col-hrs">Hrs</div>
+        <div class="center-txt col-s">S</div>
+        <div class="center-txt col-t">T</div>
+        <div class="center-txt col-q">Q</div>
+        <div class="center-txt col-h">H</div>
+        <div class="center-txt col-v">V</div>
+        <div class="center-txt col-e">E</div>
+      </div>
+      <ion-scroll class="payroll-grid-scrollbag">
+        <div class="page-scroll-body">
+          <ng-container *ngFor="let tech of employees; let i3=index">
+            <div class="payroll-row-data" [class.row-alert]="alerts?.get(tech) && prefs.CONSOLE.payroll.showAlerts" *ngIf="tech['prstatus']==='working' || (tech['prstatus']==='unassigned' && prefs.CONSOLE.payroll.showUnassignedTechs) || (tech['prstatus']==='ex' && prefs.CONSOLE.payroll.showExTechs)">
+              <div class="right-txt col-number" *ngIf="prefs.CONSOLE.payroll.showLineNumbers">{{i3+1}}</div>
+              <div class="col-button col-alert" *ngIf="prefs.CONSOLE.payroll.showAlerts">
+                <span class="payroll-row-alert" (click)="checkAlert(tech, $event)" *ngIf="alerts?.get(tech)">
+                  <span class="alert-icon"><i class="icomoon-flag"></i></span>
+                </span>
+              </div>
+              <div class="col-button  col-rotn"> {{eRot?.get(tech)}} </div>
+              <div class="col-button  col-cl" (click)="showTech(tech, $event)"> {{eSite?.get(tech)?.client?.name}} </div>
+              <div class="col-button  col-loc" (click)="showTech(tech, $event)"> {{eSite?.get(tech)?.location?.name}} </div>
+              <div class="col-button  col-locid" (click)="showTech(tech, $event)"> {{eSite?.get(tech)?.locID?.name}} </div>
+              <div class="col-button  col-tech" (click)="showTech(tech, $event)"> {{tech.getFullName()}} </div>
+              <div class="col-button  payroll-column-{{sprintf('%02d',5+i4)}} {{shift.getShiftStatus(prefs.CONSOLE.payroll.showColors)}} col-day" *ngFor="let shift of ePeriod?.get(tech)?.getPayrollShifts(); let i4=index" (click)="viewTechReports(ePeriod?.get(tech), tech)">
+                <div *ngIf="shift?.getShiftLength() == 'OFF'">
+                  <div *ngIf="shift?.getShiftReportsStatus()?.code != ''">
+                    <div *ngIf="shift?.getNormalHours() != 0">
+                      <!-- 1 -->
+                      <span class="template-off-with-code-and-hours">{{shift?.getNormalHours()}}<span *ngIf="prefs.CONSOLE.payroll.showShiftLength"> / {{shift?.getNormalHours()}}</span></span>
+                    </div>
+                    <div *ngIf="shift?.getNormalHours() == 0">
+                      <!-- 2 -->
+                      <span class="template-off-with-code-no-hours">{{shift?.getShiftReportsStatus()?.code}}<span *ngIf="prefs.CONSOLE.payroll.showShiftLength"> / {{shift?.getShiftReportsStatus()?.code}}</span></span>
+                    </div>
+                  </div>
+                  <div *ngIf="shift?.getShiftReportsStatus()?.code == ''">
+                    <div *ngIf="shift?.getNormalHours() != 0">
+                      <!-- 3 -->
+                      <span class="template-off-with-no-code-and-hours">{{shift?.getNormalHours()}}<span *ngIf="prefs.CONSOLE.payroll.showShiftLength"> / {{shift?.getNormalHours()}}</span></span>
+                    </div>
+                    <div *ngIf="shift?.getNormalHours() == 0">
+                      <!-- 4 -->
+                      <span class="template-off-with-no-code-no-hours">OFF<span *ngIf="prefs.CONSOLE.payroll.showShiftLength"> / OFF</span></span>
+                    </div>
+                  </div>
+
+                </div>
+
+                <div *ngIf="shift?.getShiftLength() != 'OFF'">
+                  <div *ngIf="shift?.getShiftReportsStatus()?.code != ''">
+                    <div *ngIf="shift?.getNormalHours() != 0">
+                      <!-- 5 -->
+                      <span class="template-on-with-code-and-hours">{{shift?.getNormalHours()}}<span *ngIf="prefs.CONSOLE.payroll.showShiftLength"> / {{shift?.getShiftLength()}}</span></span>
+                    </div>
+                    <div *ngIf="shift?.getNormalHours() == 0">
+                      <!-- 6 -->
+                      <span class="template-on-with-code-no-hours">{{shift?.getShiftReportsStatus()?.code}}<span *ngIf="prefs.CONSOLE.payroll.showShiftLength"> / {{shift?.getShiftReportsStatus()?.code}}</span></span>
+                    </div>
+                  </div>
+                  <div *ngIf="shift?.getShiftReportsStatus()?.code == ''">
+                    <div *ngIf="shift?.getNormalHours() != 0">
+                      <!-- 7 -->
+                      <span class="template-on-with-no-code-and-hours">{{shift?.getNormalHours()}}<span *ngIf="prefs.CONSOLE.payroll.showShiftLength"> / {{shift?.getShiftLength()}}</span></span>
+                    </div>
+                    <div *ngIf="shift?.getNormalHours() == 0">
+                      <!-- 8 -->
+                      <span class="template-on-with-no-code-no-hours">{{shift?.getNormalHours()}}<span *ngIf="prefs.CONSOLE.payroll.showShiftLength"> / {{shift?.getShiftLength()}}</span></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-xpns"></div>
+              <div class="col-hrs"></div>
+              <div class="col-button col-s" [class.zero]="ePeriod?.get(tech)?.getPayrollPeriodTotal()?.Standby  === 0" (tap)="showPeriodOtherReports(tech, ePeriod.get(tech))">
+                {{ePeriod?.get(tech)?.getPayrollPeriodTotal()?.Standby}}
+              </div>
+              <div class="col-button col-t" [class.zero]="ePeriod?.get(tech)?.getPayrollPeriodTotal()?.Training === 0" (tap)="showPeriodOtherReports(tech, ePeriod.get(tech))">
+                {{ePeriod?.get(tech)?.getPayrollPeriodTotal()?.Training}}
+              </div>
+              <div class="col-button col-q" [class.zero]="ePeriod?.get(tech)?.getPayrollPeriodTotal()?.Travel   === 0" (tap)="showPeriodOtherReports(tech, ePeriod.get(tech))">
+                {{ePeriod?.get(tech)?.getPayrollPeriodTotal()?.Travel}}
+              </div>
+              <div class="col-button col-h" [class.zero]="ePeriod?.get(tech)?.getPayrollPeriodTotal()?.Holiday  === 0" (tap)="showPeriodOtherReports(tech, ePeriod.get(tech))">
+                {{ePeriod?.get(tech)?.getPayrollPeriodTotal()?.Holiday}}
+              </div>
+              <div class="col-button col-v" [class.zero]="ePeriod?.get(tech)?.getPayrollPeriodTotal()?.Vacation === 0" (tap)="showPeriodOtherReports(tech, ePeriod.get(tech))">
+                {{ePeriod?.get(tech)?.getPayrollPeriodTotal()?.Vacation}}
+              </div>
+              <div class="col-button col-e" [class.zero]="ePeriod?.get(tech)?.getPayrollPeriodTotal()?.Sick     === 0" (tap)="showPeriodOtherReports(tech, ePeriod.get(tech))">
+                {{ePeriod?.get(tech)?.getPayrollPeriodTotal()?.Sick}}
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </ion-scroll>
+    </div>
+<!--  **************************************************************************  Payroll Grid   **************************************************************************  -->
+  </div>
+</ion-content>
+<!-- <p-dialog #optionsDialog *ngIf="optionsVisible" [class.options-dialog-box]="true" header="Options" [(visible)]="optionsVisible" [draggable]="true" [resizable]="true" [closable]="false" [modal]="false" [appendTo]="optionsTarget"> -->
+  <!-- </p-dialog> -->
+  <!-- <div #optionsTarget class="options-target"></div> -->
+<options-generic #optionsComponent *ngIf="optionsVisible" [type]="optionsType" (onCancel)="optionsClosed($event)" (onSave)="optionsSaved($event)"></options-generic>
+<employee-view #employeeView *ngIf="employeeViewVisible"  [mode]="mode" [employee]="employee" [employees]="editEmployees" (onUpdate)="employeeUpdated($event)" (onCancel)="employeeCanceled($event)" (onDelete)="employeeDeleted($event)"></employee-view>

@@ -1,0 +1,96 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons left>
+      <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode && !data.currentlyOpeningPage">
+        <i class="fa fa-window-close-o"></i>
+      </button>
+      <button ion-button menuToggle *ngIf="!modalMode && !data.currentlyOpeningPage">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+      <ion-spinner name="bubbles" [class.spinner-opening-page]="true" *ngIf="data.currentlyOpeningPage"></ion-spinner>
+    </ion-buttons>
+    <!-- <ion-buttons left>
+      <button ion-button menuToggle *ngIf="!modalMode">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+      <button class="modal-close-button" ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode">
+        <i class="fa fa-times"></i>
+      </button>
+    </ion-buttons> -->
+    <ion-title>
+      <span class="page-title">
+        {{title}}
+        <span class="sort-updated" *ngIf="sortUpdated" (click)="saveSortOrder($event)">(<span class="action-link" title="Save sort order of work sites">sort order not saved</span>)</span>
+      </span>
+    </ion-title>
+    <ion-buttons right>
+      <span class="menu-and-button-wrapper" *ngIf="dataReady && data.ready()">
+        <span class="final-buttons">
+          <span class="menubar-button button-like-block" (click)="showOptions($event)" title="Show options">
+            <i class="fa fa-cog"></i>
+          </span>
+          <span class="menubar-button button-like-block" (click)="saveSortOrder($event)" title="Save sort order of work sites">
+            <i class="fa fa-floppy-o"></i>
+          </span>
+          <!-- <span class="menubar-button button-like-block" (click)="dt.exportCSV($event)" title="Export CSV">
+            <i class="fa fa-table"></i>
+          </span> -->
+          <span class="menubar-button button-like-block" (click)="addJobSite($event)" title="Add Work Site">
+            <i class="fa fa-plus-square-o"></i>
+          </span>
+        </span>
+      </span>
+
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  <p-table #dt [styleClass]="'work-sites-table'" [columns]="selectedCols" [value]="jobsites" [autoLayout]="prefs.CONSOLE.jobsites.autoLayoutTable" [columnResizeMode]="prefs.CONSOLE.jobsites.tableResizeMode"  [rowHover]="'true'" [reorderableColumns]="true" [resizableColumns]="'true'" [loading]="!dataReady" [scrollable]="tableScrollable" [scrollHeight]="scrollHeight" [sortMode]="multiple" selectionMode="single" [(selection)]="jobsite" (onRowReorder)="reorderSites($event)" (onRowSelect)="onRowSelect($event)">
+    <ng-template pTemplate="caption">
+      <div class="table-header-contents">
+        <div class="column-choose-wrapper">
+          <p-multiSelect #columnMultiselect class="work-sites-multiselect" [options]="allColumns" [(ngModel)]="selectedCols" optionLabel="header" selectedItemsLabel="{0} columns visible" defaultLabel="Choose columns" (onChange)="orderColumns($event)"></p-multiSelect>
+        </div>
+        <div class="global-filter-wrapper">
+          <i class="global-filter-icon fa fa-search" style="margin:4px 4px 0 0"></i>
+          <input class="global-filter-input" type="text" pInputText size="50" placeholder="Global Filter" (input)="dt.filterGlobal($event.target.value, 'contains')" style="width:auto">
+        </div>
+      </div>
+    </ng-template>
+    <ng-template pTemplate="header" let-columns>
+      <tr [class.sites-table-caption]="true">
+        <th [class.row-reorder-handle]="true" rowspan="2"></th>
+        <th [class.col-index]="true" rowspan="2">#</th>
+        <th *ngFor="let col of columns; let i=index" [class.header-col]="true" [class]="col.class" [pSortableColumn]="col.field" [ngStyle]="col.style">
+          {{col.header}}
+          <p-sortIcon [field]="col.field"></p-sortIcon>
+        </th>
+      </tr>
+      <tr>
+        <th *ngFor="let col of columns" class="col-filter-header" [class]="col.class">
+          <input [class.sites-col-filter]="true" pInputText type="text" [placeholder]="col.header" (input)="dt.filter($event.target.value, col.field, 'contains')">
+        </th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-rowData let-columns="columns" let-index="rowIndex">
+      <tr [pReorderableRow]="index" [pSelectableRow]="rowData">
+        <td [class.row-reorder-handle]="true" title="Reorder work site (drag to a new order by this handle)">
+          <i class="fa fa-bars" pReorderableRowHandle></i>
+        </td>
+        <td [class.col-index]="true">
+          {{index}}
+        </td>
+        <td *ngFor="let col of columns; let i=index" class="body-col" [class]="col.class">
+          <span class="col-text" *ngIf="col.subfield">
+            {{rowData[col.field][col.subfield]}}
+          </span>
+          <span class="col-text" *ngIf="!col.subfield">
+            {{rowData[col.field]}}
+          </span>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</ion-content>
+<options-generic #optionsComponent *ngIf="optionsVisible" [type]="optionsType" (onCancel)="optionsClosed($event)" (onSave)="optionsSaved($event)"></options-generic>

@@ -1,0 +1,95 @@
+dps-settings, .dps-settings {
+  .dps-settings-panel {
+    .ui-panel {
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+  }
+  .dps-settings-label {
+    font-weight: bold;
+  }
+  .dps-settings-spinner {
+
+  }
+  .dps-settings-list-table {
+    table-layout: fixed;
+  }
+  .col-00 {
+    font-weight: bold;
+    text-align: right;
+    padding-right: 5px;
+    width: 150px;
+    max-width: 150px;
+  }
+  .col-01 {
+    text-align: left;
+    width: 250px;
+    max-width: 250px;
+    font-family: "Roboto Mono", "Courier New", monospace;
+    .dps-settings-input {
+      width: 240px;
+      max-width: 240px;
+      font-family: "Roboto Mono", "Courier New", monospace;
+      input {
+        font-family: "Roboto Mono", "Courier New", monospace;
+        text-align: right;
+      }
+    }
+    input {
+      width: 240px;
+      max-width: 240px;
+    }
+    .dps-settings-spinner {
+      width: 240px;
+      max-width: 240px;
+      font-family: "Roboto Mono", "Courier New", monospace !important;
+      input {
+        font-family: "Roboto Mono", "Courier New", monospace !important;
+      }
+    }
+  }
+
+  .dps-settings-button-wrapper {
+    // display: flex;
+    // width: 100%;
+  }
+  .dps-settings-button-table {
+    // table-layout: fixed;
+    width: 100%;
+    tr {
+      td.col-01, td.col-02 {
+        width: 0%;
+      }
+      td.col-00, td.col-03 {
+        width: 50%;
+        text-align: center;
+        vertical-align: middle;
+      }
+    }
+  }
+
+  .cell-button-like {
+    font-size: 24px;
+    cursor: pointer;
+    &:hover {
+      background-color: rgba(0, 0, 128, 0.2);
+      color: rgba(255, 0, 128, 0.5);
+    }
+    &:active {
+      background-color: rgba(0, 0, 255, 0.5);
+      color: rgba(255, 0, 255, 0.9);
+    }
+  }
+
+  .icon-button-like {
+    font-size: 24px;
+    cursor: pointer;
+    &:hover {
+      color: rgba(255, 0, 128, 0.5);
+    }
+    &:active {
+      color: rgba(255, 0, 255, 0.9);
+    }
+  }
+
+}

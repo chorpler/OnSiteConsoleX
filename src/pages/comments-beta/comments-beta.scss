@@ -1,0 +1,113 @@
+page-comments-beta {
+  ion-card {
+    max-width: 600px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  .comments-date-container {
+    .item-inner {
+      // overflow:
+    }
+  }
+  .ion-item-button-like {
+    cursor:pointer;
+    &:hover {
+      background-color: rgba(0, 0, 128, 0.2);
+    }
+    &:active {
+      background-color: rgba(0, 0, 255, 0.5);
+    }
+  }
+  .comments-list-container {
+    margin-top: 50px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-content: flex-start;
+    max-width: calc(100vw - 50px);
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .comments-button-new-message {
+
+  }
+  .comments-list-list {
+    flex: 0 1 auto;
+    width: 300px;
+    max-width: 30vw;
+    border: 1px solid lightgrey;
+  }
+  .message-list-card {
+    flex: 0 1 auto;
+    // width: 50vw;
+    max-width: 60vw;
+    border: 1px solid lightgrey;
+
+  }
+  .comments-list-item {
+  }
+  .comments-list-header-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+  }
+  .comments-list-header-label {
+    flex: 0 1 auto;
+    font-weight: bold;
+    text-align: left;
+    padding-right: 5px;
+    max-width: 100px;
+    width: 75px;
+  }
+  .comments-list-data {
+    flex: 0 1 auto;
+    font-weight: normal;
+    text-align: left;
+    padding-left: 2px;
+    width: 200px;
+  }
+  .comments-list-header {
+
+  }
+  .comments-list-data {
+
+  }
+  .comments-list-header {
+
+  }
+  .comments-list-data {
+
+  }
+  .comments-message-date {
+
+  }
+  .comments-message-list {
+
+  }
+  .comments-message-date-calendar {
+
+  }
+  .comments-message-input {
+    padding-left: 100px;
+    *:focus {
+      padding-left: 0;
+    }
+  }
+   .input-has-focus {
+     * {
+       padding-left: 0 !important;
+     }
+   }
+  .comments-message-text-item {
+
+  }
+  .comments-message-text-area {
+    padding-left: 100px;
+    min-height: 300px;
+    *:focus {
+      padding-left: 0;
+    }
+  }
+}

@@ -1,0 +1,81 @@
+.notification-component-wrapper {
+  // border: 3px solid red;
+  // min-width: 200px;
+  // min-height: 200px;
+  .ui-notification {
+    position: fixed;
+    top: 60px;
+    right: 20px;
+    width: 20em;
+  }
+
+  .ui-notification-item-container {
+    position: relative;
+    margin: 0 0 10px 0;
+    opacity: 0.95;
+    filter: alpha(opacity=95);
+  }
+
+  .ui-notification-item {
+    position: relative;
+    display: block;
+    padding: .5em 1em;
+  }
+
+  .ui-notification-item p {
+    padding: 0;
+    margin: 0;
+  }
+
+  .ui-notification-icon-close {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    cursor: pointer;
+  }
+
+  .ui-notification-title {
+    font-weight: bold;
+    padding: 0 0 .5em 0;
+    display: block;
+  }
+
+  .ui-notification-image {
+    position: absolute;
+    display: inline-block;
+    left: .5em;
+    top: .25em;
+    padding: 0;
+  }
+
+  .ui-notification-message {
+    padding: 0 0 .25em 0;
+    margin-left: 2.5em;
+  }
+
+  .ui-notification-message p {
+    font-weight: normal;
+  }
+
+  .ui-notification-item-container.ui-state-highlight {
+    &.ui-notification-message-info {
+        background-color: #2196f3;
+        border-color :#2196f3;
+    }
+
+    &.ui-notification-message-error {
+        background-color: #f44336;
+        border-color :#f44336;
+    }
+
+    &.ui-notification-message-warn {
+        background-color: #FFB300;
+        border-color :#FFB300;
+    }
+
+    &.ui-notification-message-success {
+        background-color: #4CAF50;
+        border-color :#4CAF50;
+    }
+  }
+}

@@ -1,0 +1,174 @@
+report-logistics-view {
+  .svg-icon {
+    width: 20px;
+    height: 24px;
+  }
+  .cell-button-like {
+    font-size: 24px;
+    cursor: pointer;
+    &:hover {
+      background-color: rgba(0, 0, 128, 0.2);
+      color: rgba(255, 0, 128, 0.5);
+    }
+    &:active {
+      background-color: rgba(0, 0, 255, 0.5);
+      color: rgba(255, 0, 255, 0.9);
+    }
+  }
+  .cell-button-disabled {
+    font-size: 24px;
+    color: lightgrey;
+  }
+  .report-logistics-view-dialog {
+    max-width: 90vw;
+    min-width: 750px;
+    width: 80vw;
+    // max-height: 600px;
+    .report-view-button-table {
+      width: 100%;
+      table-layout: fixed;
+      text-align: center;
+      overflow: visible;
+      &.top {
+        margin-bottom: 10px;
+        border-bottom: 1px dashed lightgrey;
+      }
+      &.bottom {
+        margin-top: 10px;
+        border-top: 1px dashed lightgrey;
+      }
+    }
+    .icon-button-like {
+      font-size: 24px;
+      cursor: pointer;
+      &:hover {
+        color: rgba(255, 0, 128, 0.5);
+      }
+      &:active {
+        color: rgba(255, 0, 255, 0.9);
+      }
+    }
+    .icon-greyed-out {
+      font-size: 24px;
+      color: lightgrey;
+      cursor: default;
+    }
+    .table-and-maps-wrapper {
+      display         : flex        ;
+      flex-flow       : row nowrap  ;
+      justify-content : space-between ;
+      align-content   : center ;
+      align-items     : center ;
+      width: 100%;
+      // min-width: 750px;
+      // min-height: 500px;
+      overflow: auto;
+      .table {
+        // display: block;
+        flex: 1 1 48%;
+        width: 48%;
+        .report-view-table {
+          width: 100%;
+          input {
+            width: 100% !important;
+          }
+          .inner-editor {
+            width: 100% !important;
+          }
+          .report-view-row {
+            // width: 100%;
+            .label {
+              width: 20%;
+              min-width: 120px;
+              text-align: right;
+              font-weight: bold;
+              padding-right: 4px;
+            }
+            .data {
+              width: 80%;
+              .report-view-input {
+                width: 100%;
+              }
+              .report-view-calendar {
+                // width: 100%;
+                width: 100% !important;
+                .ui-calendar {
+                  width: 100% !important;
+                }
+              }
+              .report-view-dropdown {
+                width: 100% !important;
+                .ui-dropdown {
+                  width: 100% !important;
+                }
+              }
+              .report-view-textarea {
+                width: 100% !important;
+              }
+
+            }
+            &.coordinates {
+              .label {
+
+              }
+              .data {
+                border: 1px solid lightgrey;
+              }
+            }
+          }
+        }
+
+      }
+      .map-column {
+        flex: 1 1 48%;
+        display         : flex         ;
+        flex-flow       : column nowrap;
+        justify-content : flex-start  ;
+        align-content   : center  ;
+        align-items     : center  ;
+        width: 48%;
+        // min-width: 300px;
+        // width: 100%;
+        height: 100%;
+        // min-height: 500px;
+        padding: 0;
+        margin: 0;
+        .location-dropdown {
+          flex: 1 1 50px;
+          width: 100%;
+          p-dropdown {
+            width: 100% !important;
+            .ui-dropdown, .ui-dropdown-label {
+              width: 100% !important;
+
+            }
+          }
+        }
+        .map {
+          flex: 1 1 100%;
+          display: block;
+          width: 100%;
+          height: 100%;
+          .no-google-map {
+            // flex: 1 1 100%;
+            width: 100%;
+          }
+          .map-pane-class {
+            // flex: 1 1 100%;
+            height: 100%;
+            min-height: 300px;
+            // width: 100%;
+            // width: 300px;
+            // height: 300px;
+            width: 100%;
+            // height: 80vh;
+            // min-width: 300px;
+            // min-height: 600px;
+          }
+
+        }
+      }
+
+    }
+  }
+}

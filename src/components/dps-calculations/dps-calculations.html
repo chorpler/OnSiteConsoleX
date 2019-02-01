@@ -1,0 +1,90 @@
+<span class="dps-calculations-component">
+  <!-- <div class="dps-calc-select-period-wrapper">
+    <p-dropdown [options]="periodList" [(ngModel)]="period" (onChange)="updatePeriod(period)"></p-dropdown>
+  </div> -->
+  <!-- <div class="dps-calc-wrapper">Performing calculations...</div> -->
+  <div #printArea id="print-area" class="dps-calc-wrapper">
+    <table #DPSCalcTable id="dps-calc-table" class="dps-calc-table" *ngIf="dataGrid && dataGrid.length">
+      <thead class="dps-calc-table-head">
+        <tr class="dps-calc-table-head-row">
+          <th class="dps-calc-table-th col-00">Emp#</th>
+          <th class="dps-calc-table-th col-01">Day#</th>
+          <th class="dps-calc-table-th col-02">Day</th>
+          <th class="dps-calc-table-th col-03">Rate</th>
+          <th class="dps-calc-table-th col-04">Company</th>
+          <th class="dps-calc-table-th col-05">CLI</th>
+          <th class="dps-calc-table-th col-06">LOC</th>
+          <th class="dps-calc-table-th col-07">LID</th>
+          <th class="dps-calc-table-th col-08">TECHNICIAN</th>
+          <th class="dps-calc-table-th col-09">LocID</th>
+          <th class="dps-calc-table-th col-10">Client</th>
+          <th class="dps-calc-table-th col-11">Date</th>
+          <th class="dps-calc-table-th col-11-5">Seq</th>
+          <th class="dps-calc-table-th col-12">Billable</th>
+          <th class="dps-calc-table-th col-13">Payroll</th>
+          <th class="dps-calc-table-th col-14">Lodging</th>
+          <th class="dps-calc-table-th col-15">PerDiem</th>
+          <th class="dps-calc-table-th col-16">Expenses</th>
+          <th class="dps-calc-table-th col-17">VAC</th>
+          <th class="dps-calc-table-th col-18">TRV</th>
+          <th class="dps-calc-table-th col-19">TRN</th>
+          <th class="dps-calc-table-th col-20">SBY</th>
+          <th class="dps-calc-table-th col-21">Trans</th>
+          <th class="dps-calc-table-th col-22">Fuel</th>
+          <th class="dps-calc-table-th col-23">Ins</th>
+          <th class="dps-calc-table-th col-24">IntPay</th>
+          <th class="dps-calc-table-th col-25">Costs</th>
+          <th class="dps-calc-table-th col-26">Revenue</th>
+          <th class="dps-calc-table-th col-27">GP</th>
+          <th class="dps-calc-table-th col-28">%GP</th>
+        </tr>
+      </thead>
+      <tbody class="dps-calc-table-body">
+        <tr class="dps-calc-table-body-row" *ngFor="let row of dataGrid; let i=index">
+          <td class="dps-calc-table-td col-00">{{row[0]}}</td>
+          <td class="dps-calc-table-td col-01">{{row[1]}}</td>
+          <td class="dps-calc-table-td col-02">{{row[2]}}</td>
+          <!-- <td class="dps-calc-table-td col-03">{{decimalize(row[3]) | currency:'USD':'symbol':'1.2-2'}}</td> -->
+          <!-- <td class="dps-calc-table-td col-03">{{decimalize(row[3]) | number:'1.2-2'}}</td> -->
+          <td class="dps-calc-table-td col-03">{{row[3] | number:'1.2-2'}}</td>
+          <td class="dps-calc-table-td col-04">{{row[4]}}</td>
+          <td class="dps-calc-table-td col-05">{{row[5]}}</td>
+          <td class="dps-calc-table-td col-06">{{row[6]}}</td>
+          <td class="dps-calc-table-td col-07">{{row[7]}}</td>
+          <td class="dps-calc-table-td col-08">{{row[8]}}</td>
+          <td class="dps-calc-table-td col-09">{{row[9]}}</td>
+          <td class="dps-calc-table-td col-10">{{row[10]}}</td>
+          <td class="dps-calc-table-td col-11">{{row[11]}}</td>
+          <td class="dps-calc-table-td col-11-5">{{row[12]}}</td>
+          <td class="dps-calc-table-td col-12"><span *ngIf="row[13] == 0">-</span><span *ngIf="row[13] != 0">{{row[13] | number:'1.2-2'}}</span></td>
+          <td class="dps-calc-table-td col-13 col-currency"><span *ngIf="row[14].eq(0)">-</span><span *ngIf="!row[14].eq(0)">{{row[14].toNumber() | currency:'USD':'symbol':'1.2-2'}}</span></td>
+          <td class="dps-calc-table-td col-14 col-currency"><span *ngIf="row[15].eq(0)">-</span><span *ngIf="!row[15].eq(0)">{{row[15].toNumber() | currency:'USD':'symbol':'1.2-2'}}</span></td>
+          <td class="dps-calc-table-td col-15 col-currency"><span *ngIf="row[16].eq(0)">-</span><span *ngIf="!row[16].eq(0)">{{row[16].toNumber() | currency:'USD':'symbol':'1.2-2'}}</span></td>
+          <td class="dps-calc-table-td col-16 col-currency">
+            <p-inplace closable="closable">
+              <span pInplaceDisplay>
+                <span *ngIf="row[17]===0">&nbsp;</span>
+                <span *ngIf="row[17]!==0">{{decimalize(row[17]).toNumber() | currency:'USD':'symbol':'1.2-2'}}</span>
+              </span>
+              <span pInplaceContent>
+                <input [class.dps-calculations-component-inplace-input]="true" type="number" step="0.01" [(ngModel)]="row[17]" pInputText>
+              </span>
+            </p-inplace>
+          </td>
+          <td class="dps-calc-table-td col-17 col-currency"><span *ngIf="row[18].eq(0)">-</span><span *ngIf="!row[18].eq(0)">{{row[18].toNumber() | currency:'USD':'symbol':'1.2-2'}}</span></td>
+          <td class="dps-calc-table-td col-18 col-currency"><span *ngIf="row[19].eq(0)">-</span><span *ngIf="!row[19].eq(0)">{{row[19].toNumber() | currency:'USD':'symbol':'1.2-2'}}</span></td>
+          <td class="dps-calc-table-td col-19 col-currency"><span *ngIf="row[20].eq(0)">-</span><span *ngIf="!row[20].eq(0)">{{row[20].toNumber() | currency:'USD':'symbol':'1.2-2'}}</span></td>
+          <td class="dps-calc-table-td col-20 col-currency"><span *ngIf="row[21].eq(0)">-</span><span *ngIf="!row[21].eq(0)">{{row[21].toNumber() | currency:'USD':'symbol':'1.2-2'}}</span></td>
+          <td class="dps-calc-table-td col-21 col-currency"><span *ngIf="row[22].eq(0)">-</span><span *ngIf="!row[22].eq(0)">{{row[22].toNumber() | currency:'USD':'symbol':'1.2-2'}}</span></td>
+          <td class="dps-calc-table-td col-22 col-currency"><span *ngIf="row[23].eq(0)">-</span><span *ngIf="!row[23].eq(0)">{{row[23].toNumber() | currency:'USD':'symbol':'1.2-2'}}</span></td>
+          <td class="dps-calc-table-td col-23 col-currency"><span *ngIf="row[24].eq(0)">-</span><span *ngIf="!row[24].eq(0)">{{row[24].toNumber() | currency:'USD':'symbol':'1.2-2'}}</span></td>
+          <td class="dps-calc-table-td col-24 col-currency"><span *ngIf="row[25].eq(0)">-</span><span *ngIf="!row[25].eq(0)">{{row[25].toNumber() | currency:'USD':'symbol':'1.2-2'}}</span></td>
+          <td class="dps-calc-table-td col-25 col-currency"><span *ngIf="row[26].eq(0)">-</span><span *ngIf="!row[26].eq(0)">{{row[26].toNumber() | currency:'USD':'symbol':'1.2-2'}}</span></td>
+          <td class="dps-calc-table-td col-26 col-currency"><span *ngIf="row[27].eq(0)">-</span><span *ngIf="!row[27].eq(0)">{{row[27].toNumber() | currency:'USD':'symbol':'1.2-2'}}</span></td>
+          <td class="dps-calc-table-td col-27 col-currency"><span *ngIf="row[28].eq(0)">-</span><span *ngIf="!row[28].eq(0)">{{row[28].toNumber() | currency:'USD':'symbol':'1.2-2'}}</span></td>
+          <td class="dps-calc-table-td col-28 col-currency"><span *ngIf="row[29].eq(0)">-</span><span *ngIf="!row[29].eq(0)">{{row[29].toNumber() | percent:'1.2-2'}}</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</span>

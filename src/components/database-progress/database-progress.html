@@ -1,0 +1,91 @@
+<p-dialog #databaseProgressDialog [styleClass]="'db-progress-dialog'" [header]="header" [showHeader]="headerVisible" [(visible)]="isVisible" [draggable]="isDraggable" [resizable]="isResizable" [closable]="isClosable" [modal]="isModal">
+  <div class="db-progress-wrapper">
+    <!-- <span class="progress-sectiontitle">Database Replication Progress</span> -->
+    <div class="download-progress">
+      <!-- <div class="progress-label">Downloading databases ...</div> -->
+      <div class="download-status">{{status}}</div>
+      <div class="progress-bar-wrapper"><p-progressBar [class.db-progress-bar]="true" [value]="percentage"></p-progressBar></div>
+    </div>
+    <!-- <div class="progress-table">
+      <div class="header">
+        <div class="row">
+          <div class="cell col-01">Database</div>
+          <div class="cell col-02">Records</div>
+          <div class="cell col-03">Percent</div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="row" *ngFor="let key of getKeys(dbProgress)">
+          <div class="cell col-01"><span class="data-text">{{key}}</span></div>
+          <div class="cell col-02"><span class="data-text">{{sprintf("%06d / %06d", dbProgress[key]?.done, dbProgress[key]?.total)}}</span></div>
+          <div class="cell col-03"><span class="progress-bar-wrapper"><p-progressBar [class.db-progress-bar]="true" [value]="dbProgress[key]?.getPercent(2)"></p-progressBar></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      <div class="cell cell-01">
+        <span class="time-wrapper" *ngIf="startTime">
+          <span class="label">Started:</span>
+          <span class="time">{{startTime?.format("HH:mm:ss")}}</span>
+        </span>
+      </div>
+      <div class="cell cell-02">
+        <span class="time-wrapper" *ngIf="elapsedTimeString">
+          <span class="label">Elapsed:</span>
+          <span class="time">{{elapsedTimeString}}</span>
+        </span>
+      </div>
+      <div class="cell cell-03">
+        <span class="time-wrapper" *ngIf="endTime">
+          <span class="label">End:</span>
+          <span class="time">{{endTime?.format("HH:mm:ss")}}</span>
+        </span>
+      </div>
+    </div> -->
+    <!-- <div class="wrapper">
+      <header class="header">
+        <div class="cell cell-01">Database</div>
+        <div class="cell cell-02">Records</div>
+        <div class="cell cell-03">Percent</div>
+      </header>
+      <content class="content">
+        <ng-container *ngFor="let key of getKeys(dbProgress)">
+          <div class="cell cell-01"><span class="data-text">{{key}}</span></div>
+          <div class="cell cell-02"><span class="data-text">{{sprintf("%06d / %06d", dbProgress[key]?.done, dbProgress[key]?.total)}}</span></div>
+          <div class="cell cell-03"><span class="progress-bar-wrapper"><p-progressBar [class.db-progress-bar]="true" [value]="dbProgress[key]?.getPercent(2)"></p-progressBar></span></div>
+        </ng-container>
+      </content>
+    </div>
+    <footer class="footer">
+      <div class="cell cell-01">
+        <span class="time-wrapper" *ngIf="startTime">
+          <span class="label">Started:</span>
+          <span class="time">{{startTime?.format("HH:mm:ss")}}</span>
+        </span>
+      </div>
+      <div class="cell cell-02">
+        <span class="time-wrapper" *ngIf="elapsedTimeString">
+          <span class="label">Elapsed:</span>
+          <span class="time">{{elapsedTimeString}}</span>
+        </span>
+      </div>
+      <div class="cell cell-03">
+        <span class="time-wrapper" *ngIf="endTime">
+          <span class="label">End:</span>
+          <span class="time">{{endTime?.format("HH:mm:ss")}}</span>
+        </span>
+      </div>
+    </footer>
+    </div> -->
+  </div>
+  <p-footer>
+    <!-- <div class="progress-buttons">
+      <button class="ui-button-danger  abort"                                 pButton type="button" (click)="abort($event)" label="Abort"></button>
+      <button class="ui-button-success pause" [class.paused]="progressPaused" pButton type="button" (click)="pause($event)" label="Pause"></button>
+    </div> -->
+    <div class="progress-buttons">
+      <!-- <button class="ui-button-danger  abort"                                 pButton type="button" (click)="abort($event)" label="Abort"></button> -->
+      <button class="ui-button-success pause" [class.paused]="progressPaused" pButton type="button" (click)="close($event)" label="OK"></button>
+    </div>
+  </p-footer>
+</p-dialog>

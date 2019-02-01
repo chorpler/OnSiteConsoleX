@@ -1,0 +1,17 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons left>
+      <button type="button" ion-button icon-only color="royal" (tap)="cancel()">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<!-- <ion-content padding [innerHTML]="popoverContents"> -->
+<ion-content padding>
+  <video width="640" height="480" autoplay (ended)="videoEnd()">
+    <source src="/assets/video/bad_snake.mp4" type="video/mp4">
+    Bad! That's a BAD snake yaaaAAAAAH
+  </video>
+</ion-content>

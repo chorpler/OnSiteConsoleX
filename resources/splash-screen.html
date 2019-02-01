@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+  <head>
+    <style type="text/css">
+      .body-background {
+        background-color: rgba(0,0,0,1);
+        /* background-color: transparent; */
+        background: radial-gradient(ellipse at center, rgba(0,0,0,1) 0%, rgba(0,0,0,0.9) 70%, rgba(0,0,0,0.05) 71%, rgba(0,0,0,0) 100%);
+        background-repeat: no-repeat;
+        background-size: cover;
+        overflow: hidden;
+      }
+      .splash-container {
+        width: 400px;
+        height: 400px;
+        position: relative;
+        /* background-image: url('./electronsplash.png'); */
+        /* background-repeat: no-repeat; */
+        /* background-size: cover; */
+        /* background-position: center; */
+        text-align: center;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 50px;
+      }
+      .gradient-background {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        border-radius: 200px;
+        /* background: linear-gradient(270deg, #608e83, #d5e6e2, #608e83); */
+        background: linear-gradient(270deg, rgba(96, 142, 131, 0.2), rgba(213, 230, 226, 0.96), rgba(96, 142, 131, 0.2));
+        background-size: 600% 600%;
+        animation: GradientSlide 3s linear infinite;
+      }
+      @keyframes GradientSlide {
+          0%{background-position:0% 50%;}
+          50%{background-position:100% 50%}
+          100%{background-position:0% 50%}
+       }
+      .splash-image {
+        width: 400px;
+        height: 400px;
+        position: absolute;
+        top:0;
+        background-image: url('./electronsplash.png');
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-position: center;
+        text-align: center;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .version-text {
+        /* position: absolute; */
+        /* bottom: 0; */
+        font-size: 24px;
+        color: white;
+        text-align: center;
+        width: 100%;
+        min-width: 400px;
+        font-family: "Roboto Condensed";
+        margin-top: 5px;
+      }
+
+    </style>
+  </head>
+  <body class="body-background">
+    <div class="splash-container">
+      <div class="gradient-background">
+      </div>
+      <div class="splash-image">
+        <!-- <img class="splash-image" src="./electronsplash.png"/> -->
+      </div>
+    </div>
+    <div id="version-text" class="version-text"></div>
+    <script type="text/javascript">
+      let version = "10.15.11";
+      let v1 = window.location.hash.substring(1);
+      // let versions = hash.split("#");
+      if(v1 && v1.length && v1.length >= 6) {
+        version = v1;
+      }
+      if(version[0].toLowerCase() != 'v') {
+        version = `v${version}`;
+      }
+      document.getElementById('version-text').innerHTML = version;
+    </script>
+  </body>
+</html>

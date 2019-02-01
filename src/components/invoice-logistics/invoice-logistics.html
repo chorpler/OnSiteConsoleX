@@ -1,0 +1,336 @@
+<div class="invoice-logistics-wrapper" *ngIf="dataReady">
+  <span class="invoice-logistics">
+    <table class="invoice-logistics-table print-area" #printArea>
+      <thead class="invoice-logistics-header"></thead>
+      <tbody  class="invoice-logistics-body">
+        <tr class="invoice-logistics-row invoice-logistics-header-row">
+          <td class="col-00"></td>
+          <td class="invoice-logistics-col col-01" rowspan="6" colspan="2">
+            <!-- <img src="../../assets/images/SESALogo.svg" /> -->
+            <!-- <img src="../../assets/images/SESA-Logo-Original.svg" /> -->
+            <img src="../../assets/images/SESALogisticsLogo.svg" />
+          </td>
+          <td class="invoice-logistics-col col-03 invoice-logistics-sesa-address" colspan="6" rowspan="6">
+            <div class="invoice-logistics-address-name"   > SESA Logistics </div>
+            <div class="invoice-logistics-address-blank"  >                         </div>
+            <div class="invoice-logistics-address-address"> 2801 Corporate Drive    </div>
+            <div class="invoice-logistics-address-address"> Weslaco TX 78599        </div>
+            <div class="invoice-logistics-address-phone"  > Phone: (956) 520-8170   </div>
+          </td>
+          <td class="invoice-logistics-col col-09 invoice-label">Invoice</td>
+          <td class="col-10"></td>
+        </tr>
+        <tr class="invoice-logistics-row invoice-logistics-header-row">
+          <td class="col-00"></td>
+          <!-- <td class="invoice-logistics-col col-09 invoice-data">{{invoice.invoice_number}}</td> -->
+          <td class="invoice-logistics-col col-09 invoice-data"><input class="invoice-logistics-invoice-number" [(ngModel)]="invoice.invoice_number" (ngModelChange)="updateInvoiceNumber($event)" /></td>
+          <td class="col-10"></td>
+        </tr>
+        <tr class="invoice-logistics-row invoice-logistics-header-row  spacer">
+          <td class="col-00"></td>
+          <td class="invoice-logistics-col col-09"></td>
+          <td class="col-10"></td>
+        </tr>
+        <tr class="invoice-logistics-row invoice-logistics-header-row">
+          <td class="col-00"></td>
+          <td class="invoice-logistics-col col-09 date-label">Date</td>
+          <td class="col-10"></td>
+        </tr>
+        <tr class="invoice-logistics-row invoice-logistics-header-row">
+          <td class="col-00"></td>
+          <!-- <td class="invoice-logistics-col col-09 date-data">{{invoiceDate.format("MMM DD, YYYY")}}</td> -->
+          <!-- <td class="invoice-logistics-col col-09 date-data">{{invoice.date.format("MMM DD, YYYY")}}</td> -->
+          <td class="invoice-logistics-col col-09 date-data">
+            <p-calendar [styleClass]="'invoice-logistics-calendar'" [inputStyleClass]="'invoice-logistics-calendar-input'" dateFormat="M d, yy" [(ngModel)]="invoiceDate" [readonlyInput]="true" [monthNavigator]="true" [showIcon]="false" (ngModelChange)="updateInvoiceDate($event)"></p-calendar>
+          </td>
+          <td class="col-10"></td>
+        </tr>
+        <tr class="invoice-logistics-row invoice-logistics-header-row">
+          <td class="col-00"></td>
+          <td class="invoice-logistics-col col-09"></td>
+          <td class="col-10"></td>
+        </tr>
+        <tr class="invoice-logistics-row invoice-logistics-header-row">
+          <td class="col-00"></td>
+          <td class="invoice-logistics-col col-01"></td>
+          <td class="invoice-logistics-col col-02"></td>
+          <td class="invoice-logistics-col col-03"></td>
+          <td class="invoice-logistics-col col-04"></td>
+          <td class="invoice-logistics-col col-05"></td>
+          <td class="invoice-logistics-col col-06"></td>
+          <td class="invoice-logistics-col col-07"></td>
+          <td class="invoice-logistics-col col-08"></td>
+          <td class="invoice-logistics-col col-09"></td>
+          <td class="col-10"></td>
+        </tr>
+        <tr class="invoice-logistics-row invoice-logistics-address-row">
+          <td class="col-00"></td>
+          <td class="invoice-logistics-col col-01"></td>
+          <td class="invoice-logistics-col col-02"></td>
+          <td class="invoice-logistics-col col-03"></td>
+          <td class="invoice-logistics-col col-04"></td>
+          <td class="invoice-logistics-col col-05"></td>
+          <td class="invoice-logistics-col col-06"></td>
+          <td class="invoice-logistics-col col-07"></td>
+          <td class="invoice-logistics-col col-08"></td>
+          <td class="invoice-logistics-col col-09"></td>
+          <td class="col-10"></td>
+        </tr>
+        <tr class="invoice-logistics-row invoice-logistics-address-row">
+          <td class="col-00"></td>
+          <td class="invoice-logistics-col col-01 label">Billed to:</td>
+          <td class="invoice-logistics-col col-02" ></td>
+          <td class="invoice-logistics-col col-03 data" colspan="4">Halliburton Energy Services</td>
+          <td class="invoice-logistics-col col-07"></td>
+          <td class="invoice-logistics-col col-08"></td>
+          <td class="invoice-logistics-col col-09"></td>
+          <td class="col-10"></td>
+        </tr>
+        <tr class="invoice-logistics-row invoice-logistics-address-row">
+          <td class="col-00"></td>
+          <td class="invoice-logistics-col col-01 label">Address:</td>
+          <td class="invoice-logistics-col col-02" ></td>
+          <td class="invoice-logistics-col col-03 data" colspan="4">{{invoice.address.street.street1}}</td>
+          <td class="invoice-logistics-col col-07"></td>
+          <td class="invoice-logistics-col col-08"></td>
+          <td class="invoice-logistics-col col-09"></td>
+          <td class="col-10"></td>
+        </tr>
+        <tr class="invoice-logistics-row invoice-logistics-address-row">
+          <td class="col-00"></td>
+          <td class="invoice-logistics-col col-01 label">City:</td>
+          <td class="invoice-logistics-col col-02" ></td>
+          <td class="invoice-logistics-col col-03 data" colspan="4">{{invoice.address.city}}</td>
+          <td class="invoice-logistics-col col-07"></td>
+          <td class="invoice-logistics-col col-08"></td>
+          <td class="invoice-logistics-col col-09"></td>
+          <td class="col-10"></td>
+        </tr>
+        <tr class="invoice-logistics-row invoice-logistics-address-row">
+          <td class="col-00"></td>
+          <td class="invoice-logistics-col col-01 label">State:</td>
+          <td class="invoice-logistics-col col-02" ></td>
+          <td class="invoice-logistics-col col-03 data" colspan="4">{{invoice.address.state}} {{invoice.address.zip}}</td>
+          <td class="invoice-logistics-col col-07"></td>
+          <td class="invoice-logistics-col col-08"></td>
+          <td class="invoice-logistics-col col-09"></td>
+          <td class="col-10"></td>
+        </tr>
+        <tr class="invoice-logistics-row invoice-logistics-address-row">
+          <td class="col-00"></td>
+          <td class="invoice-logistics-col col-01 label">PO#:</td>
+          <td class="invoice-logistics-col col-02"></td>
+          <td class="invoice-logistics-col col-03 data" colspan="4"><input class="input-ponumber" [(ngModel)]="invoice.po_number" (ngModelChange)="updatePONumber($event)" /></td>
+          <td class="invoice-logistics-col col-07"></td>
+          <td class="invoice-logistics-col col-08">Reference No.</td>
+          <!-- <td class="invoice-logistics-col col-09 data">{{site.account_number}}</td> -->
+          <td class="invoice-logistics-col col-09 data">{{invoice.account_number}}</td>
+          <td class="col-10"></td>
+        </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+    <!-- Main invoice grid -->
+    <table class="invoice-logistics-grid-table print-area" #gridTable id="grid-table">
+      <thead class="invoice-logistics-header"></thead>
+      <tbody  class="invoice-logistics-body">
+        <tr class="invoice-logistics-row grid-row invoice-logistics-pseudo-header">
+          <td class="col-00"></td>
+          <!-- <td class="invoice-logistics-col col-date">#</td> -->
+          <td class="invoice-logistics-col col-01" [class.sorted]="sorts[0]!==-1" title="Sort by this column" (click)="toggleSortColumn(0)">Date<span class="sort-icon"><i class="fa fa-sort" *ngIf="sorts[0] === -1"></i><i class="fa fa-sort-desc" *ngIf="sorts[0] === 0"></i><i class="fa fa-sort-asc" *ngIf="sorts[0] === 1"></i></span></td>
+          <td class="invoice-logistics-col col-02" [class.sorted]="sorts[1]!==-1" title="Sort by this column" colspan="3" (click)="toggleSortColumn(1)">Technician<span class="sort-icon"><i class="fa fa-sort" *ngIf="sorts[1] === -1"></i><i class="fa fa-sort-desc" *ngIf="sorts[1] === 0"></i><i class="fa fa-sort-asc" *ngIf="sorts[1] === 1"></i></span></td>
+          <td class="invoice-logistics-col col-05" [class.sorted]="sorts[2]!==-1" title="Sort by this column" colspan="2" (click)="toggleSortColumn(2)">Unit No.<span class="sort-icon"><i class="fa fa-sort" *ngIf="sorts[2] === -1"></i><i class="fa fa-sort-desc" *ngIf="sorts[2] === 0"></i><i class="fa fa-sort-asc" *ngIf="sorts[2] === 1"></i></span></td>
+          <td class="invoice-logistics-col col-07" [class.sorted]="sorts[3]!==-1" title="Sort by this column" (click)="toggleSortColumn(3)">Work Order<span class="sort-icon"><i class="fa fa-sort" *ngIf="sorts[3] === -1"></i><i class="fa fa-sort-desc" *ngIf="sorts[3] === 0"></i><i class="fa fa-sort-asc" *ngIf="sorts[3] === 1"></i></span></td>
+          <td class="invoice-logistics-col col-08" [class.sorted]="sorts[4]!==-1" title="Sort by this column" (click)="toggleSortColumn(4)">Hours<span class="sort-icon"><i class="fa fa-sort" *ngIf="sorts[4] === -1"></i><i class="fa fa-sort-desc" *ngIf="sorts[4] === 0"></i><i class="fa fa-sort-asc" *ngIf="sorts[4] === 1"></i></span></td>
+          <td class="invoice-logistics-col col-09" [class.sorted]="sorts[5]!==-1" title="Sort by this column" (click)="toggleSortColumn(5)">Total<span class="sort-icon"><i class="fa fa-sort" *ngIf="sorts[5] === -1"></i><i class="fa fa-sort-desc" *ngIf="sorts[5] === 0"></i><i class="fa fa-sort-asc" *ngIf="sorts[5] === 1"></i></span></td>
+          <td class="col-10"></td>
+        </tr>
+        <tr class="invoice-logistics-row grid-row invoice-logistics-grid-row" *ngFor="let row of invoice.grid; let i=index" title="Row {{i}}">
+          <ng-container *ngIf="i==0">
+            <td class="col-00"></td>
+            <!-- <td class="invoice-logistics-col col-01" *ngIf="row[0]===''">{{row[0]}}</td>
+            <td class="invoice-logistics-col col-01" *ngIf="row[0]!==''">{{row[0].format("MMM DD, YYYY")}}</td> -->
+            <td class="invoice-logistics-col col-01">{{row[0]}}</td>
+            <td class="invoice-logistics-col col-02" colspan="3">{{row[1]}}</td>
+            <td class="invoice-logistics-col col-05" colspan="2">{{row[2]}}</td>
+            <td class="invoice-logistics-col col-07">{{row[3]}}</td>
+            <td class="invoice-logistics-col col-08" *ngIf="row[4] === ''">{{row[4]}}</td>
+            <td class="invoice-logistics-col col-08" *ngIf="row[4] !== ''">{{row[4] | number:'1.2-2'}}</td>
+            <td class="invoice-logistics-col col-09" *ngIf="row[5] === ''">{{row[5]}}</td>
+            <td class="invoice-logistics-col col-09" *ngIf="row[5] !== ''">{{row[5] | currency:'USD':'symbol':'1.2-2'}}</td>
+            <td class="col-10"></td>
+          </ng-container>
+          <ng-container *ngIf="i!=0">
+            <td class="col-00"></td>
+            <!-- <td class="invoice-logistics-col col-01" *ngIf="invoice.grid[i][0]===''"></td>
+            <td class="invoice-logistics-col col-01" *ngIf="invoice.grid[i][0]!=='' && invoice.grid[i][0].isSame(invoice.grid[i-1][0])"></td>
+            <td class="invoice-logistics-col col-01" *ngIf="invoice.grid[i][0]!=='' && !invoice.grid[i][0].isSame(invoice.grid[i-1][0])">{{row[0].format("MMM DD, YYYY")}}</td> -->
+            <td class="invoice-logistics-col col-01" *ngIf="sorts[0] !== -1 && invoice.grid[i][0]===invoice.grid[i-1][0]"></td>
+            <td class="invoice-logistics-col col-01" *ngIf="sorts[0] === -1 || invoice.grid[i][0]!==invoice.grid[i-1][0]">{{row[0]}}</td>
+            <td class="invoice-logistics-col col-02" colspan="3">{{row[1]}}</td>
+            <td class="invoice-logistics-col col-05" colspan="2">{{row[2]}}</td>
+            <td class="invoice-logistics-col col-07">{{row[3]}}</td>
+            <td class="invoice-logistics-col col-08" *ngIf="row[4] === ''">{{row[4]}}</td>
+            <td class="invoice-logistics-col col-08" *ngIf="row[4] !== ''">{{row[4] | number:'1.2-2'}}</td>
+            <td class="invoice-logistics-col col-09" *ngIf="row[5] === ''">{{row[5]}}</td>
+            <td class="invoice-logistics-col col-09" *ngIf="row[5] !== ''">{{row[5] | currency:'USD':'symbol':'1.2-2'}}</td>
+            <td class="col-10"></td>
+          </ng-container>
+        </tr>
+        <ng-container *ngIf="invoice?.grid?.length < MAX_ROWS">
+          <tr class="invoice-logistics-row grid-row invoice-logistics-grid-row" *ngFor="let blank of blankRows.slice(0, MAX_ROWS - invoice.grid.length); let blankI=index" title="Blank row {{blankI+1}}">
+            <td class="col-00"></td>
+            <td class="invoice-logistics-col col-01"></td>
+            <td class="invoice-logistics-col col-02" colspan="3"></td>
+            <td class="invoice-logistics-col col-05" colspan="2"></td>
+            <td class="invoice-logistics-col col-07"></td>
+            <td class="invoice-logistics-col col-08"></td>
+            <td class="invoice-logistics-col col-09"></td>
+            <td class="col-10"></td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+    <!-- Main invoice grid end -->
+
+
+
+
+    <table class="invoice-logistics-summary-table print-area" #summaryTable id="summary-table">
+      <thead class="invoice-logistics-header"></thead>
+      <tbody  class="invoice-logistics-body">
+        <tr class="invoice-logistics-row spacer">
+          <td class="col-00"></td>
+          <td class="col-01"></td>
+          <td class="col-02"></td>
+          <td class="col-03"></td>
+          <td class="col-04"></td>
+          <td class="col-05"></td>
+          <td class="col-06"></td>
+          <td class="col-07"></td>
+          <td class="col-08"></td>
+          <td class="col-09"></td>
+          <td class="col-10"></td>
+        </tr>
+        <tr class="invoice-logistics-row summary-row summary-row-01">
+          <td class="col-00"></td>
+          <td class="invoice-logistics-col col-01" colspan="9">Summary</td>
+          <td class="col-10"></td>
+        </tr>
+        <tr class="invoice-logistics-row summary-row summary-row-02 summary-spacer">
+          <td class="col-00"></td>
+          <td class="col-01">PO#:</td>
+          <td class="col-02">{{invoice.po_number}}</td>
+          <td class="col-03"></td>
+          <td class="col-04"></td>
+          <td class="col-05"></td>
+          <td class="col-06"></td>
+          <td class="col-07"></td>
+          <td class="col-08"></td>
+          <td class="col-09"></td>
+          <td class="col-10"></td>
+        </tr>
+        <tr class="invoice-logistics-row summary-row summary-row-03 summary-spacer">
+          <td class="col-00"></td>
+          <td class="col-01">Hours:</td>
+          <!-- <td class="col-02">{{totalHours | number:'1.2-2'}}</td> -->
+          <!-- <td class="col-02">{{invoice.getTotalHours() | number:'1.2-2'}}</td> -->
+          <td class="col-02">{{invoice.total_hours_billed | number:'1.2-2'}}</td>
+          <td class="col-03"></td>
+          <td class="col-04"></td>
+          <td class="col-05"></td>
+          <td class="col-06"></td>
+          <td class="col-07"></td>
+          <td class="col-08"></td>
+          <td class="col-09"></td>
+          <td class="col-10"></td>
+        </tr>
+        <tr class="invoice-logistics-row summary-row summary-row-04 summary-spacer">
+          <td class="col-00"></td>
+          <td class="col-01">Tech Count:</td>
+          <!-- <td class="col-02">{{totalTechs}}</td> -->
+          <!-- <td class="col-02">{{invoice.getTechCount()}}</td> -->
+          <td class="col-02">{{invoice.tech_count}}</td>
+          <td class="col-03"></td>
+          <td class="col-04"></td>
+          <td class="col-05"></td>
+          <td class="col-06"></td>
+          <td class="col-07"></td>
+          <td class="col-08"></td>
+          <td class="col-09"></td>
+          <td class="col-10"></td>
+        </tr>
+        <tr class="invoice-logistics-row summary-row summary-row-05 summary-spacer">
+          <td class="col-00"></td>
+          <td class="col-01">Units Serviced:</td>
+          <!-- <td class="col-02">{{totalUnitsBilled}}</td> -->
+          <!-- <td class="col-02">{{invoice.getUnitCount()}}</td> -->
+          <td class="col-02">{{invoice.total_unit_billed}}</td>
+          <td class="col-03"></td>
+          <td class="col-04"></td>
+          <td class="col-05"></td>
+          <td class="col-06"></td>
+          <td class="col-07"></td>
+          <td class="col-08"></td>
+          <td class="col-09"></td>
+          <td class="col-10"></td>
+        </tr>
+        <tr class="invoice-logistics-row summary-row summary-row-06 summary-spacer">
+          <td class="col-00"></td>
+          <td class="col-01"></td>
+          <td class="col-02"></td>
+          <td class="col-03"></td>
+          <td class="col-04"></td>
+          <td class="col-05"></td>
+          <td class="col-06"></td>
+          <td class="col-07"></td>
+          <td class="col-08"></td>
+          <td class="col-09"></td>
+          <td class="col-10"></td>
+        </tr>
+        <tr class="invoice-logistics-row spacer-after-summary">
+            <td class="col-00"></td>
+            <td class="invoice-logistics-col col-01" colspan="9"></td>
+            <td class="col-10"></td>
+          </tr>
+          <tr class="invoice-logistics-row invoice-logistics-row-total-header">
+          <td class="col-00"></td>
+          <td class="invoice-logistics-col col-01 amount-due-label" colspan="6">Amount Due</td>
+          <td class="invoice-logistics-col col-07"></td>
+          <td class="invoice-logistics-col col-08"></td>
+          <td class="invoice-logistics-col col-09 total-label">Total</td>
+          <td class="col-10"></td>
+        </tr>
+        <tr class="invoice-logistics-row invoice-logistics-row-total-data">
+          <td class="col-00"></td>
+          <!-- <td class="invoice-logistics-col col-01 amount-due-data" rowspan="3" colspan="6">{{billedText}}</td> -->
+          <!-- <td class="invoice-logistics-col col-01 amount-due-data" rowspan="3" colspan="6">{{invoice.getTotalBilledAsText(numServ)}}</td> -->
+          <td class="invoice-logistics-col col-01 amount-due-data" rowspan="3" colspan="6">{{invoice.total_astext}}</td>
+          <td class="invoice-logistics-col col-07"></td>
+          <td class="invoice-logistics-col col-08"></td>
+          <!-- <td class="invoice-logistics-col col-09 total-data">{{totalBilled | currency:'USD':'symbol':'1.2-2'}}</td> -->
+          <!-- <td class="invoice-logistics-col col-09 total-data">{{invoice.getTotalBilled() | currency:'USD':'symbol':'1.2-2'}}</td> -->
+          <td class="invoice-logistics-col col-09 total-data">{{invoice.total_billed | currency:'USD':'symbol':'1.2-2'}}</td>
+          <td class="col-10"></td>
+        </tr>
+        <!-- <tr class="invoice-logistics-row spacer">
+          <td class="col-00"></td>
+          <td class="col-01"></td>
+          <td class="col-02"></td>
+          <td class="col-03"></td>
+          <td class="col-04"></td>
+          <td class="col-05"></td>
+          <td class="col-06"></td>
+          <td class="col-07"></td>
+          <td class="col-08"></td>
+          <td class="col-09"></td>
+          <td class="col-10"></td>
+        </tr> -->
+      </tbody>
+    </table>
+  </span>
+</div>

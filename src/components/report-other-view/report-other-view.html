@@ -1,0 +1,95 @@
+<div class="other-view-wrapper" *ngIf="dataReady">
+  <table class="other-view-button-table top">
+    <tr class="other-view-button-row">
+      <!-- <td class="other-view-button-td cell-button-like"                          (click)="splitReport($event)"  ><img src="/assets/icon/split_icon.svg"  class="svg-icon" title="Split work report" /></td> -->
+      <td class="other-view-button-td cell-button-like"                          (click)="splitReport($event)"  ><i class="onsiteicon-split"                            title="Split work report"></i></td>
+      <td class="other-view-button-td cell-button-like"                          (click)="deleteReport($event)" ><i class="fa fa-trash-o icon-button-like"              title="Delete work report"></i></td>
+      <td class="other-view-button-td cell-button-like"                          (click)="saveNoExit($event)"   ><i class="fa fa-check-circle-o icon-button-like"       title="Save, don't exit"></i></td>
+      <td *ngIf="idx > 0"  class="other-view-button-td cell-button-like"         (click)="previous($event)"     ><i class="icon-button-like fa fa-chevron-circle-left"  title="Previous work report"></i></td>
+      <td *ngIf="!(idx > 0)" class="other-view-button-td"                                                       ><i class="fa fa-chevron-circle-left icon-greyed-out"   title="No previous work reports"></i></td>
+      <td *ngIf="idx < count-1"  class="other-view-button-td cell-button-like"   (click)="next($event)"         ><i class="icon-button-like fa fa-chevron-circle-right" title="Next work report"></i></td>
+      <td *ngIf="!(idx < count-1)" class="other-view-button-td"                                                 ><i class="fa fa-chevron-circle-right icon-greyed-out"  title="No next work report"></i></td>
+    </tr>
+  </table>
+  <table class="other-view-table">
+    <tr class="other-view-row">
+      <td class="label">ID</td>
+      <td class="data" ><input class="other-view-input" [(ngModel)]="other._id" /></td>
+    </tr>
+    <tr class="other-view-row">
+      <td class="label">Rev</td>
+      <td class="data" ><input class="other-view-input" [readonly]="true" [(ngModel)]="other._rev" /></td>
+    </tr>
+    <tr class="other-view-row">
+      <td class="label">Report Type</td>
+      <td class="data" ><input class="other-view-input" [(ngModel)]="other.type" /></td>
+    </tr>
+    <tr class="other-view-row">
+      <td class="label">Timestamp <i class="fa fa-clock-o icon-button-like"  title="Toggle Excel/Date format" (click)="toggleDateFormat()"></i></td>
+      <td class="data" >
+        <input class="other-view-input" [(ngModel)]="other.timestamp" *ngIf="dateFormat==='excel'" />
+        <span class="other-view-fake-input" *ngIf="dateFormat==='moment'">{{moment.fromExcel(other.timestamp).toDate()}}</span>
+      </td>
+    </tr>
+    <tr class="other-view-row">
+      <td class="label">Date</td>
+      <td class="data" ><p-calendar [class.other-view-calendar]="true" dateFormat="dd M yy" [(ngModel)]="report_date" (onChange)="updateDate(report_date)"></p-calendar></td>
+    </tr>
+    <tr class="other-view-row">
+      <td class="label">Time</td>
+      <td class="data" ><input class="other-view-input" type="number" min="0" step="0.5" [(ngModel)]="other.time" /></td>
+    </tr>
+    <tr class="other-view-row">
+      <td class="label">Training Type</td>
+      <td class="data" ><input class="other-view-input" [(ngModel)]="other.training_type" /></td>
+    </tr>
+    <tr class="other-view-row">
+      <td class="label">Travel Location</td>
+      <!-- <td class="data" ><input class="other-view-input" [(ngModel)]="other.travel_location" /></td> -->
+      <td class="data" ><p-dropdown [class.other-view-dropdown]="true" [options]="siteList" [(ngModel)]="selectedSite" (onChange)="updateSite(selectedSite)"></p-dropdown></td>
+    </tr>
+    <tr class="other-view-row">
+      <td class="label">Technician</td>
+      <td class="data" ><input class="other-view-input" [(ngModel)]="other.technician" /></td>
+    </tr>
+    <tr class="other-view-row">
+      <td class="label">Client</td>
+      <td class="data" ><p-dropdown [class.other-view-dropdown]="true" [options]="clientList" [(ngModel)]="client" (onChange)="updateReportCLL('client', client)" [scrollHeight]="dropdownScroll"></p-dropdown></td>
+    </tr>
+    <tr class="other-view-row">
+      <td class="label">Location</td>
+      <td class="data" ><p-dropdown [class.other-view-dropdown]="true" [options]="locationList" [(ngModel)]="location" (onChange)="updateReportCLL('location', location)" [scrollHeight]="dropdownScroll"></p-dropdown></td>
+    </tr>
+    <tr class="other-view-row">
+      <td class="label">LocID</td>
+      <td class="data" ><p-dropdown [class.other-view-dropdown]="true" [options]="locIDList" [(ngModel)]="locID" (onChange)="updateReportCLL('locID', locID)" [scrollHeight]="dropdownScroll"></p-dropdown></td>
+    </tr>
+    <tr class="other-view-row">
+      <td class="label">Notes</td>
+      <td class="data" ><textarea pInputTextArea [class.other-view-textarea]="true" [(ngModel)]="other.notes"></textarea></td>
+    </tr>
+  </table>
+  <table class="other-view-button-table bottom">
+    <tr class="other-view-button-row">
+      <td class="other-view-button-td cell-button-like" (click)="cancel($event)"><i class="fa fa-times-circle-o icon-button-like"  title="Cancel any edits"></i></td>
+      <td class="other-view-button-td"></td>
+      <td class="other-view-button-td"></td>
+      <td class="other-view-button-td cell-button-like" (click)="save($event)"><i class="fa fa-check-circle-o icon-button-like"    title="Save and exit"></i></td>
+    </tr>
+  </table>
+</div>
+
+<!-- <ion-footer>
+  <ion-toolbar>
+    <ion-buttons left>
+      <button type="button" ion-button icon-only color="royal" (click)="cancel()">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-buttons right>
+      <button type="button" ion-button icon-only color="favorite" (click)="save()">
+        <ion-icon name="checkmark"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer> -->

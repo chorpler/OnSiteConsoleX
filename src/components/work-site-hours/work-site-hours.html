@@ -1,0 +1,36 @@
+<p-dialog #workSiteHoursDialog [styleClass]="'site-hours-dialog'" header="Work Site Hours" [(visible)]="isVisible" [draggable]="true" [resizable]="true" [responsive]="'true'" [closable]="hoursClosable" [modal]="hoursModalMode">
+  <span class="work-site-hours-component-wrapper">
+    <div class="work-site-hours-all-tables">
+      <div class="work-site-hours-table-wrapper" *ngFor="let time of jobsite?.techShifts; let i=index">
+        <div class="work-site-hours-title-and-hours-wrapper">
+          <span class="work-site-hours-table-title">{{time}} Shift</span>
+          <span class="work-site-hours-table-hours">
+            <span class="work-site-hours-dropdown-label">Start Time</span>
+            <p-dropdown [class.work-site-dropdown-starttime]="true" [options]="startTimeSelect" [(ngModel)]="jobsite.shift_start_times[time]" [scrollHeight]="dropdownScroll"></p-dropdown>
+          </span>
+        </div>
+        <table class="work-site-hours-table">
+          <thead class="work-site-hours-head">
+            <tr class="work-site-hours-head-row">
+              <th class="col-head col-00"></th>
+              <th class="col-head" *ngFor="let day of weekdays">{{day}}</th>
+            </tr>
+          </thead>
+          <tbody class="work-site-hours-body">
+            <tr class="work-site-hours-body-row" *ngFor="let rot of jobsite.shiftRotations; let idx=index">
+              <td class="col-body col-label">{{rot?.fullName}}</td>
+              <td class="col-body" *ngFor="let day of weekdays; let idx2=index"><input class="hours-data-input" text-center type="text" [(ngModel)]="jobsite.hoursList[rot.name][time][idx2]" /></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <span class="hours-button-group">
+        <button pButton type="button" (click)="cancel()" label="Cancel"></button>
+        <button pButton type="button" (click)="saveSiteHours()" label="Save Hours"></button>
+        <input [class.hours-default-hours-input]="true" pInputText type="number" [(ngModel)]="defaultHours" />
+        <button pButton type="button" (click)="fillDefaultHours()" label="Fill Default"></button>
+        <button pButton type="button" (click)="copyAM2PM()" label="AM→PM"></button>
+      </span>
+    </div>
+  </span>
+</p-dialog>

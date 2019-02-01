@@ -1,0 +1,107 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>{{title}} ({{idx+1}} / {{count}})</ion-title>
+    <ion-buttons right>
+      <button ion-button icon-only (click)="deleteReport($event)">
+        <ion-icon class="schedule-clear-button" name="ios-trash-outline"></ion-icon>
+      </button>
+      <button ion-button (click)="saveNoExit($event)">
+        <ion-icon class="icon-normal" name="checkmark-circle-outline"></ion-icon>
+      </button>
+      <button *ngIf="idx > 0" ion-button (click)="previous($event)">
+        <ion-icon class="icon-normal" name="arrow-dropleft"></ion-icon>
+      </button>
+      <button *ngIf="!(idx > 0)" ion-button disabled="true">
+        <ion-icon class="icon-greyedout" name="arrow-dropleft"></ion-icon>
+      </button>
+      <button *ngIf="idx < count-1" ion-button (click)="next($event)">
+        <ion-icon class="icon-normal" name="arrow-dropright"></ion-icon>
+      </button>
+      <button *ngIf="!(idx < count-1)" ion-button disabled="true">
+        <ion-icon class="icon-greyedout" name="arrow-dropright"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  <ion-list class="report-card" *ngIf="dataReady">
+    <ion-item>
+      <ion-label>ID</ion-label>
+      <ion-input [(ngModel)]="report._id"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Rev</ion-label>
+      <ion-input [(ngModel)]="report._rev"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Timestamp</ion-label>
+      <ion-input [(ngModel)]="report.timestamp"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Date</ion-label>
+      <ion-datetime [(ngModel)]="report_date" (ngModelChange)="updateDate(report_date)"></ion-datetime>
+    </ion-item>
+    <ion-item>
+      <ion-label>Technician</ion-label>
+      <ion-input [(ngModel)]="report.technician"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Client</ion-label>
+      <ion-select [(ngModel)]="client" (ionChange)="updateReportCLL('client', client)">
+        <ion-option *ngFor="let client of clients" [value]="client">{{client.fullName}}</ion-option>
+      </ion-select>
+    </ion-item>
+    <ion-item>
+      <ion-label>Location</ion-label>
+      <ion-select [(ngModel)]="location" (ionChange)="updateReportCLL('location', location)">
+        <ion-option *ngFor="let location of locations" [value]="location">{{location.fullName}}</ion-option>
+      </ion-select>
+    </ion-item>
+    <ion-item>
+      <ion-label>LocID</ion-label>
+      <ion-select [(ngModel)]="locID" (ionChange)="updateReportCLL('locID', locID)">
+        <ion-option *ngFor="let locID of locIDs" [value]="locID">{{locID.name}}</ion-option>
+      </ion-select>
+    </ion-item>
+    <ion-item>
+      <ion-label>Work Order No.</ion-label>
+      <ion-input [(ngModel)]="report.work_order_number"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Unit No.</ion-label>
+      <ion-input [(ngModel)]="report.unit_number"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Repair Time</ion-label>
+      <ion-input type="number" min="0" step="0.5" [(ngModel)]="repair_hours" (ionChange)="updateRepairHours()"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Start Time</ion-label>
+      <ion-datetime [(ngModel)]="time_start" (ionChange)="updateTimeStart()" displayFormat="DD MMM YYYY HH:mm" pickerFormat="DD MMM YYYY HH mm" minuteValues="0,15,30,45"></ion-datetime>
+    </ion-item>
+    <ion-item>
+      <ion-label>End Time</ion-label>
+      <ion-datetime [(ngModel)]="time_end" (ionChange)="updateTimeEnd()" displayFormat="DD MMM YYYY HH:mm" pickerFormat="DD MMM YYYY HH mm" minuteValues="0,15,30,45"></ion-datetime>
+    </ion-item>
+    <ion-item>
+      <ion-label>Notes</ion-label>
+      <ion-textarea [(ngModel)]="report.notes"></ion-textarea>
+    </ion-item>
+  </ion-list>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-buttons left>
+      <button type="button" ion-button icon-only color="royal" (click)="cancel()">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-buttons right>
+      <button type="button" ion-button icon-only color="favorite" (click)="save()">
+        <ion-icon name="checkmark"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

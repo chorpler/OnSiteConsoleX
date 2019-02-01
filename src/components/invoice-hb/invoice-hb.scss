@@ -1,0 +1,470 @@
+invoice-hb {
+  user-select: text;
+  font-family: "Roboto Condensed";
+  @media print {
+    .sort-icon {
+      display: none;
+    }
+  }
+  @media screen {
+    .invoice-halliburton-wrapper {
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+    // .invoice-halliburton {
+    //   border: 1px solid lightgrey;
+    //   padding: 10px;
+    // }
+  }
+  .invoice-halliburton {
+    // width: 8.5in;
+    // height:11in;
+    margin-left: auto;
+    margin-right: auto;
+    padding: calc($margin / 2);
+    // border: 1px solid lightgrey;
+  }
+  .invoice-halliburton-table, .invoice-halliburton-grid-table, .invoice-halliburton-summary-table {
+    table-layout: fixed;
+    border-collapse: collapse;
+    width: 7.5in;
+    margin-left: auto;
+    margin-right: auto;
+    // width: 80vw;
+    // width: calc(8.5in - $margin);
+    padding: 2px;
+    border: 1px solid lightgrey;
+    // padding: 5px;
+  }
+  .invoice-halliburton-header-row {
+    // background-color: rgba(250, 249, 240, 1.0);
+    background-color: rgba(191, 191, 191, 1.0);
+  }
+  .invoice-halliburton-col {
+    // border: 1px solid lightgrey;
+  }
+  img {
+    width: 100%;
+  }
+  .input-ponumber {
+    border: none;
+    @media screen {
+      background-color: rgba(240, 240, 240, 0.99);
+    }
+  }
+  .invoice-halliburton-sesa-address {
+    text-align: center;
+    vertical-align: top;
+    // color: blue;
+  }
+  .invoice-halliburton-address-name {
+    font-family: "Roboto Condensed";
+    font-size: 24pt;
+    margin-top: 12px;
+  }
+  .invoice-halliburton-address-blank {
+    height: 24px;
+  }
+  .invoice-halliburton-address-address {
+    font-size: 12pt;
+  }
+  .invoice-halliburton-address-phone {
+    font-size: 12pt;
+  }
+
+  .spacer {
+    height: 24px;
+  }
+  .invoice-label {
+    font-family: "Roboto Condensed";
+    font-size: 10pt;
+    text-align: center;
+    background-color: rgba(89, 89, 89, 1.0);
+    color: white;
+    // border-top: 1px solid black;
+    // border-left: 1px solid black;
+    border-right: 1px solid black;
+    box-sizing: border-box;
+  }
+  .invoice-data {
+    font-family: "Roboto Condensed";
+    text-align: center;
+    font-size: 14pt;
+    background-color: white;
+    border-bottom: 1px solid rgba(89, 89, 89, 1.0);
+    border-left: 1px solid rgba(89, 89, 89, 1.0);
+    border-right: 1px solid rgba(89, 89, 89, 1.0);
+    box-sizing: border-box;
+    .invoice-halliburton-invoice-number {
+      max-width: 120px;
+      width: 100%;
+      border: none;
+      padding-left: 2px;
+      padding-right: 2px;
+    }
+  }
+  .date-label {
+    font-family: "Roboto Condensed";
+    font-size: 10pt;
+    text-align: center;
+    background-color: rgba(89, 89, 89, 1.0);
+    color: white;
+    border-top: 1px solid rgba(89, 89, 89, 1.0);
+    border-left: 1px solid rgba(89, 89, 89, 1.0);
+    border-right: 1px solid rgba(89, 89, 89, 1.0);
+    box-sizing: border-box;
+  }
+  .date-data {
+    font-family: "Roboto Condensed";
+    text-align: center;
+    font-size: 14pt;
+    background-color: white;
+    border-bottom: 1px solid rgba(89, 89, 89, 1.0);
+    border-left: 1px solid rgba(89, 89, 89, 1.0);
+    border-right: 1px solid rgba(89, 89, 89, 1.0);
+    box-sizing: border-box;
+    .invoice-halliburton-calendar {
+      max-width: 120px;
+      width: 100%;
+    }
+    .invoice-halliburton-calendar-input {
+      max-width: 120px;
+      width: 100%;
+      text-align: center;
+      border: none;
+    }
+  }
+  .col-00, .col-10 {
+    width: 4px;
+  }
+  .col-09 {
+    width: 120px;
+    max-width: 120px;
+  }
+  .input-ponumber {
+    font-family: "RobotoMono";
+    text-align: left;
+    font-size: 12px;
+  }
+  .label {
+    overflow: visible;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .data {
+
+  }
+  .summary-row {
+    &.summary-spacer {
+      height: 10px;
+    }
+    td {
+      border-left: none;
+      border-right: none;
+    }
+    td.col-03 {
+      text-align: right;
+      font-family: "RobotoMono";
+      text-align: right;
+      font-size: 12px;
+    }
+    &.summary-row-01 {
+      // background-color: lightgrey;
+      td {
+        border-top: 1px solid rgba(89, 89, 89, 1.0);
+        background-color: lightgrey;
+        &.col-00 {
+          // background-color: transparent;
+          // border: none;
+        }
+        &.col-01 {
+          border-left: 1px solid rgba(89, 89, 89, 1.0);
+        }
+        &.col-10 {
+          border-right: 1px solid rgba(89, 89, 89, 1.0);
+          // background-color: transparent;
+          // border: none;
+        }
+      }
+    }
+    &.summary-row-02, &.summary-row-03, &.summary-row-04, &.summary-row-05 {
+      td {
+        border: none;
+        &.col-01 {
+          border-left: 1px solid rgba(89, 89, 89, 1.0);
+        }
+        &.col-10 {
+          border-right: 1px solid rgba(89, 89, 89, 1.0);
+        }
+      }
+    }
+    &.summary-row-06 {
+      td {
+        border-bottom: 1px solid rgba(89, 89, 89, 1.0);
+        &.col-00 {
+          // border: none;
+        }
+        &.col-10 {
+          // border: none;
+        }
+        &.col-01 {
+          border-left: 1px solid rgba(89, 89, 89, 1.0);
+        }
+        &.col-10 {
+          border-left: none;
+          border-right: 1px solid rgba(89, 89, 89, 1.0);
+        }
+      }
+    }
+    td.label {
+      padding-left: 50px;
+    }
+    td.data {
+      text-align: right;
+      font-family: "RobotoMono";
+      text-align: right;
+      font-size: 12px;
+    }
+  }
+
+  .invoice-halliburton-grid-table {
+    .invoice-halliburton-grid-row {
+      height: 18px;
+    }
+    .grid-row {
+      font-size: 12px;
+      &.invoice-halliburton-pseudo-header {
+        background-color: rgba(191, 191, 191, 1.0);
+        font-weight: bold;
+        text-align: center;
+        border: 1px solid lightgrey;
+        td {
+          cursor: pointer;
+        }
+      }
+      td {
+        border: 1px solid lightgrey;
+        padding-left: 2px;
+        padding-right: 2px;
+        &.col-00 {
+          border-right: none;
+        }
+        &.col-01,&.col-date {
+          border-left: none;
+        }
+        &.col-date {
+          text-align: right;
+          padding-right: 5px;
+          width: 25px;
+        }
+        &.col-08 {
+          font-family: "RobotoMono";
+          text-align: right;
+          font-size: 12px;
+        }
+        &.col-09 {
+          font-family: "RobotoMono";
+          text-align: right;
+          font-size: 12px;
+          border-right: none;
+        }
+        &.col-10 {
+          border-left: none;
+        }
+        &.sorted {
+          i {
+            @media screen {
+              color: red;
+            }
+          }
+          // background-color: rgba(200, 120, 120, 1.0);
+          // background-blend-mode: multiply;
+        }
+      }
+      // td.col-date {
+      //   width: 30px;
+      // }
+      td.col-01 {
+        width: 90px;
+      }
+      td.col-02 {
+        width: 210px;
+      }
+    }
+  }
+  .spacer-after-summary {
+    height: 12px;
+  }
+  .invoice-halliburton-summary-table {
+    .invoice-halliburton-row {
+      &.summary-row {
+        // border-left: 1px solid rgba(89, 89, 89, 1.0);
+        // border-right: 1px solid rgba(89, 89, 89, 1.0);
+        td {
+          // border: 1px solid lightgrey;
+          padding-left: 2px;
+          padding-right: 2px;
+          &.col-00 {
+            border-left: 1px solid rgba(89, 89, 89, 1.0);
+            border-right: none;
+          }
+          &.col-01,&.col-date {
+            border-left: none;
+          }
+          &.col-08 {
+            font-family: "RobotoMono";
+            text-align: right;
+            font-size: 12px;
+          }
+          &.col-09 {
+            font-family: "RobotoMono";
+            text-align: right;
+            font-size: 12px;
+            // border-right: 1px solid rgba(89, 89, 89, 1.0);
+          }
+          &.col-10 {
+            border-right: 1px solid rgba(89, 89, 89, 1.0);
+          }
+        }
+      }
+      td.col-date {
+        width: 30px;
+      }
+      td.col-01 {
+        width: 90px;
+      }
+      td.col-02 {
+        width: 210px;
+      }
+    }
+  }
+  .amount-due-label, .total-label {
+    font-family: "Roboto Condensed";
+    font-size: 10pt;
+    text-align: center;
+    background-color: rgba(89, 89, 89, 1.0);
+    color: white;
+    // border-top?: 1px solid rgba(89, 89, 89, 1.0);
+    border-left: 1px solid rgba(89, 89, 89, 1.0);
+    border-right: 1px solid rgba(89, 89, 89, 1.0);
+
+  }
+  .amount-due-data, .total-data {
+    text-align: center;
+    vertical-align: middle;
+    font-size: 12pt;
+    white-space: normal;
+    background-color: white;
+    border-bottom: 1px solid rgba(89, 89, 89, 1.0);
+    border-left: 1px solid rgba(89, 89, 89, 1.0);
+    border-right: 1px solid rgba(89, 89, 89, 1.0);
+    box-sizing: border-box;
+  }
+  .total-data {
+    font-family: "RobotoMono";
+    font-weight: 400;
+    font-size: 12px;
+  }
+
+  .invoice-halliburton-row-total-data {
+    height: 54px;
+    td.label {
+      text-align: right;
+      padding-right: 2px;
+    }
+    td.data {
+      text-align: right;
+      font-family: "RobotoMono";
+      font-weight: 400;
+      font-size: 12px;
+      border: 1px solid rgba(89, 89, 89, 1.0);
+    }
+    .final-total {
+      &.label {
+        text-transform: uppercase;
+      }
+      &.data {
+        font-weight: bold;
+      }
+    }
+  }
+  .invoice-halliburton-address-row {
+    td.col-08 {
+      overflow: visible;
+      white-space: nowrap;
+    }
+    td.col-09 {
+      font-family: "RobotoMono";
+      text-align: right;
+      // font-size: 12px;
+    }
+  }
+  .invoice-halliburton-shift-row {
+
+  }
+  .invoice-halliburton-billing-label {
+
+  }
+  .invoice-halliburton-billing-data {
+
+  }
+  .invoice-halliburton-shift-label {
+
+  }
+  .invoice-halliburton-shift-data {
+
+  }
+  .invoice-halliburton-customer-label {
+
+  }
+  .invoice-halliburton-customer-data {
+
+  }
+  .invoice-halliburton-summary-wrapper-header {
+    background-color: rgba(191, 191, 191, 1.0);
+  }
+  .invoice-halliburton-summary-header {
+    .col-01, .col-02, .col-03 {
+      text-align: center;
+    }
+    .col-05, .col-06 {
+      text-align: right;
+    }
+  }
+  .invoice-halliburton-summary-footer {
+
+  }
+  .invoice-halliburton-summary-row {
+    height: 18px;
+  }
+  .invoice-halliburton-row-blank {
+
+  }
+  .invoice-halliburton-row-blank-footer {
+    height: 18px;
+  }
+  .invoice-halliburton-amount-label {
+    // color: white;
+    // td {
+    //   color: blue;
+    //   text-align: right;
+    // }
+  }
+  .invoice-halliburton-total-label {
+    color: white;
+    background-color: blue;
+    text-align: center;
+  }
+  .invoice-halliburton-amount-data {
+    text-align: center;
+    vertical-align: middle;
+  }
+  .invoice-halliburton-total-data {
+    text-align: right;
+    vertical-align: middle;
+    padding-right: 10px;
+  }
+  .invoice-halliburton-row-total-header {
+
+  }
+}

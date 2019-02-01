@@ -1,0 +1,30 @@
+.period-reports-modal {
+  .modal-wrapper {
+    width: 50%;
+    left: calc(50% - 50%/2);
+  }
+}
+page-period-reports {
+
+  .period-reports-content {
+    .scroll-content {
+      overflow: auto;
+    }
+  }
+
+  .period-reports-table {
+    table-layout: fixed;
+    width: 100%;
+    td, th {
+      border: 1px solid lightgrey;
+    }
+  }
+  .col01 {
+    width: 10%;
+    max-width: 100px;
+    text-overflow: ellipsis;
+  }
+  .period-reports-col-notes {
+    width: 10%;
+  }
+}

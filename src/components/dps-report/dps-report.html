@@ -1,0 +1,27 @@
+<span class="dps-report-component">
+  <span class="dps-report-placeholder" *ngIf="!dataReady">In Progress...</span>
+  <!-- <google-chart #dpsReportPieChart *ngIf="dataReady" [class.dps-report-google-chart]="true" [pieChartData]="chartData" [pieChartOptions]="chartOptions" (itemSelect)="chartSliceSelect($event)"></google-chart> -->
+  <div class="dps-report-graph">
+    <google-charts #dpsReportPieChart *ngIf="dataReady" [class.dps-report-google-chart]="true" (itemSelect)="chartSliceSelect($event)" [chartType]="chartType" [chartData]="reportData" [chartOptions]="chartOptions" (itemSelect)="chartSliceSelect($event)"></google-charts>
+  </div>
+  <div class="dps-report-table-wrapper">
+    <table class="dps-report-table">
+      <thead>
+        <tr>
+          <th class="col-00">Type</th>
+          <th class="col-01">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of reportData.slice(1); let i=index">
+          <td class="col-00">{{row[0]}}</td>
+          <td class="col-01">{{row[1] | currency:'USD':'symbol':'1.2-2'}}</td>
+        </tr>
+        <tr class="total-row">
+          <td class="col-00">Total</td>
+          <td class="col-01">{{total | currency:'USD':'symbol':'1.2-2'}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</span>

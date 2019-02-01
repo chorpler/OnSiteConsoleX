@@ -1,0 +1,219 @@
+spinner {
+  @keyframes spinner {
+    100% {
+      transform: rotate(3600deg);
+    }
+  }
+
+  .loading-container {
+    margin: 0 auto;
+    text-align: center;
+    position: relative;
+    top: 50vh;
+    transform: translateY(-50%);
+    transition: opacity ease-in 0.4s;
+    opacity: 1;
+    // width: 40vw;
+    // min-width: 300px;
+    // height: 40vh;
+    // min-height: 300px;
+    position: relative;
+    width: 280px;
+    // height: 350px;
+    // max-height: 700px;
+    flex: 1 1 content;
+    border-radius: 10px;
+    // margin-left: auto;
+    // margin-right: auto;
+    // background-color: rgba(235, 235, 235, 1.0);
+    // background-color: transparent;
+    background-color: rgba(245, 245, 245, 0.7);
+    // animation: colorfade 1.6s ease-in-out infinite;
+    // animation: fadein 1.6s linear 1;
+    box-shadow: 3px 5px 13px rgba(65, 65, 65, 0.6);
+    // box-shadow: 22px -22px 225px rgba(100, 100, 100, 0.2);
+    display: flex;
+    flex-flow: column nowrap;
+    // justify-content: space-between;
+    justify-content: baseline;
+    align-content: center;
+    align-items: center;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 256px;
+    height: 256px;
+    background: url('../assets/images/index.fidget-spinner.svg') center center;
+    background-size: contain;
+    transition-origin: 50% 50%;
+    animation: spinner 10s infinite alternate ease-in-out;
+  }
+  .spinner-center {
+    display: inline-block;
+    position: absolute;
+    // margin-left: -256px;
+    width: 256px;
+    height: 256px;
+    background: url('../assets/images/spinner_black02.png') center center;
+    background-size: contain;
+    content: '';
+  }
+
+  .loading-text {
+    // position: relative;
+    // z-index: 1;
+    // font-size: 1.5rem;
+    // font-family: "Comic Sans MS", cursive, sans-serif;
+    // margin-left: 0.5em;
+    background-color: rgba(235, 235, 235, 1.0);
+    border-top: 1px solid lightgrey;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    font-size:18px;
+    flex: 0 1 auto;
+    text-align: center;
+    width: 100%;
+    min-height: 1.0em;
+  }
+}
+
+
+// spinner {
+//   position: relative;
+//   top: 56px;
+//   // border: 3px solid red;
+//   .spinner-wrapper {
+//     width: 100vw;
+//     height: calc(100vh - 100px);
+//     // height: 100%;
+//     // margin-top: 56px;
+//     display: flex;
+//     flex-flow: column nowrap;
+//     justify-content: center;
+//     align-content: center;
+//     align-items: center;
+//   }
+//   .spinner-container {
+//     transition: opacity ease-in 0.4s;
+//     opacity: 1;
+//     // width: 40vw;
+//     // min-width: 300px;
+//     // height: 40vh;
+//     // min-height: 300px;
+//     position: relative;
+//     width: 280px;
+//     // height: 350px;
+//     // max-height: 700px;
+//     flex: 1 1 content;
+//     border-radius: 10px;
+//     // margin-left: auto;
+//     // margin-right: auto;
+//     // background-color: rgba(235, 235, 235, 1.0);
+//     background-color: transparent;
+//     // background-color: rgba(245, 245, 245, 0.1);
+//     // animation: colorfade 1.6s ease-in-out infinite;
+//     // animation: fadein 1.6s linear 1;
+//     // box-shadow: 3px 5px 13px rgba(65, 65, 65, 0.6);
+//     // box-shadow: 22px -22px 225px rgba(100, 100, 100, 0.2);
+//     display: flex;
+//     flex-flow: column nowrap;
+//     // justify-content: space-between;
+//     justify-content: baseline;
+//     align-content: center;
+//     align-items: center;
+//     .spinner-image {
+//       // position: relative;
+//       display: block;
+//       transform-origin: center;
+//       flex: 1 1 auto;
+//       // display: inline;
+//       // width: 100%;
+//       // height: 100%;
+//       min-width: 180px;
+//       min-height: 180px;
+//       // margin: 50px;
+//       // height: 256px;
+//       // min-height: 256px;
+//       // min-height: 100px;
+//       // height: auto;
+//       width: 80%;
+//       height: 80%;
+//       margin-bottom: 40px;
+//       // background-image: url('../assets/images/spinner01.gif');
+//       // background-image: url('../assets/images/spinner02.gif');
+//       // background-image: url('../assets/images/spinner03.png');
+//       // background-image: url('../assets/images/spinner04.png');
+//       // background-image: url('../assets/images/fidgetspinner01.png');
+//       // background-image: url('../assets/images/hand-spinner01.svg');
+//       // background-image: url('../assets/images/FidgetSpinner03.svg');
+//       // background-image: url('../assets/images/FidgetSpinner19.svg');
+//       // background-image: url('../assets/images/FidgetSpinner09.svg');
+//       // background-image: url('../assets/images/FidgetSpinner04.svg');
+//       background-image: url('../assets/images/FidgetSpinner05.svg');
+//       // background-image: url('../assets/images/FidgetSpinner06.png');
+//       // background-image: url('../assets/images/FidgetSpinner07.png');
+//       background-repeat:no-repeat;
+//       // background-size: 100% 100%;
+//       // background-size: 80% 80%;
+//       background-size: contain;
+//       background-position: center;
+//       // transform-origin: 50% 25%;
+//       // animation: spinner 3s ease-in-out infinite;
+//       animation: spinner 0.5s linear infinite;
+//     }
+//     .spin-me {
+//       animation: spinner 3s linear infinite;
+//     }
+//     @keyframes spinner {
+//       0% {
+//         transform: rotate(0deg);
+//         // background-color: rgba(245, 245, 245, 0.05);
+//       }
+//       100% {
+//         // background-color: rgba(245, 245, 245, 0.75);
+//         transform: rotate(360deg);
+//       }
+//     }
+//     @keyframes colorfade {
+//       0% {
+//         background-color: rgba(235, 235, 235, 0.0);
+//       }
+//       50% {
+//         // background-color: rgba(245, 245, 245, 0.75);
+//         background-color: rgba(235, 235, 235, 0.8);
+
+//       }
+//       100% {
+//         background-color: rgba(235, 235, 235, 0.0);
+//       }
+//     }
+//     @keyframes fadein {
+//       0% {
+//         opacity: 0;
+//       }
+//       100% {
+//         opacity: 1;
+//       }
+//     }
+//     .spinner-text {
+//       display: block;
+//       background-color: rgba(235, 235, 235, 1.0);
+//       border-top: 1px solid lightgrey;
+//       border-radius: 5px;
+//       padding-top: 4px;
+//       padding-bottom: 4px;
+//       font-size:18px;
+//       flex: 0 1 auto;
+//       text-align: center;
+//       width: 100%;
+//     }
+//   }
+// }
+.nonopaque {
+  // transition: opacity linear all 1s;
+  opacity: 0 !important;
+}
+

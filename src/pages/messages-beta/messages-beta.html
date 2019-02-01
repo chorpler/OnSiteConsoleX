@@ -1,0 +1,178 @@
+<ion-header>
+  <ion-navbar>
+    <!-- <ion-buttons left>
+      <button ion-button menuToggle *ngIf="!modalMode">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+      <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode">
+        <i class="fa fa-window-close-o"></i>
+      </button>
+    </ion-buttons> -->
+    <ion-buttons left>
+      <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode && !data.currentlyOpeningPage">
+        <i class="fa fa-window-close-o"></i>
+      </button>
+      <button ion-button menuToggle *ngIf="!modalMode && !data.currentlyOpeningPage">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+      <ion-spinner name="bubbles" [class.spinner-opening-page]="true" *ngIf="data.currentlyOpeningPage"></ion-spinner>
+    </ion-buttons>
+    <ion-title>
+      <span class="page-title">
+        {{title}}
+      </span>
+    </ion-title>
+    <ion-buttons right>
+      <span class="menu-and-button-wrapper" *ngIf="dataReady && data.ready()">
+        <span class="final-buttons">
+          <span class="menubar-button" (click)="showOptions($event)" title="Show options">
+            <i class="fa fa-cog"></i>
+          </span>
+          <span class="menubar-button" (click)="newMessage($event)" title="Add New Message">
+            <i class="fa fa-plus-square-o"></i>
+          </span>
+          <span class="menubar-button" (click)="postMessage($event)" title="Send message to all users">
+            <i class="fa fa-paper-plane-o"></i>
+          </span>
+        </span>
+      </span>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding *ngIf="dataReady && data.ready()">
+  <div class="messages-layout-container">
+    <div class="messages-lisbox-wrapper">
+      <p-listbox #messagesListbox [styleClass]="'messages-listbox'" [options]="messageList" [(ngModel)]="message" (onChange)="openMessage($event)">
+        <ng-template let-message let-i="index" pTemplate="item">
+          <div class="listbox-item">
+            <!-- <span class="message-header-wrapper"><span class="label">Date:</span><span class="data">{{message?.value.date?.format("MMM DD, YYYY")}}</span></span> -->
+            <span class="message-header-wrapper"><span class="label">Date:</span><span class="data">{{message?.value.getMessageDateString("MMM DD, YYYY")}}</span></span>
+            <span class="message-header-wrapper"><span class="label">From:</span><span class="data">{{message?.value.from}}</span></span>
+            <span class="message-header-wrapper"><span class="label">Subject:</span><span class="data">{{message?.value.subject}}</span></span>
+          </div>
+        </ng-template>
+      </p-listbox>
+    </div>
+    <div class="messages-message-wrapper">
+      <span class="messages-message-header">
+        <span class="header-item">
+          <span class="label">Date</span>
+          <span class="data">
+            <p-calendar class="messages-message-date-calendar" #date [(ngModel)]="messageDate" (ngModelChange)="updateFromDate($event)" [showIcon]="true"></p-calendar>
+          </span>
+        </span>
+        <span class="header-item">
+          <span class="label">From</span>
+          <span class="data">
+            <input class="messages-message-input" type="text" placeholder="Your Name" [(ngModel)]="message.from" />
+          </span>
+        </span>
+        <span class="header-item">
+          <span class="label">To</span>
+          <span class="data">
+            <p-multiSelect [styleClass]="'multiselect-employees'" [options]="employeeList" [(ngModel)]="toEmployees" defaultLabel="All Employees" [maxSelectedLabels]="1" selectedItemsLabel="{0} employees" (onChange)="updateToList($event)"></p-multiSelect>
+          </span>
+        </span>
+        <span class="header-item">
+          <span class="label">Duration</span>
+          <span class="data">
+            <input #inputDuration class="messages-message-input" type="number" placeholder="Number of days to display" [(ngModel)]="message.duration" />
+          </span>
+          <span class="caption">
+            <span class="text">(Message will expire on <span class="date">{{moment(messageDate).add(message.duration, 'days').format("dddd, MMM DD, YYYY")}}</span>)</span>
+          </span>
+        </span>
+        <span class="header-item">
+          <span class="label">Subject</span>
+          <span class="data">
+            <input #inputSubject class="messages-message-input" type="text" placeholder="Message Subject" [(ngModel)]="message.subject" />
+          </span>
+        </span>
+        <span class="header-item">
+          <span class="label">Subject</span>
+          <span class="data">
+            <input #inputSubjectES class="messages-message-input" type="text" placeholder="Subject (Español)" [(ngModel)]="message.subjectES" />
+          </span>
+        </span>
+      </span>
+      <span class="messages-message-body">
+        <span class="body-item">
+          <span class="label">Text</span>
+          <span class="data">
+            <p-editor #messageTextEditorEn [(ngModel)]="message.text" [styleClass]="'message-text-editor'" placeholder="Enter message text here" (onTextChange)="textChanged($event)" [style]="editorStyle"></p-editor>
+          </span>
+        </span>
+        <span class="body-item">
+          <span class="label">Mensaje en Español</span>
+          <span class="data">
+            <p-editor #messageTextEditorEs [(ngModel)]="message.textES" [styleClass]="'message-text-editor'" placeholder="Message text (Español)" (onTextChange)="textChanged($event)" [style]="editorStyle"></p-editor>
+          </span>
+        </span>
+      </span>
+      <div class="messages-buttons-container">
+        <button ion-button color="light" type="button" (tap)="cancel($event)">Cancel</button>
+        <button ion-button color="primary" type="button" (tap)="postMessage($event)">Post Message</button>
+      </div>
+    </div>
+  </div>
+  <!-- <div class="messages-list-container">
+    <button class="messages-button-new-message" ion-button color="primary" (tap)="newMessage()">New Message</button>
+    <ion-list class="messages-list-list" *ngIf="messages && messages.length > 0">
+      <ion-item class="ion-item-button-like messages-list-item" *ngFor="let message of messages" (tap)="openMessage(message)">
+        <span class="messages-list-header-container"><span class="messages-list-header-label">Date:</span><span class="messages-list-data">{{message.date.format("MMM DD, YYYY")}}</span></span>
+        <span class="messages-list-header-container"><span class="messages-list-header-label">From:</span><span class="messages-list-data">{{message.from}}</span></span>
+        <span class="messages-list-header-container"><span class="messages-list-header-label">Subject:</span><span class="messages-list-data">{{message.subject}}</span></span>
+      </ion-item>
+    </ion-list>
+    <ion-card class="messages-message-card">
+      <ion-list class="messages-message-list">
+        <div class="messages-date-container">
+          <div class="reports-search-header-item">Date
+            <p-calendar class="messages-message-date-calendar" #date [(ngModel)]="messageDate" (ngModelChange)="updateFromDate($event)" [showIcon]="true"></p-calendar>
+          </div>
+        </div>
+        <ion-item id="messages-input21">
+          <ion-label floating>
+            From
+          </ion-label>
+          <ion-input class="messages-message-input" type="text" placeholder="Your Name" name="author" [(ngModel)]="message.from"></ion-input>
+        </ion-item>
+        <ion-item id="messages-input23">
+          <ion-label floating>
+            Duration
+          </ion-label>
+          <ion-input class="messages-message-input" type="number" placeholder="Number of days to display" name="duration" [(ngModel)]="message.duration"></ion-input>
+        </ion-item>
+        <ion-item id="messages-input24">
+          <ion-label floating>
+            Subject
+          </ion-label>
+          <ion-input #inputSubject class="messages-message-input" type="text" placeholder="Message Subject" name="msgTitle" [(ngModel)]="message.subject"></ion-input>
+        </ion-item>
+        <ion-item class="messages-message-text-item" id="messages-textarea2">
+          <ion-label floating>
+            Text
+          </ion-label>
+          <p-editor #messageTextEditorEn [(ngModel)]="message.text" [styleClass]="'message-text-editor'" placeholder="Message text..."></p-editor>
+        </ion-item>
+        <ion-item id="messages-input25">
+          <ion-label floating>
+            Tema
+          </ion-label>
+          <ion-input class="messages-message-input" type="text" placeholder="Subject en Español" name="titleEs" [(ngModel)]="message.subjectES"></ion-input>
+        </ion-item>
+        <ion-item class="messages-message-text-item" id="messages-textarea3">
+          <ion-label floating>
+            Texto
+          </ion-label>
+          <p-editor #messageTextEditorEs [(ngModel)]="message.textES" [styleClass]="'message-text-editor'" placeholder="Es Translation of message..."></p-editor>
+        </ion-item>
+      </ion-list>
+      <div class="messages-buttons-container">
+        <button ion-button color="light" type="button" (tap)="cancel($event)">Cancel</button>
+        <button ion-button color="primary" type="submit" (tap)="postMessage($event)">Post Message</button>
+      </div>
+    </ion-card>
+  </div> -->
+</ion-content>

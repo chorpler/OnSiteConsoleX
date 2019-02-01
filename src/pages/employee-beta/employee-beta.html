@@ -1,0 +1,131 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>{{title}}</ion-title>
+    <ion-buttons end>
+      <button ion-button icon-only (click)="deleteEmployee(employee)" *ngIf="mode=='Edit'">
+        <ion-icon class="work-order-delete-button" name="ios-trash-outline"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  <ion-list class="list-add-employee" *ngIf="dataReady">
+    <ion-item>
+      <ion-label>Prefix</ion-label>
+      <p-dropdown [options]="prefixList" [(ngModel)]="prefix" (onChange)="updateEmployee('prefix', prefix)"></p-dropdown>
+    </ion-item>
+    <ion-item>
+      <ion-label>First Name</ion-label>
+      <ion-input type="text" [(ngModel)]="employee.firstName"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Middle Name</ion-label>
+      <ion-input type="text" [(ngModel)]="employee.middleName"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Last Name</ion-label>
+      <ion-input type="text" [(ngModel)]="employee.lastName"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Suffix</ion-label>
+      <p-dropdown [options]="suffixList" [(ngModel)]="employee.suffix"></p-dropdown>
+    </ion-item>
+    <ion-item>
+      <ion-label>Username</ion-label>
+      <ion-input #avatarName type="text" [(ngModel)]="employee.avatarName"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Avatar Name as User</ion-label>
+      <ion-toggle [(ngModel)]="employee.avtrNameAsUser"></ion-toggle>
+    </ion-item>
+    <ion-item>
+      <ion-label>User Class</ion-label>
+      <ion-input type="text" [(ngModel)]="employee.userClass"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Work Site</ion-label>
+      <p-dropdown [options]="jobsiteList" [(ngModel)]="jobsite" (onChange)="updateEmployee('jobsite', jobsite)"></p-dropdown>
+    </ion-item>
+    <ion-item>
+      <ion-label>Shift</ion-label>
+      <p-dropdown [options]="shiftList" [(ngModel)]="shift" (onChange)="updateEmployee('shift', shift)"></p-dropdown>
+    </ion-item>
+    <ion-item>
+      <ion-label>Shift Length</ion-label>
+      <p-dropdown [options]="shiftLengthList" [(ngModel)]="shiftLength" (onChange)="updateEmployee('shiftLength', shiftLength)"></p-dropdown>
+    </ion-item>
+    <ion-item>
+      <ion-label>Shift Start Time</ion-label>
+      <p-dropdown [options]="shiftStartList" [(ngModel)]="shiftStartTime" (onChange)="updateEmployee('shiftStart', shiftStart)"></p-dropdown>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>E-mail Address</ion-label>
+      <ion-input type="email" [(ngModel)]="employee.email"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Phone Number</ion-label>
+      <ion-input type="phone" [(ngModel)]="employee.phone"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Mobile Number</ion-label>
+      <ion-input type="phone" [(ngModel)]="employee.cell"></ion-input>
+    </ion-item>
+    <ion-item-group>
+      <ion-item>
+        <ion-label>Address</ion-label>
+        <ion-input [(ngModel)]="employee.address.street.street1"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label>City</ion-label>
+        <ion-input [(ngModel)]="employee.address.city"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label>State</ion-label>
+        <ion-input [(ngModel)]="employee.address.state"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label>ZIP</ion-label>
+        <ion-input [(ngModel)]="employee.address.zipcode"></ion-input>
+      </ion-item>
+    </ion-item-group>
+    <ion-item>
+      <ion-label floating>Rate</ion-label>
+      <ion-input type="number" step="0.01" [(ngModel)]="employee.payRate"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>Active</ion-label>
+      <ion-toggle [(ngModel)]="employee.active"></ion-toggle>
+    </ion-item>
+    <ion-grid>
+      <ion-row>
+        <ion-col class="buttoncage">
+          <button type="button" ion-button block color="light" (click)="cancel()">Cancel</button>
+        </ion-col>
+        <ion-col class="buttoncage">
+          <button type="button" ion-button block color="favorite" (click)="onSubmit()">Save</button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+    <ion-item *ngIf="developerMode">
+      <ion-label>Rotation</ion-label>
+      <ion-input [(ngModel)]="employee.rotation"></ion-input>
+    </ion-item>
+  </ion-list>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-buttons left>
+      <button type="button" ion-button icon-only color="royal" (click)="cancel()">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-buttons right>
+      <button type="submit" ion-button icon-only color="favorite" (click)="onSubmit()">
+        <ion-icon name="checkmark"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

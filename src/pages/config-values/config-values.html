@@ -1,0 +1,138 @@
+<ion-header>
+  <ion-navbar>
+    <!-- <button ion-button menuToggle>
+      <ion-icon name="menu"></ion-icon>
+    </button> -->
+    <ion-buttons left>
+      <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode && !data.currentlyOpeningPage">
+        <i class="fa fa-window-close-o"></i>
+      </button>
+      <button ion-button menuToggle *ngIf="!modalMode && !data.currentlyOpeningPage">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+      <ion-spinner name="bubbles" [class.spinner-opening-page]="true" *ngIf="data.currentlyOpeningPage"></ion-spinner>
+    </ion-buttons>
+    <ion-title>{{title}}</ion-title>
+    <!-- <ion-buttons right>
+      <button ion-button icon-only (tap)="copyTable()">
+        <ion-icon class="dps-calc-button-copy" name="copy"></ion-icon>
+      </button>
+    </ion-buttons> -->
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding *ngIf="dataReady">
+  <div class="config-wrapper">
+    <div class="config-tables-wrapper">
+      <div class="config-table-wrapper">
+        <div class="table-title-wrapper">
+          <div class="table-title">Report Types</div>
+          <div class="table-title-buttons">
+            <i class="fa fa-plus-circle icon-button-like config-button" (click)="addConfig('report_type', $event)"></i>
+          </div>
+        </div>
+        <p-dataTable #dtrt [value]="report_types" [editable]="true" [globalFilter]="globalSearchReportType" sortMode="multiple" reorderableColumns="true">
+          <p-column field="_id" header="#" [style]="numberColumnStyle">
+            <ng-template pTemplate="body" let-col let-ri="rowIndex">{{ri+1}}</ng-template>
+          </p-column>
+          <p-column *ngFor="let item of rt_fields" [editable]="true" [field]="item.field" [header]="item.header" [sortable]="true"></p-column>
+        </p-dataTable>
+      </div>
+      <div class="config-table-wrapper">
+        <div class="table-title-wrapper">
+          <div class="table-title">Training Types</div>
+          <div class="table-title-buttons">
+            <i class="fa fa-plus-circle icon-button-like config-button" (click)="addConfig('training', $event)"></i>
+          </div>
+        </div>
+        <p-dataTable #dttt [value]="training_types" [editable]="true" [globalFilter]="globalSearchTrainingType" sortMode="multiple" reorderableColumns="true">
+          <p-column field="_id" header="#" [style]="numberColumnStyle">
+            <ng-template pTemplate="body" let-col let-ri="rowIndex">{{ri+1}}</ng-template>
+          </p-column>
+          <p-column *ngFor="let item of tt_fields" [editable]="true" [field]="item.field" [header]="item.header" [sortable]="true"></p-column>
+        </p-dataTable>
+      </div>
+      <div class="config-table-wrapper">
+        <div class="table-title-wrapper">
+          <div class="table-title-buttons">
+            <i class="fa fa-check-square-o icon-button-like config-button" (click)="saveConfig('locID', $event)"></i>
+          </div>
+          <div class="table-title">Location IDs</div>
+          <div class="table-title-buttons">
+            <i class="fa fa-plus-circle icon-button-like config-button" (click)="addConfig('locID', $event)"></i>
+          </div>
+        </div>
+        <!-- <p-dataTable #dtlocids [value]="locIDs" [editable]="true" [globalFilter]="globalSearchLocID" sortMode="multiple" selectionMode="single" [(selection)]="selectedValue" (onRowSelect)="rowSelected($event, dtlocids)"> -->
+        <p-dataTable #dtlocids [value]="locIDs" [editable]="true" [globalFilter]="globalSearchLocID" sortMode="multiple">
+          <p-column header="--" [style]="buttonColumnStyle">
+            <ng-template pTemplate="body" let-col let-ri="rowIndex">
+              <span class="edit-button" (click)="deleteRow(locIDs, ri, $event)" title="Delete this row">
+                <i class="fa fa-times"></i>
+              </span>
+            </ng-template>
+          </p-column>
+          <p-column field="_id" header="#" [style]="numberColumnStyle">
+            <ng-template pTemplate="body" let-col let-ri="rowIndex">{{ri+1}}</ng-template>
+          </p-column>
+          <!-- <p-column field="name" header="Code" [editable]="true" [sortable]="true">
+            <ng-template pTemplate="body" let-col let-locid="rowData"><span class="locid-code">{{locid['name']}}</span></ng-template>
+          </p-column> -->
+          <p-column *ngFor="let item of locID_fields; let i=index" [editable]="true" [field]="item.field" [header]="item.header" [sortable]="true"></p-column>
+        </p-dataTable>
+      </div>
+      <div class="config-table-wrapper">
+        <div class="table-title-wrapper">
+          <div class="table-title-buttons">
+            <i class="fa fa-check-square-o icon-button-like config-button" (click)="saveConfig('client', $event)"></i>
+          </div>
+          <div class="table-title">Clients</div>
+          <div class="table-title-buttons">
+            <i class="fa fa-plus-circle icon-button-like config-button" (click)="addConfig('client', $event)"></i>
+          </div>
+        </div>
+        <!-- <p-dataTable #dtclients [value]="clients" [editable]="true" [globalFilter]="globalSearchClient" sortMode="multiple" selectionMode="single" [(selection)]="selectedValue" (onRowSelect)="rowSelected($event, dtclients)"> -->
+        <p-dataTable #dtclients [value]="clients" [editable]="true" [globalFilter]="globalSearchClient" sortMode="multiple" selectionMode="single">
+          <p-column header="--" [style]="buttonColumnStyle">
+            <ng-template pTemplate="body" let-col let-ri="rowIndex">
+              <span class="edit-button" (click)="deleteRow(clients, ri, $event)" title="Delete this row">
+                <i class="fa fa-times"></i>
+              </span>
+            </ng-template>
+          </p-column>
+          <p-column field="_id" header="#" [style]="numberColumnStyle">
+            <ng-template pTemplate="body" let-col let-ri="rowIndex">{{ri+1}}</ng-template>
+          </p-column>
+          <!-- <p-column field="name" header="Code" [editable]="true" [sortable]="true">
+            <ng-template pTemplate="body" let-col let-locid="rowData"><span class="locid-code">{{locid['name']}}</span></ng-template>
+          </p-column> -->
+          <p-column *ngFor="let item of client_fields; let i=index" [editable]="true" [field]="item.field" [header]="item.header" [sortable]="true"></p-column>
+        </p-dataTable>
+      </div>
+      <div class="config-table-wrapper">
+        <div class="table-title-wrapper">
+          <div class="table-title-buttons">
+            <i class="fa fa-check-square-o icon-button-like config-button" (click)="saveConfig('location', $event)"></i>
+          </div>
+          <div class="table-title">Locations</div>
+          <div class="table-title-buttons">
+            <i class="fa fa-plus-circle icon-button-like config-button" (click)="addConfig('location', $event)"></i>
+          </div>
+        </div>
+        <!-- <p-dataTable #dtlocations [value]="locations" [editable]="true" [globalFilter]="globalSearchLocation" sortMode="multiple" selectionMode="single" [(selection)]="selectedValue" (onRowSelect)="rowSelected($event, dtlocations)"> -->
+        <p-dataTable #dtlocations [value]="locations" [editable]="true" [globalFilter]="globalSearchLocation" sortMode="multiple">
+          <p-column header="--" [style]="buttonColumnStyle">
+            <ng-template pTemplate="body" let-col let-ri="rowIndex">
+              <span class="edit-button" (click)="deleteRow(locations, ri, $event)" title="Delete this row">
+                <i class="fa fa-times"></i>
+              </span>
+            </ng-template>
+          </p-column>
+          <p-column field="_id" header="#" [style]="numberColumnStyle">
+            <ng-template pTemplate="body" let-col let-ri="rowIndex">{{ri+1}}</ng-template>
+          </p-column>
+          <p-column *ngFor="let item of location_fields; let i=index" [editable]="true" [field]="item.field" [header]="item.header" [sortable]="true"></p-column>
+        </p-dataTable>
+      </div>
+    </div>
+  </div>
+</ion-content>

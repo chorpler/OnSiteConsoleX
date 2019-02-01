@@ -1,0 +1,117 @@
+<!-- <p-overlayPanel #settingsOverlay [class.dps-settings-overlay-panel]="true" [dismissable]="soDismissable" [showCloseIcon]="soShowClose"> -->
+  <span class="dps-settings-component">
+    <i class="fa fa-undo dps-settings-top-button icon-button-like" (click)="dpsSettingsRevert($event)" title="Undo edits and revert"></i>
+    <p-panel header="DPS Settings">
+      <p-panel [class.dps-settings-panel]="true" header="General">
+        <table class="dps-settings-list-table">
+          <tr class="dps-settings-list-table-row">
+            <td class="table-col col-00">Days in Month</td>
+            <td class="table-col col-01">
+              <p-spinner [class.dps-settings-spinner]="true" size="30" [step]="1" [min]="0" [max]="31" [formatInput]="false" [(ngModel)]="days_in_month" (onChange)="setDirty()"></p-spinner>
+            </td>
+          </tr>
+          <tr class="dps-settings-list-table-row">
+            <td class="table-col col-00" title="Average number of techs working on each day of this payroll period">Working Tech Count*</td>
+            <td class="table-col col-01">
+              <p-spinner [class.dps-settings-spinner]="true" size="30" [step]="1" [min]="0" [formatInput]="false" [(ngModel)]="working_techs" (onChange)="setDirty()" title="Average number of techs working on each day of this payroll period"></p-spinner>
+            </td>
+          </tr>
+          <tr class="dps-settings-list-table-row">
+            <td class="table-col col-00">Tech Multiplier</td>
+            <td class="table-col col-01">
+              <!-- <p-spinner [class.dps-settings-spinner]="true" size="30" [step]="0.00001" [formatInput]="false" mouseWheel (mouseWheelUp)="moneyAdd($event, 'multiplier')" (mouseWheelDown)="moneySubtract($event, 'multiplier')" [(ngModel)]="multiplier" (onChange)="setDirty()"></p-spinner> -->
+              <p-spinner [class.dps-settings-spinner]="true" size="30" [step]="0.00001" [formatInput]="false" [(ngModel)]="multiplier" (onChange)="setDirty()"></p-spinner>
+            </td>
+          </tr>
+          <tr class="dps-settings-list-table-row">
+            <td class="table-col col-00" title="This value is calculated automatically and cannot be changed by hand.">Cost Modifier</td>
+            <td class="table-col col-01">
+              <p-spinner #costModifierSpinner size="30" [ngClass]="cmSpinner" title="This value is calculated automatically and cannot be changed by hand." [formatInput]="false" [readonly]="cost_modifier_readonly" [disabled]="cost_modifier_disabled" [(ngModel)]="cost_modifier" (onChange)="disabledSpinnerInput($event)"></p-spinner>
+            </td>
+          </tr>
+        </table>
+      </p-panel>
+      <p-panel [class.dps-settings-panel]="true" header="Monthly Expenses">
+        <table class="dps-settings-list-table">
+          <tr class="dps-settings-list-table-row">
+            <td class="table-col col-00">Fuel</td>
+            <td class="table-col col-01">
+              <!-- <input currencyMask [class.dps-settings-input]="true" mouseWheel (mouseWheelUp)="moneyAdd($event, 'monthly_fuel')" (mouseWheelDown)="moneySubtract($event, 'monthly_fuel')" [(ngModel)]="monthly_fuel" (onChange)="setDirty()" -->
+              <input currencyMask [class.dps-settings-input]="true" [(ngModel)]="monthly_fuel" (onChange)="setDirty()"
+              />
+            </td>
+          </tr>
+          <tr class="dps-settings-list-table-row">
+            <td class="table-col col-00">Transportation</td>
+            <td class="table-col col-01">
+              <!-- <input currencyMask [class.dps-settings-input]="true" mouseWheel (mouseWheelUp)="moneyAdd($event, 'monthly_transportation')" (mouseWheelDown)="moneySubtract($event, 'monthly_transportation')" [(ngModel)]="monthly_transportation" (onChange)="setDirty()" /> -->
+              <input currencyMask [class.dps-settings-input]="true" [(ngModel)]="monthly_transportation" (onChange)="setDirty()" />
+            </td>
+          </tr>
+        </table>
+      </p-panel>
+      <p-panel [class.dps-settings-panel]="true" header="Insurance">
+        <table class="dps-settings-list-table">
+          <tr class="dps-settings-list-table-row">
+            <td class="table-col col-00">Travelers</td>
+            <td class="table-col col-01">
+              <!-- <input currencyMask [class.dps-settings-input]="true" mouseWheel (mouseWheelUp)="moneyAdd($event, 'insurance_travelers')" (mouseWheelDown)="moneySubtract($event, 'insurance_travelers')" [(ngModel)]="insurance_travelers" (onChange)="setDirty()" /> -->
+              <input currencyMask [class.dps-settings-input]="true" [(ngModel)]="insurance_travelers" (onChange)="setDirty()" />
+            </td>
+          </tr>
+          <tr class="dps-settings-list-table-row">
+            <td class="table-col col-00">Imperial</td>
+            <td class="table-col col-01">
+              <!-- <input currencyMask [class.dps-settings-input]="true" mouseWheel (mouseWheelUp)="moneyAdd($event, 'insurance_imperial')" (mouseWheelDown)="moneySubtract($event, 'insurance_imperial')" [(ngModel)]="insurance_imperial" (onChange)="setDirty()" /> -->
+              <input currencyMask [class.dps-settings-input]="true" [(ngModel)]="insurance_imperial" (onChange)="setDirty()" />
+            </td>
+          </tr>
+          <tr class="dps-settings-list-table-row">
+            <td class="table-col col-00">TX Mutual</td>
+            <td class="table-col col-01">
+              <!-- <input currencyMask [class.dps-settings-input]="true" mouseWheel (mouseWheelUp)="moneyAdd($event, 'insurance_tx_mutual')" (mouseWheelDown)="moneySubtract($event, 'insurance_tx_mutual')" [(ngModel)]="insurance_tx_mutual" (onChange)="setDirty()" /> -->
+              <input currencyMask [class.dps-settings-input]="true" [(ngModel)]="insurance_tx_mutual" (onChange)="setDirty()" />
+            </td>
+          </tr>
+          <tr class="dps-settings-list-table-row">
+            <td class="table-col col-00">Blue Cross</td>
+            <td class="table-col col-01">
+              <!-- <input currencyMask [class.dps-settings-input]="true" mouseWheel (mouseWheelUp)="moneyAdd($event, 'insurance_blue_cross')" (mouseWheelDown)="moneySubtract($event, 'insurance_blue_cross')" [(ngModel)]="insurance_blue_cross" (onChange)="setDirty()" /> -->
+              <input currencyMask [class.dps-settings-input]="true" [(ngModel)]="insurance_blue_cross" (onChange)="setDirty()" />
+            </td>
+          </tr>
+          <tr class="dps-settings-list-table-row">
+            <td class="table-col col-00">Property</td>
+            <td class="table-col col-01">
+              <!-- <input currencyMask [class.dps-settings-input]="true" mouseWheel (mouseWheelUp)="moneyAdd($event, 'insurance_property')" (mouseWheelDown)="moneySubtract($event, 'insurance_property')" [(ngModel)]="insurance_property" (onChange)="setDirty()" /> -->
+              <input currencyMask [class.dps-settings-input]="true" [(ngModel)]="insurance_property" (onChange)="setDirty()" />
+            </td>
+          </tr>
+        </table>
+      </p-panel>
+      <p-panel [class.dps-settings-panel]="true" header="General">
+        <table class="dps-settings-list-table">
+          <tr class="dps-settings-list-table-row">
+            <td class="table-col col-00">Internal Salaries</td>
+            <td class="table-col col-01">
+              <!-- <input currencyMask [class.dps-settings-input]="true" mouseWheel (mouseWheelUp)="moneyAdd($event, 'internal_salaries')" (mouseWheelDown)="moneySubtract($event, 'internal_salaries')" [(ngModel)]="internal_salaries" (onChange)="setDirty()" /> -->
+              <input currencyMask [class.dps-settings-input]="true" [(ngModel)]="internal_salaries" (onChange)="setDirty()" />
+            </td>
+          </tr>
+        </table>
+      </p-panel>
+    </p-panel>
+  </span>
+  <span class="dps-settings-button-wrapper">
+    <!-- <button class="ui-button-danger  dps-settings-button cancel" pButton type="button" #dpsSettingsButtonCancel (click)="dpsSettingsCancel($event)" label="Cancel"></button>
+    <button class="ui-button-success dps-settings-button save  " pButton type="button" #dpsSettingsButtonSave   (click)="dpsSettingsSave($event)"   label="Save"></button> -->
+    <table class="dps-settings-button-table bottom">
+      <tr class="dps-settings-button-row">
+        <td class="col-00 cell-button-like" (click)="dpsSettingsCancel($event)" title="Cancel any edits"><i class="fa fa-times-circle-o icon-button-like"></i></td>
+        <td class="col-01"></td>
+        <td class="col-02"></td>
+        <td class="col-03 cell-button-like" (click)="dpsSettingsSave($event)" title="Save and exit"><i class="fa fa-check-circle-o icon-button-like"></i></td>
+      </tr>
+    </table>
+  </span>
+<!-- </p-overlayPanel> -->

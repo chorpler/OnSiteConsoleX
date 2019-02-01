@@ -1,0 +1,2915 @@
+$icomoon-svg-path: "../assets/svg" !default;
+$icomoon-default-size: 16px;
+
+[class^="icomoon"], [class*=" icomoon"] {
+  display: block;
+  width: $icomoon-default-size;
+  height: $icomoon-default-size;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin-left: auto;
+  margin-right: auto;
+  // color: currentColor;
+}
+
+.icomoon-500px {
+  background-image: url('#{$icomoon-svg-path}/500px.svg');
+}
+
+.icomoon-accessibility,.icomoon.accessibility {
+  background-image: url('#{$icomoon-svg-path}/accessibility.svg');
+}
+
+.icomoon-add-circle-outline,.icomoon.add-circle-outline {
+  background-image: url('#{$icomoon-svg-path}/add-circle-outline.svg');
+}
+
+.icomoon-add,.icomoon.add {
+  background-image: url('#{$icomoon-svg-path}/add.svg');
+}
+
+.icomoon-address-book,.icomoon.address-book {
+  background-image: url('#{$icomoon-svg-path}/address-book.svg');
+}
+
+.icomoon-aid-kit,.icomoon.aid-kit {
+  background-image: url('#{$icomoon-svg-path}/aid-kit.svg');
+}
+
+.icomoon-airplane,.icomoon.airplane {
+  background-image: url('#{$icomoon-svg-path}/airplane.svg');
+}
+
+.icomoon-alarm,.icomoon.alarm {
+  background-image: url('#{$icomoon-svg-path}/alarm.svg');
+}
+
+.icomoon-alarm2,.icomoon.alarm2 {
+  background-image: url('#{$icomoon-svg-path}/alarm2.svg');
+}
+
+.icomoon-albums-outline,.icomoon.albums-outline {
+  background-image: url('#{$icomoon-svg-path}/albums-outline.svg');
+}
+
+.icomoon-alert-outline,.icomoon.alert-outline {
+  background-image: url('#{$icomoon-svg-path}/alert-outline.svg');
+}
+
+.icomoon-amazon,.icomoon.amazon {
+  background-image: url('#{$icomoon-svg-path}/amazon.svg');
+}
+
+.icomoon-analytics-outline,.icomoon.analytics-outline {
+  background-image: url('#{$icomoon-svg-path}/analytics-outline.svg');
+}
+
+.icomoon-analytics,.icomoon.analytics {
+  background-image: url('#{$icomoon-svg-path}/analytics.svg');
+}
+
+.icomoon-android,.icomoon.android {
+  background-image: url('#{$icomoon-svg-path}/android.svg');
+}
+
+.icomoon-android2,.icomoon.android2 {
+  background-image: url('#{$icomoon-svg-path}/android2.svg');
+}
+
+.icomoon-angry,.icomoon.angry {
+  background-image: url('#{$icomoon-svg-path}/angry.svg');
+}
+
+.icomoon-angry2,.icomoon.angry2 {
+  background-image: url('#{$icomoon-svg-path}/angry2.svg');
+}
+
+.icomoon-apple,.icomoon.apple {
+  background-image: url('#{$icomoon-svg-path}/apple.svg');
+}
+
+.icomoon-appleinc,.icomoon.appleinc {
+  background-image: url('#{$icomoon-svg-path}/appleinc.svg');
+}
+
+.icomoon-apps-outline,.icomoon.apps-outline {
+  background-image: url('#{$icomoon-svg-path}/apps-outline.svg');
+}
+
+.icomoon-archive-outline,.icomoon.archive-outline {
+  background-image: url('#{$icomoon-svg-path}/archive-outline.svg');
+}
+
+.icomoon-arrow-back,.icomoon.arrow-back {
+  background-image: url('#{$icomoon-svg-path}/arrow-back.svg');
+}
+
+.icomoon-arrow-down-left,.icomoon.arrow-down-left {
+  background-image: url('#{$icomoon-svg-path}/arrow-down-left.svg');
+}
+
+.icomoon-arrow-down-left2,.icomoon.arrow-down-left2 {
+  background-image: url('#{$icomoon-svg-path}/arrow-down-left2.svg');
+}
+
+.icomoon-arrow-down-right,.icomoon.arrow-down-right {
+  background-image: url('#{$icomoon-svg-path}/arrow-down-right.svg');
+}
+
+.icomoon-arrow-down-right2,.icomoon.arrow-down-right2 {
+  background-image: url('#{$icomoon-svg-path}/arrow-down-right2.svg');
+}
+
+.icomoon-arrow-down,.icomoon.arrow-down {
+  background-image: url('#{$icomoon-svg-path}/arrow-down.svg');
+}
+
+.icomoon-arrow-down2,.icomoon.arrow-down2 {
+  background-image: url('#{$icomoon-svg-path}/arrow-down2.svg');
+}
+
+.icomoon-arrow-down3,.icomoon.arrow-down3 {
+  background-image: url('#{$icomoon-svg-path}/arrow-down3.svg');
+}
+
+.icomoon-arrow-forward,.icomoon.arrow-forward {
+  background-image: url('#{$icomoon-svg-path}/arrow-forward.svg');
+}
+
+.icomoon-arrow-left,.icomoon.arrow-left {
+  background-image: url('#{$icomoon-svg-path}/arrow-left.svg');
+}
+
+.icomoon-arrow-left2,.icomoon.arrow-left2 {
+  background-image: url('#{$icomoon-svg-path}/arrow-left2.svg');
+}
+
+.icomoon-arrow-right,.icomoon.arrow-right {
+  background-image: url('#{$icomoon-svg-path}/arrow-right.svg');
+}
+
+.icomoon-arrow-right2,.icomoon.arrow-right2 {
+  background-image: url('#{$icomoon-svg-path}/arrow-right2.svg');
+}
+
+.icomoon-arrow-up-left,.icomoon.arrow-up-left {
+  background-image: url('#{$icomoon-svg-path}/arrow-up-left.svg');
+}
+
+.icomoon-arrow-up-left2,.icomoon.arrow-up-left2 {
+  background-image: url('#{$icomoon-svg-path}/arrow-up-left2.svg');
+}
+
+.icomoon-arrow-up-right,.icomoon.arrow-up-right {
+  background-image: url('#{$icomoon-svg-path}/arrow-up-right.svg');
+}
+
+.icomoon-arrow-up-right2,.icomoon.arrow-up-right2 {
+  background-image: url('#{$icomoon-svg-path}/arrow-up-right2.svg');
+}
+
+.icomoon-arrow-up,.icomoon.arrow-up {
+  background-image: url('#{$icomoon-svg-path}/arrow-up.svg');
+}
+
+.icomoon-arrow-up2,.icomoon.arrow-up2 {
+  background-image: url('#{$icomoon-svg-path}/arrow-up2.svg');
+}
+
+.icomoon-arrow-up3,.icomoon.arrow-up3 {
+  background-image: url('#{$icomoon-svg-path}/arrow-up3.svg');
+}
+
+.icomoon-arrowhead-down,.icomoon.arrowhead-down {
+  background-image: url('#{$icomoon-svg-path}/arrowhead-down.svg');
+}
+
+.icomoon-arrowhead-left,.icomoon.arrowhead-left {
+  background-image: url('#{$icomoon-svg-path}/arrowhead-left.svg');
+}
+
+.icomoon-arrowhead-right,.icomoon.arrowhead-right {
+  background-image: url('#{$icomoon-svg-path}/arrowhead-right.svg');
+}
+
+.icomoon-arrowhead-up,.icomoon.arrowhead-up {
+  background-image: url('#{$icomoon-svg-path}/arrowhead-up.svg');
+}
+
+.icomoon-attachment,.icomoon.attachment {
+  background-image: url('#{$icomoon-svg-path}/attachment.svg');
+}
+
+.icomoon-authenticate,.icomoon.authenticate {
+  background-image: url('#{$icomoon-svg-path}/authenticate.svg');
+}
+
+.icomoon-backward,.icomoon.backward {
+  background-image: url('#{$icomoon-svg-path}/backward.svg');
+}
+
+.icomoon-backward2,.icomoon.backward2 {
+  background-image: url('#{$icomoon-svg-path}/backward2.svg');
+}
+
+.icomoon-baffled,.icomoon.baffled {
+  background-image: url('#{$icomoon-svg-path}/baffled.svg');
+}
+
+.icomoon-baffled2,.icomoon.baffled2 {
+  background-image: url('#{$icomoon-svg-path}/baffled2.svg');
+}
+
+.icomoon-barcode,.icomoon.barcode {
+  background-image: url('#{$icomoon-svg-path}/barcode.svg');
+}
+
+.icomoon-basecamp,.icomoon.basecamp {
+  background-image: url('#{$icomoon-svg-path}/basecamp.svg');
+}
+
+.icomoon-behance,.icomoon.behance {
+  background-image: url('#{$icomoon-svg-path}/behance.svg');
+}
+
+.icomoon-behance2,.icomoon.behance2 {
+  background-image: url('#{$icomoon-svg-path}/behance2.svg');
+}
+
+.icomoon-bell,.icomoon.bell {
+  background-image: url('#{$icomoon-svg-path}/bell.svg');
+}
+
+.icomoon-bin,.icomoon.bin {
+  background-image: url('#{$icomoon-svg-path}/bin.svg');
+}
+
+.icomoon-bin2,.icomoon.bin2 {
+  background-image: url('#{$icomoon-svg-path}/bin2.svg');
+}
+
+.icomoon-binoculars,.icomoon.binoculars {
+  background-image: url('#{$icomoon-svg-path}/binoculars.svg');
+}
+
+.icomoon-binoculars2,.icomoon.binoculars2 {
+  background-image: url('#{$icomoon-svg-path}/binoculars2.svg');
+}
+
+.icomoon-blocked,.icomoon.blocked {
+  background-image: url('#{$icomoon-svg-path}/blocked.svg');
+}
+
+.icomoon-blog,.icomoon.blog {
+  background-image: url('#{$icomoon-svg-path}/blog.svg');
+}
+
+.icomoon-blogger,.icomoon.blogger {
+  background-image: url('#{$icomoon-svg-path}/blogger.svg');
+}
+
+.icomoon-blogger2,.icomoon.blogger2 {
+  background-image: url('#{$icomoon-svg-path}/blogger2.svg');
+}
+
+.icomoon-bold,.icomoon.bold {
+  background-image: url('#{$icomoon-svg-path}/bold.svg');
+}
+
+.icomoon-book,.icomoon.book {
+  background-image: url('#{$icomoon-svg-path}/book.svg');
+}
+
+.icomoon-bookmark,.icomoon.bookmark {
+  background-image: url('#{$icomoon-svg-path}/bookmark.svg');
+}
+
+.icomoon-bookmarks,.icomoon.bookmarks {
+  background-image: url('#{$icomoon-svg-path}/bookmarks.svg');
+}
+
+.icomoon-books,.icomoon.books {
+  background-image: url('#{$icomoon-svg-path}/books.svg');
+}
+
+.icomoon-box-add,.icomoon.box-add {
+  background-image: url('#{$icomoon-svg-path}/box-add.svg');
+}
+
+.icomoon-box-check-no,.icomoon.box-check-no {
+  background-image: url('#{$icomoon-svg-path}/box-check-no.svg');
+}
+
+.icomoon-box-check-yes,.icomoon.box-check-yes {
+  background-image: url('#{$icomoon-svg-path}/box-check-yes.svg');
+}
+
+.icomoon-box-remove,.icomoon.box-remove {
+  background-image: url('#{$icomoon-svg-path}/box-remove.svg');
+}
+
+.icomoon-briefcase-outline,.icomoon.briefcase-outline {
+  background-image: url('#{$icomoon-svg-path}/briefcase-outline.svg');
+}
+
+.icomoon-briefcase,.icomoon.briefcase {
+  background-image: url('#{$icomoon-svg-path}/briefcase.svg');
+}
+
+.icomoon-brightness-contrast,.icomoon.brightness-contrast {
+  background-image: url('#{$icomoon-svg-path}/brightness-contrast.svg');
+}
+
+.icomoon-browsers-outline,.icomoon.browsers-outline {
+  background-image: url('#{$icomoon-svg-path}/browsers-outline.svg');
+}
+
+.icomoon-bubble,.icomoon.bubble {
+  background-image: url('#{$icomoon-svg-path}/bubble.svg');
+}
+
+.icomoon-bubble2,.icomoon.bubble2 {
+  background-image: url('#{$icomoon-svg-path}/bubble2.svg');
+}
+
+.icomoon-bubble22,.icomoon.bubble22 {
+  background-image: url('#{$icomoon-svg-path}/bubble22.svg');
+}
+
+.icomoon-bubble3,.icomoon.bubble3 {
+  background-image: url('#{$icomoon-svg-path}/bubble3.svg');
+}
+
+.icomoon-bubbles,.icomoon.bubbles {
+  background-image: url('#{$icomoon-svg-path}/bubbles.svg');
+}
+
+.icomoon-bubbles2,.icomoon.bubbles2 {
+  background-image: url('#{$icomoon-svg-path}/bubbles2.svg');
+}
+
+.icomoon-bubbles22,.icomoon.bubbles22 {
+  background-image: url('#{$icomoon-svg-path}/bubbles22.svg');
+}
+
+.icomoon-bubbles3,.icomoon.bubbles3 {
+  background-image: url('#{$icomoon-svg-path}/bubbles3.svg');
+}
+
+.icomoon-bubbles32,.icomoon.bubbles32 {
+  background-image: url('#{$icomoon-svg-path}/bubbles32.svg');
+}
+
+.icomoon-bubbles4,.icomoon.bubbles4 {
+  background-image: url('#{$icomoon-svg-path}/bubbles4.svg');
+}
+
+.icomoon-bubbles42,.icomoon.bubbles42 {
+  background-image: url('#{$icomoon-svg-path}/bubbles42.svg');
+}
+
+.icomoon-bubbles5,.icomoon.bubbles5 {
+  background-image: url('#{$icomoon-svg-path}/bubbles5.svg');
+}
+
+.icomoon-bug,.icomoon.bug {
+  background-image: url('#{$icomoon-svg-path}/bug.svg');
+}
+
+.icomoon-bullhorn,.icomoon.bullhorn {
+  background-image: url('#{$icomoon-svg-path}/bullhorn.svg');
+}
+
+.icomoon-calculator-outline,.icomoon.calculator-outline {
+  background-image: url('#{$icomoon-svg-path}/calculator-outline.svg');
+}
+
+.icomoon-calculator,.icomoon.calculator {
+  background-image: url('#{$icomoon-svg-path}/calculator.svg');
+}
+
+.icomoon-calendar-outline,.icomoon.calendar-outline {
+  background-image: url('#{$icomoon-svg-path}/calendar-outline.svg');
+}
+
+.icomoon-calendar,.icomoon.calendar {
+  background-image: url('#{$icomoon-svg-path}/calendar.svg');
+}
+
+.icomoon-call-outline,.icomoon.call-outline {
+  background-image: url('#{$icomoon-svg-path}/call-outline.svg');
+}
+
+.icomoon-camera,.icomoon.camera {
+  background-image: url('#{$icomoon-svg-path}/camera.svg');
+}
+
+.icomoon-cancel-circle,.icomoon.cancel-circle {
+  background-image: url('#{$icomoon-svg-path}/cancel-circle.svg');
+}
+
+.icomoon-cart,.icomoon.cart {
+  background-image: url('#{$icomoon-svg-path}/cart.svg');
+}
+
+.icomoon-chatboxes-outline,.icomoon.chatboxes-outline {
+  background-image: url('#{$icomoon-svg-path}/chatboxes-outline.svg');
+}
+
+.icomoon-chatbubbles-outline,.icomoon.chatbubbles-outline {
+  background-image: url('#{$icomoon-svg-path}/chatbubbles-outline.svg');
+}
+
+.icomoon-checkbox-checked,.icomoon.checkbox-checked {
+  background-image: url('#{$icomoon-svg-path}/checkbox-checked.svg');
+}
+
+.icomoon-checkbox-unchecked,.icomoon.checkbox-unchecked {
+  background-image: url('#{$icomoon-svg-path}/checkbox-unchecked.svg');
+}
+
+.icomoon-checkmark,.icomoon.checkmark {
+  background-image: url('#{$icomoon-svg-path}/checkmark.svg');
+}
+
+.icomoon-checkmark2,.icomoon.checkmark2 {
+  background-image: url('#{$icomoon-svg-path}/checkmark2.svg');
+}
+
+.icomoon-chrome,.icomoon.chrome {
+  background-image: url('#{$icomoon-svg-path}/chrome.svg');
+}
+
+.icomoon-circle-down,.icomoon.circle-down {
+  background-image: url('#{$icomoon-svg-path}/circle-down.svg');
+}
+
+.icomoon-circle-left,.icomoon.circle-left {
+  background-image: url('#{$icomoon-svg-path}/circle-left.svg');
+}
+
+.icomoon-circle-right,.icomoon.circle-right {
+  background-image: url('#{$icomoon-svg-path}/circle-right.svg');
+}
+
+.icomoon-circle-up,.icomoon.circle-up {
+  background-image: url('#{$icomoon-svg-path}/circle-up.svg');
+}
+
+.icomoon-circled-0,.icomoon.circled-0 {
+  background-image: url('#{$icomoon-svg-path}/circled-0.svg');
+}
+
+.icomoon-circled-1,.icomoon.circled-1 {
+  background-image: url('#{$icomoon-svg-path}/circled-1.svg');
+}
+
+.icomoon-circled-2,.icomoon.circled-2 {
+  background-image: url('#{$icomoon-svg-path}/circled-2.svg');
+}
+
+.icomoon-circled-3,.icomoon.circled-3 {
+  background-image: url('#{$icomoon-svg-path}/circled-3.svg');
+}
+
+.icomoon-circled-4,.icomoon.circled-4 {
+  background-image: url('#{$icomoon-svg-path}/circled-4.svg');
+}
+
+.icomoon-circled-5,.icomoon.circled-5 {
+  background-image: url('#{$icomoon-svg-path}/circled-5.svg');
+}
+
+.icomoon-circled-6,.icomoon.circled-6 {
+  background-image: url('#{$icomoon-svg-path}/circled-6.svg');
+}
+
+.icomoon-circled-7,.icomoon.circled-7 {
+  background-image: url('#{$icomoon-svg-path}/circled-7.svg');
+}
+
+.icomoon-circled-8,.icomoon.circled-8 {
+  background-image: url('#{$icomoon-svg-path}/circled-8.svg');
+}
+
+.icomoon-circled-9,.icomoon.circled-9 {
+  background-image: url('#{$icomoon-svg-path}/circled-9.svg');
+}
+
+.icomoon-clear-formatting,.icomoon.clear-formatting {
+  background-image: url('#{$icomoon-svg-path}/clear-formatting.svg');
+}
+
+.icomoon-clipboard-outline,.icomoon.clipboard-outline {
+  background-image: url('#{$icomoon-svg-path}/clipboard-outline.svg');
+}
+
+.icomoon-clipboard,.icomoon.clipboard {
+  background-image: url('#{$icomoon-svg-path}/clipboard.svg');
+}
+
+.icomoon-clock,.icomoon.clock {
+  background-image: url('#{$icomoon-svg-path}/clock.svg');
+}
+
+.icomoon-clock2,.icomoon.clock2 {
+  background-image: url('#{$icomoon-svg-path}/clock2.svg');
+}
+
+.icomoon-clock22,.icomoon.clock22 {
+  background-image: url('#{$icomoon-svg-path}/clock22.svg');
+}
+
+.icomoon-clock3,.icomoon.clock3 {
+  background-image: url('#{$icomoon-svg-path}/clock3.svg');
+}
+
+.icomoon-close-circle-outline,.icomoon.close-circle-outline {
+  background-image: url('#{$icomoon-svg-path}/close-circle-outline.svg');
+}
+
+.icomoon-close,.icomoon.close {
+  background-image: url('#{$icomoon-svg-path}/close.svg');
+}
+
+.icomoon-cloud-check,.icomoon.cloud-check {
+  background-image: url('#{$icomoon-svg-path}/cloud-check.svg');
+}
+
+.icomoon-cloud-download,.icomoon.cloud-download {
+  background-image: url('#{$icomoon-svg-path}/cloud-download.svg');
+}
+
+.icomoon-cloud-upload,.icomoon.cloud-upload {
+  background-image: url('#{$icomoon-svg-path}/cloud-upload.svg');
+}
+
+.icomoon-cloud,.icomoon.cloud {
+  background-image: url('#{$icomoon-svg-path}/cloud.svg');
+}
+
+.icomoon-clubs,.icomoon.clubs {
+  background-image: url('#{$icomoon-svg-path}/clubs.svg');
+}
+
+.icomoon-codepen,.icomoon.codepen {
+  background-image: url('#{$icomoon-svg-path}/codepen.svg');
+}
+
+.icomoon-cog,.icomoon.cog {
+  background-image: url('#{$icomoon-svg-path}/cog.svg');
+}
+
+.icomoon-cog2,.icomoon.cog2 {
+  background-image: url('#{$icomoon-svg-path}/cog2.svg');
+}
+
+.icomoon-cogs,.icomoon.cogs {
+  background-image: url('#{$icomoon-svg-path}/cogs.svg');
+}
+
+.icomoon-cogs2,.icomoon.cogs2 {
+  background-image: url('#{$icomoon-svg-path}/cogs2.svg');
+}
+
+.icomoon-coin-dollar,.icomoon.coin-dollar {
+  background-image: url('#{$icomoon-svg-path}/coin-dollar.svg');
+}
+
+.icomoon-coin-euro,.icomoon.coin-euro {
+  background-image: url('#{$icomoon-svg-path}/coin-euro.svg');
+}
+
+.icomoon-coin-pound,.icomoon.coin-pound {
+  background-image: url('#{$icomoon-svg-path}/coin-pound.svg');
+}
+
+.icomoon-coin-yen,.icomoon.coin-yen {
+  background-image: url('#{$icomoon-svg-path}/coin-yen.svg');
+}
+
+.icomoon-command,.icomoon.command {
+  background-image: url('#{$icomoon-svg-path}/command.svg');
+}
+
+.icomoon-compass-outline,.icomoon.compass-outline {
+  background-image: url('#{$icomoon-svg-path}/compass-outline.svg');
+}
+
+.icomoon-compass,.icomoon.compass {
+  background-image: url('#{$icomoon-svg-path}/compass.svg');
+}
+
+.icomoon-compass2,.icomoon.compass2 {
+  background-image: url('#{$icomoon-svg-path}/compass2.svg');
+}
+
+.icomoon-compass22,.icomoon.compass22 {
+  background-image: url('#{$icomoon-svg-path}/compass22.svg');
+}
+
+.icomoon-compass3,.icomoon.compass3 {
+  background-image: url('#{$icomoon-svg-path}/compass3.svg');
+}
+
+.icomoon-confused,.icomoon.confused {
+  background-image: url('#{$icomoon-svg-path}/confused.svg');
+}
+
+.icomoon-confused2,.icomoon.confused2 {
+  background-image: url('#{$icomoon-svg-path}/confused2.svg');
+}
+
+.icomoon-connection,.icomoon.connection {
+  background-image: url('#{$icomoon-svg-path}/connection.svg');
+}
+
+.icomoon-contact-outline,.icomoon.contact-outline {
+  background-image: url('#{$icomoon-svg-path}/contact-outline.svg');
+}
+
+.icomoon-contacts-outline,.icomoon.contacts-outline {
+  background-image: url('#{$icomoon-svg-path}/contacts-outline.svg');
+}
+
+.icomoon-contrast,.icomoon.contrast {
+  background-image: url('#{$icomoon-svg-path}/contrast.svg');
+}
+
+.icomoon-cool,.icomoon.cool {
+  background-image: url('#{$icomoon-svg-path}/cool.svg');
+}
+
+.icomoon-cool2,.icomoon.cool2 {
+  background-image: url('#{$icomoon-svg-path}/cool2.svg');
+}
+
+.icomoon-copy-form,.icomoon.copy-form {
+  background-image: url('#{$icomoon-svg-path}/copy-form.svg');
+}
+
+.icomoon-copy-list,.icomoon.copy-list {
+  background-image: url('#{$icomoon-svg-path}/copy-list.svg');
+}
+
+.icomoon-copy-outline,.icomoon.copy-outline {
+  background-image: url('#{$icomoon-svg-path}/copy-outline.svg');
+}
+
+.icomoon-copy-table,.icomoon.copy-table {
+  background-image: url('#{$icomoon-svg-path}/copy-table.svg');
+}
+
+.icomoon-copy,.icomoon.copy {
+  background-image: url('#{$icomoon-svg-path}/copy.svg');
+}
+
+.icomoon-copy2,.icomoon.copy2 {
+  background-image: url('#{$icomoon-svg-path}/copy2.svg');
+}
+
+.icomoon-create-outline,.icomoon.create-outline {
+  background-image: url('#{$icomoon-svg-path}/create-outline.svg');
+}
+
+.icomoon-credit-card,.icomoon.credit-card {
+  background-image: url('#{$icomoon-svg-path}/credit-card.svg');
+}
+
+.icomoon-crop,.icomoon.crop {
+  background-image: url('#{$icomoon-svg-path}/crop.svg');
+}
+
+.icomoon-cross,.icomoon.cross {
+  background-image: url('#{$icomoon-svg-path}/cross.svg');
+}
+
+.icomoon-crying,.icomoon.crying {
+  background-image: url('#{$icomoon-svg-path}/crying.svg');
+}
+
+.icomoon-crying2,.icomoon.crying2 {
+  background-image: url('#{$icomoon-svg-path}/crying2.svg');
+}
+
+.icomoon-css3,.icomoon.css3 {
+  background-image: url('#{$icomoon-svg-path}/css3.svg');
+}
+
+.icomoon-ctrl,.icomoon.ctrl {
+  background-image: url('#{$icomoon-svg-path}/ctrl.svg');
+}
+
+.icomoon-data-refresh-2,.icomoon.data-refresh-2 {
+  background-image: url('#{$icomoon-svg-path}/data-refresh-2.svg');
+}
+
+.icomoon-data-refresh,.icomoon.data-refresh {
+  background-image: url('#{$icomoon-svg-path}/data-refresh.svg');
+}
+
+.icomoon-database,.icomoon.database {
+  background-image: url('#{$icomoon-svg-path}/database.svg');
+}
+
+.icomoon-delicious,.icomoon.delicious {
+  background-image: url('#{$icomoon-svg-path}/delicious.svg');
+}
+
+.icomoon-developer-head,.icomoon.developer-head {
+  background-image: url('#{$icomoon-svg-path}/developer-head.svg');
+}
+
+.icomoon-developer,.icomoon.developer {
+  background-image: url('#{$icomoon-svg-path}/developer.svg');
+}
+
+.icomoon-deviantart,.icomoon.deviantart {
+  background-image: url('#{$icomoon-svg-path}/deviantart.svg');
+}
+
+.icomoon-diamonds,.icomoon.diamonds {
+  background-image: url('#{$icomoon-svg-path}/diamonds.svg');
+}
+
+.icomoon-dice,.icomoon.dice {
+  background-image: url('#{$icomoon-svg-path}/dice.svg');
+}
+
+.icomoon-display,.icomoon.display {
+  background-image: url('#{$icomoon-svg-path}/display.svg');
+}
+
+.icomoon-document-add,.icomoon.document-add {
+  background-image: url('#{$icomoon-svg-path}/document-add.svg');
+}
+
+.icomoon-document-outline,.icomoon.document-outline {
+  background-image: url('#{$icomoon-svg-path}/document-outline.svg');
+}
+
+.icomoon-download-outline,.icomoon.download-outline {
+  background-image: url('#{$icomoon-svg-path}/download-outline.svg');
+}
+
+.icomoon-download,.icomoon.download {
+  background-image: url('#{$icomoon-svg-path}/download.svg');
+}
+
+.icomoon-download2,.icomoon.download2 {
+  background-image: url('#{$icomoon-svg-path}/download2.svg');
+}
+
+.icomoon-download3,.icomoon.download3 {
+  background-image: url('#{$icomoon-svg-path}/download3.svg');
+}
+
+.icomoon-dps-2,.icomoon.dps-2 {
+  background-image: url('#{$icomoon-svg-path}/dps-2.svg');
+}
+
+.icomoon-dps,.icomoon.dps {
+  background-image: url('#{$icomoon-svg-path}/dps.svg');
+}
+
+.icomoon-drawer,.icomoon.drawer {
+  background-image: url('#{$icomoon-svg-path}/drawer.svg');
+}
+
+.icomoon-drawer2,.icomoon.drawer2 {
+  background-image: url('#{$icomoon-svg-path}/drawer2.svg');
+}
+
+.icomoon-dribbble,.icomoon.dribbble {
+  background-image: url('#{$icomoon-svg-path}/dribbble.svg');
+}
+
+.icomoon-drive,.icomoon.drive {
+  background-image: url('#{$icomoon-svg-path}/drive.svg');
+}
+
+.icomoon-dropbox,.icomoon.dropbox {
+  background-image: url('#{$icomoon-svg-path}/dropbox.svg');
+}
+
+.icomoon-droplet,.icomoon.droplet {
+  background-image: url('#{$icomoon-svg-path}/droplet.svg');
+}
+
+.icomoon-earth,.icomoon.earth {
+  background-image: url('#{$icomoon-svg-path}/earth.svg');
+}
+
+.icomoon-edge,.icomoon.edge {
+  background-image: url('#{$icomoon-svg-path}/edge.svg');
+}
+
+.icomoon-eject,.icomoon.eject {
+  background-image: url('#{$icomoon-svg-path}/eject.svg');
+}
+
+.icomoon-ello,.icomoon.ello {
+  background-image: url('#{$icomoon-svg-path}/ello.svg');
+}
+
+.icomoon-embed,.icomoon.embed {
+  background-image: url('#{$icomoon-svg-path}/embed.svg');
+}
+
+.icomoon-embed2,.icomoon.embed2 {
+  background-image: url('#{$icomoon-svg-path}/embed2.svg');
+}
+
+.icomoon-employee-problem,.icomoon.employee-problem {
+  background-image: url('#{$icomoon-svg-path}/employee-problem.svg');
+}
+
+.icomoon-enlarge,.icomoon.enlarge {
+  background-image: url('#{$icomoon-svg-path}/enlarge.svg');
+}
+
+.icomoon-enlarge2,.icomoon.enlarge2 {
+  background-image: url('#{$icomoon-svg-path}/enlarge2.svg');
+}
+
+.icomoon-enter,.icomoon.enter {
+  background-image: url('#{$icomoon-svg-path}/enter.svg');
+}
+
+.icomoon-enter2,.icomoon.enter2 {
+  background-image: url('#{$icomoon-svg-path}/enter2.svg');
+}
+
+.icomoon-envelop,.icomoon.envelop {
+  background-image: url('#{$icomoon-svg-path}/envelop.svg');
+}
+
+.icomoon-equalizer,.icomoon.equalizer {
+  background-image: url('#{$icomoon-svg-path}/equalizer.svg');
+}
+
+.icomoon-equalizer2,.icomoon.equalizer2 {
+  background-image: url('#{$icomoon-svg-path}/equalizer2.svg');
+}
+
+.icomoon-equalizer22,.icomoon.equalizer22 {
+  background-image: url('#{$icomoon-svg-path}/equalizer22.svg');
+}
+
+.icomoon-equalizer3,.icomoon.equalizer3 {
+  background-image: url('#{$icomoon-svg-path}/equalizer3.svg');
+}
+
+.icomoon-evil,.icomoon.evil {
+  background-image: url('#{$icomoon-svg-path}/evil.svg');
+}
+
+.icomoon-evil2,.icomoon.evil2 {
+  background-image: url('#{$icomoon-svg-path}/evil2.svg');
+}
+
+.icomoon-exit-outline,.icomoon.exit-outline {
+  background-image: url('#{$icomoon-svg-path}/exit-outline.svg');
+}
+
+.icomoon-exit,.icomoon.exit {
+  background-image: url('#{$icomoon-svg-path}/exit.svg');
+}
+
+.icomoon-exit2,.icomoon.exit2 {
+  background-image: url('#{$icomoon-svg-path}/exit2.svg');
+}
+
+.icomoon-experiment,.icomoon.experiment {
+  background-image: url('#{$icomoon-svg-path}/experiment.svg');
+}
+
+.icomoon-experiment2,.icomoon.experiment2 {
+  background-image: url('#{$icomoon-svg-path}/experiment2.svg');
+}
+
+.icomoon-experiment3,.icomoon.experiment3 {
+  background-image: url('#{$icomoon-svg-path}/experiment3.svg');
+}
+
+.icomoon-experiment4,.icomoon.experiment4 {
+  background-image: url('#{$icomoon-svg-path}/experiment4.svg');
+}
+
+.icomoon-experiment5,.icomoon.experiment5 {
+  background-image: url('#{$icomoon-svg-path}/experiment5.svg');
+}
+
+.icomoon-eye-blocked,.icomoon.eye-blocked {
+  background-image: url('#{$icomoon-svg-path}/eye-blocked.svg');
+}
+
+.icomoon-eye-blocked2,.icomoon.eye-blocked2 {
+  background-image: url('#{$icomoon-svg-path}/eye-blocked2.svg');
+}
+
+.icomoon-eye-minus,.icomoon.eye-minus {
+  background-image: url('#{$icomoon-svg-path}/eye-minus.svg');
+}
+
+.icomoon-eye-minus2,.icomoon.eye-minus2 {
+  background-image: url('#{$icomoon-svg-path}/eye-minus2.svg');
+}
+
+.icomoon-eye-off-outline,.icomoon.eye-off-outline {
+  background-image: url('#{$icomoon-svg-path}/eye-off-outline.svg');
+}
+
+.icomoon-eye-outline,.icomoon.eye-outline {
+  background-image: url('#{$icomoon-svg-path}/eye-outline.svg');
+}
+
+.icomoon-eye-plus,.icomoon.eye-plus {
+  background-image: url('#{$icomoon-svg-path}/eye-plus.svg');
+}
+
+.icomoon-eye-plus2,.icomoon.eye-plus2 {
+  background-image: url('#{$icomoon-svg-path}/eye-plus2.svg');
+}
+
+.icomoon-eye,.icomoon.eye {
+  background-image: url('#{$icomoon-svg-path}/eye.svg');
+}
+
+.icomoon-eye2,.icomoon.eye2 {
+  background-image: url('#{$icomoon-svg-path}/eye2.svg');
+}
+
+.icomoon-eyedropper,.icomoon.eyedropper {
+  background-image: url('#{$icomoon-svg-path}/eyedropper.svg');
+}
+
+.icomoon-facebook,.icomoon.facebook {
+  background-image: url('#{$icomoon-svg-path}/facebook.svg');
+}
+
+.icomoon-facebook2,.icomoon.facebook2 {
+  background-image: url('#{$icomoon-svg-path}/facebook2.svg');
+}
+
+.icomoon-feed,.icomoon.feed {
+  background-image: url('#{$icomoon-svg-path}/feed.svg');
+}
+
+.icomoon-file-empty,.icomoon.file-empty {
+  background-image: url('#{$icomoon-svg-path}/file-empty.svg');
+}
+
+.icomoon-file-excel,.icomoon.file-excel {
+  background-image: url('#{$icomoon-svg-path}/file-excel.svg');
+}
+
+.icomoon-file-music,.icomoon.file-music {
+  background-image: url('#{$icomoon-svg-path}/file-music.svg');
+}
+
+.icomoon-file-openoffice,.icomoon.file-openoffice {
+  background-image: url('#{$icomoon-svg-path}/file-openoffice.svg');
+}
+
+.icomoon-file-pdf,.icomoon.file-pdf {
+  background-image: url('#{$icomoon-svg-path}/file-pdf.svg');
+}
+
+.icomoon-file-picture,.icomoon.file-picture {
+  background-image: url('#{$icomoon-svg-path}/file-picture.svg');
+}
+
+.icomoon-file-play,.icomoon.file-play {
+  background-image: url('#{$icomoon-svg-path}/file-play.svg');
+}
+
+.icomoon-file-text,.icomoon.file-text {
+  background-image: url('#{$icomoon-svg-path}/file-text.svg');
+}
+
+.icomoon-file-text2,.icomoon.file-text2 {
+  background-image: url('#{$icomoon-svg-path}/file-text2.svg');
+}
+
+.icomoon-file-text22,.icomoon.file-text22 {
+  background-image: url('#{$icomoon-svg-path}/file-text22.svg');
+}
+
+.icomoon-file-video,.icomoon.file-video {
+  background-image: url('#{$icomoon-svg-path}/file-video.svg');
+}
+
+.icomoon-file-word,.icomoon.file-word {
+  background-image: url('#{$icomoon-svg-path}/file-word.svg');
+}
+
+.icomoon-file-zip,.icomoon.file-zip {
+  background-image: url('#{$icomoon-svg-path}/file-zip.svg');
+}
+
+.icomoon-files-empty,.icomoon.files-empty {
+  background-image: url('#{$icomoon-svg-path}/files-empty.svg');
+}
+
+.icomoon-files-empty2,.icomoon.files-empty2 {
+  background-image: url('#{$icomoon-svg-path}/files-empty2.svg');
+}
+
+.icomoon-filing-outline,.icomoon.filing-outline {
+  background-image: url('#{$icomoon-svg-path}/filing-outline.svg');
+}
+
+.icomoon-film,.icomoon.film {
+  background-image: url('#{$icomoon-svg-path}/film.svg');
+}
+
+.icomoon-filter,.icomoon.filter {
+  background-image: url('#{$icomoon-svg-path}/filter.svg');
+}
+
+.icomoon-filter2,.icomoon.filter2 {
+  background-image: url('#{$icomoon-svg-path}/filter2.svg');
+}
+
+.icomoon-finder,.icomoon.finder {
+  background-image: url('#{$icomoon-svg-path}/finder.svg');
+}
+
+.icomoon-fire,.icomoon.fire {
+  background-image: url('#{$icomoon-svg-path}/fire.svg');
+}
+
+.icomoon-firefox,.icomoon.firefox {
+  background-image: url('#{$icomoon-svg-path}/firefox.svg');
+}
+
+.icomoon-first,.icomoon.first {
+  background-image: url('#{$icomoon-svg-path}/first.svg');
+}
+
+.icomoon-flag-blank,.icomoon.flag-blank {
+  background-image: url('#{$icomoon-svg-path}/flag-blank.svg');
+}
+
+.icomoon-flag-checkered,.icomoon.flag-checkered {
+  background-image: url('#{$icomoon-svg-path}/flag-checkered.svg');
+}
+
+.icomoon-flag-outline,.icomoon.flag-outline {
+  background-image: url('#{$icomoon-svg-path}/flag-outline.svg');
+}
+
+.icomoon-flag,.icomoon.flag {
+  background-image: url('#{$icomoon-svg-path}/flag.svg');
+}
+
+.icomoon-flattr,.icomoon.flattr {
+  background-image: url('#{$icomoon-svg-path}/flattr.svg');
+}
+
+.icomoon-flickr,.icomoon.flickr {
+  background-image: url('#{$icomoon-svg-path}/flickr.svg');
+}
+
+.icomoon-flickr2,.icomoon.flickr2 {
+  background-image: url('#{$icomoon-svg-path}/flickr2.svg');
+}
+
+.icomoon-flickr3,.icomoon.flickr3 {
+  background-image: url('#{$icomoon-svg-path}/flickr3.svg');
+}
+
+.icomoon-flickr4,.icomoon.flickr4 {
+  background-image: url('#{$icomoon-svg-path}/flickr4.svg');
+}
+
+.icomoon-floppy-disk,.icomoon.floppy-disk {
+  background-image: url('#{$icomoon-svg-path}/floppy-disk.svg');
+}
+
+.icomoon-folder-download,.icomoon.folder-download {
+  background-image: url('#{$icomoon-svg-path}/folder-download.svg');
+}
+
+.icomoon-folder-minus,.icomoon.folder-minus {
+  background-image: url('#{$icomoon-svg-path}/folder-minus.svg');
+}
+
+.icomoon-folder-open-outline,.icomoon.folder-open-outline {
+  background-image: url('#{$icomoon-svg-path}/folder-open-outline.svg');
+}
+
+.icomoon-folder-open,.icomoon.folder-open {
+  background-image: url('#{$icomoon-svg-path}/folder-open.svg');
+}
+
+.icomoon-folder-outline,.icomoon.folder-outline {
+  background-image: url('#{$icomoon-svg-path}/folder-outline.svg');
+}
+
+.icomoon-folder-plus,.icomoon.folder-plus {
+  background-image: url('#{$icomoon-svg-path}/folder-plus.svg');
+}
+
+.icomoon-folder-upload,.icomoon.folder-upload {
+  background-image: url('#{$icomoon-svg-path}/folder-upload.svg');
+}
+
+.icomoon-folder,.icomoon.folder {
+  background-image: url('#{$icomoon-svg-path}/folder.svg');
+}
+
+.icomoon-font-size,.icomoon.font-size {
+  background-image: url('#{$icomoon-svg-path}/font-size.svg');
+}
+
+.icomoon-font,.icomoon.font {
+  background-image: url('#{$icomoon-svg-path}/font.svg');
+}
+
+.icomoon-forward,.icomoon.forward {
+  background-image: url('#{$icomoon-svg-path}/forward.svg');
+}
+
+.icomoon-forward2,.icomoon.forward2 {
+  background-image: url('#{$icomoon-svg-path}/forward2.svg');
+}
+
+.icomoon-forward3,.icomoon.forward3 {
+  background-image: url('#{$icomoon-svg-path}/forward3.svg');
+}
+
+.icomoon-foursquare,.icomoon.foursquare {
+  background-image: url('#{$icomoon-svg-path}/foursquare.svg');
+}
+
+.icomoon-frack-truck,.icomoon.frack-truck {
+  background-image: url('#{$icomoon-svg-path}/frack-truck.svg');
+}
+
+.icomoon-fracking-detail,.icomoon.fracking-detail {
+  background-image: url('#{$icomoon-svg-path}/fracking-detail.svg');
+}
+
+.icomoon-fracking-well,.icomoon.fracking-well {
+  background-image: url('#{$icomoon-svg-path}/fracking-well.svg');
+}
+
+.icomoon-frustrated,.icomoon.frustrated {
+  background-image: url('#{$icomoon-svg-path}/frustrated.svg');
+}
+
+.icomoon-frustrated2,.icomoon.frustrated2 {
+  background-image: url('#{$icomoon-svg-path}/frustrated2.svg');
+}
+
+.icomoon-geolocation-earth,.icomoon.geolocation-earth {
+  background-image: url('#{$icomoon-svg-path}/geolocation-earth.svg');
+}
+
+.icomoon-geolocation,.icomoon.geolocation {
+  background-image: url('#{$icomoon-svg-path}/geolocation.svg');
+}
+
+.icomoon-gift,.icomoon.gift {
+  background-image: url('#{$icomoon-svg-path}/gift.svg');
+}
+
+.icomoon-git,.icomoon.git {
+  background-image: url('#{$icomoon-svg-path}/git.svg');
+}
+
+.icomoon-github,.icomoon.github {
+  background-image: url('#{$icomoon-svg-path}/github.svg');
+}
+
+.icomoon-glass,.icomoon.glass {
+  background-image: url('#{$icomoon-svg-path}/glass.svg');
+}
+
+.icomoon-glass2,.icomoon.glass2 {
+  background-image: url('#{$icomoon-svg-path}/glass2.svg');
+}
+
+.icomoon-globe-outline,.icomoon.globe-outline {
+  background-image: url('#{$icomoon-svg-path}/globe-outline.svg');
+}
+
+.icomoon-globe-wireframe,.icomoon.globe-wireframe {
+  background-image: url('#{$icomoon-svg-path}/globe-wireframe.svg');
+}
+
+.icomoon-globe,.icomoon.globe {
+  background-image: url('#{$icomoon-svg-path}/globe.svg');
+}
+
+.icomoon-google-drive,.icomoon.google-drive {
+  background-image: url('#{$icomoon-svg-path}/google-drive.svg');
+}
+
+.icomoon-google-plus,.icomoon.google-plus {
+  background-image: url('#{$icomoon-svg-path}/google-plus.svg');
+}
+
+.icomoon-google-plus2,.icomoon.google-plus2 {
+  background-image: url('#{$icomoon-svg-path}/google-plus2.svg');
+}
+
+.icomoon-google-plus3,.icomoon.google-plus3 {
+  background-image: url('#{$icomoon-svg-path}/google-plus3.svg');
+}
+
+.icomoon-google,.icomoon.google {
+  background-image: url('#{$icomoon-svg-path}/google.svg');
+}
+
+.icomoon-google2,.icomoon.google2 {
+  background-image: url('#{$icomoon-svg-path}/google2.svg');
+}
+
+.icomoon-google3,.icomoon.google3 {
+  background-image: url('#{$icomoon-svg-path}/google3.svg');
+}
+
+.icomoon-gps,.icomoon.gps {
+  background-image: url('#{$icomoon-svg-path}/gps.svg');
+}
+
+.icomoon-graph-line,.icomoon.graph-line {
+  background-image: url('#{$icomoon-svg-path}/graph-line.svg');
+}
+
+.icomoon-grin,.icomoon.grin {
+  background-image: url('#{$icomoon-svg-path}/grin.svg');
+}
+
+.icomoon-grin2,.icomoon.grin2 {
+  background-image: url('#{$icomoon-svg-path}/grin2.svg');
+}
+
+.icomoon-group-dark,.icomoon.group-dark {
+  background-image: url('#{$icomoon-svg-path}/group-dark.svg');
+}
+
+.icomoon-group-outline-dark,.icomoon.group-outline-dark {
+  background-image: url('#{$icomoon-svg-path}/group-outline-dark.svg');
+}
+
+.icomoon-group-outline,.icomoon.group-outline {
+  background-image: url('#{$icomoon-svg-path}/group-outline.svg');
+}
+
+.icomoon-group,.icomoon.group {
+  background-image: url('#{$icomoon-svg-path}/group.svg');
+}
+
+.icomoon-hackernews,.icomoon.hackernews {
+  background-image: url('#{$icomoon-svg-path}/hackernews.svg');
+}
+
+.icomoon-hammer,.icomoon.hammer {
+  background-image: url('#{$icomoon-svg-path}/hammer.svg');
+}
+
+.icomoon-hammer2,.icomoon.hammer2 {
+  background-image: url('#{$icomoon-svg-path}/hammer2.svg');
+}
+
+.icomoon-hammer3,.icomoon.hammer3 {
+  background-image: url('#{$icomoon-svg-path}/hammer3.svg');
+}
+
+.icomoon-hangouts,.icomoon.hangouts {
+  background-image: url('#{$icomoon-svg-path}/hangouts.svg');
+}
+
+.icomoon-happy,.icomoon.happy {
+  background-image: url('#{$icomoon-svg-path}/happy.svg');
+}
+
+.icomoon-happy2,.icomoon.happy2 {
+  background-image: url('#{$icomoon-svg-path}/happy2.svg');
+}
+
+.icomoon-headphones,.icomoon.headphones {
+  background-image: url('#{$icomoon-svg-path}/headphones.svg');
+}
+
+.icomoon-heart-broken,.icomoon.heart-broken {
+  background-image: url('#{$icomoon-svg-path}/heart-broken.svg');
+}
+
+.icomoon-heart,.icomoon.heart {
+  background-image: url('#{$icomoon-svg-path}/heart.svg');
+}
+
+.icomoon-help-circle-outline,.icomoon.help-circle-outline {
+  background-image: url('#{$icomoon-svg-path}/help-circle-outline.svg');
+}
+
+.icomoon-hipster,.icomoon.hipster {
+  background-image: url('#{$icomoon-svg-path}/hipster.svg');
+}
+
+.icomoon-hipster2,.icomoon.hipster2 {
+  background-image: url('#{$icomoon-svg-path}/hipster2.svg');
+}
+
+.icomoon-history,.icomoon.history {
+  background-image: url('#{$icomoon-svg-path}/history.svg');
+}
+
+.icomoon-history2,.icomoon.history2 {
+  background-image: url('#{$icomoon-svg-path}/history2.svg');
+}
+
+.icomoon-home-outline,.icomoon.home-outline {
+  background-image: url('#{$icomoon-svg-path}/home-outline.svg');
+}
+
+.icomoon-home,.icomoon.home {
+  background-image: url('#{$icomoon-svg-path}/home.svg');
+}
+
+.icomoon-home2,.icomoon.home2 {
+  background-image: url('#{$icomoon-svg-path}/home2.svg');
+}
+
+.icomoon-home3,.icomoon.home3 {
+  background-image: url('#{$icomoon-svg-path}/home3.svg');
+}
+
+.icomoon-hour-glass,.icomoon.hour-glass {
+  background-image: url('#{$icomoon-svg-path}/hour-glass.svg');
+}
+
+.icomoon-hour-glass2,.icomoon.hour-glass2 {
+  background-image: url('#{$icomoon-svg-path}/hour-glass2.svg');
+}
+
+.icomoon-html-five,.icomoon.html-five {
+  background-image: url('#{$icomoon-svg-path}/html-five.svg');
+}
+
+.icomoon-html-five2,.icomoon.html-five2 {
+  background-image: url('#{$icomoon-svg-path}/html-five2.svg');
+}
+
+.icomoon-IcoMoon,.icomoon.IcoMoon {
+  background-image: url('#{$icomoon-svg-path}/IcoMoon.svg');
+}
+
+.icomoon-IE,.icomoon.IE {
+  background-image: url('#{$icomoon-svg-path}/IE.svg');
+}
+
+.icomoon-image-outline,.icomoon.image-outline {
+  background-image: url('#{$icomoon-svg-path}/image-outline.svg');
+}
+
+.icomoon-image,.icomoon.image {
+  background-image: url('#{$icomoon-svg-path}/image.svg');
+}
+
+.icomoon-images-outline,.icomoon.images-outline {
+  background-image: url('#{$icomoon-svg-path}/images-outline.svg');
+}
+
+.icomoon-images,.icomoon.images {
+  background-image: url('#{$icomoon-svg-path}/images.svg');
+}
+
+.icomoon-indent-decrease,.icomoon.indent-decrease {
+  background-image: url('#{$icomoon-svg-path}/indent-decrease.svg');
+}
+
+.icomoon-indent-increase,.icomoon.indent-increase {
+  background-image: url('#{$icomoon-svg-path}/indent-increase.svg');
+}
+
+.icomoon-infinite,.icomoon.infinite {
+  background-image: url('#{$icomoon-svg-path}/infinite.svg');
+}
+
+.icomoon-info,.icomoon.info {
+  background-image: url('#{$icomoon-svg-path}/info.svg');
+}
+
+.icomoon-information-circle-outline,.icomoon.information-circle-outline {
+  background-image: url('#{$icomoon-svg-path}/information-circle-outline.svg');
+}
+
+.icomoon-insert-template,.icomoon.insert-template {
+  background-image: url('#{$icomoon-svg-path}/insert-template.svg');
+}
+
+.icomoon-instagram,.icomoon.instagram {
+  background-image: url('#{$icomoon-svg-path}/instagram.svg');
+}
+
+.icomoon-invoice,.icomoon.invoice {
+  background-image: url('#{$icomoon-svg-path}/invoice.svg');
+}
+
+.icomoon-italic,.icomoon.italic {
+  background-image: url('#{$icomoon-svg-path}/italic.svg');
+}
+
+.icomoon-joomla,.icomoon.joomla {
+  background-image: url('#{$icomoon-svg-path}/joomla.svg');
+}
+
+.icomoon-key,.icomoon.key {
+  background-image: url('#{$icomoon-svg-path}/key.svg');
+}
+
+.icomoon-key2,.icomoon.key2 {
+  background-image: url('#{$icomoon-svg-path}/key2.svg');
+}
+
+.icomoon-key22,.icomoon.key22 {
+  background-image: url('#{$icomoon-svg-path}/key22.svg');
+}
+
+.icomoon-key3,.icomoon.key3 {
+  background-image: url('#{$icomoon-svg-path}/key3.svg');
+}
+
+.icomoon-keyboard,.icomoon.keyboard {
+  background-image: url('#{$icomoon-svg-path}/keyboard.svg');
+}
+
+.icomoon-keypad-outline,.icomoon.keypad-outline {
+  background-image: url('#{$icomoon-svg-path}/keypad-outline.svg');
+}
+
+.icomoon-lab,.icomoon.lab {
+  background-image: url('#{$icomoon-svg-path}/lab.svg');
+}
+
+.icomoon-lanyrd,.icomoon.lanyrd {
+  background-image: url('#{$icomoon-svg-path}/lanyrd.svg');
+}
+
+.icomoon-laptop,.icomoon.laptop {
+  background-image: url('#{$icomoon-svg-path}/laptop.svg');
+}
+
+.icomoon-last,.icomoon.last {
+  background-image: url('#{$icomoon-svg-path}/last.svg');
+}
+
+.icomoon-lastfm,.icomoon.lastfm {
+  background-image: url('#{$icomoon-svg-path}/lastfm.svg');
+}
+
+.icomoon-lastfm2,.icomoon.lastfm2 {
+  background-image: url('#{$icomoon-svg-path}/lastfm2.svg');
+}
+
+.icomoon-leaf,.icomoon.leaf {
+  background-image: url('#{$icomoon-svg-path}/leaf.svg');
+}
+
+.icomoon-library,.icomoon.library {
+  background-image: url('#{$icomoon-svg-path}/library.svg');
+}
+
+.icomoon-libreoffice,.icomoon.libreoffice {
+  background-image: url('#{$icomoon-svg-path}/libreoffice.svg');
+}
+
+.icomoon-lifebuoy,.icomoon.lifebuoy {
+  background-image: url('#{$icomoon-svg-path}/lifebuoy.svg');
+}
+
+.icomoon-ligature,.icomoon.ligature {
+  background-image: url('#{$icomoon-svg-path}/ligature.svg');
+}
+
+.icomoon-ligature2,.icomoon.ligature2 {
+  background-image: url('#{$icomoon-svg-path}/ligature2.svg');
+}
+
+.icomoon-link,.icomoon.link {
+  background-image: url('#{$icomoon-svg-path}/link.svg');
+}
+
+.icomoon-linkedin,.icomoon.linkedin {
+  background-image: url('#{$icomoon-svg-path}/linkedin.svg');
+}
+
+.icomoon-linkedin2,.icomoon.linkedin2 {
+  background-image: url('#{$icomoon-svg-path}/linkedin2.svg');
+}
+
+.icomoon-list-box-outline,.icomoon.list-box-outline {
+  background-image: url('#{$icomoon-svg-path}/list-box-outline.svg');
+}
+
+.icomoon-list-numbered,.icomoon.list-numbered {
+  background-image: url('#{$icomoon-svg-path}/list-numbered.svg');
+}
+
+.icomoon-list,.icomoon.list {
+  background-image: url('#{$icomoon-svg-path}/list.svg');
+}
+
+.icomoon-list2,.icomoon.list2 {
+  background-image: url('#{$icomoon-svg-path}/list2.svg');
+}
+
+.icomoon-llocation-outline,.icomoon.llocation-outline {
+  background-image: url('#{$icomoon-svg-path}/llocation-outline.svg');
+}
+
+.icomoon-locate-outline,.icomoon.locate-outline {
+  background-image: url('#{$icomoon-svg-path}/locate-outline.svg');
+}
+
+.icomoon-location-history-map-large,.icomoon.location-history-map-large {
+  background-image: url('#{$icomoon-svg-path}/location-history-map-large.svg');
+}
+
+.icomoon-location-history-map,.icomoon.location-history-map {
+  background-image: url('#{$icomoon-svg-path}/location-history-map.svg');
+}
+
+.icomoon-location-history-pin,.icomoon.location-history-pin {
+  background-image: url('#{$icomoon-svg-path}/location-history-pin.svg');
+}
+
+.icomoon-location-trail,.icomoon.location-trail {
+  background-image: url('#{$icomoon-svg-path}/location-trail.svg');
+}
+
+.icomoon-location,.icomoon.location {
+  background-image: url('#{$icomoon-svg-path}/location.svg');
+}
+
+.icomoon-location2,.icomoon.location2 {
+  background-image: url('#{$icomoon-svg-path}/location2.svg');
+}
+
+.icomoon-location22,.icomoon.location22 {
+  background-image: url('#{$icomoon-svg-path}/location22.svg');
+}
+
+.icomoon-location3,.icomoon.location3 {
+  background-image: url('#{$icomoon-svg-path}/location3.svg');
+}
+
+.icomoon-lock,.icomoon.lock {
+  background-image: url('#{$icomoon-svg-path}/lock.svg');
+}
+
+.icomoon-lock2,.icomoon.lock2 {
+  background-image: url('#{$icomoon-svg-path}/lock2.svg');
+}
+
+.icomoon-log-in,.icomoon.log-in {
+  background-image: url('#{$icomoon-svg-path}/log-in.svg');
+}
+
+.icomoon-log-out,.icomoon.log-out {
+  background-image: url('#{$icomoon-svg-path}/log-out.svg');
+}
+
+.icomoon-loop,.icomoon.loop {
+  background-image: url('#{$icomoon-svg-path}/loop.svg');
+}
+
+.icomoon-loop2,.icomoon.loop2 {
+  background-image: url('#{$icomoon-svg-path}/loop2.svg');
+}
+
+.icomoon-ltr,.icomoon.ltr {
+  background-image: url('#{$icomoon-svg-path}/ltr.svg');
+}
+
+.icomoon-magic-wand,.icomoon.magic-wand {
+  background-image: url('#{$icomoon-svg-path}/magic-wand.svg');
+}
+
+.icomoon-magnet,.icomoon.magnet {
+  background-image: url('#{$icomoon-svg-path}/magnet.svg');
+}
+
+.icomoon-mail,.icomoon.mail {
+  background-image: url('#{$icomoon-svg-path}/mail.svg');
+}
+
+.icomoon-mail2,.icomoon.mail2 {
+  background-image: url('#{$icomoon-svg-path}/mail2.svg');
+}
+
+.icomoon-mail3,.icomoon.mail3 {
+  background-image: url('#{$icomoon-svg-path}/mail3.svg');
+}
+
+.icomoon-mail4,.icomoon.mail4 {
+  background-image: url('#{$icomoon-svg-path}/mail4.svg');
+}
+
+.icomoon-make-group,.icomoon.make-group {
+  background-image: url('#{$icomoon-svg-path}/make-group.svg');
+}
+
+.icomoon-man-woman,.icomoon.man-woman {
+  background-image: url('#{$icomoon-svg-path}/man-woman.svg');
+}
+
+.icomoon-man,.icomoon.man {
+  background-image: url('#{$icomoon-svg-path}/man.svg');
+}
+
+.icomoon-map-outline,.icomoon.map-outline {
+  background-image: url('#{$icomoon-svg-path}/map-outline.svg');
+}
+
+.icomoon-map,.icomoon.map {
+  background-image: url('#{$icomoon-svg-path}/map.svg');
+}
+
+.icomoon-map2,.icomoon.map2 {
+  background-image: url('#{$icomoon-svg-path}/map2.svg');
+}
+
+.icomoon-map22,.icomoon.map22 {
+  background-image: url('#{$icomoon-svg-path}/map22.svg');
+}
+
+.icomoon-map3,.icomoon.map3 {
+  background-image: url('#{$icomoon-svg-path}/map3.svg');
+}
+
+.icomoon-mechanic-overalls,.icomoon.mechanic-overalls {
+  background-image: url('#{$icomoon-svg-path}/mechanic-overalls.svg');
+}
+
+.icomoon-mechanic,.icomoon.mechanic {
+  background-image: url('#{$icomoon-svg-path}/mechanic.svg');
+}
+
+.icomoon-medal-outline,.icomoon.medal-outline {
+  background-image: url('#{$icomoon-svg-path}/medal-outline.svg');
+}
+
+.icomoon-menu,.icomoon.menu {
+  background-image: url('#{$icomoon-svg-path}/menu.svg');
+}
+
+.icomoon-menu2,.icomoon.menu2 {
+  background-image: url('#{$icomoon-svg-path}/menu2.svg');
+}
+
+.icomoon-menu3,.icomoon.menu3 {
+  background-image: url('#{$icomoon-svg-path}/menu3.svg');
+}
+
+.icomoon-menu4,.icomoon.menu4 {
+  background-image: url('#{$icomoon-svg-path}/menu4.svg');
+}
+
+.icomoon-menu5,.icomoon.menu5 {
+  background-image: url('#{$icomoon-svg-path}/menu5.svg');
+}
+
+.icomoon-message-edit-square,.icomoon.message-edit-square {
+  background-image: url('#{$icomoon-svg-path}/message-edit-square.svg');
+}
+
+.icomoon-message-edit,.icomoon.message-edit {
+  background-image: url('#{$icomoon-svg-path}/message-edit.svg');
+}
+
+.icomoon-messages,.icomoon.messages {
+  background-image: url('#{$icomoon-svg-path}/messages.svg');
+}
+
+.icomoon-meter,.icomoon.meter {
+  background-image: url('#{$icomoon-svg-path}/meter.svg');
+}
+
+.icomoon-meter2,.icomoon.meter2 {
+  background-image: url('#{$icomoon-svg-path}/meter2.svg');
+}
+
+.icomoon-mic,.icomoon.mic {
+  background-image: url('#{$icomoon-svg-path}/mic.svg');
+}
+
+.icomoon-minus,.icomoon.minus {
+  background-image: url('#{$icomoon-svg-path}/minus.svg');
+}
+
+.icomoon-mobile,.icomoon.mobile {
+  background-image: url('#{$icomoon-svg-path}/mobile.svg');
+}
+
+.icomoon-mobile2,.icomoon.mobile2 {
+  background-image: url('#{$icomoon-svg-path}/mobile2.svg');
+}
+
+.icomoon-more-outline,.icomoon.more-outline {
+  background-image: url('#{$icomoon-svg-path}/more-outline.svg');
+}
+
+.icomoon-move-down,.icomoon.move-down {
+  background-image: url('#{$icomoon-svg-path}/move-down.svg');
+}
+
+.icomoon-move-up,.icomoon.move-up {
+  background-image: url('#{$icomoon-svg-path}/move-up.svg');
+}
+
+.icomoon-mug,.icomoon.mug {
+  background-image: url('#{$icomoon-svg-path}/mug.svg');
+}
+
+.icomoon-music,.icomoon.music {
+  background-image: url('#{$icomoon-svg-path}/music.svg');
+}
+
+.icomoon-navigate-outline,.icomoon.navigate-outline {
+  background-image: url('#{$icomoon-svg-path}/navigate-outline.svg');
+}
+
+.icomoon-neutral,.icomoon.neutral {
+  background-image: url('#{$icomoon-svg-path}/neutral.svg');
+}
+
+.icomoon-neutral2,.icomoon.neutral2 {
+  background-image: url('#{$icomoon-svg-path}/neutral2.svg');
+}
+
+.icomoon-new-tab,.icomoon.new-tab {
+  background-image: url('#{$icomoon-svg-path}/new-tab.svg');
+}
+
+.icomoon-newspaper,.icomoon.newspaper {
+  background-image: url('#{$icomoon-svg-path}/newspaper.svg');
+}
+
+.icomoon-next,.icomoon.next {
+  background-image: url('#{$icomoon-svg-path}/next.svg');
+}
+
+.icomoon-next2,.icomoon.next2 {
+  background-image: url('#{$icomoon-svg-path}/next2.svg');
+}
+
+.icomoon-notification,.icomoon.notification {
+  background-image: url('#{$icomoon-svg-path}/notification.svg');
+}
+
+.icomoon-notification2,.icomoon.notification2 {
+  background-image: url('#{$icomoon-svg-path}/notification2.svg');
+}
+
+.icomoon-npm,.icomoon.npm {
+  background-image: url('#{$icomoon-svg-path}/npm.svg');
+}
+
+.icomoon-office,.icomoon.office {
+  background-image: url('#{$icomoon-svg-path}/office.svg');
+}
+
+.icomoon-oil-derrick-problem,.icomoon.oil-derrick-problem {
+  background-image: url('#{$icomoon-svg-path}/oil-derrick-problem.svg');
+}
+
+.icomoon-oil-derrick,.icomoon.oil-derrick {
+  background-image: url('#{$icomoon-svg-path}/oil-derrick.svg');
+}
+
+.icomoon-oil-location,.icomoon.oil-location {
+  background-image: url('#{$icomoon-svg-path}/oil-location.svg');
+}
+
+.icomoon-omega,.icomoon.omega {
+  background-image: url('#{$icomoon-svg-path}/omega.svg');
+}
+
+.icomoon-onedrive,.icomoon.onedrive {
+  background-image: url('#{$icomoon-svg-path}/onedrive.svg');
+}
+
+.icomoon-open-outline,.icomoon.open-outline {
+  background-image: url('#{$icomoon-svg-path}/open-outline.svg');
+}
+
+.icomoon-opera,.icomoon.opera {
+  background-image: url('#{$icomoon-svg-path}/opera.svg');
+}
+
+.icomoon-opt,.icomoon.opt {
+  background-image: url('#{$icomoon-svg-path}/opt.svg');
+}
+
+.icomoon-options-outline,.icomoon.options-outline {
+  background-image: url('#{$icomoon-svg-path}/options-outline.svg');
+}
+
+.icomoon-pacman,.icomoon.pacman {
+  background-image: url('#{$icomoon-svg-path}/pacman.svg');
+}
+
+.icomoon-page-break,.icomoon.page-break {
+  background-image: url('#{$icomoon-svg-path}/page-break.svg');
+}
+
+.icomoon-pagebreak,.icomoon.pagebreak {
+  background-image: url('#{$icomoon-svg-path}/pagebreak.svg');
+}
+
+.icomoon-paint-format,.icomoon.paint-format {
+  background-image: url('#{$icomoon-svg-path}/paint-format.svg');
+}
+
+.icomoon-paper-outline,.icomoon.paper-outline {
+  background-image: url('#{$icomoon-svg-path}/paper-outline.svg');
+}
+
+.icomoon-paragraph-center,.icomoon.paragraph-center {
+  background-image: url('#{$icomoon-svg-path}/paragraph-center.svg');
+}
+
+.icomoon-paragraph-justify,.icomoon.paragraph-justify {
+  background-image: url('#{$icomoon-svg-path}/paragraph-justify.svg');
+}
+
+.icomoon-paragraph-left,.icomoon.paragraph-left {
+  background-image: url('#{$icomoon-svg-path}/paragraph-left.svg');
+}
+
+.icomoon-paragraph-right,.icomoon.paragraph-right {
+  background-image: url('#{$icomoon-svg-path}/paragraph-right.svg');
+}
+
+.icomoon-paste,.icomoon.paste {
+  background-image: url('#{$icomoon-svg-path}/paste.svg');
+}
+
+.icomoon-paste2,.icomoon.paste2 {
+  background-image: url('#{$icomoon-svg-path}/paste2.svg');
+}
+
+.icomoon-pause,.icomoon.pause {
+  background-image: url('#{$icomoon-svg-path}/pause.svg');
+}
+
+.icomoon-pause2,.icomoon.pause2 {
+  background-image: url('#{$icomoon-svg-path}/pause2.svg');
+}
+
+.icomoon-paypal,.icomoon.paypal {
+  background-image: url('#{$icomoon-svg-path}/paypal.svg');
+}
+
+.icomoon-payroll,.icomoon.payroll {
+  background-image: url('#{$icomoon-svg-path}/payroll.svg');
+}
+
+.icomoon-pen,.icomoon.pen {
+  background-image: url('#{$icomoon-svg-path}/pen.svg');
+}
+
+.icomoon-pencil,.icomoon.pencil {
+  background-image: url('#{$icomoon-svg-path}/pencil.svg');
+}
+
+.icomoon-pencil2,.icomoon.pencil2 {
+  background-image: url('#{$icomoon-svg-path}/pencil2.svg');
+}
+
+.icomoon-pencil22,.icomoon.pencil22 {
+  background-image: url('#{$icomoon-svg-path}/pencil22.svg');
+}
+
+.icomoon-pencil3,.icomoon.pencil3 {
+  background-image: url('#{$icomoon-svg-path}/pencil3.svg');
+}
+
+.icomoon-people-outline,.icomoon.people-outline {
+  background-image: url('#{$icomoon-svg-path}/people-outline.svg');
+}
+
+.icomoon-person-add-outline,.icomoon.person-add-outline {
+  background-image: url('#{$icomoon-svg-path}/person-add-outline.svg');
+}
+
+.icomoon-person-outline,.icomoon.person-outline {
+  background-image: url('#{$icomoon-svg-path}/person-outline.svg');
+}
+
+.icomoon-phone-hang-up,.icomoon.phone-hang-up {
+  background-image: url('#{$icomoon-svg-path}/phone-hang-up.svg');
+}
+
+.icomoon-phone-in-hand-small,.icomoon.phone-in-hand-small {
+  background-image: url('#{$icomoon-svg-path}/phone-in-hand-small.svg');
+}
+
+.icomoon-phone-in-hand,.icomoon.phone-in-hand {
+  background-image: url('#{$icomoon-svg-path}/phone-in-hand.svg');
+}
+
+.icomoon-phone-landscape,.icomoon.phone-landscape {
+  background-image: url('#{$icomoon-svg-path}/phone-landscape.svg');
+}
+
+.icomoon-phone-portrait,.icomoon.phone-portrait {
+  background-image: url('#{$icomoon-svg-path}/phone-portrait.svg');
+}
+
+.icomoon-phone,.icomoon.phone {
+  background-image: url('#{$icomoon-svg-path}/phone.svg');
+}
+
+.icomoon-photos-outline,.icomoon.photos-outline {
+  background-image: url('#{$icomoon-svg-path}/photos-outline.svg');
+}
+
+.icomoon-pie-chart,.icomoon.pie-chart {
+  background-image: url('#{$icomoon-svg-path}/pie-chart.svg');
+}
+
+.icomoon-pie-chart2,.icomoon.pie-chart2 {
+  background-image: url('#{$icomoon-svg-path}/pie-chart2.svg');
+}
+
+.icomoon-pie-outline,.icomoon.pie-outline {
+  background-image: url('#{$icomoon-svg-path}/pie-outline.svg');
+}
+
+.icomoon-pilcrow,.icomoon.pilcrow {
+  background-image: url('#{$icomoon-svg-path}/pilcrow.svg');
+}
+
+.icomoon-pinterest,.icomoon.pinterest {
+  background-image: url('#{$icomoon-svg-path}/pinterest.svg');
+}
+
+.icomoon-pinterest2,.icomoon.pinterest2 {
+  background-image: url('#{$icomoon-svg-path}/pinterest2.svg');
+}
+
+.icomoon-play,.icomoon.play {
+  background-image: url('#{$icomoon-svg-path}/play.svg');
+}
+
+.icomoon-play2,.icomoon.play2 {
+  background-image: url('#{$icomoon-svg-path}/play2.svg');
+}
+
+.icomoon-play3,.icomoon.play3 {
+  background-image: url('#{$icomoon-svg-path}/play3.svg');
+}
+
+.icomoon-plus,.icomoon.plus {
+  background-image: url('#{$icomoon-svg-path}/plus.svg');
+}
+
+.icomoon-podcast,.icomoon.podcast {
+  background-image: url('#{$icomoon-svg-path}/podcast.svg');
+}
+
+.icomoon-point-down,.icomoon.point-down {
+  background-image: url('#{$icomoon-svg-path}/point-down.svg');
+}
+
+.icomoon-point-left,.icomoon.point-left {
+  background-image: url('#{$icomoon-svg-path}/point-left.svg');
+}
+
+.icomoon-point-right,.icomoon.point-right {
+  background-image: url('#{$icomoon-svg-path}/point-right.svg');
+}
+
+.icomoon-point-up,.icomoon.point-up {
+  background-image: url('#{$icomoon-svg-path}/point-up.svg');
+}
+
+.icomoon-power-cord,.icomoon.power-cord {
+  background-image: url('#{$icomoon-svg-path}/power-cord.svg');
+}
+
+.icomoon-power,.icomoon.power {
+  background-image: url('#{$icomoon-svg-path}/power.svg');
+}
+
+.icomoon-previous,.icomoon.previous {
+  background-image: url('#{$icomoon-svg-path}/previous.svg');
+}
+
+.icomoon-previous2,.icomoon.previous2 {
+  background-image: url('#{$icomoon-svg-path}/previous2.svg');
+}
+
+.icomoon-price-tag,.icomoon.price-tag {
+  background-image: url('#{$icomoon-svg-path}/price-tag.svg');
+}
+
+.icomoon-price-tags,.icomoon.price-tags {
+  background-image: url('#{$icomoon-svg-path}/price-tags.svg');
+}
+
+.icomoon-print-outline,.icomoon.print-outline {
+  background-image: url('#{$icomoon-svg-path}/print-outline.svg');
+}
+
+.icomoon-printer,.icomoon.printer {
+  background-image: url('#{$icomoon-svg-path}/printer.svg');
+}
+
+.icomoon-problems,.icomoon.problems {
+  background-image: url('#{$icomoon-svg-path}/problems.svg');
+}
+
+.icomoon-professor,.icomoon.professor {
+  background-image: url('#{$icomoon-svg-path}/professor.svg');
+}
+
+.icomoon-profile,.icomoon.profile {
+  background-image: url('#{$icomoon-svg-path}/profile.svg');
+}
+
+.icomoon-profits-outline,.icomoon.profits-outline {
+  background-image: url('#{$icomoon-svg-path}/profits-outline.svg');
+}
+
+.icomoon-profits,.icomoon.profits {
+  background-image: url('#{$icomoon-svg-path}/profits.svg');
+}
+
+.icomoon-pulse-outline,.icomoon.pulse-outline {
+  background-image: url('#{$icomoon-svg-path}/pulse-outline.svg');
+}
+
+.icomoon-pulse,.icomoon.pulse {
+  background-image: url('#{$icomoon-svg-path}/pulse.svg');
+}
+
+.icomoon-pushpin,.icomoon.pushpin {
+  background-image: url('#{$icomoon-svg-path}/pushpin.svg');
+}
+
+.icomoon-qrcode,.icomoon.qrcode {
+  background-image: url('#{$icomoon-svg-path}/qrcode.svg');
+}
+
+.icomoon-question,.icomoon.question {
+  background-image: url('#{$icomoon-svg-path}/question.svg');
+}
+
+.icomoon-quill,.icomoon.quill {
+  background-image: url('#{$icomoon-svg-path}/quill.svg');
+}
+
+.icomoon-quotes-left,.icomoon.quotes-left {
+  background-image: url('#{$icomoon-svg-path}/quotes-left.svg');
+}
+
+.icomoon-quotes-right,.icomoon.quotes-right {
+  background-image: url('#{$icomoon-svg-path}/quotes-right.svg');
+}
+
+.icomoon-radio-checked,.icomoon.radio-checked {
+  background-image: url('#{$icomoon-svg-path}/radio-checked.svg');
+}
+
+.icomoon-radio-checked2,.icomoon.radio-checked2 {
+  background-image: url('#{$icomoon-svg-path}/radio-checked2.svg');
+}
+
+.icomoon-radio-unchecked,.icomoon.radio-unchecked {
+  background-image: url('#{$icomoon-svg-path}/radio-unchecked.svg');
+}
+
+.icomoon-reddit,.icomoon.reddit {
+  background-image: url('#{$icomoon-svg-path}/reddit.svg');
+}
+
+.icomoon-redo,.icomoon.redo {
+  background-image: url('#{$icomoon-svg-path}/redo.svg');
+}
+
+.icomoon-redo2,.icomoon.redo2 {
+  background-image: url('#{$icomoon-svg-path}/redo2.svg');
+}
+
+.icomoon-refresh-circle-outline,.icomoon.refresh-circle-outline {
+  background-image: url('#{$icomoon-svg-path}/refresh-circle-outline.svg');
+}
+
+.icomoon-refresh-form,.icomoon.refresh-form {
+  background-image: url('#{$icomoon-svg-path}/refresh-form.svg');
+}
+
+.icomoon-refresh,.icomoon.refresh {
+  background-image: url('#{$icomoon-svg-path}/refresh.svg');
+}
+
+.icomoon-remove-circle-outline,.icomoon.remove-circle-outline {
+  background-image: url('#{$icomoon-svg-path}/remove-circle-outline.svg');
+}
+
+.icomoon-renren,.icomoon.renren {
+  background-image: url('#{$icomoon-svg-path}/renren.svg');
+}
+
+.icomoon-reorder,.icomoon.reorder {
+  background-image: url('#{$icomoon-svg-path}/reorder.svg');
+}
+
+.icomoon-repeat,.icomoon.repeat {
+  background-image: url('#{$icomoon-svg-path}/repeat.svg');
+}
+
+.icomoon-reply,.icomoon.reply {
+  background-image: url('#{$icomoon-svg-path}/reply.svg');
+}
+
+.icomoon-report-add,.icomoon.report-add {
+  background-image: url('#{$icomoon-svg-path}/report-add.svg');
+}
+
+.icomoon-reports-flagged-red,.icomoon.reports-flagged-red {
+  background-image: url('#{$icomoon-svg-path}/reports-flagged-red.svg');
+}
+
+.icomoon-reports-flagged,.icomoon.reports-flagged {
+  background-image: url('#{$icomoon-svg-path}/reports-flagged.svg');
+}
+
+.icomoon-reports-misc-large,.icomoon.reports-misc-large {
+  background-image: url('#{$icomoon-svg-path}/reports-misc-large.svg');
+}
+
+.icomoon-reports-misc,.icomoon.reports-misc {
+  background-image: url('#{$icomoon-svg-path}/reports-misc.svg');
+}
+
+.icomoon-reports-work,.icomoon.reports-work {
+  background-image: url('#{$icomoon-svg-path}/reports-work.svg');
+}
+
+.icomoon-reports,.icomoon.reports {
+  background-image: url('#{$icomoon-svg-path}/reports.svg');
+}
+
+.icomoon-reset-form,.icomoon.reset-form {
+  background-image: url('#{$icomoon-svg-path}/reset-form.svg');
+}
+
+.icomoon-reset,.icomoon.reset {
+  background-image: url('#{$icomoon-svg-path}/reset.svg');
+}
+
+.icomoon-resize,.icomoon.resize {
+  background-image: url('#{$icomoon-svg-path}/resize.svg');
+}
+
+.icomoon-road,.icomoon.road {
+  background-image: url('#{$icomoon-svg-path}/road.svg');
+}
+
+.icomoon-rocket,.icomoon.rocket {
+  background-image: url('#{$icomoon-svg-path}/rocket.svg');
+}
+
+.icomoon-rss,.icomoon.rss {
+  background-image: url('#{$icomoon-svg-path}/rss.svg');
+}
+
+.icomoon-rss2,.icomoon.rss2 {
+  background-image: url('#{$icomoon-svg-path}/rss2.svg');
+}
+
+.icomoon-rtl,.icomoon.rtl {
+  background-image: url('#{$icomoon-svg-path}/rtl.svg');
+}
+
+.icomoon-sad,.icomoon.sad {
+  background-image: url('#{$icomoon-svg-path}/sad.svg');
+}
+
+.icomoon-sad2,.icomoon.sad2 {
+  background-image: url('#{$icomoon-svg-path}/sad2.svg');
+}
+
+.icomoon-safari,.icomoon.safari {
+  background-image: url('#{$icomoon-svg-path}/safari.svg');
+}
+
+.icomoon-schedule,.icomoon.schedule {
+  background-image: url('#{$icomoon-svg-path}/schedule.svg');
+}
+
+.icomoon-schedule2,.icomoon.schedule2 {
+  background-image: url('#{$icomoon-svg-path}/schedule2.svg');
+}
+
+.icomoon-schedule3,.icomoon.schedule3 {
+  background-image: url('#{$icomoon-svg-path}/schedule3.svg');
+}
+
+.icomoon-schedule4,.icomoon.schedule4 {
+  background-image: url('#{$icomoon-svg-path}/schedule4.svg');
+}
+
+.icomoon-scientist1,.icomoon.scientist1 {
+  background-image: url('#{$icomoon-svg-path}/scientist1.svg');
+}
+
+.icomoon-scientist2,.icomoon.scientist2 {
+  background-image: url('#{$icomoon-svg-path}/scientist2.svg');
+}
+
+.icomoon-scientist3,.icomoon.scientist3 {
+  background-image: url('#{$icomoon-svg-path}/scientist3.svg');
+}
+
+.icomoon-scissors,.icomoon.scissors {
+  background-image: url('#{$icomoon-svg-path}/scissors.svg');
+}
+
+.icomoon-search-outline,.icomoon.search-outline {
+  background-image: url('#{$icomoon-svg-path}/search-outline.svg');
+}
+
+.icomoon-search,.icomoon.search {
+  background-image: url('#{$icomoon-svg-path}/search.svg');
+}
+
+.icomoon-search2,.icomoon.search2 {
+  background-image: url('#{$icomoon-svg-path}/search2.svg');
+}
+
+.icomoon-section,.icomoon.section {
+  background-image: url('#{$icomoon-svg-path}/section.svg');
+}
+
+.icomoon-settings-outline,.icomoon.settings-outline {
+  background-image: url('#{$icomoon-svg-path}/settings-outline.svg');
+}
+
+.icomoon-share-outline,.icomoon.share-outline {
+  background-image: url('#{$icomoon-svg-path}/share-outline.svg');
+}
+
+.icomoon-share,.icomoon.share {
+  background-image: url('#{$icomoon-svg-path}/share.svg');
+}
+
+.icomoon-share2,.icomoon.share2 {
+  background-image: url('#{$icomoon-svg-path}/share2.svg');
+}
+
+.icomoon-shield,.icomoon.shield {
+  background-image: url('#{$icomoon-svg-path}/shield.svg');
+}
+
+.icomoon-shift-reports,.icomoon.shift-reports {
+  background-image: url('#{$icomoon-svg-path}/shift-reports.svg');
+}
+
+.icomoon-shift,.icomoon.shift {
+  background-image: url('#{$icomoon-svg-path}/shift.svg');
+}
+
+.icomoon-shocked,.icomoon.shocked {
+  background-image: url('#{$icomoon-svg-path}/shocked.svg');
+}
+
+.icomoon-shocked2,.icomoon.shocked2 {
+  background-image: url('#{$icomoon-svg-path}/shocked2.svg');
+}
+
+.icomoon-shrink,.icomoon.shrink {
+  background-image: url('#{$icomoon-svg-path}/shrink.svg');
+}
+
+.icomoon-shrink2,.icomoon.shrink2 {
+  background-image: url('#{$icomoon-svg-path}/shrink2.svg');
+}
+
+.icomoon-shuffle,.icomoon.shuffle {
+  background-image: url('#{$icomoon-svg-path}/shuffle.svg');
+}
+
+.icomoon-sigma,.icomoon.sigma {
+  background-image: url('#{$icomoon-svg-path}/sigma.svg');
+}
+
+.icomoon-sina-weibo,.icomoon.sina-weibo {
+  background-image: url('#{$icomoon-svg-path}/sina-weibo.svg');
+}
+
+.icomoon-skype,.icomoon.skype {
+  background-image: url('#{$icomoon-svg-path}/skype.svg');
+}
+
+.icomoon-sleepy,.icomoon.sleepy {
+  background-image: url('#{$icomoon-svg-path}/sleepy.svg');
+}
+
+.icomoon-sleepy2,.icomoon.sleepy2 {
+  background-image: url('#{$icomoon-svg-path}/sleepy2.svg');
+}
+
+.icomoon-smile,.icomoon.smile {
+  background-image: url('#{$icomoon-svg-path}/smile.svg');
+}
+
+.icomoon-smile2,.icomoon.smile2 {
+  background-image: url('#{$icomoon-svg-path}/smile2.svg');
+}
+
+.icomoon-sort-alpha-asc,.icomoon.sort-alpha-asc {
+  background-image: url('#{$icomoon-svg-path}/sort-alpha-asc.svg');
+}
+
+.icomoon-sort-alpha-desc,.icomoon.sort-alpha-desc {
+  background-image: url('#{$icomoon-svg-path}/sort-alpha-desc.svg');
+}
+
+.icomoon-sort-amount-asc,.icomoon.sort-amount-asc {
+  background-image: url('#{$icomoon-svg-path}/sort-amount-asc.svg');
+}
+
+.icomoon-sort-amount-desc,.icomoon.sort-amount-desc {
+  background-image: url('#{$icomoon-svg-path}/sort-amount-desc.svg');
+}
+
+.icomoon-sort-numberic-desc,.icomoon.sort-numberic-desc {
+  background-image: url('#{$icomoon-svg-path}/sort-numberic-desc.svg');
+}
+
+.icomoon-sort-numeric-asc,.icomoon.sort-numeric-asc {
+  background-image: url('#{$icomoon-svg-path}/sort-numeric-asc.svg');
+}
+
+.icomoon-soundcloud,.icomoon.soundcloud {
+  background-image: url('#{$icomoon-svg-path}/soundcloud.svg');
+}
+
+.icomoon-soundcloud2,.icomoon.soundcloud2 {
+  background-image: url('#{$icomoon-svg-path}/soundcloud2.svg');
+}
+
+.icomoon-spades,.icomoon.spades {
+  background-image: url('#{$icomoon-svg-path}/spades.svg');
+}
+
+.icomoon-spell-check,.icomoon.spell-check {
+  background-image: url('#{$icomoon-svg-path}/spell-check.svg');
+}
+
+.icomoon-sphere,.icomoon.sphere {
+  background-image: url('#{$icomoon-svg-path}/sphere.svg');
+}
+
+.icomoon-spinner,.icomoon.spinner {
+  background-image: url('#{$icomoon-svg-path}/spinner.svg');
+}
+
+.icomoon-spinner10,.icomoon.spinner10 {
+  background-image: url('#{$icomoon-svg-path}/spinner10.svg');
+}
+
+.icomoon-spinner11,.icomoon.spinner11 {
+  background-image: url('#{$icomoon-svg-path}/spinner11.svg');
+}
+
+.icomoon-spinner2,.icomoon.spinner2 {
+  background-image: url('#{$icomoon-svg-path}/spinner2.svg');
+}
+
+.icomoon-spinner3,.icomoon.spinner3 {
+  background-image: url('#{$icomoon-svg-path}/spinner3.svg');
+}
+
+.icomoon-spinner4,.icomoon.spinner4 {
+  background-image: url('#{$icomoon-svg-path}/spinner4.svg');
+}
+
+.icomoon-spinner5,.icomoon.spinner5 {
+  background-image: url('#{$icomoon-svg-path}/spinner5.svg');
+}
+
+.icomoon-spinner6,.icomoon.spinner6 {
+  background-image: url('#{$icomoon-svg-path}/spinner6.svg');
+}
+
+.icomoon-spinner7,.icomoon.spinner7 {
+  background-image: url('#{$icomoon-svg-path}/spinner7.svg');
+}
+
+.icomoon-spinner8,.icomoon.spinner8 {
+  background-image: url('#{$icomoon-svg-path}/spinner8.svg');
+}
+
+.icomoon-spinner9,.icomoon.spinner9 {
+  background-image: url('#{$icomoon-svg-path}/spinner9.svg');
+}
+
+.icomoon-split-vertical,.icomoon.split-vertical {
+  background-image: url('#{$icomoon-svg-path}/split-vertical.svg');
+}
+
+.icomoon-split,.icomoon.split {
+  background-image: url('#{$icomoon-svg-path}/split.svg');
+}
+
+.icomoon-spoon-knife,.icomoon.spoon-knife {
+  background-image: url('#{$icomoon-svg-path}/spoon-knife.svg');
+}
+
+.icomoon-spotify,.icomoon.spotify {
+  background-image: url('#{$icomoon-svg-path}/spotify.svg');
+}
+
+.icomoon-square-outline,.icomoon.square-outline {
+  background-image: url('#{$icomoon-svg-path}/square-outline.svg');
+}
+
+.icomoon-stack,.icomoon.stack {
+  background-image: url('#{$icomoon-svg-path}/stack.svg');
+}
+
+.icomoon-stackoverflow,.icomoon.stackoverflow {
+  background-image: url('#{$icomoon-svg-path}/stackoverflow.svg');
+}
+
+.icomoon-star-empty,.icomoon.star-empty {
+  background-image: url('#{$icomoon-svg-path}/star-empty.svg');
+}
+
+.icomoon-star-full,.icomoon.star-full {
+  background-image: url('#{$icomoon-svg-path}/star-full.svg');
+}
+
+.icomoon-star-half,.icomoon.star-half {
+  background-image: url('#{$icomoon-svg-path}/star-half.svg');
+}
+
+.icomoon-stats-bars,.icomoon.stats-bars {
+  background-image: url('#{$icomoon-svg-path}/stats-bars.svg');
+}
+
+.icomoon-stats-bars2,.icomoon.stats-bars2 {
+  background-image: url('#{$icomoon-svg-path}/stats-bars2.svg');
+}
+
+.icomoon-stats-bars22,.icomoon.stats-bars22 {
+  background-image: url('#{$icomoon-svg-path}/stats-bars22.svg');
+}
+
+.icomoon-stats-bars3,.icomoon.stats-bars3 {
+  background-image: url('#{$icomoon-svg-path}/stats-bars3.svg');
+}
+
+.icomoon-stats-dots,.icomoon.stats-dots {
+  background-image: url('#{$icomoon-svg-path}/stats-dots.svg');
+}
+
+.icomoon-stats-dots2,.icomoon.stats-dots2 {
+  background-image: url('#{$icomoon-svg-path}/stats-dots2.svg');
+}
+
+.icomoon-stats-outline,.icomoon.stats-outline {
+  background-image: url('#{$icomoon-svg-path}/stats-outline.svg');
+}
+
+.icomoon-steam,.icomoon.steam {
+  background-image: url('#{$icomoon-svg-path}/steam.svg');
+}
+
+.icomoon-steam2,.icomoon.steam2 {
+  background-image: url('#{$icomoon-svg-path}/steam2.svg');
+}
+
+.icomoon-stop,.icomoon.stop {
+  background-image: url('#{$icomoon-svg-path}/stop.svg');
+}
+
+.icomoon-stop2,.icomoon.stop2 {
+  background-image: url('#{$icomoon-svg-path}/stop2.svg');
+}
+
+.icomoon-stopwatch,.icomoon.stopwatch {
+  background-image: url('#{$icomoon-svg-path}/stopwatch.svg');
+}
+
+.icomoon-stopwatch2,.icomoon.stopwatch2 {
+  background-image: url('#{$icomoon-svg-path}/stopwatch2.svg');
+}
+
+.icomoon-strikethrough,.icomoon.strikethrough {
+  background-image: url('#{$icomoon-svg-path}/strikethrough.svg');
+}
+
+.icomoon-stumbleupon,.icomoon.stumbleupon {
+  background-image: url('#{$icomoon-svg-path}/stumbleupon.svg');
+}
+
+.icomoon-stumbleupon2,.icomoon.stumbleupon2 {
+  background-image: url('#{$icomoon-svg-path}/stumbleupon2.svg');
+}
+
+.icomoon-subscript,.icomoon.subscript {
+  background-image: url('#{$icomoon-svg-path}/subscript.svg');
+}
+
+.icomoon-subscript2,.icomoon.subscript2 {
+  background-image: url('#{$icomoon-svg-path}/subscript2.svg');
+}
+
+.icomoon-sun,.icomoon.sun {
+  background-image: url('#{$icomoon-svg-path}/sun.svg');
+}
+
+.icomoon-superscript,.icomoon.superscript {
+  background-image: url('#{$icomoon-svg-path}/superscript.svg');
+}
+
+.icomoon-superscript2,.icomoon.superscript2 {
+  background-image: url('#{$icomoon-svg-path}/superscript2.svg');
+}
+
+.icomoon-svg,.icomoon.svg {
+  background-image: url('#{$icomoon-svg-path}/svg.svg');
+}
+
+.icomoon-swap,.icomoon.swap {
+  background-image: url('#{$icomoon-svg-path}/swap.svg');
+}
+
+.icomoon-switch-outline,.icomoon.switch-outline {
+  background-image: url('#{$icomoon-svg-path}/switch-outline.svg');
+}
+
+.icomoon-switch,.icomoon.switch {
+  background-image: url('#{$icomoon-svg-path}/switch.svg');
+}
+
+.icomoon-sync,.icomoon.sync {
+  background-image: url('#{$icomoon-svg-path}/sync.svg');
+}
+
+.icomoon-tab,.icomoon.tab {
+  background-image: url('#{$icomoon-svg-path}/tab.svg');
+}
+
+.icomoon-table,.icomoon.table {
+  background-image: url('#{$icomoon-svg-path}/table.svg');
+}
+
+.icomoon-table2,.icomoon.table2 {
+  background-image: url('#{$icomoon-svg-path}/table2.svg');
+}
+
+.icomoon-tablet-landscape,.icomoon.tablet-landscape {
+  background-image: url('#{$icomoon-svg-path}/tablet-landscape.svg');
+}
+
+.icomoon-tablet-portrait,.icomoon.tablet-portrait {
+  background-image: url('#{$icomoon-svg-path}/tablet-portrait.svg');
+}
+
+.icomoon-tablet,.icomoon.tablet {
+  background-image: url('#{$icomoon-svg-path}/tablet.svg');
+}
+
+.icomoon-target,.icomoon.target {
+  background-image: url('#{$icomoon-svg-path}/target.svg');
+}
+
+.icomoon-target2,.icomoon.target2 {
+  background-image: url('#{$icomoon-svg-path}/target2.svg');
+}
+
+.icomoon-telegram,.icomoon.telegram {
+  background-image: url('#{$icomoon-svg-path}/telegram.svg');
+}
+
+.icomoon-terminal,.icomoon.terminal {
+  background-image: url('#{$icomoon-svg-path}/terminal.svg');
+}
+
+.icomoon-text-color,.icomoon.text-color {
+  background-image: url('#{$icomoon-svg-path}/text-color.svg');
+}
+
+.icomoon-text-height,.icomoon.text-height {
+  background-image: url('#{$icomoon-svg-path}/text-height.svg');
+}
+
+.icomoon-text-width,.icomoon.text-width {
+  background-image: url('#{$icomoon-svg-path}/text-width.svg');
+}
+
+.icomoon-ticket,.icomoon.ticket {
+  background-image: url('#{$icomoon-svg-path}/ticket.svg');
+}
+
+.icomoon-tongue,.icomoon.tongue {
+  background-image: url('#{$icomoon-svg-path}/tongue.svg');
+}
+
+.icomoon-tongue2,.icomoon.tongue2 {
+  background-image: url('#{$icomoon-svg-path}/tongue2.svg');
+}
+
+.icomoon-trash-outline,.icomoon.trash-outline {
+  background-image: url('#{$icomoon-svg-path}/trash-outline.svg');
+}
+
+.icomoon-tree,.icomoon.tree {
+  background-image: url('#{$icomoon-svg-path}/tree.svg');
+}
+
+.icomoon-trello,.icomoon.trello {
+  background-image: url('#{$icomoon-svg-path}/trello.svg');
+}
+
+.icomoon-trophy,.icomoon.trophy {
+  background-image: url('#{$icomoon-svg-path}/trophy.svg');
+}
+
+.icomoon-truck-diesel,.icomoon.truck-diesel {
+  background-image: url('#{$icomoon-svg-path}/truck-diesel.svg');
+}
+
+.icomoon-truck,.icomoon.truck {
+  background-image: url('#{$icomoon-svg-path}/truck.svg');
+}
+
+.icomoon-truck2,.icomoon.truck2 {
+  background-image: url('#{$icomoon-svg-path}/truck2.svg');
+}
+
+.icomoon-tumblr,.icomoon.tumblr {
+  background-image: url('#{$icomoon-svg-path}/tumblr.svg');
+}
+
+.icomoon-tumblr2,.icomoon.tumblr2 {
+  background-image: url('#{$icomoon-svg-path}/tumblr2.svg');
+}
+
+.icomoon-tux,.icomoon.tux {
+  background-image: url('#{$icomoon-svg-path}/tux.svg');
+}
+
+.icomoon-tv,.icomoon.tv {
+  background-image: url('#{$icomoon-svg-path}/tv.svg');
+}
+
+.icomoon-twitch,.icomoon.twitch {
+  background-image: url('#{$icomoon-svg-path}/twitch.svg');
+}
+
+.icomoon-twitter,.icomoon.twitter {
+  background-image: url('#{$icomoon-svg-path}/twitter.svg');
+}
+
+.icomoon-underline,.icomoon.underline {
+  background-image: url('#{$icomoon-svg-path}/underline.svg');
+}
+
+.icomoon-undo,.icomoon.undo {
+  background-image: url('#{$icomoon-svg-path}/undo.svg');
+}
+
+.icomoon-undo2,.icomoon.undo2 {
+  background-image: url('#{$icomoon-svg-path}/undo2.svg');
+}
+
+.icomoon-ungroup,.icomoon.ungroup {
+  background-image: url('#{$icomoon-svg-path}/ungroup.svg');
+}
+
+.icomoon-unlocked,.icomoon.unlocked {
+  background-image: url('#{$icomoon-svg-path}/unlocked.svg');
+}
+
+.icomoon-unlocked2,.icomoon.unlocked2 {
+  background-image: url('#{$icomoon-svg-path}/unlocked2.svg');
+}
+
+.icomoon-upload,.icomoon.upload {
+  background-image: url('#{$icomoon-svg-path}/upload.svg');
+}
+
+.icomoon-upload2,.icomoon.upload2 {
+  background-image: url('#{$icomoon-svg-path}/upload2.svg');
+}
+
+.icomoon-upload3,.icomoon.upload3 {
+  background-image: url('#{$icomoon-svg-path}/upload3.svg');
+}
+
+.icomoon-user-check,.icomoon.user-check {
+  background-image: url('#{$icomoon-svg-path}/user-check.svg');
+}
+
+.icomoon-user-check2,.icomoon.user-check2 {
+  background-image: url('#{$icomoon-svg-path}/user-check2.svg');
+}
+
+.icomoon-user-minus,.icomoon.user-minus {
+  background-image: url('#{$icomoon-svg-path}/user-minus.svg');
+}
+
+.icomoon-user-minus2,.icomoon.user-minus2 {
+  background-image: url('#{$icomoon-svg-path}/user-minus2.svg');
+}
+
+.icomoon-user-plus,.icomoon.user-plus {
+  background-image: url('#{$icomoon-svg-path}/user-plus.svg');
+}
+
+.icomoon-user-plus2,.icomoon.user-plus2 {
+  background-image: url('#{$icomoon-svg-path}/user-plus2.svg');
+}
+
+.icomoon-user-tie,.icomoon.user-tie {
+  background-image: url('#{$icomoon-svg-path}/user-tie.svg');
+}
+
+.icomoon-user-tie2,.icomoon.user-tie2 {
+  background-image: url('#{$icomoon-svg-path}/user-tie2.svg');
+}
+
+.icomoon-user,.icomoon.user {
+  background-image: url('#{$icomoon-svg-path}/user.svg');
+}
+
+.icomoon-user2,.icomoon.user2 {
+  background-image: url('#{$icomoon-svg-path}/user2.svg');
+}
+
+.icomoon-users,.icomoon.users {
+  background-image: url('#{$icomoon-svg-path}/users.svg');
+}
+
+.icomoon-users2,.icomoon.users2 {
+  background-image: url('#{$icomoon-svg-path}/users2.svg');
+}
+
+.icomoon-video-camera,.icomoon.video-camera {
+  background-image: url('#{$icomoon-svg-path}/video-camera.svg');
+}
+
+.icomoon-vimeo,.icomoon.vimeo {
+  background-image: url('#{$icomoon-svg-path}/vimeo.svg');
+}
+
+.icomoon-vimeo2,.icomoon.vimeo2 {
+  background-image: url('#{$icomoon-svg-path}/vimeo2.svg');
+}
+
+.icomoon-vine,.icomoon.vine {
+  background-image: url('#{$icomoon-svg-path}/vine.svg');
+}
+
+.icomoon-vk,.icomoon.vk {
+  background-image: url('#{$icomoon-svg-path}/vk.svg');
+}
+
+.icomoon-volume-decrease,.icomoon.volume-decrease {
+  background-image: url('#{$icomoon-svg-path}/volume-decrease.svg');
+}
+
+.icomoon-volume-high,.icomoon.volume-high {
+  background-image: url('#{$icomoon-svg-path}/volume-high.svg');
+}
+
+.icomoon-volume-increase,.icomoon.volume-increase {
+  background-image: url('#{$icomoon-svg-path}/volume-increase.svg');
+}
+
+.icomoon-volume-low,.icomoon.volume-low {
+  background-image: url('#{$icomoon-svg-path}/volume-low.svg');
+}
+
+.icomoon-volume-medium,.icomoon.volume-medium {
+  background-image: url('#{$icomoon-svg-path}/volume-medium.svg');
+}
+
+.icomoon-volume-mute,.icomoon.volume-mute {
+  background-image: url('#{$icomoon-svg-path}/volume-mute.svg');
+}
+
+.icomoon-volume-mute2,.icomoon.volume-mute2 {
+  background-image: url('#{$icomoon-svg-path}/volume-mute2.svg');
+}
+
+.icomoon-warning,.icomoon.warning {
+  background-image: url('#{$icomoon-svg-path}/warning.svg');
+}
+
+.icomoon-whatsapp,.icomoon.whatsapp {
+  background-image: url('#{$icomoon-svg-path}/whatsapp.svg');
+}
+
+.icomoon-wikipedia,.icomoon.wikipedia {
+  background-image: url('#{$icomoon-svg-path}/wikipedia.svg');
+}
+
+.icomoon-windows,.icomoon.windows {
+  background-image: url('#{$icomoon-svg-path}/windows.svg');
+}
+
+.icomoon-windows8,.icomoon.windows8 {
+  background-image: url('#{$icomoon-svg-path}/windows8.svg');
+}
+
+.icomoon-wink,.icomoon.wink {
+  background-image: url('#{$icomoon-svg-path}/wink.svg');
+}
+
+.icomoon-wink2,.icomoon.wink2 {
+  background-image: url('#{$icomoon-svg-path}/wink2.svg');
+}
+
+.icomoon-woman,.icomoon.woman {
+  background-image: url('#{$icomoon-svg-path}/woman.svg');
+}
+
+.icomoon-wondering,.icomoon.wondering {
+  background-image: url('#{$icomoon-svg-path}/wondering.svg');
+}
+
+.icomoon-wondering2,.icomoon.wondering2 {
+  background-image: url('#{$icomoon-svg-path}/wondering2.svg');
+}
+
+.icomoon-wordpress,.icomoon.wordpress {
+  background-image: url('#{$icomoon-svg-path}/wordpress.svg');
+}
+
+.icomoon-work-shift-light,.icomoon.work-shift-light {
+  background-image: url('#{$icomoon-svg-path}/work-shift-light.svg');
+}
+
+.icomoon-work-shift,.icomoon.work-shift {
+  background-image: url('#{$icomoon-svg-path}/work-shift.svg');
+}
+
+.icomoon-wrench,.icomoon.wrench {
+  background-image: url('#{$icomoon-svg-path}/wrench.svg');
+}
+
+.icomoon-wrench2,.icomoon.wrench2 {
+  background-image: url('#{$icomoon-svg-path}/wrench2.svg');
+}
+
+.icomoon-xing,.icomoon.xing {
+  background-image: url('#{$icomoon-svg-path}/xing.svg');
+}
+
+.icomoon-xing2,.icomoon.xing2 {
+  background-image: url('#{$icomoon-svg-path}/xing2.svg');
+}
+
+.icomoon-yahoo,.icomoon.yahoo {
+  background-image: url('#{$icomoon-svg-path}/yahoo.svg');
+}
+
+.icomoon-yahoo2,.icomoon.yahoo2 {
+  background-image: url('#{$icomoon-svg-path}/yahoo2.svg');
+}
+
+.icomoon-yelp,.icomoon.yelp {
+  background-image: url('#{$icomoon-svg-path}/yelp.svg');
+}
+
+.icomoon-youtube,.icomoon.youtube {
+  background-image: url('#{$icomoon-svg-path}/youtube.svg');
+}
+
+.icomoon-youtube2,.icomoon.youtube2 {
+  background-image: url('#{$icomoon-svg-path}/youtube2.svg');
+}
+
+.icomoon-zoom-in,.icomoon.zoom-in {
+  background-image: url('#{$icomoon-svg-path}/zoom-in.svg');
+}
+
+.icomoon-zoom-in2,.icomoon.zoom-in2 {
+  background-image: url('#{$icomoon-svg-path}/zoom-in2.svg');
+}
+
+.icomoon-zoom-out,.icomoon.zoom-out {
+  background-image: url('#{$icomoon-svg-path}/zoom-out.svg');
+}
+
+.icomoon-zoom-out2,.icomoon.zoom-out2 {
+  background-image: url('#{$icomoon-svg-path}/zoom-out2.svg');
+}
+

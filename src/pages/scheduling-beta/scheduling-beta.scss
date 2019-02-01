@@ -1,0 +1,590 @@
+page-scheduling-beta {
+  font-family: 'Roboto Condensed';
+  font-style: normal;
+  font-weight: 300;
+  font-size: 13.333px;
+  user-select: text;
+
+  .potential-drop {
+    background-color: rgba(0, 0, 255, 0.2);
+  }
+
+  .scheduling-menubar-button {
+    margin-left: 10px;
+    margin-right: 10px;
+    .fa {
+      font-size: 28px;
+    }
+  }
+  .scheduling-menubar-button-circled {
+    border-radius: 12px;
+    width: 32px;
+    text-align: center;
+    padding-left: 2px;
+    // padding-right: 10px;
+    border: 1.5px solid black;
+  }
+  .button-tech-name {
+    text-align: left;
+  }
+  .client-col {
+    padding-top: 1px;
+    padding-bottom: 1px;
+  }
+  .client-totals {
+    margin-top: 1px;
+    margin-bottom: 1px;
+    border-bottom: 1px solid grey;
+    background-color: rgba(240, 240, 240, 0.8);
+  }
+  .client-totals-col-data {
+    text-align: right;
+    font-size: smaller;
+    width: 20%;
+    padding-right: 10%;
+    flex: 1 1 auto;
+  }
+  .client-totals-grid {
+    padding-right: 0;
+  }
+  .client-totals-header,
+  .client-totals-header-col {
+    text-transform: uppercase;
+    font-weight: bold;
+    text-align: right;
+    padding-right: 30%;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    margin-top: 2px;
+    width: 240px;
+    font-size: larger;
+  }
+  .container {
+    min-height: 80vh;
+  }
+  .employeecol {
+    flex: 0 1 auto;
+    padding: 0;
+  }
+  .stats {
+    padding-top: 5px;
+  }
+  .employeecontainer, .new-employeecontainer {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    align-content: flex-start;
+    min-width: 245px !important;
+    max-width: 245px !important;
+    margin: 0;
+  }
+  .stats {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    align-content: flex-start;
+    min-width: 250px !important;
+    max-width: 250px !important;
+    margin: 0;
+  }
+  div.employeerow.row,
+  .ion-row {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    align-content: flex-start;
+  }
+  ion-scroll.employeescroller.scroll-y {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    align-content: flex-start;
+    min-height: 83vh;
+    width: 235px;
+    scroll-behavior: smooth;
+     ::-webkit-scrollbar {
+      width: 12px;
+    }
+  }
+  .jobsite_header_grid_row {
+    padding-bottom: 0px;
+    margin-bottom: 0px;
+  }
+  .jobsitegrid {
+    margin-top: 1px;
+    padding-top: 0;
+    padding-right: 0;
+  }
+  .jobsiteheadergrid {
+    padding-bottom: 0;
+    margin-bottom: 0;
+  }
+  .schedule-button-open,
+  .schedule-button-persist,
+  .schedule-button-increment,
+  .schedule-button-dab,
+  .schedule-button-new,
+  .schedule-button-block {
+    width: 240px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .schedule-clear-button {
+    color: black;
+  }
+  @media not print {
+    .schedulecontainer {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+      align-items: flex-start;
+      align-content: flex-start;
+      overflow-y: auto;
+      width: 886px;
+      margin: 0;
+      padding: 0;
+      max-height: 83vh;
+      scroll-behavior: smooth;
+      ::-webkit-scrollbar {
+        width: 12px;
+      }
+    }
+  }
+  #Schedule>div.scroll-content>div>div.stats>div.schedule-date-range>div,
+  #Schedule>div.scroll-content>div>div.stats>div.schedule-date-range>div>p-calendar {
+    margin: 0;
+    padding: 0;
+    height: 26px !important;
+    span>input {
+      height: 26px;
+      padding: 2px;
+    }
+  }
+  .schedule-date,
+  .schedule-start-date {
+    color: white;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0.9) -50%, rgba(51, 63, 79, 1.0) 50%, rgba(255, 255, 255, 0.9) 150%);
+    flex: 1 0 auto;
+    display: flex;
+    justify-content: center;
+    align-content: flex-start;
+    min-width: 200px;
+    width: 240px;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+    button {
+      width: 220px;
+      padding: 0;
+      margin: 0;
+      .button-inner {
+        display: flex;
+        flex: 1 0 auto;
+        padding: 2px 0px !important;
+        margin: 0 !important;
+      }
+    }
+  }
+  .schedule-start-date input {
+    cursor: pointer;
+  }
+  .schedule-start-date {
+    height: 26px;
+    cursor: pointer !important;
+  }
+  .schedule-date-divider {
+    margin: 10px auto;
+    line-height: 14px;
+    font-size: 14px;
+    padding: 0 !important;
+  }
+  .schedule-date-item {
+    padding: 0;
+    flex: 1 0 auto;
+    display: flex;
+    height: 36px;
+    font-size: 14px;
+    line-height: 15px;
+    min-height: 20px;
+    .item-inner {
+      padding: 0;
+      padding-right: 0 !important;
+      flex: 1 0 auto;
+      border-bottom: 0 !important;
+      width: 100%;
+      height: 25px !important;
+    }
+  }
+  .schedule-date-range {
+    display: flex;
+    text-align: center;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+  }
+  .schedulehypercontainer {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    align-content: flex-start;
+    scroll-behavior: smooth;
+     ::-webkit-scrollbar {
+      width: 12px;
+    }
+  }
+  #Schedule {
+    overflow: auto;
+  }
+  #Schedule>div.scroll-content>div,
+  .schedule-main-columns-wrapper {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    align-content: flex-start;
+    width: 98vw;
+    margin: 0 1vw;
+    top: 66px;
+    bottom: 1vh;
+  }
+  div.scroll-content {
+    overflow: auto;
+    padding: 0;
+    div.schedule-main-columns-wrapper {
+      height: auto;
+    }
+     ::-webkit-scrollbar {
+      width: 12px;
+    }
+     ::-webkit-scrollbar-track {
+      box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      border-radius: 10px;
+    }
+    /* Handle */
+     ::-webkit-scrollbar-thumb {
+      border-radius: 10px;
+      border-radius: 10px;
+      background: rgba(0, 52, 171, 0.3);
+      box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+    }
+     ::-webkit-scrollbar-thumb:window-inactive {
+      background: rgba(0, 0, 0, 0.4);
+    }
+  }
+  .sesa-totals-row {
+    margin-top: 5px;
+    color: rgb(204, 0, 153);
+  }
+  .shiftnames.col {
+    min-width: 165px;
+  }
+  .site-button {
+    height: auto !important;
+    vertical-align: top !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: black !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+  div.sitenames.col,
+  #Schedule>div.scroll-content>div>div.schedulecontainer>div>div.header_row.row>div.emptycell.col {
+    flex: 0 0 10px;
+    width: 10px;
+    text-align: left;
+    overflow: visible;
+    white-space: nowrap;
+  }
+  div.sitenames.col {
+    z-index: 60;
+    background-image: url('../assets/images/row-padding.png');
+    background-position: left top;
+    background-repeat: repeat-x;
+  }
+  .site-totals-col {
+    padding-top: 1px;
+    padding-bottom: 1px;
+  }
+  .site-totals-col-data {
+    text-align: right;
+    font-size: small;
+    width: 20%;
+    padding-right: 10%;
+    flex: 1 1 auto;
+  }
+  .site-totals-col-label {
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: right;
+    font-size: small;
+    padding: 0;
+    width: 80%;
+    flex: 1 0 auto;
+  }
+  .site-totals-grid {
+    padding-right: 0;
+  }
+  .slot {
+    flex: 0 1 auto;
+  }
+  .slot-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding-top: 25px;
+    padding-left: 5px;
+    overflow-x: hidden;
+    background-image: url('../assets/images/row-padding.png');
+    background-position: left top;
+    background-repeat: repeat-x;
+  }
+  .tech-button .button-inner {
+    align-items: baseline;
+  }
+  .tech-shift-symbol {
+    font-size: 13.333px;
+  }
+  .techs-unassigned-row {
+    margin-top: 5px;
+    color: blue;
+  }
+  .tech-totals-col {
+    padding-top: 1px;
+    padding-bottom: 1px;
+  }
+  .tech-totals-col-data {
+    text-align: right;
+    font-size: smaller;
+    width: 25%;
+    padding-right: 10%;
+    flex: 1 1 auto;
+  }
+  .tech-totals-col-label {
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: right;
+    font-size: smaller;
+    padding: 0;
+    width: 75%;
+    flex: 1 0 auto;
+  }
+  .unassigned-techs-header {
+    width: 235px;
+    text-align: center;
+    font-weight: bold;
+    background-color: rgba(50, 50, 50, 0.15);
+  }
+  .slot_row {
+    page-break-after: left;
+  }
+  div.wrapper.slot_row.row {
+    min-height: 30px;
+  }
+  div.wrapper.slot_row.row> :nth-child(3),
+  div.wrapper.slot_row.row> :nth-child(5),
+  div.wrapper.slot_row.row> :nth-child(7) {
+    background-color: rgba(249, 250, 255, 0.8);
+  }
+  .halliburton {
+    background-color: rgb(217, 225, 242);
+  }
+  .keane {
+    background-color: rgb(226, 239, 218);
+  }
+  .basic {
+    background-color: rgb(248, 203, 173);
+  }
+  .psc {
+    background-color: rgba(248, 232, 154, 1.0);
+  }
+  .hb-sites {
+    color: rgba(32, 55, 100, 1.0);
+  }
+  .kn-sites {
+    color: rgba(198, 89, 17, 1.0);
+  }
+  .be-sites {
+    color: rgba(55, 86, 35, 1.0);
+  }
+  .psc-sites {
+    // color: rgba(83, 16, 83, 1.0);
+    color: rgba(120, 44, 147, 1.0)
+  }
+  .se-sites {
+    color: rgba(204, 0, 153, 1.0);
+  }
+  div.tech button.tech-button.button.button-md.button-default.button-default-md,
+  button.tech-button {
+    position: relative;
+    font-size: 13.333px;
+    font-family: "Roboto Condensed";
+    font-weight: 300;
+    background-color: transparent;
+    text-transform: none;
+    color: black;
+    padding: 1px;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    max-height: 15.333px;;
+    height: auto;
+    overflow: hidden;
+    align-self: flex-start;
+    top: -2.5px;
+    white-space: unset; // max-width: 220px;
+  }
+  div.tech button.tech-button.button.button-md.button-default.button-default-md span.button-inner {
+    height: 15.333px;
+    position: relative;
+    margin: 0;
+    padding: 0;
+    top: 0;
+  }
+  .tech-shift-symbol {
+    font-size: 13.333px;
+    line-height: 13.333px;
+  }
+  .day {
+    color: rgba(255, 192, 0, 1.0);
+    &:before {
+      // content: "☼";
+      content: "☀";
+    }
+  }
+  .night {
+    color: rgba(31, 78, 120, 1.0);
+    &:before {
+      content: "☽";
+    }
+  }
+  .shiftnames {
+    text-align: center;
+    font-weight: bold;
+    background-color: rgba(50, 50, 50, 0.15);
+  }
+  .schedule-date,
+  .schedule-start-date {
+    color: white;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0.9) -50%, rgba(51, 63, 79, 1.0) 50%, rgba(255, 255, 255, 0.9) 150%);
+    flex: 1 0 auto;
+    display: flex;
+    justify-content: center;
+    align-content: flex-start;
+    min-width: 200px;
+    width: 240px;
+    padding: 5px 0px;
+    margin: 0;
+    text-align: center;
+    button {
+      width: 220px;
+      padding: 0;
+      margin: 0;
+      .button-inner {
+        display: flex;
+        flex: 1 0 auto;
+        padding: 2px 0px !important;
+        margin: 0 !important;
+      }
+    }
+    .ng-tns-c0-ui-calendar {
+      color: white;
+      padding: 2px 0px !important;
+      margin: 0 !important;
+    }
+    input {
+      color: white;
+      border: 0;
+      background: transparent;
+      text-align: center;
+      flex: 1 0 auto;
+      margin: 0;
+    }
+  }
+  .ui-datepicker {
+    left: -38px !important;
+  }
+  .client-totals-col-label {
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: right;
+    font-size: smaller;
+    padding: 0;
+    width: 80%;
+    flex: 1 0 auto;
+  }
+  .alert-icons {
+    font-size: 64px;
+  }
+  .hidden {
+    display: none;
+  }
+  .possiblebuttoncontainer {
+    width: 250px;
+    height: 83vh;
+  }
+  .scheduling-buttons-container {
+    width: 250px;
+    padding: 0;
+    box-sizing: border-box;
+    margin: 0;
+    min-height: 40px;
+  }
+  .bordered {
+    border: 1px dashed lightgrey;
+  }
+  .scheduling-new-wrapper {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-start;
+    align-content: center;
+  }
+
+  .scheduling-new-pseudo-item {
+
+  }
+  .scheduling-new-pseudo-item {
+
+  }
+  .scheduling-new-pseudo-item-wrapper {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-start;
+    align-content: center;
+    flex: 0 1 auto;
+  }
+  .scheduling-new-pseudo-item-label {
+    flex: 0 1 auto;
+
+  }
+  .scheduling-new-pseudo-item-toggle {
+    flex: 0 1 auto;
+
+  }
+
+  .jobsiteheaderprintgrid {
+    display: none;
+    @media print {
+      display: block;
+    }
+  }
+  .fake-class-for-fake-element {
+    display: none;
+  }
+}

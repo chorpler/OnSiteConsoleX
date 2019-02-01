@@ -1,0 +1,19 @@
+.login-modal .modal-wrapper {
+  height: 60vh;
+  min-height: 500px;
+  display: flex;
+}
+page-login {
+  .login-modal-content {
+    padding: 5%;
+    background: rgba(50, 50, 50, 0.25);
+    // height: 50%;
+    .scroll-content {
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: unset;
+    }
+  }
+  ion-title {
+    text-align: center;
+  }
+}

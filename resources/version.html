@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Update Status</title>
+  <style type="text/css">
+    .update-header {
+      display: block;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .update-status {
+      display: flex;
+      width: 100%;
+      flex-flow: column nowrap;
+      justify-content: flex-start;
+      align-content: center;
+      align-items: center;
+      text-align: left;
+      font-size: 16px;
+    }
+    .update-current {
+      font-weight: bold;
+    }
+    .update-newvers {
+      font-weight: bold;
+    }
+    .current-version {
+      color: rgba(63, 49, 255, 1.0);
+    }
+    .new-version {
+      color: rgba(255, 50, 50, 1.0);
+    }
+    .update-messages {
+      display: block;
+      font-weight: normal;
+      margin-top: 10px;
+    }
+    .progress-container {
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: flex-start;
+      align-content: center;
+      align-items: center;
+      border: 1px solid lightgrey;
+      width: 100%;
+      height: 30px;
+    }
+    .progress-inner {
+      display: block;
+      flex: 0 1 auto;
+      background-color: blue;
+      height: 30px;
+    }
+    .error-message-header {
+      display: block;
+      font-weight: bold;
+      text-align: left;
+    }
+    .error-message-body {
+      display: block;
+      font-weight: normal;
+      text-align: left;
+    }
+    .status-container {
+      flex: 0 1 auto;
+      display: block;
+      width: 100%;
+      margin-top: 10px;
+      border: 1px solid lightgrey;
+      overflow: auto;
+      height: 100px;
+      padding: 2px;
+    }
+  </style>
+</head>
+<body>
+  <span class="update-header">Update Status</span>
+  <span class="update-status">
+    <span class="update-current">Current version: <span class="current-version" id="version">X.Y.Z</span></span>
+    <span class="update-newvers">New version: <span class="new-version" id="newversion">X.Y.Z</span></span>
+    <div class="update-messages" id="messages">0 %</div>
+    <div class="progress-container">
+      <div id="progress-bar" class="progress-inner"></div>
+    </div>
+    <div class="status-container">
+      <div id="status" class="status-text">Downloading update ...</div>
+    </div>
+  </span>
+<script>
+// Display the current version
+let hash = window.location.hash.substring(1);
+let versions = hash.split("#");
+let v1 = versions[0];
+let v2 = versions[1];
+let version = v1;
+document.getElementById('version').innerText = v1;
+document.getElementById('newversion').innerText = v2;
+// Listen for messages
+const {ipcRenderer} = require('electron');
+ipcRenderer.on('progress-message', function(event, progressObject) {
+  var messageEl = document.getElementById('messages');
+  console.log(`Version: progress-message event received:\n`, arguments);
+  var progressEl = document.getElementById('progress-bar');
+  // var message = document.createElement('div');
+  var percent = Math.trunc(Number(progressObject.percent));
+  // var percentObj = JSON.stringify(progressObject);
+  // message.innerHTML = `${percent} %`;
+  // container.appendChild(message);
+  messageEl.innerHTML = `<span class="progress-percent">${percent} %</span>`;
+  progressEl.style.width = `${percent}%`;
+
+});
+ipcRenderer.on('error-message', function(event, error) {
+  var messageEl = document.getElementById('status');
+  console.log(`Version: error-message event received:\n`, arguments);
+  let errText = error && typeof error.message === 'string' ? error.message : typeof error === 'string' ? error : "UNKNOWN_ERROR (code -42)";
+  messageEl.innerHTML = `<span class="error-message-header">Error getting update! Close this window and try again.</span><span class="error-message-body">${errText}</span>`;
+});
+
+</script>
+</body>
+</html>

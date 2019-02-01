@@ -1,0 +1,247 @@
+options {
+  .options-wrapper {
+    width: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: flex-start;
+    align-content: center;
+    align-items: center;
+  }
+  .options-tabview {
+    // height: 100%;
+    .ui-tabview-nav {
+      border: none;
+      // border-bottom: 1px solid #d9d9d9;
+      > .ui-state-active {
+        top: 2px;
+      }
+    }
+    .ui-tabview-panels {
+      border: 1px solid #d9d9d9;
+      border-radius: 2px;
+      max-height: 450px;
+      min-width: 450px;
+      overflow-y: auto;
+    }
+  }
+  .options-main {
+    width: 100%;
+    padding: 0px;
+    // padding: 10px;
+    // padding-bottom: 10px;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: flex-start;
+    align-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+    border: 1px solid lightgrey;
+  }
+  .options-sectiontitle {
+    text-align: center;
+    font-weight: bold;
+    border-top: 1px solid lightgrey;
+    border-bottom: 1px solid lightgrey;
+    width: 100%;
+    background-color: rgb(230, 225, 225);
+    margin-top: 10px;
+    margin-bottom: 5px;
+    &:first-of-type {
+      margin-top: 0;
+      border-top: 0;
+    }
+    &.developer {
+      background-color: rgba(255, 0, 0, 0.4);
+    }
+  }
+  .options-section {
+    width: 100%;
+    display: block;
+    flex: 0 1 auto;
+    &.developer {
+      background-color: rgba(255, 0, 0, 0.2);
+    }
+  }
+  .options-item-wrapper {
+    width: 100%;
+    flex: 0 1 auto;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-start;
+    align-content: center;
+    align-items: center;
+    margin-top: 5px;
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    &.has-buttons {
+      .options-input {
+        max-width: 150px;
+        width: 30%;
+      }
+    }
+    .options-item-label {
+      flex: 0 1 auto;
+      width: 100%;
+      text-align: center;
+    }
+  }
+  .options-checkbox {
+    flex: 0 1 auto;
+    width: 25px;
+    text-align: left;
+  }
+  .options-dropdown {
+    flex: 0 1 auto;
+    .ui-dropdown {
+      min-width: 125px;
+    }
+    // text-align: left;
+    // max-width: 75px;
+  }
+  .options-label {
+    flex: 0 1 auto;
+    min-width: 200px;
+    max-width: 350px;
+    width: 50%;
+    font-weight: bold;
+    text-align: right;
+    padding-right: 2px;
+  }
+  .options-input {
+    flex: 0 1 auto;
+    text-align: left;
+    // max-width: 75px;
+    width: 40%;
+  }
+  .advanced-label {
+    flex: 0 1 auto;
+    min-width: 200px;
+    max-width: 350px;
+    width: 30%;
+    font-weight: bold;
+    text-align: right;
+    padding-right: 2px;
+  }
+  .advanced-input {
+    flex: 0 1 auto;
+    text-align: left;
+    min-width: 250px;
+    max-width: 350px;
+    width: 70%;
+  }
+
+  .db-table {
+    border-collapse: collapse;
+    margin: 4px;
+    .header-row {
+      text-align: center;
+      font-weight: bold;
+      th {
+        padding-left: 2px;
+        padding-right: 2px;
+        &.label {
+          min-width: 100px;
+          width: 100px;
+        }
+        &.data {
+          min-width: 220px;
+          width: 220px;
+        }
+        .label-text {
+          display: inline-block;
+          border-bottom: 1px solid rgba(195,195,195,1.0);
+          width: 98%;
+        }
+      }
+    }
+    .body-row {
+      td {
+        padding-top: 2px;
+        padding-bottom: 2px;
+      }
+      .label {
+        text-align: right;
+        padding-right: 2px;
+        font-weight: bold;
+      }
+      .data {
+        .advanced-input {
+          padding-left: 2px;
+          border: 1px dotted lightgrey;
+          width: 95%;
+        }
+      }
+      .label-text {
+        // width: 100%;
+      }
+    }
+  }
+  .refresh-button {
+    // transform:rotate(0deg);
+    // transition:all 3s ease-out;
+    // animation: unset;
+    // transform: rotate(0deg);
+    // animation: stopspinner 1s linear 1;
+    // animation: stopspinner 1s;
+    &.spin-icon {
+      transform:rotate(360deg);
+      animation: iconspinner 3s linear infinite;
+      transition: all 3s ease-out;
+    }
+    @keyframes iconspinner {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    // &:not(.spin-me) {
+    //   transform: rotate(0deg);
+    //   transition: all 3s;
+    //   // transition: transform 1s;
+    // }
+    // &.spin-me {
+    //   animation: spinner 3s linear infinite;
+    //   // transform: unset;
+    // }
+    // @keyframes stopspinner {
+    //   // 0% {
+    //   //   transform: rotate(360deg);
+    //   // }
+    //   100% {
+    //     transform: rotate(0deg);
+    //   }
+    // }
+  }
+
+  .options-button {
+    cursor:pointer;
+    font-size:24px;
+    margin-left: 5px;
+    &:hover {
+      color: rgba(0, 0, 255, 1.0);
+    }
+    &:active {
+      color: rgba(230, 0, 128, 1.0);
+    }
+
+  }
+  .ui-dialog-footer {
+    width: 100%;
+  }
+  .options-buttons {
+    width: 100%;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-around;
+    align-content: center;
+    align-items: center;
+    button {
+      flex: 0 1 auto;
+      width: 45%;
+    }
+  }
+}

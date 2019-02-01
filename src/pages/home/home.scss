@@ -1,0 +1,178 @@
+page-home {
+  table.console-home-list-table,
+  table.console-home-list-table * {
+    border: none;
+  }
+
+
+  .button-like {
+    cursor: pointer;
+    &:hover {
+      background-color: rgba(0, 0, 128, 0.2);
+    }
+    &:active {
+      background-color: rgba(0, 0, 255, 0.5);
+    }
+  }
+  .link-like {
+    cursor: pointer;
+    text-decoration: underline;
+    color: blue;
+    &:hover {
+      color: rgba(0, 0, 255, 0.5);
+    }
+    &:active {
+      color: rgba(0, 0, 255, 0.9);
+    }
+  }
+  .console-home-page {
+    // background-image: url('../assets/images/Consolebkg.jpg');
+    // background-image: url('assets/images/Consolebkg.jpg'), url('./assets/images/Consolebkg.jpg'), url('../assets/images/Consolebkg.jpg'), url('../../assets/images/Consolebkg.jpg'), url('/assets/images/Consolebkg.jpg');
+    background-image: url('assets/images/Consolebkg.jpg'), url('./assets/images/Consolebkg.jpg');
+    background-repeat: no-repeat;
+    background-size: auto 150%;
+    background-position: center;
+    background-color: rgba(255, 240, 220, 1);
+  }
+  .console-home-menubar-button {
+    font-size: 32px;
+    margin-left: 8px;
+    margin-right: 8px;
+  }
+  .developer {
+    color: red;
+  }
+  .ui-panel,
+  .ui-panel-content {
+    background: rgba(236, 234, 223, 0.3);
+  }
+  .ui-panel-titlebar {
+    position: relative;
+    .ui-panel-titlebar-icon {
+      position: absolute;
+      right: 5px;
+      top: 5px;
+    }
+  }
+  .onsiteconsolex-home-panel {
+    .ui-panel {
+      margin-top: 20px;
+      background: rgba(236, 234, 223, 0.3);
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+  .onsiteconsolex-home-panel-main {
+    // .ui-panel {
+      width: 95%;
+      min-width: 480px;
+    // }
+    > .ui-panel {
+      width: 95%;
+      min-width: 480px;
+    }
+    .ui-widget {
+      &:nth-child(2) {}
+    }
+  }
+  .panel-main-header {
+    display: block;
+  }
+  .panel-main-subheader {
+    font-size: 14px;
+  }
+  // .ui-panel {
+  //   width: 95%;
+  //   margin-left: auto;
+  //   margin-right: auto;
+  //   padding: 0 !important;
+  //   margin-bottom: 15px;
+  // }
+  .ui-panel-content {
+    padding: 0 !important;
+  }
+  .ui-panel-titlebar {
+    text-align: center;
+    font-size: 20px;
+  }
+  .onsiteconsolex-home-subpanel-first {
+    .ui-panel {
+      width: 50%;
+      min-width: 470px;
+      margin-top: 10px;
+      padding: 0;
+      background: rgba(236, 234, 223, 1.0);
+    }
+  }
+  .onsiteconsolex-home-subpanel {
+    .ui-panel {
+      width: 50%;
+      min-width: 470px;
+      margin-top: 15px;
+      margin-bottom: 15px;
+      padding: 0;
+      background: rgba(236, 234, 223, 1.0);
+    }
+    .ui-panel-content {
+      min-width: 470px;
+      // width: 95%;
+    }
+  }
+  .console-home-list-table {
+    // table-layout: fixed;
+    width: 30%;
+    min-width: 450px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border: 1px solid lightgrey;
+    font-size: 24px;
+    td {
+      border: 1px solid lightgrey;
+    }
+  }
+  .table-col {
+    border: 1px solid lightgrey;
+  }
+  .col-00 {
+    width: 70%;
+    min-width: 280px;
+    font-weight: bold;
+    text-align: right;
+    padding-right: 15px;
+  }
+  .col-01 {
+    width: 30%;
+    min-width: 162px;
+    text-align: right;
+    padding-right: 5px;
+    font-family: "Roboto Mono", "RobotoMono", monospace;
+    // padding-left: 2px;
+  }
+  .text-spinner {
+    // position: relative;
+    display: inline-block;
+    transform-origin: center;
+    // display: inline;
+    width: 25px;
+    height: 25px;
+    background-image: url('../assets/images/animated.fidget-spinner.svg');
+    // background-image: url('../assets/images/spinner01.gif');
+    // background-image: url('../assets/images/fidgetspinner01.png');
+    background-repeat:no-repeat;
+    background-size: contain;
+    background-position: center;
+  }
+  .zoom-me {
+    animation: zoom 1s linear infinite;
+  }
+  @keyframes zoom {
+    50% {
+        font-size: 0.5em;
+    }
+    100% {
+        font-size: 1em;
+    }
+  }
+}

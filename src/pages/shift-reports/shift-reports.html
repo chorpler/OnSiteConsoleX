@@ -1,0 +1,77 @@
+<ion-header>
+  <ion-navbar>
+    <!-- <ion-buttons left>
+      <button ion-button icon-only menuToggle>
+        <ion-icon name="menu"></ion-icon>
+      </button>
+    </ion-buttons> -->
+    <ion-title>{{title}}</ion-title>
+    <ion-buttons right>
+      <button ion-button icon-only (tap)="addNewReport()">
+        <ion-icon class="shift-reports-add-report-button-icon" name="add"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding *ngIf="dataReady">
+  <div class="shift-reports-header" *ngIf="!period">{{tech.getFullName()}} &mdash; {{shift.getShiftDate().format("MMM DD, YYYY")}}</div>
+  <div class="shift-reports-header" *ngIf="period">{{tech.getFullName()}} &mdash; {{period.start_date.format("MMM DD, YYYY")}}</div>
+  <table class="shift-reports-table">
+    <thead class="shift-reports-grid-header">
+      <tr>
+        <!-- <th class="col01" >ID</th> -->
+        <th class="col02" >DATE</th>
+        <th class="col03" >CLNT</th>
+        <th class="col04" >LOC</th>
+        <th class="col05" >LocID</th>
+        <!-- <th class="col06" >Tech</th> -->
+        <th class="col07" >Hours</th>
+        <th class="col08" >Unit</th>
+        <th class="col09" >WO#</th>
+        <th class="col10 shift-reports-col-notes">Notes</th>
+      </tr>
+    </thead>
+    <tbody class="shift-reports-grid-body" *ngIf="!period">
+      <tr class="table-row-button-like" *ngFor="let report of shift.getShiftReports(); let i=index" (tap)="openReport(report)">
+        <td class="col02" >{{report.report_date}}</td>
+        <td class="col03" >{{data.getFull('client', report.client).name}}</td>
+        <td class="col04" >{{data.getFull('location', report.location).name}}</td>
+        <td class="col05" >{{data.getFull('locID', report.location_id).name}}</td>
+        <!-- <td class="col06" >{{report.technician}}</td> -->
+        <td class="col07" >{{report.getRepairHours()}}</td>
+        <td class="col08" >{{report.unit_number}}</td>
+        <td class="col09" >{{report.work_order_number}}</td>
+        <td class="col10 shift-reports-col-notes">{{report.notes}}</td>
+      </tr>
+    </tbody>
+    <tbody class="shift-reports-grid-body" *ngIf="period">
+      <tr class="table-row-button-like" *ngFor="let report of reports; let i=index" (tap)="openReport(report)">
+        <!-- <td class="col01" >{{report._id}}</td> -->
+        <td class="col02" >{{report.report_date}}</td>
+        <td class="col03" >{{data.getFull('client', report.client).name}}</td>
+        <td class="col04" >{{data.getFull('location', report.location).name}}</td>
+        <td class="col05" >{{data.getFull('locID', report.location_id).name}}</td>
+        <!-- <td class="col06" >{{report.technician}}</td> -->
+        <td class="col07" >{{report.getRepairHours()}}</td>
+        <td class="col08" >{{report.unit_number}}</td>
+        <td class="col09" >{{report.work_order_number}}</td>
+        <td class="col10 shift-reports-col-notes">{{report.notes}}</td>
+      </tr>
+    </tbody>
+  </table>
+</ion-content>
+<ion-footer>
+  <ion-toolbar>
+    <ion-buttons left>
+      <button type="button" ion-button icon-only color="royal" (click)="cancel()">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-buttons right>
+      <button type="submit" ion-button icon-only color="favorite" (click)="cancel()">
+        <ion-icon name="checkmark"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

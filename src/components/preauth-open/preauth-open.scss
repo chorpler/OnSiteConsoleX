@@ -1,0 +1,134 @@
+preauth-open {
+  .button-like {
+    @include button-like-block;
+  }
+  .preauth-openopen-dialog {
+    width: 600px;
+    // height: 600px;
+    .ui-dialog-content {
+      height: 90%;
+      width: 100%;
+    }
+  }
+  .preauth-openlist {
+    width: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: flex-start;
+    align-content: center;
+    align-items: center;
+  }
+  .preauth-openitem {
+    width: 100%;
+    flex: 0 1 auto;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+  }
+  .preauth-openrow {
+    width: 100%;
+    flex: 0 1 auto;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    border: 1px dotted lightgrey;
+  }
+  .preauth-openlabel {
+    flex: 0 1 auto;
+    width: 70%;
+  }
+  .preauth-opendata {
+    flex: 0 1 auto;
+    width: 30%;
+  }
+  .no-invoices {
+    width: 100%;
+    flex: 0 1 auto;
+    font-weight: bold;
+    font-size: 18px;
+  }
+  .loading-invoices {
+    width: 100%;
+    flex: 0 1 auto;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    .spinner-label {
+      flex: 0 1 auto;
+      width: 50%;
+      text-align: center;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    .spinner-image {
+      flex: 0 1 auto;
+      width: 50%;
+      text-align: center;
+    }
+  }
+  .text-spinner {
+    // position: relative;
+    display: inline-block;
+    transform-origin: center;
+    // display: inline;
+    width: 100px;
+    height: 100px;
+    background-image: url('../assets/images/spinner01.gif');
+    // background-image: url('../assets/images/fidgetspinner01.png');
+    background-repeat:no-repeat;
+    background-size: contain;
+    background-position: center;
+  }
+  .preauths-listbox-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: space-between;
+    align-content: center;
+    align-items: center;
+    .preauths-listbox {
+      width: 100%;
+      // flex: 0 1 auto;
+      .ui-listbox {
+        width: 100%;
+        min-height: 300px;
+        max-height: 500px;
+      }
+    }
+    .preauths-buttonbar {
+      width: 100%;
+      margin-top: 10px;
+      flex: 0 1 auto;
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: space-between;
+      align-content: center;
+      align-items: center;
+      .preauths-button {
+        width: 48%;
+        flex: 0 1 auto;
+        text-align: center;
+        font-size: 24px;
+        border: 1px solid lightgrey;
+        border-radius: 5px;
+        &.cancel {
+          background-color: rgba(255, 0, 0, 0.8);
+        }
+        &.open {
+          background-color: rgba(0, 255, 0, 0.8);
+        }
+        @include button-like-block;
+      }
+    }
+    .icon-button {
+      // @include icon-button-like;
+    }
+  }
+}

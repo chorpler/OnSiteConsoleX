@@ -1,0 +1,178 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons left>
+      <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode && !data.currentlyOpeningPage">
+        <i class="fa fa-window-close-o"></i>
+      </button>
+      <button ion-button menuToggle *ngIf="!modalMode && !data.currentlyOpeningPage">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+      <ion-spinner name="bubbles" [class.spinner-opening-page]="true" *ngIf="data.currentlyOpeningPage"></ion-spinner>
+    </ion-buttons>
+    <!-- <ion-buttons left>
+      <button ion-button menuToggle *ngIf="!modalMode">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+      <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode">
+        <i class="fa fa-window-close-o"></i>
+      </button>
+    </ion-buttons> -->
+    <ion-title>
+      <span class="title">
+        {{title}}
+        <span class="reports-alert" *ngIf="!(allReports && allReports.length)">(NO REPORTS LOADED)</span>
+        <span class="reports-count" *ngIf="allReports && allReports.length">
+          ({{allReports.length}} reports<span class="page-reports" *ngIf="reports && reports.length">, {{reports.length}} selected</span>)
+        </span>
+      </span>
+    </ion-title>
+    <ion-buttons right>
+      <span class="menu-and-button-wrapper" *ngIf="dataReady && data.ready()">
+
+        <span class="start-buttons">
+          <span class="menubar-button button-like-block" (click)="showOptions($event)" title="Show options">
+            <i class="fa fa-cog"></i>
+          </span>
+        </span>
+
+        <!-- Work Site dropdown -->
+        <span class="dropdown-wrapper" *ngIf="dataReady && data.ready()">
+          <span class="dropdown-flexbox">
+            <span class="dropdown-label">Site</span>
+            <span class="dropdown-menu">
+              <p-dropdown #menubarDropdownSite [class.dropdown-menubar]="true" [options]="siteList" [(ngModel)]="site" (onChange)="updateSite(site)"></p-dropdown>
+            </span>
+          </span>
+        </span>
+
+        <!-- Shift/Date multiselect -->
+        <span class="multiselect-menu-wrapper">
+          <span class="label">Shifts</span>
+          <span class="multiselect-wrapper">
+            <p-multiSelect #menubarMultiselectShift [class.menubar-multiselect]="true" [options]="shiftList" [(ngModel)]="selShifts" (onChange)="checkShiftSelections($event)">
+              <ng-template let-shift let-i="index" pTemplate="item">
+                <div *ngIf="shift.divider" class="menu-item-divider" [class.divider]="true">{{shift.label}}</div>
+                <div *ngIf="!shift.divider" class="menu-item-custom">{{shift.label}}</div>
+              </ng-template>
+            </p-multiSelect>
+          </span>
+        </span>
+
+        <!-- Buttons -->
+        <span class="final-buttons">
+          <span class="menubar-button button-like-block" (click)="generatePreauths($event)" title="Generate selected preauth report(s)">
+            <i class="fa fa-file-text-o"></i>
+          </span>
+          <span class="menubar-button button-like-block" (click)="clearPreauth($event)" title="Clear existing preauth sheet(s)">
+            <i class="fa fa-ban"></i>
+          </span>
+          <span class="menubar-button button-like-block" (click)="openPreauths($event)" title="Open existing preauth sheets">
+            <i class="fa fa-folder-open-o"></i>
+          </span>
+          <span class="menubar-button button-like-block" (click)="refreshData($event)" title="Refresh data and recalculate">
+            <i class="fa fa-refresh"></i>
+          </span>
+          <span class="menubar-button button-like-block" (click)="savePreauths($event)" title="Save preauth sheet(s)">
+            <i class="fa fa-save"></i>
+          </span>
+          <span class="menubar-button button-like-block" (click)="printPreauths($event)" title="Print Preauth Table">
+            <i class="fa fa-print"></i>
+          </span>
+        </span>
+      </span>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding *ngIf="dataReady && data.ready() && preauthsReady">
+  <!-- <div class="reports-count">{{allReports?.length}} reports<span *ngIf="reports && reports.length">, {{reports?.length}} selected</span></div> -->
+  <div class="no-preauth-data" *ngIf="!(preauths && preauths.length > 0)">
+    <span class="reports-count">(No Pre-Authorization Forms Generated)</span>
+  </div>
+  <!-- <div class="hb-preauth-wrapper" *ngIf="preauth && preauth.grid && preauth.grid.length > 0"> -->
+  <div class="preauth-data" *ngIf="preauths && preauths.length > 0">
+    <div class="hb-preauth-wrapper" *ngFor="let preauth of preauths; let k=index">
+      <div *ngIf="preauth && preauth.grid && preauth.grid.length > 0; then preauthTableTemplate; else noPreauthTemplate"></div>
+      <ng-template #preauthTableTemplate>
+        <div class="tables-and-title-wrapper">
+          <div class="preauth-table-title">
+            Pre-Authorization Form for {{preauth.site.getSiteSelectName()}} — {{moment(preauth.shift_date, "YYYY-MM-DD").format("DD MMM YYYY")}}
+          </div>
+          <div class="tables-wrapper" #allTablesElement>
+            <span class="table-wrapper">
+              <table class="edit-table">
+                <tbody class="edit-table-body">
+                  <tr class="edit-table-row" *ngFor="let row of editTables[k] ; let j=index" title="View Report {{j+1}} ({{dayReports[k][j]._id}})">
+                    <td class="edit-cell block-button-like" (click)="editReport(k, j, $event)">
+                      <i class="fa fa-pencil-square-o icon-button-like" (mouseenter)="highlight[k][j]=true" (mouseleave)="highlight[k][j]=false"></i>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </span>
+            <span class="table-wrapper">
+              <table #printArea class="hb-preauth-table print-area" [class.tablehighlight]="tablehighlight[k]">
+                <thead class="table-header">
+                  <tr class="table-header-row">
+                    <th class="col-00 col-vendor"              ><span class="header-text">Vendor               </span></th>
+                    <th class="col-01 col-itemno"              ><span class="header-text">Item no              </span></th>
+                    <th class="col-02 col-itemtype"            ><span class="header-text">Item type            </span></th>
+                    <th class="col-03 col-shorttext"           ><span class="header-text">Short text           </span></th>
+                    <th class="col-04 col-materialgroup"       ><span class="header-text">Material Group       </span></th>
+                    <th class="col-05 col-quantity"            ><span class="header-text">Quantity             </span></th>
+                    <th class="col-06 col-unit"                ><span class="header-text">Unit                 </span></th>
+                    <th class="col-07 col-netprice"            ><span class="header-text">Net Price            </span></th>
+                    <th class="col-08 col-currency"            ><span class="header-text">Currency             </span></th>
+                    <th class="col-09 col-priceunit"           ><span class="header-text">Price Unit           </span></th>
+                    <th class="col-10 col-contractno"          ><span class="header-text">Contract No          </span></th>
+                    <th class="col-11 col-contractitem"        ><span class="header-text">Contract Item        </span></th>
+                    <th class="col-12 col-contractserviceline" ><span class="header-text">Contract service line</span></th>
+                    <th class="col-13 col-accountcategory"     ><span class="header-text">Account Category     </span></th>
+                    <th class="col-14 col-accountingobject"    ><span class="header-text">Accounting Object    </span></th>
+                    <th class="col-15 col-internalorder"       ><span class="header-text">Internal Order       </span></th>
+                    <th class="col-16 col-gicode"              ><span class="header-text">GI Code              </span></th>
+                  </tr>
+                </thead>
+                <tbody class="table-body">
+                  <!-- <tr class="table-body-row" *ngFor="let row of preauthGrid; let i=index"> -->
+                  <tr class="table-body-row" [class.highlight]="highlight[k][i]" *ngFor="let row of preauth.grid; let i=index">
+                    <td class="col-00 col-vendor"             ><input type="text" class="table-input" [class.hidden]="copyMode" [(ngModel)]="row[0]"  (ngModelChange)="gridEdited(i, 0,  $event)" /><span class="hidden-text" [class.hidden]="!copyMode">{{row[0]}} </span></td>
+                    <td class="col-01 col-itemno"             ><input type="text" class="table-input" [class.hidden]="copyMode" [(ngModel)]="row[1]"  (ngModelChange)="gridEdited(i, 1,  $event)" /><span class="hidden-text" [class.hidden]="!copyMode">{{row[1]}} </span></td>
+                    <td class="col-02 col-itemtype"           ><input type="text" class="table-input" [class.hidden]="copyMode" [(ngModel)]="row[2]"  (ngModelChange)="gridEdited(i, 2,  $event)" /><span class="hidden-text" [class.hidden]="!copyMode">{{row[2]}} </span></td>
+                    <td class="col-03 col-shorttext"          ><input type="text" class="table-input" [class.hidden]="copyMode" [(ngModel)]="row[3]"  (ngModelChange)="gridEdited(i, 3,  $event)" /><span class="hidden-text" [class.hidden]="!copyMode">{{row[3]}} </span></td>
+                    <td class="col-04 col-materialgroup"      ><input type="text" class="table-input" [class.hidden]="copyMode" [(ngModel)]="row[4]"  (ngModelChange)="gridEdited(i, 4,  $event)" /><span class="hidden-text" [class.hidden]="!copyMode">{{row[4]}} </span></td>
+                    <td class="col-05 col-quantity"           ><input type="text" class="table-input" [class.hidden]="copyMode" [(ngModel)]="row[5]"  (ngModelChange)="gridEdited(i, 5,  $event)" /><span class="hidden-text" [class.hidden]="!copyMode">{{row[5]}} </span></td>
+                    <td class="col-06 col-unit"               ><input type="text" class="table-input" [class.hidden]="copyMode" [(ngModel)]="row[6]"  (ngModelChange)="gridEdited(i, 6,  $event)" /><span class="hidden-text" [class.hidden]="!copyMode">{{row[6]}} </span></td>
+                    <td class="col-07 col-netprice"           ><input type="text" class="table-input" [class.hidden]="copyMode" [(ngModel)]="row[7]"  (ngModelChange)="gridEdited(i, 7,  $event)" /><span class="hidden-text" [class.hidden]="!copyMode">{{row[7]}} </span></td>
+                    <td class="col-08 col-currency"           ><input type="text" class="table-input" [class.hidden]="copyMode" [(ngModel)]="row[8]"  (ngModelChange)="gridEdited(i, 8,  $event)" /><span class="hidden-text" [class.hidden]="!copyMode">{{row[8]}} </span></td>
+                    <td class="col-09 col-priceunit"          ><input type="text" class="table-input" [class.hidden]="copyMode" [(ngModel)]="row[9]"  (ngModelChange)="gridEdited(i, 9,  $event)" /><span class="hidden-text" [class.hidden]="!copyMode">{{row[9]}} </span></td>
+                    <td class="col-10 col-contractno"         ><input type="text" class="table-input" [class.hidden]="copyMode" [(ngModel)]="row[10]" (ngModelChange)="gridEdited(i, 10, $event)" /><span class="hidden-text" [class.hidden]="!copyMode">{{row[10]}}</span></td>
+                    <td class="col-11 col-contractitem"       ><input type="text" class="table-input" [class.hidden]="copyMode" [(ngModel)]="row[11]" (ngModelChange)="gridEdited(i, 11, $event)" /><span class="hidden-text" [class.hidden]="!copyMode">{{row[11]}}</span></td>
+                    <td class="col-12 col-contractserviceline"><input type="text" class="table-input" [class.hidden]="copyMode" [(ngModel)]="row[12]" (ngModelChange)="gridEdited(i, 12, $event)" /><span class="hidden-text" [class.hidden]="!copyMode">{{row[12]}}</span></td>
+                    <td class="col-13 col-accountcategory"    ><input type="text" class="table-input" [class.hidden]="copyMode" [(ngModel)]="row[13]" (ngModelChange)="gridEdited(i, 13, $event)" /><span class="hidden-text" [class.hidden]="!copyMode">{{row[13]}}</span></td>
+                    <td class="col-14 col-accountingobject"   ><input type="text" class="table-input" [class.hidden]="copyMode" [(ngModel)]="row[14]" (ngModelChange)="gridEdited(i, 14, $event)" /><span class="hidden-text" [class.hidden]="!copyMode">{{row[14]}}</span></td>
+                    <td class="col-15 col-internalorder"      ><input type="text" class="table-input" [class.hidden]="copyMode" [(ngModel)]="row[15]" (ngModelChange)="gridEdited(i, 15, $event)" /><span class="hidden-text" [class.hidden]="!copyMode">{{row[15]}}</span></td>
+                    <td class="col-16 col-gicode"             ><input type="text" class="table-input" [class.hidden]="copyMode" [(ngModel)]="row[16]" (ngModelChange)="gridEdited(i, 16, $event)" /><span class="hidden-text" [class.hidden]="!copyMode">{{row[16]}}</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </span>
+            <span class="table-wrapper">
+              <span class="table-copy">
+                <i class="fa fa-clipboard floating-button icon-button-like" (click)="copySingleTable(printArea, $event)" title="Copy Preauth Table" (mouseenter)="tablehighlight[k]=true" (mouseleave)="tablehighlight[k]=false"></i>
+              </span>
+            </span>
+          </div>
+        </div>
+      </ng-template>
+      <ng-template #noPreauthTemplate let-preauth>
+        <div class="no-preauth-message">
+          No Pre-Authorization Form generated for this site and date
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</ion-content>
+<report-view-beta #preauthReportViewBeta *ngIf="reportViewVisible" [class.report-view-component]="true" [report]="report" [reports]="shiftReports" [tech]="tech" [site]="site" [sites]="sites" (save)="reportViewSave($event)" (cancel)="reportViewCancel($event)"></report-view-beta>
+<preauth-open *ngIf="dataReady && data.ready() && preauthOpenVisible" (open)="preauthsOpen($event)" (cancel)="cancelOpen($event)"></preauth-open>
+<options-generic #optionsComponent *ngIf="optionsVisible" [type]="optionsType" (onCancel)="optionsClosed($event)" (onSave)="optionsSaved($event)"></options-generic>

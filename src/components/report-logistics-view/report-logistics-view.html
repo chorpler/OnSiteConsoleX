@@ -1,0 +1,155 @@
+<!-- <div class="report-logistics-view-wrapper" *ngIf="dataReady"> -->
+  <p-dialog #reportLogisticsViewDialog styleClass="report-logistics-view-dialog" [header]="header" [(visible)]="visible" [contentStyle]="{'overflow':'visible'}" [modal]="false" [responsive]="true" [draggable]="true" [resizable]="true" [positionLeft]="dialogLeft" [positionTop]="dialogTop" [appendTo]="dialogTarget" (onHide)="cancelClicked($event)">
+    <table class="report-view-button-table top">
+      <tr class="report-view-button-row">
+        <!-- <td class="cell-button-like" (click)="splitReport($event)"  title="Split work report" ><span class="svg-icon"></span></td> -->
+        <!-- <td class="cell-button-like" (click)="splitReport($event)"  title="Split work report" ><svg viewBox="0 0 26 26" class="icon svg-icon"></svg></td> -->
+        <!-- <td class="cell-button-like" (click)="splitReport($event)"  title="Split work report" *ngIf="data.status.role==='dev'"><i class="icomoon-split icon-button-like"></i></td> -->
+        <td class="cell-button-like" (click)="deleteReport($event)" title="Delete logistics report" ><i class="fa fa-trash-o icon-button-like"></i></td>
+        <td class="cell-button-like" (click)="saveNoExit($event)"   title="Save, don't exit"        ><i class="fa fa-save icon-button-like"   ></i></td>
+        <div *ngIf="idx+1 > 1; then previousAvailable; else previousUnavailable"></div>
+        <div *ngIf="idx+1 < count; then nextAvailable; else nextUnavailable"></div>
+        <ng-template #previousAvailable>
+          <td class="cell-button-like" (click)="previous($event)" title="Previous logistics report">
+            <i class="icon-button-like fa fa-chevron-circle-left"></i>
+          </td>
+        </ng-template>
+        <ng-template #previousUnavailable>
+          <td class="cell-button-disabled" title="No previous logistics reports">
+            <i class="fa fa-chevron-circle-left icon-greyed-out"></i>
+          </td>
+        </ng-template>
+        <ng-template #nextAvailable>
+          <td class="cell-button-like" (click)="next($event)" title="Next logistics report">
+            <i class="icon-button-like fa fa-chevron-circle-right"></i>
+          </td>
+        </ng-template>
+        <ng-template #nextUnavailable>
+          <td class="cell-button-disabled" title="No next logistics report">
+            <i class="fa fa-chevron-circle-right icon-greyed-out"></i>
+          </td>
+        </ng-template>
+      </tr>
+    </table>
+    <div class="table-and-maps-wrapper">
+      <div class="table">
+        <table class="report-view-table">
+          <tr class="report-view-row">
+            <td class="label">ID</td>
+            <td class="data" ><input class="report-view-input" [(ngModel)]="report._id" /></td>
+          </tr>
+          <tr class="report-view-row">
+            <td class="label">Rev</td>
+            <td class="data" ><input class="report-view-input" [readonly]="true" [(ngModel)]="report._rev" /></td>
+          </tr>
+          <tr class="report-view-row">
+            <td class="label">Timestamp</td>
+            <td class="data" ><input class="report-view-input" [(ngModel)]="report.timestamp" /></td>
+          </tr>
+          <tr class="report-view-row">
+            <td class="label">Date</td>
+            <td class="data" >
+              <p-calendar [class.report-view-calendar]="true" dateFormat="dd M yy" [(ngModel)]="report_date" [appendTo]="calendarTarget" (onChange)="updateDate(report_date, $event)"></p-calendar>
+            </td>
+          </tr>
+          <!-- <tr class="report-view-row">
+            <td class="label">Repair Time</td>
+            <td class="data" ><input class="report-view-input" type="number" min="0" step="0.5" [(ngModel)]="report.repair_hours" (ngModelChange)="updateRepairHours()"/></td>
+          </tr> -->
+          <tr class="report-view-row">
+            <td class="label">Start Time</td>
+            <td class="data" >
+              <p-calendar [class.report-view-calendar]="true" dateFormat="dd M yy" showTime="true" stepMinute="15" [(ngModel)]="time_start" [appendTo]="calendarTarget" (onChange)="updateTimeStart($event)"></p-calendar>
+            </td>
+          </tr>
+          <tr class="report-view-row">
+            <td class="label">Dest Time</td>
+            <!-- <td class="data" ><p-dropdown [class.report-view-dropdown]="true" [options]="timeList" [(ngModel)]="time_end" (onChange)="updateTimeEnd()"></p-dropdown></td> -->
+            <td class="data" >
+              <p-calendar [class.report-view-calendar]="true" dateFormat="dd M yy" showTime="true" stepMinute="15" [(ngModel)]="time_end" [appendTo]="calendarTarget" (onChange)="updateTimeEnd($event)"></p-calendar>
+            </td>
+          </tr>
+          <tr class="report-view-row">
+            <td class="label">Final Time</td>
+            <!-- <td class="data" ><p-dropdown [class.report-view-dropdown]="true" [options]="timeList" [(ngModel)]="time_end" (onChange)="updateTimeEnd()"></p-dropdown></td> -->
+            <td class="data" >
+              <p-calendar [class.report-view-calendar]="true" dateFormat="dd M yy" showTime="true" stepMinute="15" [(ngModel)]="time_final" [appendTo]="calendarTarget" (onChange)="updateTimeEnd($event)"></p-calendar>
+            </td>
+          </tr>
+          <tr class="report-view-row">
+            <td class="label">Start Mileage</td>
+            <td class="data" >
+              <input class="report-view-input" type="number" min="0" step="0.1" [(ngModel)]="report.startMiles" />
+            </td>
+          </tr>
+          <tr class="report-view-row">
+            <td class="label">Dest Mileage</td>
+            <!-- <td class="data" ><p-dropdown [class.report-view-dropdown]="true" [options]="timeList" [(ngModel)]="time_end" (onChange)="updateTimeEnd()"></p-dropdown></td> -->
+            <td class="data" >
+              <input class="report-view-input" type="number" min="0" step="0.1" [(ngModel)]="report.endMiles" />
+            </td>
+          </tr>
+          <tr class="report-view-row">
+            <td class="label">Final Mileage</td>
+            <!-- <td class="data" ><p-dropdown [class.report-view-dropdown]="true" [options]="timeList" [(ngModel)]="time_end" (onChange)="updateTimeEnd()"></p-dropdown></td> -->
+            <td class="data" >
+              <input class="report-view-input" type="number" min="0" step="0.1" [(ngModel)]="report.finalMiles" />
+            </td>
+          </tr>
+          <tr class="report-view-row coordinates">
+            <td class="label">Start Location</td>
+            <td class="data" >{{report?.fromLocation?.getCoordinatesAsString()}}</td>
+          </tr>
+          <tr class="report-view-row coordinates">
+            <td class="label">Dest Location</td>
+            <!-- <td class="data" ><p-dropdown [class.report-view-dropdown]="true" [options]="timeList" [(ngModel)]="time_end" (onChange)="updateTimeEnd()"></p-dropdown></td> -->
+            <td class="data" >{{report?.toLocation?.getCoordinatesAsString()}}</td>
+          </tr>
+          <tr class="report-view-row coordinates">
+            <td class="label">Final Location</td>
+            <!-- <td class="data" ><p-dropdown [class.report-view-dropdown]="true" [options]="timeList" [(ngModel)]="time_end" (onChange)="updateTimeEnd()"></p-dropdown></td> -->
+            <td class="data" >{{report?.finalLocation?.getCoordinatesAsString()}}</td>
+          </tr>
+          <tr class="report-view-row">
+            <td class="label">Notes</td>
+            <td class="data" ><textarea pInputTextArea [class.report-view-textarea]="true" [(ngModel)]="report.notes"></textarea></td>
+          </tr>
+        </table>
+      </div>
+      <div class="map-column">
+        <div class="location-dropdown">
+          <p-dropdown #locationMenu [options]="locationList" [(ngModel)]="location" (onChange)="updateLocation(location, $event)"></p-dropdown>
+        </div>
+        <div class="map">
+          <div class="no-google-map" *ngIf="!googleMapVisible">(Map goes here)</div>
+          <p-gmap #googleMapComponent [styleClass]="'map-pane-class'" [options]="gmapOptions" [overlays]="gmapOverlays" *ngIf="googleMapVisible"></p-gmap>
+        </div>
+      </div>
+    </div>
+    <p-footer>
+      <table class="report-view-button-table bottom">
+        <tr class="report-view-button-row">
+          <td class="report-view-button-td cell-button-like" (click)="cancelClicked($event)"><i class="fa fa-times-circle-o icon-button-like" title="Cancel any edits"></i></td>
+          <td class="report-view-button-td"></td>
+          <td class="report-view-button-td"></td>
+          <td class="report-view-button-td cell-button-like" (click)="saveClicked($event)"><i class="fa fa-check-circle-o icon-button-like"   title="Save and exit"></i></td>
+        </tr>
+      </table>
+    </p-footer>
+  </p-dialog>
+<!-- </div> -->
+
+<!-- <ion-footer>
+  <ion-toolbar>
+    <ion-buttons left>
+      <button type="button" ion-button icon-only color="royal" (click)="cancel()">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-buttons right>
+      <button type="button" ion-button icon-only color="favorite" (click)="save()">
+        <ion-icon name="checkmark"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer> -->

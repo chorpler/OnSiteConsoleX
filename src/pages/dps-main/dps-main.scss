@@ -1,0 +1,305 @@
+page-dps-main {
+  ion-content {
+    .scroll-content {
+      margin-top: 56px;
+    }
+  }
+  .dps-settings-overlay-wrapper {
+    position: absolute;
+    width: 50px;
+    left: calc(40vw - 25px);
+    top: 70px;
+  }
+  p-tabview {
+    .ui-tabview {
+      background-color: transparent;
+    }
+    .ui-tabview-panels {
+      border: 1px solid lightgrey !important;
+      border-radius: 4px;
+    }
+    .ui-tabview-panel {
+      // height: 80vh;
+      min-height: 80vh;
+    }
+    li.ui-tabview-selected {
+      top: 2px !important;
+    }
+  }
+  .dps-main-menubar-button {
+    font-size: 28px;
+  }
+
+  /* DPS Placeholder tab */
+  .dps-main-placeholder-tab {
+
+  }
+
+  /* DPS Report page */
+  .dps-report-tab {
+    .google-pie-chart {
+      height: 500px;
+      svg {
+        height: 500px !important;
+      }
+    }
+  }
+
+  /* DPS Calculations page */
+  .dps-calculations-tab {
+    #print-area {
+      user-select: text;
+    }
+    .dps-calc-table {
+      table-layout: fixed;
+      border-collapse: collapse;
+    }
+    .dps-calc-table th, .dps-calc-table td {
+      border: 1px solid lightgrey;
+      padding-left: 2px;
+      padding-right: 2px;
+    }
+    .dps-calc-table td {
+      height: 30px;
+    }
+    .dps-calc-input-expenses {
+      width: 75px;
+      .text-input, .text-input-md {
+        margin: 0;
+      }
+    }
+    .dps-calc-select-period {
+      height: 50px;
+      width: 150px;
+      button {
+        width: 150px;
+        height: 50px;
+      }
+    }
+    .dps-calc-inplace-input {
+      width: 50px;
+      max-width: 50px;
+    }
+  }
+  .dps-daily-summary-menu {
+    width: 300px;
+    height: 30px;
+    .ui-tieredmenu {
+      margin-top: -50px;
+      width: 225px;
+    }
+  }
+  .dps-daily-summary-menu-button {
+    // font-family: "FontAwesome" !important;
+    // font-size: 24px;
+    // width: 50px;
+    // height: 50px;
+    background-color: transparent !important;
+    color: black !important;
+    border: 0 !important;
+    // position: absolute;
+    // z-index: 10001;
+    // left: 20px;
+    // top: 5px;
+    // &:before {
+    //   content: '\f0c9';
+    // }
+  }
+  .ui-tieredmenu {
+    // top: calc(50px + 5px) !important;
+  }
+
+
+
+  /* From DPS Daily Summary page */
+  // .dps-daily-summary-tab {
+  //   user-select: text;
+  //   ion-header {
+  //     * {
+  //       overflow: visible !important;
+  //     }
+  //   }
+  //   .dps-daily-summary-table {
+  //     table-layout: fixed;
+  //     width: 90vw;
+  //     margin-left: auto;
+  //     margin-right: auto;
+  //   }
+
+  //   .dps-daily-summary-site-header-row {
+  //     background-color: rgba(217, 217, 217, 1.0);
+  //   }
+  //   .dps-daily-summary-body-row {
+  //     height: 30px;
+  //   }
+  //   .dps-daily-summary-td {
+  //     border: 1px solid lightgrey;
+  //   }
+  //   td {
+  //     padding-left: 3px;
+  //     padding-right: 3px;
+  //   }
+  //   .col-00 {
+  //     width: 200px;
+  //   }
+  //   .col-numeric {
+  //     width: 50px;
+  //     text-align: right;
+  //   }
+  //   .dps-daily-site-summary-wrapper {
+  //     margin-left: auto;
+  //     margin-right: auto;
+  //     width: 40vw;
+  //     max-width: 1000px;
+  //     display: flex;
+  //     // height: 90vh;
+  //     flex-flow: row wrap;
+  //     justify-content: space-between;
+  //     align-content: flex-start;
+  //   }
+  //   .dps-daily-site-summary-table, .dps-daily-site-total-table {
+  //     flex: 0 1 auto;
+  //     table-layout: fixed;
+  //     border: 1px solid lightgrey;
+  //     width: 250px;
+  //     margin-bottom: 10px;
+  //     td, th {
+  //       border: 1px solid lightgrey;
+  //     }
+  //   }
+  //   .dps-daily-site-total-table {
+  //     td, th {
+  //       font-weight: bold;
+  //     }
+  //   }
+  //   .dps-daily-site-summary-grid {
+  //     width: 250px;
+  //     margin-left: auto;
+  //     margin-right: auto;
+  //   }
+  //   .col-data {
+  //     text-align: right;
+  //   }
+  //   .col-itemnumber {
+  //     width: 25px;
+  //   }
+  //   .dps-daily-summary-input {
+  //     height: 30px;
+  //     margin: 0;
+  //     margin-top: 5px;
+  //     padding: 0;
+  //     input {
+  //       margin: 0;
+  //       margin-top: 5px;
+  //       padding: 0;
+  //       // text-align: right;
+  //       // border: 1px solid lightgrey;
+  //     }
+  //   }
+  // }
+
+  /* DPS Ancillary Calculations page */
+  .dps-ancillary-calculations-tab {
+
+  }
+
+  /* DPS Settings page */
+  .dps-settings-component {
+    .dps-settings-overlay-panel {
+      .ui-overlay-panel {
+
+      }
+      .ui-overlay-panel.dirty {
+        border: 3px solid red;
+      }
+    }
+
+    .dps-settings-list-table {
+      table-layout: fixed;
+    }
+    .col-00 {
+      font-weight: bold;
+      text-align: right;
+      padding-right: 5px;
+      width: 150px;
+      max-width: 150px;
+    }
+    .col-01 {
+      text-align: left;
+      width: 250px;
+      max-width: 250px;
+      font-family: "Roboto Mono", "Courier New", monospace;
+      .dps-settings-input {
+        width: 240px;
+        max-width: 240px;
+        font-family: "Roboto Mono", "Courier New", monospace;
+        input {
+          font-family: "Roboto Mono", "Courier New", monospace;
+          text-align: right;
+        }
+      }
+      input.dps-settings-input-readonly {
+        width: 240px;
+        max-width: 240px;
+        font-family: "Roboto Mono", "Courier New", monospace;
+        text-align: right;
+        padding-right: 25px;
+      }
+      // input {
+      //   width: 240px;
+      //   max-width: 240px;
+      // }
+      .dps-settings-spinner {
+        width: 240px;
+        max-width: 240px;
+        font-family: "Roboto Mono", "Courier New", monospace !important;
+        input {
+          font-family: "Roboto Mono", "Courier New", monospace !important;
+          text-align: right;
+          padding-right: 25px;
+        }
+        input:disabled {
+          opacity: 1.0;
+        }
+      }
+    }
+
+
+    // .dps-settings-spinner {
+    //   font-family: "Roboto Mono", "Courier New", monospace;
+    //   text-align: right;
+    // }
+    // .dps-settings-input {
+    //   font-family: "Roboto Mono", "Courier New", monospace;
+    //   text-align: right;
+    // }
+    // .dps-settings-input-readonly {
+    //   font-family: "Roboto Mono", "Courier New", monospace;
+    //   text-align: right;
+    // }
+
+    .red {
+      color: red;
+      background-color: rgba(255, 0, 0, 0.2);
+    }
+
+    .dps-settings-button-wrapper {
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: space-around;
+      align-items: center;
+      margin-top: 10px;
+      width: 100%;
+    }
+    .dps-settings-button {
+      flex: 0 1 auto;
+      width: 200px;
+    }
+    .cancel {
+
+    }
+    .save {
+
+    }
+  }
+}

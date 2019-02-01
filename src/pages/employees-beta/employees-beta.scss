@@ -1,0 +1,213 @@
+// @mixin button-like-block {
+//   cursor: pointer;
+//   &:hover {
+//     background-color: rgba(0, 0, 220, 0.5);
+//     color: white;
+//   }
+//   &:active {
+//     background-color: rgba(0, 0, 220, 0.7);
+//     color: white;
+//   }
+// }
+// @mixin button-like-icon {
+//   cursor: pointer;
+//   &:hover {
+//     color: rgba(0, 0, 220, 1.0);
+//   }
+//   &:active {
+//     color: rgba(220, 0, 220, 1.0);
+//   }
+// }
+
+// @mixin button-like-menu {
+//   cursor: pointer;
+// }
+
+page-employees-beta {
+  table {
+    .col-row-number,.column-button,th:first-of-type {
+      max-width: 65px;
+      width: 65px;
+    }
+    .col-active {
+      max-width: 50px;
+      width: 50px;
+      .ui-cell-data {
+        width: 100%;
+        text-align: center;
+        @include button-like-block;
+        .column-active-button {
+          width: 100%;
+          text-align: center;
+          .row-edit-icon {
+            width: 100%;
+            text-align: center;
+          }
+        }
+      }
+    }
+    .row-inactive {
+      background-color: rgba(255,0,0,0.15);
+      background-blend-mode: multiply;
+    }
+  }
+  td {
+    padding: 0 !important;
+    .ui-cell-data {
+      display: block;
+      width: 100%;
+      height: 100%;
+      margin: 0 !important;
+      // padding: 0;
+      .employee-data {
+        display: block;
+        padding: 2px 2px !important;
+        width: 100%;
+        height: 100%;
+      }
+    }
+  }
+  td:first-child {
+    // background-color: blue !important;
+    margin: 0;
+    padding-left: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    .ui-cell-data {
+      display: block;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    .col-row-number {
+      background-color: blue;
+      padding: 0;
+      margin: 0;
+    }
+    .column-button {
+      @include button-like-block;
+      padding: 2px 2px !important;
+      margin: 0;
+      margin-right: 2px !important;
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: space-around;
+      align-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      text-align: right;
+      padding-right: 2px;
+      // &::before {
+      //   content: "\f040";
+      //   font-family: "FontAwesome";
+      //   text-align: left;
+      // }
+    }
+    .row-edit-icon {
+      flex: 0 1 auto;
+      text-align: right;
+      width: 50%;
+      max-width: 20px;
+    }
+    .row-number {
+      flex: 0 1 auto;
+      text-align: right;
+      width: 50%;
+    }
+    .button-column {
+      text-align: right;
+      padding-right: 3px;
+    }
+  }
+  .employees-buttons {
+    font-size: 28px;
+    margin-left: 15px;
+    margin-right: 15px;
+    color: black;
+  }
+  p-header.table-header {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: center;
+  }
+  .employees-search-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    align-content: flex-start;
+  }
+
+  .employees-search-header-item {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    align-content: flex-start;
+    width: 250px;
+    max-width: 250px;
+  }
+  .employees-search-input {
+    width: 200px;
+    max-width: 200px;
+  }
+  .employees-search-header-items {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    align-content: flex-start;
+    flex: 1 0 auto;
+    width: 250px;
+    max-width: 250px;
+  }
+
+  .employees-search-username-label {
+    display: inline-block;
+    flex: 1 0 auto;
+    width: 70px;
+    max-width: 70px;
+  }
+
+  .employees-search-username-item {
+    flex: 1 0 auto;
+    display: inline-block;
+  }
+
+  .employees-search-username-toggle {
+    display: inline-block;
+    flex: 1 0 auto;
+    width: 36px;
+    max-width: 36px;
+  }
+
+  .highlighted, .highlight {
+    color: white;
+    background-color: rgba(0, 0, 255, 0.5);
+  }
+  .employees-edit-button {
+    color: black;
+    font-size: 12px;
+    height: 20px;
+    background: transparent;
+    box-shadow: unset;
+    padding: 0;
+    margin: 0;
+    .button-inner {
+      box-shadow: unset;
+      padding: 0;
+      margin: 0;
+    }
+  }
+  // .employees-edit-button-icon {
+  // }
+  // employee-view {
+  // }
+}

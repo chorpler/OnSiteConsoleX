@@ -1,0 +1,8 @@
+<p-dialog #videoDialog [styleClass]="'video-dialog-box'" [(visible)]="isVisible" [draggable]="true" [resizable]="true" [closable]="false" [modal]="false">
+  <div class="video-play-wrapper">
+    <video #videoElement width="640" height="480" autoplay (ended)="videoEnd()">
+      <source src="/assets/video/bad_snake.mp4" type="video/mp4">
+      Bad! That is a BAD snake yaaaAAAAAH
+    </video>
+  </div>
+</p-dialog>
