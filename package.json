@@ -74,11 +74,11 @@
     "CouchDB 2.0",
     "CouchDB 2.1"
   ],
-  "homepage": "https://github.com/starmobiledevelopers/OnSiteConsoleX/",
+  "homepage": "https://github.com/chorpler/OnSiteConsoleX/",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/starmobiledevelopers/OnSiteConsoleX.git"
+    "url": "git+https://github.com/chorpler/OnSiteConsoleX.git"
   },
   "main": "electron/electron.js",
   "config": {
@@ -122,11 +122,12 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "starmobiledevelopers",
-        "repo": "OnSiteConsoleX",
+        "owner": "chorpler",
+        "vPrefixedTagName": true,
+        "publishAutoUpdate": true,
         "releaseType": "draft",
-        "private": true,
-        "token": "560dcb51bdb218a1cfd5d13076cefb8b2680c468"
+        "private": false,
+        "token": "e0e0e16c5ad3ca6af5a546fd0a21e66826fa16c0"
       }
     ],
     "appId": "com.sesa.onsiteconsolex",
@@ -152,7 +153,6 @@
     },
     "asar": true,
     "files": [
-      "node_modules/fullcalendar/dist/**/*",
       "node_modules/moment/min/**/*",
       "node_modules/jquery/dist/**/*",
       "resources/icon.icns",
@@ -167,10 +167,20 @@
   },
   "buildComments": {
     "removed": {
-      "publish": {
-        "provider": "generic",
-        "url": "http://updates.sesa.us:8080"
-      }
+      "publish": [
+        {
+          "provider": "generic",
+          "url": "http://updates.sesa.us:8080"
+        },
+        {
+          "provider": "github",
+          "owner": "starmobiledevelopers",
+          "repo": "OnSiteConsoleX",
+          "releaseType": "draft",
+          "private": true,
+          "token": "560dcb51bdb218a1cfd5d13076cefb8b2680c468"
+          }
+      ]
     }
   },
   "cordovaPlatforms": [
