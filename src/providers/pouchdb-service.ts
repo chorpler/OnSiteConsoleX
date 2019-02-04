@@ -17,11 +17,13 @@ import * as PDBAuth             from 'pouchdb-authentication' ;
 import * as pdbFind             from 'pouchdb-find'           ;
 import * as pdbUpsert           from 'pouchdb-upsert'         ;
 // import * as pdbAllDBs           from 'pouchdb-all-dbs'        ;
-import * as nodeWebsqlPouch     from 'pouchdb-adapter-node-websql';
 // import * as websqlPouch         from 'pouchdb-adapter-websql' ;
 // import * as nodeSqlPouch        from 'pouchdb-adapter-node-sql';
+
+// import * as nodeWebsqlPouch     from 'pouchdb-adapter-node-websql';
 import * as levelPouch          from 'pouchdb-adapter-leveldb' ;
 import * as pdbDebug            from 'pouchdb-debug'          ;
+
 // import * as pdbReplicate       from 'pouchdb-replication'     ;
 import isElectron from 'is-electron';
 
@@ -111,7 +113,7 @@ export class PouchDBService {
       addPouchDBPlugin(pouchdb, PDBAuth, 'auth');
       addPouchDBPlugin(pouchdb, pdbDebug, 'debug');
       addPouchDBPlugin(pouchdb, levelPouch, 'adapter-leveldb');
-      addPouchDBPlugin(pouchdb, nodeWebsqlPouch, 'adapter-nodewebsql');
+      // addPouchDBPlugin(pouchdb, nodeWebsqlPouch, 'adapter-nodewebsql');
 
       // addPouchDBPlugin(pouchdb, nodeSqlPouch, 'adapter-nodesql');
       // addPouchDBPlugin(pouchdb, websqlPouch, 'adapter-websql');
@@ -142,7 +144,7 @@ export class PouchDBService {
         addPouchDBPlugin(PDB1, PDBAuth, 'auth');
         addPouchDBPlugin(PDB1, pdbDebug, 'debug');
         addPouchDBPlugin(PDB1, levelPouch, 'adapter-level');
-        addPouchDBPlugin(PDB1, nodeWebsqlPouch, 'adapter-nodewebsql');
+        // addPouchDBPlugin(PDB1, nodeWebsqlPouch, 'adapter-nodewebsql');
 
         // addPouchDBPlugin(pouchdb, nodeSqlPouch, 'adapter-nodesql');
           // addPouchDBPlugin(PDB1, websqlPouch, 'adapter-websql');

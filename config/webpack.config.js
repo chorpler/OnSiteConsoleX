@@ -67,9 +67,9 @@ var IGNORES = ["fs", "child_process", "electron", "path", "assert", "cluster", "
 var DATABASES = [
   // "pouchdb",
   // "leveldown",
+  // "pouchdb-adapter-websql",
   "pouchdb-adapter-leveldb",
   "pouchdb-adapter-node-websql",
-  // "pouchdb-adapter-websql",
   "websql"
 ];
 // var workerLoaderConfig = {
