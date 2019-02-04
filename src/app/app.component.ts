@@ -917,6 +917,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
         if(res && res.doc_count != undefined && res.doc_count > 5) {
           return false;
         } else {
+          await this.db.closeDB(dbname);
           return true;
         }
       }

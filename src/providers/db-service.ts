@@ -83,6 +83,14 @@ export class DBService {
     return this.pouchdb.addRDB(dbname);
   }
 
+  public async closeDB(dbname:string):Promise<boolean> {
+    return this.pouchdb.closeDB(dbname);
+  }
+  
+  public async closeRDB(dbname:string):Promise<boolean> {
+    return this.pouchdb.closeRDB(dbname);
+  }
+  
   public async getDoc(dbname:string, docID:string):Promise<any> {
     try {
       let db1 = this.addDB(dbname);
@@ -102,7 +110,7 @@ export class DBService {
       let res:any = await this.getDoc(dbname, docID);
       return res;
     } catch(err) {
-      Log.l(`getDoc(): Error getting doc ${docID} from database '${dbname}'!`);
+      Log.l(`DB.getConfigDoc(): Error getting doc ${docID} from database '${dbname}'!`);
       Log.e(err);
       throw err;
     }
@@ -116,7 +124,7 @@ export class DBService {
         let text:string = `DB.saveDoc(): Error saving to database '${dbname}': document must have _id field`;
         throw new Error(text);
       } else {
-        Log.l(`saveDoc(): Attempting to save to db '${dbname}' for doc:\n`, newDoc);
+        Log.l(`DB.saveDoc(): Attempting to save to db '${dbname}' for doc:\n`, newDoc);
         let db1 = this.addDB(dbname);
         let res:any = await db1.upsert(id, (doc:any) => {
           if(doc) {
@@ -134,16 +142,16 @@ export class DBService {
           return doc;
         });
         if(!res['ok'] && !res.updated) {
-          Log.l(`saveDoc(): Upsert error saving report ${newDoc._id}:`, res);
+          Log.l(`DB.saveDoc(): Upsert error saving report ${newDoc._id}:`, res);
           let text:string = `saveDoc(): Upsert error saving report '${newDoc._id}'`;
           throw new Error(text);
         } else {
-          Log.l(`saveDoc(): Successfully saved report ${newDoc._id}:`, res);
+          Log.l(`DB.saveDoc(): Successfully saved report ${newDoc._id}:`, res);
           return res;
         }
       }
     } catch(err) {
-      Log.l(`saveDoc(): Error saving doc '${id}' to database '${dbname}'!`);
+      Log.l(`DB.saveDoc(): Error saving doc '${id}' to database '${dbname}'!`);
       Log.e(err);
       throw err;
     }

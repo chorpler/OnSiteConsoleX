@@ -45,3 +45,7 @@ declare interface Blob {
   image():Promise<HTMLImageElement>;
   stream():ReadableStream;
 }
+
+// declare namespace PouchDB {
+//   interface 
+// }

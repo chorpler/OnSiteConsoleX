@@ -189,11 +189,23 @@ export class ServerService {
     return this.pouchdb.addDB(dbname);
   }
 
+  public addRDB(dbname:string, options?:PDBOptions):Database {
+    return this.pouchdb.addRDB(dbname, options);
+  }
+
   public async addRDBAdmin(dbname:string):Promise<Database> {
     let rdb1:Database = await this.pouchdb.addRDBAdmin(dbname);
     return rdb1;
   }
 
+  public async closeDB(dbname:string):Promise<boolean> {
+    return this.pouchdb.closeDB(dbname);
+  }
+  
+  public async closeRDB(dbname:string):Promise<boolean> {
+    return this.pouchdb.closeRDB(dbname);
+  }
+  
   // public startHowlerClient() {
   //   let server:string = this.prefs.getHowlerURL();
   //   let client:howler.Client = new howler.Client(server);
@@ -960,10 +972,6 @@ export class ServerService {
         reject(err);
       });
     });
-  }
-
-  public addRDB(dbname:string, options?:PDBOptions):Database {
-    return this.pouchdb.addRDB(dbname, options);
   }
 
   public getRDBs():DBList {

@@ -18,9 +18,9 @@ import * as pdbFind             from 'pouchdb-find'           ;
 import * as pdbUpsert           from 'pouchdb-upsert'         ;
 // import * as pdbAllDBs           from 'pouchdb-all-dbs'        ;
 import * as nodeWebsqlPouch     from 'pouchdb-adapter-node-websql';
-import * as websqlPouch         from 'pouchdb-adapter-websql' ;
+// import * as websqlPouch         from 'pouchdb-adapter-websql' ;
 // import * as nodeSqlPouch        from 'pouchdb-adapter-node-sql';
-// import * as levelPouch          from 'pouchdb-adapter-leveldb' ;
+import * as levelPouch          from 'pouchdb-adapter-leveldb' ;
 import * as pdbDebug            from 'pouchdb-debug'          ;
 // import * as pdbReplicate       from 'pouchdb-replication'     ;
 import isElectron from 'is-electron';
@@ -35,7 +35,7 @@ const PDB2 = PouchDB;
 
 // const localAdapter = 'worker';
 const localAdapter:string = 'idb';
-let remoteTarArchiveURL:string = "http://sesafleetservices.com/onsitedb/onsiteconsolex.tar.gz";
+// let remoteTarArchiveURL:string = "http://sesafleetservices.com/onsitedb/onsiteconsolex.tar.gz";
 const addPouchDBPlugin = (pouchdbObject:any, plugin:any, description?:string) => {
   let text:string = description || "unknown";
   Log.l(`addPouchDBPLugin(): Attempting to add plugin '${text}': `, plugin);
@@ -110,9 +110,10 @@ export class PouchDBService {
       addPouchDBPlugin(pouchdb, pdbFind, 'find');
       addPouchDBPlugin(pouchdb, PDBAuth, 'auth');
       addPouchDBPlugin(pouchdb, pdbDebug, 'debug');
+      addPouchDBPlugin(pouchdb, levelPouch, 'adapter-leveldb');
       addPouchDBPlugin(pouchdb, nodeWebsqlPouch, 'adapter-nodewebsql');
+
       // addPouchDBPlugin(pouchdb, nodeSqlPouch, 'adapter-nodesql');
-      // addPouchDBPlugin(pouchdb, levelPouch, 'adapter-leveldb');
       // addPouchDBPlugin(pouchdb, websqlPouch, 'adapter-websql');
       // addPouchDBPlugin(pouchdb, pdbLevelDB, 'adapter-leveldb');
       if(this.isElectron) {
@@ -140,9 +141,10 @@ export class PouchDBService {
         addPouchDBPlugin(PDB1, pdbFind, 'find');
         addPouchDBPlugin(PDB1, PDBAuth, 'auth');
         addPouchDBPlugin(PDB1, pdbDebug, 'debug');
+        addPouchDBPlugin(PDB1, levelPouch, 'adapter-level');
         addPouchDBPlugin(PDB1, nodeWebsqlPouch, 'adapter-nodewebsql');
+
         // addPouchDBPlugin(pouchdb, nodeSqlPouch, 'adapter-nodesql');
-        // addPouchDBPlugin(PDB1, levelPouch, 'adapter-level');
           // addPouchDBPlugin(PDB1, websqlPouch, 'adapter-websql');
           // (PouchDB as any).adapter('leveldb', pdbLevelDB);
         // addPouchDBPlugin(pouchdb, pdbNodeWebSql, 'adapter-node-websql');
@@ -273,8 +275,8 @@ export class PouchDBService {
       if(this.isElectron) {
         // pouch = PDB1;
         pouch = this.NodePouchDB;
-        // opts.adapter = 'leveldb';
-        opts.adapter = 'websql';
+        opts.adapter = 'leveldb';
+        // opts.adapter = 'websql';
         opts.prefix = "db/";
         // opts.prefix = "db/";
       }
@@ -341,6 +343,113 @@ export class PouchDBService {
     }
   }
 
+  public async closeDB(dbname:string):Promise<boolean> {
+  // public closeDB(dbname:string):boolean {
+    try {
+      let dbmap:DBList = this.pdb;
+      if(dbmap.has(dbname)) {
+        // Log.l(`closeDB(): Found '${dbname}' in database list, closing …`);
+        let db:Database = dbmap.get(dbname);
+        if(this.isSynced(dbname)) {
+          Log.l(`closeDB(): Database '${dbname}' found with active sync, canceling it first …`);
+          let out:boolean = this.cancelSync(dbname);
+          if(out) {
+            Log.l(`closeDB(): Database '${dbname}' sync canceled successfully.`);
+          } else {
+            Log.w(`closeDB(): Database '${dbname}' sync was not properly canceled!`);
+          }
+        }
+        let result:any = await db.destroy();
+        // let result:any = db.destroy();
+        let success:boolean = dbmap.delete(dbname);
+        return success;
+      } else {
+        Log.l(`closeDB(): Cannot find existing database '${dbname}'`);
+        return true;
+      }
+    } catch(err) {
+      Log.l(`closeDB(): Error closing database '${dbname}'`);
+      Log.e(err);
+      // throw err;
+      return false;
+    }
+  }
+
+  public async closeRDB(dbname:string):Promise<boolean> {
+  // public closeRDB(dbname:string):boolean {
+    Log.l(`closeRDB(): Called with arguments:\n`, arguments);
+    try {
+      let rdbmap:DBList = this.rdb;
+      let url:string = this.getRemoteDatabaseURL(dbname);
+      // Log.l(`addRDB(): Now fetching remote DB ${dbname} at ${url} ...`);
+      if(rdbmap.has(dbname)) {
+        let rdb:Database = rdbmap.get(dbname);
+        let result:any = await rdb.destroy();
+        // let result:any = rdb.destroy();
+        let success:boolean = rdbmap.delete(dbname);
+        return success;
+      } else {
+        Log.l(`closeRDB(): Cannot find existing remote database '${dbname}'`);
+        return true;
+      }
+    } catch(err) {
+      Log.l(`closeRDB(): Error closing remote database '${dbname}'`);
+      Log.e(err);
+      // throw err;
+      return false;
+    }
+  }
+
+  public async possibleMigrateDB(dbname:string):Promise<Database> {
+    let convertFrom:string = "websql" ;
+    let convertTo:string   = "leveldb";
+    try {
+      let dbmap:DBList = this.pdb;
+      if(dbmap.has(dbname)) {
+        // Log.l(`addDB(): Not adding local database ${dbname} because it already exists.`);
+        return dbmap.get(dbname);
+      } else {
+        // let pdbAdapter:string = this.prefs.getLocalAdapter();
+        let PDB_ADAPTER:string = this.prefs && this.prefs.SERVER && this.prefs.SERVER.localAdapter ? this.prefs.SERVER.localAdapter : localAdapter;
+        let opts:any = {
+          'adapter': PDB_ADAPTER,
+        };
+        let pouch = this.StaticPouchDB;
+        if(this.isElectron) {
+          // pouch = PDB1;
+          pouch = this.NodePouchDB;
+          opts.adapter = 'leveldb';
+          // opts.adapter = 'websql';
+          opts.prefix = "db/";
+          // opts.prefix = "db/";
+        }
+        if(this.dbDir) {
+          opts.prefix = this.dbDir;
+        }
+        Log.l(`PouchDBService.possibleMigrateDB(): Adding database '${dbname}' with adapter '${opts.adapter}' and options:`, opts);
+        let localdb:Database = new pouch(dbname, opts);
+        localdb['_remote'] = false;
+        dbmap.set(dbname, localdb);
+        // return new Promise(function(resolve, reject) {
+        let info:PDBInfo = await localdb.info();
+        let dbAdapter:string = info.adapter;
+        if(dbAdapter !== convertFrom) {
+          return localdb;
+        }
+        let newopts:any = opts || {};
+        newopts.adapter = convertTo;
+        let newdb:Database = new pouch(dbname, newopts);
+        let replicate = localdb.replicate.to(newdb);
+        let out = await replicate;
+        return newdb;
+      }
+    } catch(err) {
+      Log.l(`possibleMigrateDB(): Error migrating or opening database '${dbname}'`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
   public async addRDBAdmin(dbname:string):Promise<Database> {
     // let rdbmap = this.rdb;
     // let url = this.prefs.SERVER.rdbServer.protocol + "://" + this.prefs.SERVER.rdbServer.server + "/" + dbname;
@@ -399,17 +508,25 @@ export class PouchDBService {
     return syncmap;
   }
 
-  public cancelSync(dbname:string):any {
-    let syncmap:DBSyncList = this.PDBSyncs;
-    if(syncmap.has(dbname)) {
-      let dbsync:PDBSync = syncmap.get(dbname);
-      Log.l(`cancelSync('${dbname}'): Attempting to cancel sync via dbsync:\n`, dbsync);
-      let output:any = dbsync.cancel();
-      Log.l(`cancelSync('${dbname}'): Output of cancel event was:\n`, output);
-      return output;
-    } else {
-      Log.w(`cancelSync('${dbname}'): Entry not found in sync list!`);
-      return "ERROR_NO_SUCH_SYNC";
+  public cancelSync(dbname:string):boolean {
+    try {
+      let syncmap:DBSyncList = this.PDBSyncs;
+      if(syncmap.has(dbname)) {
+        let dbsync:PDBSync = syncmap.get(dbname);
+        Log.l(`cancelSync('${dbname}'): Attempting to cancel sync via dbsync:\n`, dbsync);
+        let output:any = dbsync.cancel();
+        // Log.l(`cancelSync('${dbname}'): Output of cancel event was:\n`, output);
+        return true;
+      } else {
+        Log.w(`cancelSync('${dbname}'): Entry not found in sync list!`);
+        // return "ERROR_NO_SUCH_SYNC";
+        return false;
+      }
+    } catch(err) {
+      Log.l(`cancelSync(): Error canceling sync for '${dbname}'`);
+      Log.e(err);
+      // throw err;
+      return false;
     }
   }
 
@@ -513,7 +630,47 @@ export type PDatabase          = Database                   ;
 export type PDBResponse        = PouchDB.Core.Response      ;
 export type PDBError           = PouchDB.Core.Error         ;
 export type BulkResponse       = Array<PDBResponse|PDBError>;
-export type PDBInfo            = PouchDB.Core.DatabaseInfo  ;
+export type PDBInfoOriginal    = PouchDB.Core.DatabaseInfo  ;
+// adapter: "https"
+// auto_compaction: false
+// compact_running: false
+// data_size: 116369463
+// db_name: "reports_ver101100"
+// disk_format_version: 6
+// disk_size: 277360852
+// doc_count: 108491
+// doc_del_count: 21362
+// host: "https://db04.sesa.us/reports_ver101100/"
+// instance_start_time: "0"
+// other: {data_size: 155588651}
+// purge_seq: 0
+// sizes: {file: 277360852, external: 155588651, active: 116369463}
+// update_seq: "158400-g2wAAAABaANkAA9jZGIyMTBAc2VjdXJlZGJsAAAAAmEAbgQA_____2piAAJqwGo"
+export interface PDBInfo extends PDBInfoOriginal {
+  db_name          : string        ;
+  adapter         ?: string        ;
+  auto_compaction ?: boolean       ;
+  doc_count        : number        ;
+  update_seq       : number|string ;
+  
+  // LevelDB
+  backend_adapter ?: string  ;
+  
+  // HTTP/HTTPS
+  compact_running     ?: boolean       ;
+  data_size           ?: number        ;
+  disk_size           ?: number        ;
+  doc_del_count       ?: number        ;
+  host                ?: string        ;
+  instance_start_time ?: number        ;
+  other               ?: {data_size ?: number };
+  purge_seq           ?: number        ;
+  sizes               ?: {
+    file     ?: number ,
+    external ?: number ,
+    active   ?: number ,
+  };
+};
 export type PouchDatabase      = PouchDB.Database           ;
 export type PDBCoreOptions     = PouchDB.Core.Options       ;
 export type PDBLoginOptions    = PouchDB.Core.Options       ;
