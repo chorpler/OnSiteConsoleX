@@ -5,7 +5,7 @@ import { IonicPage                                                              
 import { NavController                                                                   } from 'ionic-angular'                ;
 import { ModalController                                                                 } from 'ionic-angular'                ;
 import { NavOptions                                                                      } from 'ionic-angular'                ;
-import { Storage                                                                         } from '@ionic/storage'               ;
+// import { Storage                                                                         } from '@ionic/storage'               ;
 import { LoginPage                                                                       } from 'pages/login/login'            ;
 import { OnSiteConsoleX                                                                  } from 'app/app.component'            ;
 import { AuthService                                                                     } from 'providers/auth-service'       ;
@@ -80,7 +80,7 @@ export class HomePage implements OnInit,OnDestroy {
     public auth           : AuthService       ,
     public server         : ServerService     ,
     public db             : DBService         ,
-    public storage        : Storage           ,
+    // public storage        : Storage           ,
     public alert          : AlertService      ,
     public data           : OSData            ,
     public appComponent   : OnSiteConsoleX    ,

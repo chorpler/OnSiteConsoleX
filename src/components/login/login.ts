@@ -14,7 +14,6 @@ import { DispatchService                                                        
 import { SelectItem, MenuItem,                                                      } from 'primeng/api'                          ;
 import { NotifyService                                                              } from 'providers/notify-service'             ;
 import { NotificationComponent                                                      } from 'components/notification/notification' ;
-import * as tar from 'tar';
 
 @Component({
   selector: 'login',

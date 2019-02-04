@@ -1,86 +1,86 @@
-import 'rxjs/add/operator/map'                                                 ;
-import { Injectable                        } from '@angular/core'        ;
-import { Platform                          } from 'ionic-angular'        ;
-import { Storage,                          } from '@ionic/storage'       ;
-import { Log, moment, Moment, isMoment, oo } from 'domain/onsitexdomain' ;
+// import 'rxjs/add/operator/map'                                                 ;
+// import { Storage             } from '@ionic/storage'       ;
+import { Injectable          } from '@angular/core'        ;
+import { Platform            } from 'ionic-angular'        ;
+import { Log                 } from 'domain/onsitexdomain' ;
+import { LocalStorageService } from 'ngx-store'            ;
+
 
 @Injectable()
 export class StorageService {
-
-  remote      : any      ;
-  options     : any      ;
-  docId       : string   ;
-  profileDoc  : any      ;
-  settingsDoc : any      ;
+  // public remote      : any      ;
+  // public options     : any      ;
+  // public docId       : string   ;
+  // public profileDoc  : any      ;
+  // public settingsDoc : any      ;
 
   constructor(
-    public storage : Storage,
-    public platform: Platform,
+    // public storage  : Storage             ,
+    public storage  : LocalStorageService ,
+    public platform : Platform            ,
   ) {
     window['onsitestorageservice'] = this;
   }
 
-  persistentSave(key:string, value:any) {
-    return new Promise((resolve,reject) => {
-      this.storage.set(key, value).then((res) => {
-        resolve(res);
-      }).catch((err) => {
-        Log.e("Error saving credentials in local storage!");
-        Log.e(err);
-        reject(err);
-      });
-    });
+  public async persistentSave(key:string, value:any):Promise<any> {
+    try {
+      let res = this.storage.set(key, value);
+      return res;
+    } catch(err) {
+      Log.l(`StorageService.persistentSave(): Error saving to localstorage`);
+      Log.e(err);
+      throw err;
+    }
   }
 
-  persistentSet(key:string, value:any) {
-    return this.persistentSave(key, value);
+  public async persistentSet(key:string, value:any):Promise<any> {
+    try {
+      let res = this.persistentSave(key, value);
+      return res;
+    } catch(err) {
+      Log.l(`StorageService.persistentGet(): Error getting `);
+      Log.e(err);
+      throw err;
+    }
   }
 
-  persistentGet(key:string) {
-    return new Promise((resolve,reject) => {
-      this.storage.get(key).then((value) => {
-        if(value) {
-          Log.l("persistentGet(): Got:\n", value);
-          resolve(value);
-        } else {
-          Log.l(`persistentGet(): key '${key}' not found in local storage!`);
-          resolve(null);
-        }
-      }).catch((err) => {
-        Log.e(`persistentGet(): Error retrieving '${key}' from local storage!`);
-        Log.e(err);
-        reject(err);
-      });
-    });
+  public async persistentGet(key:string):Promise<any> {
+    try {
+      let value = this.storage.get(key);
+      if(value) {
+        Log.l(`StorageService.persistentGet('${key}'): got value:`, value);
+        return value;
+      } else {
+        Log.l(`StorageService.persistentGet(): key '${key}' not found in local storage!`);
+        return null;;
+      }
+    } catch(err) {
+      Log.l(`StorageService.persistentGet(): Error getting key ${key} from localstorage`);
+      Log.e(err);
+      throw err;
+    }
   }
 
-  persistentDelete(key:string) {
-    return new Promise((resolve,reject) => {
-      this.storage.remove(key).then((value) => {
-        if(value) {
-          resolve(value);
-        } else {
-          Log.w(`persistentDelete(): key '${key}' not found in local storage!`);
-          resolve(true);
-        }
-      }).catch((err) => {
-        Log.e(`persistentDelete(): Error trying to delete '${key}' from local storage!`);
-        Log.e(err);
-        reject(err);
-      });
-    });
+  public async persistentDelete(key:string):Promise<boolean> {
+    try {
+      this.storage.remove(key);
+      return true;
+    } catch(err) {
+      Log.l(`StorageService.persistentDelete(): Error deleting key ${key} from localstorage`);
+      Log.e(err);
+      throw err;
+    }
   }
 
-  persistentClear() {
-    return new Promise((resolve,reject) => {
-      this.storage.clear().then(res => {
-        Log.l(`persistentClear(): Local storage cleared.`);
-        resolve(true);
-      }).catch((err) => {
-        Log.e(`persistentClear(): Error trying to clear local storage!`);
-        Log.e(err);
-        reject(err);
-      });
-    });
+  public async persistentClear():Promise<boolean> {
+    try {
+      this.storage.clear();
+      Log.l(`StorageService.persistentClear(): Local storage cleared.`);
+      return true;
+    } catch(err) {
+      Log.l(`StorageService.persistentClear(): Error clearing localstorage`);
+      Log.e(err);
+      throw err;
+    }
   }
 }

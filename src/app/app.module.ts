@@ -14,7 +14,8 @@ import { Nav                                      } from 'ionic-angular'        
 import { ErrorHandler, NgModule                   } from '@angular/core'                                         ;
 import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular'                                         ;
 import { FormsModule                              } from '@angular/forms'                                        ;
-import { IonicStorageModule                       } from '@ionic/storage'                                        ;
+// import { IonicStorageModule                       } from '@ionic/storage'                                        ;
+import { WebStorageModule, LocalStorageService    } from 'ngx-store'                                             ;
 import { OnSiteConsoleX                           } from './app.component'                                       ;
 import { DndModule                                } from 'components/dnd/dnd.module'                             ;
 import { SharedModule,                            } from 'primeng/shared'                                        ;
@@ -110,7 +111,8 @@ const CustomCurrencyMaskConfig:CurrencyMaskConfig = {
     HttpClientModule,
     BrowserAnimationsModule,
     IonicModule.forRoot(OnSiteConsoleX),
-    IonicStorageModule.forRoot(),
+    WebStorageModule,
+    // IonicStorageModule.forRoot(),
     // FontAwesomeModule,
     DndModule.forRoot(),
     SpinnerModule,
@@ -160,6 +162,7 @@ const CustomCurrencyMaskConfig:CurrencyMaskConfig = {
     DndModule.forRoot().providers,
     OSData,
     SpinnerService,
+    LocalStorageService,
     StorageService,
     // ConfirmationService,
     DBService,

@@ -3,7 +3,7 @@ import { Component, OnInit, OnDestroy, NgZone, ViewChild, ElementRef } from '@an
 import { IonicPage                                                   } from 'ionic-angular'              ;
 import { NavController, ModalController                              } from 'ionic-angular'              ;
 import { NavParams                                                   } from 'ionic-angular'              ;
-import { Storage                                                     } from '@ionic/storage'             ;
+// import { Storage                                                     } from '@ionic/storage'             ;
 import { Log, moment, Moment, isMoment, oo,                          } from 'domain/onsitexdomain'       ;
 import { AuthService                                                 } from 'providers/auth-service'     ;
 import { ServerService                                               } from 'providers/server-service'   ;
@@ -29,7 +29,6 @@ export class EmployeesBetaPage implements OnInit,OnDestroy {
   // @ViewChild('dt') dt:Table;
   @ViewChild('columnSelect') columnSelect:MultiSelect;
   @ViewChild('employeeView') employeeView:EmployeeViewComponent;
-  public static PREFS       : any             = new Preferences()                 ;
   public title              : string          = "Employees Beta"                  ;
   public pageSizeOptions    : Array<number>   = [30,50,100,150,200,250,300,400,500];
   public prefsSub           : Subscription                                        ;
@@ -67,23 +66,22 @@ export class EmployeesBetaPage implements OnInit,OnDestroy {
   public tooltipDelay       : number          = 0                                 ;
   public selectedLabel      : string          = "{0} columns shown"               ;
 
-  public get prefs():any          { return EmployeesBetaPage.PREFS; }             ;
   public get rowCount():number    { return this.prefs.CONSOLE.pages.employees; }  ;
   public set rowCount(val:number) { this.prefs.CONSOLE.pages.employees = val; }   ;
 
   constructor(
-    public navCtrl  : NavController,
-    public navParams: NavParams,
-    public modalCtrl: ModalController,
-    public server   : ServerService,
-    public db       : DBService,
-    public alert    : AlertService,
-    public storage  : Storage,
-    public data     : OSData,
-    public auth     : AuthService,
-    public zone     : NgZone,
-    public notify   : NotifyService,
-    public dispatch : DispatchService,
+    public navCtrl   : NavController   ,
+    public navParams : NavParams       ,
+    public modalCtrl : ModalController ,
+    public server    : ServerService   ,
+    public db        : DBService       ,
+    public alert     : AlertService    ,
+    public prefs     : Preferences     ,
+    public data      : OSData          ,
+    public auth      : AuthService     ,
+    public zone      : NgZone          ,
+    public notify    : NotifyService   ,
+    public dispatch  : DispatchService ,
   ) {
     Log.l("EmployeesBetaPage constructor");
     window['employeesbeta'] = this;

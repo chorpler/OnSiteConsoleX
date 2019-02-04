@@ -1,10 +1,10 @@
-import { Subscription                                                } from 'rxjs'                      ;
+import { Subscription                                                } from 'rxjs'                                   ;
 import { Component, OnInit, OnDestroy, NgZone, ViewChild, ElementRef } from '@angular/core'                          ;
 import { IonicPage                                                   } from 'ionic-angular'                          ;
 import { NavController, ModalController                              } from 'ionic-angular'                          ;
 import { NavParams                                                   } from 'ionic-angular'                          ;
-import { Storage                                                     } from '@ionic/storage'                         ;
-import { Log, moment, Moment, isMoment, oo                           } from 'domain/onsitexdomain'                ;
+// import { Storage                                                     } from '@ionic/storage'                         ;
+import { Log, moment, Moment, isMoment, oo                           } from 'domain/onsitexdomain'                   ;
 import { AuthService                                                 } from 'providers/auth-service'                 ;
 import { ServerService                                               } from 'providers/server-service'               ;
 import { DBService                                                   } from 'providers/db-service'                   ;
@@ -12,7 +12,7 @@ import { OSData                                                      } from 'pro
 import { AlertService                                                } from 'providers/alert-service'                ;
 import { Preferences                                                 } from 'providers/preferences'                  ;
 import { DispatchService                                             } from 'providers/dispatch-service'             ;
-import { Employee                                                    } from 'domain/onsitexdomain'                        ;
+import { Employee                                                    } from 'domain/onsitexdomain'                   ;
 import { SelectItem, MenuItem, DataTable, MultiSelect                } from 'primeng/primeng'                        ;
 import { EmployeeViewComponent                                       } from 'components/employee-view/employee-view' ;
 import { NotifyService                                               } from 'providers/notify-service'               ;
@@ -26,7 +26,7 @@ export class FlaggedEmployeesPage implements OnInit,OnDestroy {
   @ViewChild('dt') dt:DataTable;
   @ViewChild('employeeView') employeeView:EmployeeViewComponent;
   @ViewChild('columnSelect') columnSelect:MultiSelect;
-  public static PREFS       : any             = new Preferences()                 ;
+  // public static PREFS       : any             = new Preferences()                 ;
   public title              : string          = "Flagged Employees"               ;
   public pageSizeOptions    : Array<number>   = [30,50,100,150,200,250,300,400,500];
   public prefsSub           : Subscription                                        ;
@@ -65,27 +65,29 @@ export class FlaggedEmployeesPage implements OnInit,OnDestroy {
   public tooltipDelay       : number          = 0                                 ;
   public selectedLabel      : string          = "{0} columns shown"               ;
 
-  public get prefs():any          { return FlaggedEmployeesPage.PREFS; }          ;
+  // public get prefs():any          { return FlaggedEmployeesPage.PREFS; }          ;
   public get rowCount():number    { return this.prefs.CONSOLE.pages.employees; }  ;
   public set rowCount(val:number) { this.prefs.CONSOLE.pages.employees = val; }   ;
 
   constructor(
-    public navCtrl  : NavController,
-    public navParams: NavParams,
-    public server   : ServerService,
-    public db       : DBService,
-    public alert    : AlertService,
-    public storage  : Storage,
-    public data     : OSData,
-    public auth     : AuthService,
-    public modalCtrl: ModalController,
-    public zone     : NgZone,
-    public notify   : NotifyService,
-    public dispatch : DispatchService,
+    public navCtrl   : NavController   ,
+    public navParams : NavParams       ,
+    public prefs     : Preferences     ,
+    public server    : ServerService   ,
+    public db        : DBService       ,
+    public alert     : AlertService    ,
+    // public storage   : Storage         ,
+    public data      : OSData          ,
+    public auth      : AuthService     ,
+    public modalCtrl : ModalController ,
+    public zone      : NgZone          ,
+    public notify    : NotifyService   ,
+    public dispatch  : DispatchService ,
   ) {
     Log.l("FlaggedEmployeesPage constructor");
-    window['onsiteflaggedemployees'] = this;
-    window['Employee'] = Employee;
+    window['onsiteflaggedemployees']  = this;
+    window['onsiteflaggedemployees2'] = this;
+    window['p'] = this;
   }
 
   ngOnInit() {

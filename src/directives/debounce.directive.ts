@@ -1,6 +1,7 @@
 import { fromEvent                                                             } from 'rxjs'                 ;
-import { EventEmitter, ElementRef, OnInit, OnDestroy, Directive, Input, Output } from '@angular/core'        ;
+import { map, debounceTime,                                                    } from 'rxjs/operators'       ;
 import { Observable                                                            } from 'rxjs'                 ;
+import { EventEmitter, ElementRef, OnInit, OnDestroy, Directive, Input, Output } from '@angular/core'        ;
 import { NgModel                                                               } from '@angular/forms'       ;
 import { Log                                                                   } from 'domain/onsitexdomain' ;
 
@@ -14,8 +15,10 @@ export class DebounceDirective implements OnInit {
 
   ngOnInit(): void {
     const eventStream = fromEvent(this.elementRef.nativeElement, 'keyup')
-      .map(() => this.model.value)
-      .debounceTime(this.delay);
+    .pipe(
+      map(() => this.model.value),
+      debounceTime(this.delay)
+    );
 
     this.eventStream = eventStream;
 

@@ -20,6 +20,18 @@ var tsconfig = require('../tsconfig.json');
 // var ionicWebpackFactory = require(process.env.IONIC_WEBPACK_FACTORY);
 // var ModuleConcatPlugin = require('webpack/lib/optimize/ModuleConcatenationPlugin');
 
+var NgxStoreConfigPlugin = new webpack.DefinePlugin({
+  NGXSTORE_CONFIG: JSON.stringify({
+    prefix: 'ngx_',      // default: 'ngx_'
+    clearType: 'prefix', // default: 'prefix'
+    mutateObjects: true, // default: true
+    debugMode: false,    // you can enable debug logs if you ever meet any bug to localize its source
+    cookiesScope: '',    // what you pass here will actually prepend base domain
+    cookiesCheckInterval: 0, // number in ms describing how often cookies should be checked for changes
+    previousPrefix: 'angular2ws_', // you have to set it only if you were using custom prefix in old version ('angular2ws_' is a default value)
+  }),  
+});
+
 var providePlugin = new webpack.ProvidePlugin({
   // $: "jquery",
   // jQuery: "jquery",
@@ -204,6 +216,7 @@ var devConfig = {
   },
 
   plugins: [
+    NgxStoreConfigPlugin,
     new MomentLocalesPlugin({
       localesToKeep: ['es-us', 'es'],
     }),
@@ -255,6 +268,7 @@ var prodConfig = {
   },
 
   plugins: [
+    NgxStoreConfigPlugin,
     new MomentLocalesPlugin({
       localesToKeep: ['es-us', 'es'],
     }),
