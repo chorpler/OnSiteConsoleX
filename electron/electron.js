@@ -20,7 +20,9 @@ var windowTitle = `OnSiteConsoleX ${packageVersion}`;
 
 var testMode = false;
 
-logger.transports.file.level = 'debug';
+// logger.transports.file.level = 'debug';
+logger.transports.file.level = 'silly';
+logger.catchErrors({showDialog:true});
 autoUpdater.logger = logger;
 autoUpdater.autoDownload = false;
 autoUpdater.autoInstallOnAppQuit = false;
