@@ -186,6 +186,11 @@
           "token": "560dcb51bdb218a1###############cfd5d13076cefb8b2680c468"
         }
       ]
+    },
+    "commands": {
+      "mac": {
+        "to_make_multires_tiff_file_for_dmg_background": "tiffutil -cathidpicheck background.png background@2x.png -out background.tiff"
+      }
     }
   },
   "cordovaPlatforms": [
