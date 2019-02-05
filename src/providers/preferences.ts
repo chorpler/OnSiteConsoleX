@@ -277,17 +277,28 @@ export class Preferences {
 
 
   /**
+   * Returns remote host name, no protocol or port (e.g. 'my.server.com')
+   *
+   * @returns {string} Host name of CouchDB Server
+   * @memberof Preferences
+   */
+  public getServerHost():string {
+    // let protocol = this.SERVER.protocol ;
+    let server:string = this.SERVER.server   ;
+    return server;
+  }
+
+  /**
    * Returns base URL, no port included (e.g. 'https://my.server.com')
    *
    * @returns {string} Base URL of CouchDB Server
    * @memberof Preferences
    */
   public getServerBaseURL():string {
-    let protocol = this.SERVER.protocol ;
-    let server   = this.SERVER.server   ;
+    let protocol:string = this.SERVER.protocol ;
+    let server:string   = this.getServerHost() ;
       return `${protocol}://${server}`;
   }
-
 
   /**
    * Returns couchdb-howler URL (e.g. 'https://my-howler.server.com:3000')

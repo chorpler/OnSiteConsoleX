@@ -1,5 +1,4 @@
 import { Log } from 'domain/onsitexdomain';
-// const isRenderer    = require('is-electron-renderer');
 import { isRenderer } from 'is-electron-renderer';
 import * as WHATWG from 'whatwg-url';
 import * as electron from 'electron';
@@ -7,98 +6,11 @@ import * as path from 'path';
 import * as readChunk from 'read-chunk';
 import * as fileType from 'file-type';
 import * as extend from 'deep-extend';
-import * as got from 'got';
-// import { PDFJS } from 'pdfjs-dist';
+import got from 'got';
 import { remote as electronRemote, BrowserWindow as electronBrowserWindow } from 'electron';
-// const path          = require('path');
-// const readChunk     = require('read-chunk');
-// const fileType      = require('file-type');
-// const extend        = require('deep-extend');
-// const got           = require('got');
-
-// type BrowserWindow = electron.BrowserWindow;
-// type ElectronRemote = Electron.Remote;
-
-
-// const BrowserWindow:any = isRenderer ? electronRemote.BrowserWindow : electronBrowserWindow;
 const BrowserWindow:any = electronRemote.BrowserWindow;
 
-// const PDF_JS_ROOT = isRenderer ? electron.remote.app.getAppPath() : electron.app.getAppPath();
-
-// const PDF_JS_PATH = path.join(__dirname, 'pdfjs', 'web', 'viewer.html');
-// const PDF_JS_PATH = path.join(PDF_JS_ROOT, 'pdfjs', 'web', 'viewer.html');
-
 type ElectronEvent = electron.Event;
-
-// function isAlreadyLoadedWithPdfJs(url:string):boolean {
-//   // return url.startsWith(`file://${PDF_JS_PATH}?file=`);
-//   let res =  url.match('file://.*viewer\.html.file');
-//   return Boolean(res);
-// }
-
-// function isFile(url:string):boolean {
-//   return Boolean(url.match(/^file:\/\//i));
-// }
-
-// function getMimeOfFile(url):string {
-//   const fileUrl = url.replace(/^file:\/\//i, '');
-//   const buffer = readChunk.sync(fileUrl, 0, 262);
-//   const ft = fileType(buffer);
-
-//   return ft && ft.mime ? ft.mime : null;
-// }
-
-// function hasPdfExtension(url:string):boolean {
-//   return Boolean(url.match(/\.pdf$/i));
-// }
-
-// function isPDF(url:string):Promise<boolean> {
-//   return new Promise((resolve, reject) => {
-//     if(isAlreadyLoadedWithPdfJs(url)) {
-//       resolve(false);
-//     } else if(isFile(url)) {
-//       resolve(getMimeOfFile(url) === 'application/pdf');
-//     } else if(hasPdfExtension(url)) {
-//       resolve(true);
-//     } else {
-//       got.head(url).then(res => {
-//         if(res.headers.location) {
-//           isPDF(res.headers.location).then(isit => resolve(isit)).catch(err => reject(err));
-//         } else {
-//           resolve(res.headers['content-type'].indexOf('application/pdf') !== -1);
-//         }
-//       }).catch(err => reject(err));
-//     }
-//   });
-// }
-
-// function getBaseURL():string {
-//   let filePath:string = "";
-//   if(isRenderer) {
-//     filePath = electron.remote.app.getAppPath();
-//   } else {
-//     filePath = electron.app.getAppPath();
-//   }
-//   return filePath;
-// }
-
-// function getViewerURL():string {
-//   // let parsedURL = WHATWG.parseURL(pdfFile);
-//   let base:string = getBaseURL();
-//   let viewerPath:string = path.join(base, 'pdfjs', 'web', 'viewer.html')
-//   let parsedURL = WHATWG.parseURL(base);
-//   let fileURL = parsedURL;
-//   if(!(parsedURL && parsedURL.scheme && parsedURL.scheme === 'file')) {
-//     fileURL = new URL(`file:///${parsedURL}`).href;
-//   }
-//   return fileURL;
-// }
-
-// function getFullURL(pdfFile:string):string {
-//   let viewerURL:string = getViewerURL();
-//   let url:string = `${viewerURL}?file=${pdfFile}`;
-//   return url;
-// }
 
 export class PDFWindow extends electronRemote.BrowserWindow {
   constructor(opts?:any) {
@@ -107,16 +19,16 @@ export class PDFWindow extends electronRemote.BrowserWindow {
       webPreferences: { nodeIntegration: false }
     }));
 
-    this.webContents.on('will-navigate', (event:any, url:string) => {
+    this.webContents.on('will-navigate', (event:ElectronEvent, url:string) => {
       event.preventDefault();
       this.loadURL(url);
     });
 
-    this.webContents.on('new-window', (event:any, url:string) => {
+    this.webContents.on('new-window', (event:ElectronEvent, url:string) => {
       event.preventDefault();
 
-      event.newGuest = new PDFWindow();
-      event.newGuest.loadURL(url);
+      (event as any).newGuest = new PDFWindow();
+      (event as any).newGuest.loadURL(url);
     });
   }
 
@@ -140,16 +52,16 @@ export class PDFWindow extends electronRemote.BrowserWindow {
 
   public static addSupport(browserWindow:Electron.BrowserWindow) {
     Log.l(`PDFWindow.addSupport() called.`)
-    browserWindow.webContents.on('will-navigate', (event:any, url:string) => {
+    browserWindow.webContents.on('will-navigate', (event:ElectronEvent, url:string) => {
       event.preventDefault();
       browserWindow.loadURL(url);
     });
 
-    browserWindow.webContents.on('new-window', (event:any, url:string) => {
+    browserWindow.webContents.on('new-window', (event:ElectronEvent, url:string) => {
       event.preventDefault();
 
-      event.newGuest = new PDFWindow();
-      event.newGuest.loadURL(url);
+      (event as any).newGuest = new PDFWindow();
+      (event as any).newGuest.loadURL(url);
     });
 
     const load = browserWindow.loadURL;
@@ -170,7 +82,8 @@ export class PDFWindow extends electronRemote.BrowserWindow {
 
   public static isAlreadyLoadedWithPdfJs(url:string):boolean {
     // return url.startsWith(`file://${PDF_JS_PATH}?file=`);
-    let res =  url.match('file://.*viewer\.html.file');
+    let pdfURL:string = "file://.*viewer\.html.file";
+    let res =  url.match(pdfURL);
     return Boolean(res);
   }
 
@@ -190,24 +103,33 @@ export class PDFWindow extends electronRemote.BrowserWindow {
     return Boolean(url.match(/\.pdf$/i));
   }
 
-  public static isPDF(url:string):Promise<boolean> {
-    return new Promise((resolve, reject) => {
+  public static async isPDF(url:string):Promise<boolean> {
+    try {
+      let status:boolean = false;;
       if(PDFWindow.isAlreadyLoadedWithPdfJs(url)) {
-        resolve(false);
+        return status;
       } else if(PDFWindow.isFile(url)) {
-        resolve(PDFWindow.getMimeOfFile(url) === 'application/pdf');
+        let mimeType:string = PDFWindow.getMimeOfFile(url);
+        status = mimeType === 'application/pdf';
+        return status;
       } else if(PDFWindow.hasPdfExtension(url)) {
-        resolve(true);
+        return true;
       } else {
-        got.head(url).then(res => {
-          if(res.headers.location) {
-            PDFWindow.isPDF(res.headers.location).then(isit => resolve(isit)).catch(err => reject(err));
-          } else {
-            resolve(res.headers['content-type'].indexOf('application/pdf') !== -1);
-          }
-        }).catch(err => reject(err));
+        let res = await got.head(url);
+        if(res && res.headers && res.headers.location) {
+          let location = res.headers.location;
+          let isit:boolean = await PDFWindow.isPDF(location);
+          return isit;
+        } else {
+          let contentType:string = res && res.headers && typeof res.headers['content-type'] === 'string' ? res.headers['content-type'] : "unknown";
+          return contentType.indexOf('application/pdf') !== -1
+        }
       }
-    });
+    } catch(err) {
+      Log.l(`PDFWindow.isPDF(): Error checking for PDF status of url '${url}'`);
+      Log.e(err);
+      throw err;
+    }
   }
 
   public static getBaseURL():string {
@@ -240,30 +162,3 @@ export class PDFWindow extends electronRemote.BrowserWindow {
 
 }
 
-// PDFWindow.addSupport = function (browserWindow) {
-//   browserWindow.webContents.on('will-navigate', (event, url) => {
-//     event.preventDefault();
-//     browserWindow.loadURL(url);
-//   });
-
-//   browserWindow.webContents.on('new-window', (event, url) => {
-//     event.preventDefault();
-
-//     event.newGuest = new PDFWindow();
-//     event.newGuest.loadURL(url);
-//   });
-
-//   const load = browserWindow.loadURL;
-//   browserWindow.loadURL = function (url, options) {
-//     isPDF(url).then(isit => {
-//       if (isit) {
-//         load.call(browserWindow, `file://${PDF_JS_PATH}?file=${
-//           decodeURIComponent(url)}`, options);
-//       } else {
-//         load.call(browserWindow, url, options);
-//       }
-//     });
-//   };
-// };
-
-// module.exports = PDFWindow;

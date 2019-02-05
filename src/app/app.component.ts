@@ -85,7 +85,7 @@ import * as JSZip from 'jszip';
 import * as gracefulfs from 'graceful-fs';
 import * as Mousetrap from 'mousetrap';
 
-export const appVersion:string = "10.16.17";
+export const appVersion:string = "10.16.18";
 
 declare const window:any;
 

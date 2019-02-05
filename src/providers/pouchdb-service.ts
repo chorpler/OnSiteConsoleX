@@ -1,55 +1,67 @@
 // import { PouchDB } from 'pouchdb';
 // import * as pdbMemory           from 'pouchdb-adapter-memory'    ;
-import { sprintf              } from 'sprintf-js'             ;
-import { Injectable           } from '@angular/core'          ;
-import { HttpClient           } from '@angular/common/http'   ;
-import { Log                  } from 'domain/onsitexdomain'   ;
-import { Preferences          } from './preferences'          ;
-import { app as electronApp, remote as electronRemote } from 'electron';
-import { Headers              } from 'pouchdb-fetch'          ;
-import   PouchDB                from 'pouchdb'                ;
-import * as path from 'path';
-import * as fs from 'graceful-fs';
+// import { Headers              } from 'pouchdb-fetch'            ;
 // import * as workerPouch         from 'worker-pouch'           ;
 // import { PDB } from 'pouchdb-authentication' ;
-import * as PDBAuth             from 'pouchdb-authentication' ;
 // import { plugin as PDBAuthPlugin } from 'pouchdb-authentication';
-import * as pdbFind             from 'pouchdb-find'           ;
-import * as pdbUpsert           from 'pouchdb-upsert'         ;
 // import * as pdbAllDBs           from 'pouchdb-all-dbs'        ;
 // import * as websqlPouch         from 'pouchdb-adapter-websql' ;
 // import * as nodeSqlPouch        from 'pouchdb-adapter-node-sql';
-
 // import * as nodeWebsqlPouch     from 'pouchdb-adapter-node-websql';
-import * as levelPouch          from 'pouchdb-adapter-leveldb' ;
-import * as pdbDebug            from 'pouchdb-debug'          ;
-
 // import * as pdbReplicate       from 'pouchdb-replication'     ;
-import isElectron from 'is-electron';
-
-// const PouchDB2 = require('pouchdb');
+// import { UUID                 } from 'domain/onsitexdomain'     ;
+// import { ElectronService      } from './electron-service'       ;
+import { sprintf              } from 'sprintf-js'               ;
+import { Injectable           } from '@angular/core'            ;
+import { HttpClient           } from '@angular/common/http'     ;
+import { Log                  } from 'domain/config/config.log' ;
+import { Preferences          } from './preferences'            ;
+import { app as eApp          } from 'electron'                 ;
+import { remote as eRemote    } from 'electron'                 ;
+import   isElectron             from 'is-electron'              ;
+import   PouchDB                from 'pouchdb'                  ;
+import * as path                from 'path'                     ;
+import rimraf                   from 'rimraf'                   ;
+import mkdirp                   from 'mkdirp'                   ;
+import * as fs                  from 'graceful-fs'              ;
+import * as pdbDebug            from 'pouchdb-debug'            ;
+import * as levelPouch          from 'pouchdb-adapter-leveldb'  ;
+import * as PDBAuth             from 'pouchdb-authentication'   ;
+import * as pdbFind             from 'pouchdb-find'             ;
+import * as pdbUpsert           from 'pouchdb-upsert'           ;
+import * as UUID                from 'uuid'                     ;
 
 declare const window:any;
+const fsp = fs.promises;
 
 // const PDB1 = window && window.PouchDB ? window.PouchDB : PouchDB;
+const localAdapter:string = 'leveldb';
 const PDB1 = window && window.PouchDB ? window.PouchDB : PouchDB;
 const PDB2 = PouchDB;
 
-// const localAdapter = 'worker';
-const localAdapter:string = 'idb';
-// let remoteTarArchiveURL:string = "http://sesafleetservices.com/onsitedb/onsiteconsolex.tar.gz";
+enum FileOrDirectoryType {
+  NONE      = 0,
+  FILE      = 1,
+  DIRECTORY = 2,
+  OTHER     = 3,
+}
+
 const addPouchDBPlugin = (pouchdbObject:any, plugin:any, description?:string) => {
-  let text:string = description || "unknown";
-  Log.l(`addPouchDBPLugin(): Attempting to add plugin '${text}': `, plugin);
+  let text:string = typeof description === 'string' ? description : "unknown";
+  let key:string = text === 'unknown' ? UUID.v4() : text;
+  // Log.l(`addPouchDBPLugin(): Attempting to add plugin '${text}':`, plugin);
+  Log.l(`addPouchDBPLugin(): Attempting to add plugin '${text}' …`);
   if(pouchdbObject && typeof pouchdbObject.plugin === 'function') {
     if(plugin) {
-      if(plugin['default'] !== undefined) {
+      // PouchDBService.plugins[text] = plugin;
+      PouchDBService.plugins[key] = plugin;
+      if(plugin['default'] != undefined) {
         pouchdbObject.plugin(plugin.default);
       } else {
         pouchdbObject.plugin(plugin);
       }
     } else {
-      Log.w(`addPouchDBPlugin(): This plugin did not exist:\n`, plugin);
+      Log.w(`addPouchDBPlugin(): plugin '${text}' did not exist:`, plugin);
       return;
     }
   } else {
@@ -59,9 +71,14 @@ const addPouchDBPlugin = (pouchdbObject:any, plugin:any, description?:string) =>
 
 @Injectable()
 export class PouchDBService {
-  public app    = electronApp    ;
-  public remote = electronRemote ;
-  public dbDir:string = "";
+  public app    = eApp    ;
+  public remote = eRemote ;
+  public dbDir:string   = "";
+  public adapter:string = localAdapter;
+  public prefix:string  = "";
+  public static plugins:any = {};
+  public get plugins():any { return PouchDBService.plugins; };
+  public set plugins(val:any) { PouchDBService.plugins = val; };
   public StaticPouchDB : any;
   public NodePouchDB   : any;
   public testDB        : Database;
@@ -73,14 +90,23 @@ export class PouchDBService {
   public InitialSyncs  : DBSyncList               = new Map()          ;
   public hostNumber    : number                   = 0                  ;
   public isElectron    : boolean                  = false              ;
+  public fsutils = {
+    rimraf : rimraf ,
+    mkdirp : mkdirp ,
+    fs     : fs     ,
+  };
 
   constructor(
-    public prefs : Preferences ,
-    public http  : HttpClient  ,
+    public prefs    : Preferences     ,
+    public http     : HttpClient      ,
+    // public electron : ElectronService ,
   ) {
     Log.l('Hello PouchDBService Provider');
     // this.prefs = PouchDBService.PREFS;
     window['pouchdbauthenticationdebug'] = false;
+    window['onsitepouchdbservice'] = this;
+    window['onsitepouchdbserviceclass'] = PouchDBService;
+    window['onsitepouchdbplugins'] = this.plugins;
     this.isElectron = isElectron();
     if(this.isElectron) {
       this.electronInit();
@@ -118,39 +144,39 @@ export class PouchDBService {
       // addPouchDBPlugin(pouchdb, nodeSqlPouch, 'adapter-nodesql');
       // addPouchDBPlugin(pouchdb, websqlPouch, 'adapter-websql');
       // addPouchDBPlugin(pouchdb, pdbLevelDB, 'adapter-leveldb');
-      if(this.isElectron) {
-        // let fs = require('fs');
-        // Log.l(`PouchDBService: Creating 'db' directory if necessary ...`);
-        // try {
-        //   fs.accessSync('db');
-        //   Log.l(`PouchDBService: 'db' directory existed already. We coo'.`);
-        // } catch(err) {
-        //   try {
-        //     Log.l(`PouchDBService: Could not access 'db' directory, trying to create it ...`);
-        //     fs.mkdirSync('db');
-        //   } catch(err2) {
-        //     Log.l(`PouchDBService: Error creating 'db' directory!`);
-        //     Log.e(err2);
-        //   }
-        // }
-        // let opts = {
-        //   adapter: 'leveldb',
-        //   prefix: 'db/',
-        // };
-        // let test1:Database = new PDB1('test01234321', opts);
-        // this.testDB = test1;
-        addPouchDBPlugin(PDB1, pdbUpsert, 'upsert');
-        addPouchDBPlugin(PDB1, pdbFind, 'find');
-        addPouchDBPlugin(PDB1, PDBAuth, 'auth');
-        addPouchDBPlugin(PDB1, pdbDebug, 'debug');
-        addPouchDBPlugin(PDB1, levelPouch, 'adapter-level');
-        // addPouchDBPlugin(PDB1, nodeWebsqlPouch, 'adapter-nodewebsql');
+      // if(this.isElectron) {
+      //   // let fs = require('fs');
+      //   // Log.l(`PouchDBService: Creating 'db' directory if necessary ...`);
+      //   // try {
+      //   //   fs.accessSync('db');
+      //   //   Log.l(`PouchDBService: 'db' directory existed already. We coo'.`);
+      //   // } catch(err) {
+      //   //   try {
+      //   //     Log.l(`PouchDBService: Could not access 'db' directory, trying to create it ...`);
+      //   //     fs.mkdirSync('db');
+      //   //   } catch(err2) {
+      //   //     Log.l(`PouchDBService: Error creating 'db' directory!`);
+      //   //     Log.e(err2);
+      //   //   }
+      //   // }
+      //   // let opts = {
+      //   //   adapter: 'leveldb',
+      //   //   prefix: 'db/',
+      //   // };
+      //   // let test1:Database = new PDB1('test01234321', opts);
+      //   // this.testDB = test1;
+      //   addPouchDBPlugin(PDB1, pdbUpsert, 'upsert');
+      //   addPouchDBPlugin(PDB1, pdbFind, 'find');
+      //   addPouchDBPlugin(PDB1, PDBAuth, 'auth');
+      //   addPouchDBPlugin(PDB1, pdbDebug, 'debug');
+      //   addPouchDBPlugin(PDB1, levelPouch, 'adapter-level');
+      //   // addPouchDBPlugin(PDB1, nodeWebsqlPouch, 'adapter-nodewebsql');
 
-        // addPouchDBPlugin(pouchdb, nodeSqlPouch, 'adapter-nodesql');
-          // addPouchDBPlugin(PDB1, websqlPouch, 'adapter-websql');
-          // (PouchDB as any).adapter('leveldb', pdbLevelDB);
-        // addPouchDBPlugin(pouchdb, pdbNodeWebSql, 'adapter-node-websql');
-      }
+      //   // addPouchDBPlugin(pouchdb, nodeSqlPouch, 'adapter-nodesql');
+      //     // addPouchDBPlugin(PDB1, websqlPouch, 'adapter-websql');
+      //     // (PouchDB as any).adapter('leveldb', pdbLevelDB);
+      //   // addPouchDBPlugin(pouchdb, pdbNodeWebSql, 'adapter-node-websql');
+      // }
       // addPouchDBPlugin(pouchdb, pdbAllDBs);
       // addPouchDBPlugin(pouchdb, pdbAllDBs);
       // (pouchdb as any).adapter('worker', workerPouch);
@@ -174,24 +200,17 @@ export class PouchDBService {
   }
 
   public electronInit() {
-    let currentDir:string = path.join(".");
-    let dataDir:string = this.remote.app.getPath('userData');
-    let dbDir:string = path.join(dataDir, "db");
-    let sep:string = path && path.sep ? path.sep : "/";
-    this.dbDir = dbDir + sep;
-    let db:string = this.dbDir;
-    Log.l(`PouchDBService.electronInit(): Creating '${db}' directory if necessary ...`);
+    Log.l(`PouchDBService.electronInit(): Firing up …`);
+    let dbPrefix:string = this.getPouchDBPrefix();
+    Log.l(`PouchDBService.electronInit(): using DB prefix ${dbPrefix} …`);
+    let db:string = dbPrefix;
+    this.dbDir    = db;
+    this.prefix   = db;
     try {
-      fs.accessSync(db);
-      Log.l(`PouchDBService.electronInit(): '${db}' directory existed already. We coo'.`);
-    } catch(err) {
-      try {
-        Log.l(`PouchDBService.electronInit(): Could not access '${db}' directory, trying to create it ...`);
-        fs.mkdirSync(db);
-      } catch(err2) {
-        Log.l(`PouchDBService: Error creating '${db}' directory!`);
-        Log.e(err2);
-      }
+      this.makeDirectorySync(db);
+    } catch (err) {
+      Log.l(`PouchDBService.electronInit(): Error creating '${db}'`);
+      Log.e(err);
     }
   }
 
@@ -219,9 +238,12 @@ export class PouchDBService {
 
   public getBaseURL():string {
     // let prefs    = PouchDBService.PREFS   ;
-    let port     :number = this.prefs.SERVER.port     ;
-    let protocol :string = this.prefs.SERVER.protocol ;
-    let server   :string = this.prefs.SERVER.server   ;
+    let port:number = this.prefs.getRemotePort();
+    let protocol:string = this.prefs.getProtocol();
+    let server:string = this.prefs.getServerHost();
+    // let port     :number = this.prefs.SERVER.port     ;
+    // let protocol :string = this.prefs.SERVER.protocol ;
+    // let server   :string = this.prefs.SERVER.server   ;
     if(server.indexOf('pico.sesa.us') !== -1) {
       let hostNumber:number = (this.hostNumber++ % 16) + 1;
       server     = sprintf("db%02d.sesa.us", hostNumber);
@@ -269,7 +291,8 @@ export class PouchDBService {
       return dbmap.get(dbname);
     } else {
       // let pdbAdapter:string = this.prefs.getLocalAdapter();
-      let PDB_ADAPTER:string = this.prefs && this.prefs.SERVER && this.prefs.SERVER.localAdapter ? this.prefs.SERVER.localAdapter : localAdapter;
+      // let PDB_ADAPTER:string = this.prefs && this.prefs.SERVER && this.prefs.SERVER.localAdapter ? this.prefs.SERVER.localAdapter : localAdapter;
+      let PDB_ADAPTER:string = this.adapter;
       let opts:any = {
         'adapter': PDB_ADAPTER,
       };
@@ -277,14 +300,26 @@ export class PouchDBService {
       if(this.isElectron) {
         // pouch = PDB1;
         pouch = this.NodePouchDB;
-        opts.adapter = 'leveldb';
+        opts.adapter = PDB_ADAPTER;
+        // opts.adapter = 'leveldb';
         // opts.adapter = 'websql';
-        opts.prefix = "db/";
+        opts.prefix = this.prefix;
         // opts.prefix = "db/";
       }
-      if(this.dbDir) {
-        opts.prefix = this.dbDir;
-      }
+      // if(this.prefix) {
+      //   opts.prefix = this.prefix;
+      // }
+      // let fullDBName:string = opts.prefix + dbname;
+      // let type:FileOrDirectoryType = this.isFileOrDirectorySync(fullDBName);
+      // if(PDB_ADAPTER === 'leveldb') {
+      //   if(!this.isDirectorySync(fullDBName)) {
+      //     this.removeFileOrDirectorySync(fullDBName);
+      //   }
+      // } else if(PDB_ADAPTER === 'websql') {
+      //   if(this.isDirectorySync(fullDBName)) {
+      //     this.removeFileOrDirectorySync(fullDBName);
+      //   }
+      // }
       Log.l(`PouchDBService.addDB(): Adding database '${dbname}' with adapter '${opts.adapter}' and options:`, opts);
       let newPDB:Database = new pouch(dbname, opts);
       // let newPDB:PDatabase = new this.StaticPouchDB(dbname, {adapter: 'worker'});
@@ -623,6 +658,249 @@ export class PouchDBService {
     Log.l(`clearAllInitialSyncs(): Clearing out all syncs from map:\n`, syncmap);
     syncmap.clear();
   }
+
+  public getDataDir():string {
+    return this.remote.app.getPath('userData');
+  }
+
+  public getDataDirAsPrefix():string {
+    let datadir:string = this.getDataDir();
+    let sep:string = path && path.sep ? path.sep : "/";
+    return datadir + sep;
+  }
+
+  public getDBDir(...args:string[]):string {
+    // let dbdir:string = this.dbDir;
+    // let dbdirname:string = typeof directoryName === 'string' ? directoryName : "db";
+    let defaultDBDirName:string = "db";
+    let dbdirnames:string[] =  Array.isArray(args) && args.length > 0 ? args.filter(a => typeof a === 'string') : [defaultDBDirName];
+    let dbdir:string = this.getFullDataPathForFile(...dbdirnames);
+    return dbdir;
+  }
+  
+  public getDBDirAsPrefix(...args:string[]):string {
+    let dbdir:string = this.getDBDir(...args);
+    let sep:string = path && path.sep ? path.sep : "/";
+    let out:string = dbdir + sep;
+    return out;
+  }
+
+  public getFullDataPathForFile(...args:string[]):string {
+    let datadir:string = this.getDataDir();
+    let files:string[] = Array.isArray(args) && args.length > 0 ? args.filter(a => typeof a === 'string') : [];
+    let fullfile:string = path.normalize(path.join(datadir, ...files));
+    return fullfile;
+  }
+
+  public getPouchDBPrefix():string {
+    let adapter:string = this.adapter || "leveldb";
+    let prefix:string;
+    if(adapter === 'leveldb') {
+      prefix = this.getDBDirAsPrefix("db", "leveldb");
+    } else if(adapter === 'websql') {
+      prefix = this.getDBDirAsPrefix("db");
+    } else {
+      prefix = "";
+    }
+    return prefix;
+  }
+
+  // public getFullDBPathForFile(...args:string[]):string {
+  //   let dbdir:string = this.getDBDir();
+  //   let fullfile:string = path.normalize(path.join(dbdir, filename));
+  //   return fullfile;
+  // }
+
+  public async isDirectory(directoryName:string):Promise<boolean> {
+    try {
+      // Log.l(`isDirectory(): Called with arguments:\n`, arguments);
+      let possibleDir:string = path.normalize(directoryName);
+      try {
+        let stat = await fsp.lstat(possibleDir);
+        let isDirectory:boolean = stat.isDirectory();
+        return isDirectory;
+      } catch (error) {
+        Log.l(`isDirectory(): Error checking '${directoryName}', returning false.`);
+        return false;
+      }
+    } catch(err) {
+      Log.l(`isDirectory(): Error checking for directory '${directoryName}'`);
+      Log.e(err);
+      return false;
+      // throw err;
+    }
+  }
+  
+  public async fileOrDirectoryExists(fullpath:string):Promise<boolean> {
+    try {
+      // Log.l(`isDirectory(): Called with arguments:\n`, arguments);
+      try {
+        // let stat;
+        let possibleFile:string = path.normalize(fullpath);
+        let stat = await fsp.lstat(possibleFile);
+        let exists:boolean = stat.isFile() || stat.isDirectory();
+        return exists;
+      } catch (error) {
+        Log.l(`fileOrDirectoryExists(): Error checking '${fullpath}', returning false.`);
+        return false;
+      }
+    } catch(err) {
+      Log.l(`fileOrDirectoryExists(): Error checking for directory '${fullpath}'`);
+      Log.e(err);
+      return false;
+      // throw err;
+    }
+  }
+  
+  public async makeDirectory(fullpath:string):Promise<boolean> {
+    try {
+      // Log.l(`isDirectory(): Called with arguments:\n`, arguments);
+      let possibleDir:string = fullpath;
+      try {
+        possibleDir = path.normalize(fullpath);
+        let stat = await fsp.lstat(possibleDir);
+        let isDirectory:boolean = stat.isDirectory();
+        return isDirectory;
+      } catch (error) {
+        Log.l(`makeDirectory(): '${fullpath}' does not exist. Creating …`);
+        try {
+          let res = await fsp.mkdir(possibleDir);
+          return true;
+        } catch (error2) {
+          // Log.l(`makeDirectory(): Error trying to create '${fullpath}'`);
+          // Log.e(error2);
+          throw error2;
+        }
+      }
+    } catch(err) {
+      Log.l(`makeDirectory(): Error forcing creation of directory '${fullpath}'`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public isDirectorySync(directoryName:string):boolean {
+    try {
+      // Log.l(`isDirectory(): Called with arguments:\n`, arguments);
+      let possibleDir:string = path.normalize(directoryName);
+      try {
+        let stat = fs.lstatSync(possibleDir);
+        let isDirectory:boolean = stat.isDirectory();
+        return isDirectory;
+      } catch (error) {
+        Log.l(`isDirectorySync(): Error checking '${directoryName}', returning false.`);
+        return false;
+      }
+    } catch(err) {
+      Log.l(`isDirectorySync(): Error checking for directory '${directoryName}'`);
+      Log.e(err);
+      return false;
+      // throw err;
+    }
+  }
+  
+  /**
+   * Synchronously tests if a local file or directory at the provided path
+   * (e.g. '/Users/myuser/docs/test.json' or 'C:\\Users\\myuser\\docs\\test.json')
+   * exists. If not, returns 0. If so, returns:
+   * - 1 if it is a regular file
+   * - 2 for a directory
+   * - 3 if it can't tell.
+   *
+   * @param {string} fullpath A string representing the full path of the possible local file or directory to be tested.
+   * @returns {FileOrDirectoryType} 0 = does not exist, 1 = file, 2 = directory, 3 = other
+   * @memberof PouchDBService
+   */
+  public isFileOrDirectorySync(fullpath:string):FileOrDirectoryType {
+    let possibleFile:string = fullpath;
+    try {
+      possibleFile = path.normalize(fullpath);
+      let stat = fs.lstatSync(possibleFile);
+      if(stat.isFile()) {
+        return FileOrDirectoryType.FILE;
+      } else if(stat.isDirectory()) {
+        return FileOrDirectoryType.DIRECTORY;
+      } else {
+        return FileOrDirectoryType.OTHER;
+      }
+    } catch (error) {
+      Log.l(`isFileOrDirectorySync(): Error checking '${fullpath}', probably does not exist.`);
+      return FileOrDirectoryType.NONE;
+    }
+  }
+  
+  public fileOrDirectoryExistsSync(fullpath:string):boolean {
+    try {
+      // Log.l(`isDirectory(): Called with arguments:\n`, arguments);
+      try {
+        // let stat;
+        let possibleFile:string = path.normalize(fullpath);
+        let stat = fs.lstatSync(possibleFile);
+        let exists:boolean = stat.isFile() || stat.isDirectory();
+        return exists;
+      } catch (error) {
+        Log.l(`fileOrDirectoryExistsSync(): Error checking '${fullpath}', returning false.`);
+        return false;
+      }
+    } catch(err) {
+      Log.l(`fileOrDirectoryExistsSync(): Error checking for directory '${fullpath}'`);
+      Log.e(err);
+      return false;
+      // throw err;
+    }
+  }
+  
+  public makeDirectorySync(fullpath:string):boolean {
+    try {
+      // Log.l(`isDirectory(): Called with arguments:\n`, arguments);
+      let possibleDir:string = fullpath;
+      let db:string = possibleDir;
+      try {
+        possibleDir = path.normalize(fullpath);
+        fs.accessSync(possibleDir);
+        Log.l(`PouchDBService.makeDirectorySync(): '${db}' directory existed already. We coo'.`);
+      } catch(err) {
+        try {
+          Log.l(`PouchDBService.makeDirectorySync(): Could not access '${db}' directory, trying to create it ...`);
+          // fs.mkdirSync(db, {recursive: true});
+          let dir:string = mkdirp.sync(db);
+          return true;
+        } catch(err2) {
+          Log.l(`PouchDBService.makeDirectorySync(): Error creating '${db}' directory!`);
+          // Log.e(err2);
+          throw err2;
+        }
+      }
+    } catch(err) {
+      Log.l(`PouchDBService.makeDirectorySync(): Error forcing creation of directory '${fullpath}'`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public removeFileOrDirectorySync(fullpath:string):boolean {
+    let possibleFile:string = fullpath;
+    let status:boolean = false;
+    try {
+      possibleFile = path.normalize(fullpath);
+      let type:FileOrDirectoryType = this.isFileOrDirectorySync(possibleFile);
+      if(type === FileOrDirectoryType.FILE) {
+        fs.unlinkSync(possibleFile);
+        status = true;
+      } else if(type === FileOrDirectoryType.DIRECTORY) {
+        // fs.rmdirSync(possibleFile);
+        rimraf.sync(possibleFile);
+        status = true;
+      }
+      return status;
+    } catch (err) {
+      Log.l(`removeFileOrDirectorySync(): Error removing '${fullpath}', returning false.`);
+      Log.e(err)
+      return false;
+    }
+  }
+  
+
 }
 
 
@@ -648,16 +926,24 @@ export type PDBInfoOriginal    = PouchDB.Core.DatabaseInfo  ;
 // purge_seq: 0
 // sizes: {file: 277360852, external: 155588651, active: 116369463}
 // update_seq: "158400-g2wAAAABaANkAA9jZGIyMTBAc2VjdXJlZGJsAAAAAmEAbgQA_____2piAAJqwGo"
+// idb_attachment_format: string
 export interface PDBInfo extends PDBInfoOriginal {
-  db_name          : string        ;
-  adapter         ?: string        ;
-  auto_compaction ?: boolean       ;
-  doc_count        : number        ;
-  update_seq       : number|string ;
+  db_name          : string             ;
+  adapter         ?: string             ;
+  auto_compaction ?: boolean            ;
+  doc_count        : number             ;
+  update_seq       : number|string      ;
   
   // LevelDB
-  backend_adapter ?: string  ;
-  
+  backend_adapter ?: string             ;
+
+  // WebSql
+  sqlite_plugin   ?: boolean            ;
+  websql_encoding ?: 'UTF-8' | 'UTF-16' ;
+
+  // IndexedDB
+  idb_attachment_format ?: 'base64' | 'binary';
+ 
   // HTTP/HTTPS
   compact_running     ?: boolean       ;
   data_size           ?: number        ;
@@ -676,9 +962,9 @@ export interface PDBInfo extends PDBInfoOriginal {
 export type PouchDatabase      = PouchDB.Database           ;
 export type PDBCoreOptions     = PouchDB.Core.Options       ;
 export type PDBLoginOptions    = PouchDB.Core.Options       ;
-export type CorePDBOptions     =  PouchDB.Configuration.CommonDatabaseConfiguration ;
-export type LocalPDBOptions    =  PouchDB.Configuration.LocalDatabaseConfiguration  ;
-export type RemotePDBOptions   =  PouchDB.Configuration.RemoteDatabaseConfiguration ;
+export type CorePDBOptions     = PouchDB.Configuration.CommonDatabaseConfiguration ;
+export type LocalPDBOptions    = PouchDB.Configuration.LocalDatabaseConfiguration  ;
+export type RemotePDBOptions   = PouchDB.Configuration.RemoteDatabaseConfiguration ;
 export type PDBOptions         = LocalPDBOptions|RemotePDBOptions;
 
 export interface PouchDocRequired extends Object {

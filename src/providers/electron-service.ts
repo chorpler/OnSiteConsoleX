@@ -1,12 +1,22 @@
-import { app as electronApp, webFrame, dialog, BrowserWindow as browserwindow, BrowserView as browserview, remote, ipcRenderer, IpcRenderer } from 'electron';
+import { BrowserWindow as browserwindow } from 'electron' ;
+import { BrowserView as browserview     } from 'electron' ;
+import { IpcRenderer                    } from 'electron' ;
+import { app as electronApp             } from 'electron' ;
+import { webFrame                       } from 'electron' ;
+import { dialog                         } from 'electron' ;
+import { remote                         } from 'electron' ;
+import { ipcRenderer                    } from 'electron' ;
+
 import { globalShortcut  } from 'electron';
 import * as electron from 'electron';
 import * as WHATWG from 'whatwg-url';
+import { isRenderer } from 'is-electron-renderer';
 // import * as Mousetrap from 'mousetrap';
 // import * as NapaJS from 'napajs';
 // declare var PDFWindow;
 
-const os = require('os')                                        ;
+// const os = require('os')                                        ;
+import * as os from 'os';
 // const childProc = require('child_process');
 // const NapaJS = require('napajs');
 // import * as diskusage from 'diskusage';
@@ -20,19 +30,21 @@ import * as path from 'path';
 // import searchInPage, {InPageSearch} from './electron-search-service';
 // import * as PDFWindow from '../lib/electron-pdf-window';
 import { PDFWindow } from '../lib/electron-pdf-win';
-import { Subscription        } from 'rxjs/Subscription'          ;
+// import { Subscription        } from 'rxjs/Subscription'          ;
 import { Subject             } from 'rxjs/Subject'               ;
 import { Observable          } from 'rxjs/Observable'            ;
 import { Injectable          } from '@angular/core'              ;
-import { EventEmitter        } from '@angular/core'              ;
-import { NgZone              } from '@angular/core'              ;
+// import { EventEmitter        } from '@angular/core'              ;
+// import { NgZone              } from '@angular/core'              ;
 // import { ChangeDetectorRef   } from '@angular/core'              ;
 import { Log, moment, Moment } from 'domain/onsitexdomain'       ;
 import { OSData              } from './data-service'             ;
 import { NotifyService       } from './notify-service'           ;
 import { DispatchService     } from './dispatch-service'         ;
+import isElectron from 'is-electron';
 
 declare const window:any;
+const fsp = fs.promises;
 
 export type Menu = Electron.Menu;
 export type MenuItemConstructorOptions = Electron.MenuItemConstructorOptions;
@@ -56,10 +68,11 @@ export type DialogOptions = {
 @Injectable()
 export class ElectronService {
   public dbDir:string = "";
-  public static searchActive:boolean = false;
-  public get searchActive():boolean { return ElectronService.searchActive; };
-  public set searchActive(val:boolean) { ElectronService.searchActive = val; };
+  // public static searchActive:boolean = false;
+  // public get searchActive():boolean { return ElectronService.searchActive; };
+  // public set searchActive(val:boolean) { ElectronService.searchActive = val; };
   // public searchEvent = new EventEmitter<any>();
+  public searchActive:boolean = false;
   public searchListeners:number = 0;
   public searchSubject:Subject<any>;
   public searchEvent:Observable<any>;
@@ -82,12 +95,14 @@ export class ElectronService {
   public WHATWG    = WHATWG;
   public URL       = WHATWG.URL;
   public pdfWindow = PDFWindow;
-  public fspath;
+  public path = path;
+  public fs = fs;
+  public fsp = fsp;
   public searcher;
   // public childproc = childProc;
 
   constructor(
-    public zone           : NgZone            ,
+    // public zone           : NgZone            ,
     // public changeDetector : ChangeDetectorRef ,
     public data           : OSData            ,
     public notify         : NotifyService     ,
@@ -102,7 +117,7 @@ export class ElectronService {
     this.app = { openPage: (pageName?:string) => {this.notify.addError("ERROR", `Error loading page '${pageName}'.`, 5000);}};
     this.searchSubject = new Subject<any>();
     this.searchEvent = this.searchSubject.asObservable();
-    this.electronDBInit();
+    // this.electronDBInit();
     // this.pdfWindow = PDFWindow;
   }
 
@@ -135,26 +150,34 @@ export class ElectronService {
     // });
   }
 
-  public electronDBInit() {
-    let currentDir:string = path.join(".");
-    let dataDir:string = this.remote.app.getPath('userData');
-    let dbDir:string = path.join(dataDir, "db");
-    let sep:string = path && path.sep ? path.sep : "/";
-    this.dbDir = dbDir + sep;
-    let db:string = this.dbDir;
-    Log.l(`ElectronService.electronDBInit(): Creating '${db}' directory if necessary ...`);
-    try {
-      fs.accessSync(db);
-      Log.l(`ElectronService.electronDBInit(): '${db}' directory existed already. We coo'.`);
-    } catch(err) {
-      try {
-        Log.l(`ElectronService.electronDBInit(): Could not access '${db}' directory, trying to create it ...`);
-        fs.mkdirSync(db);
-      } catch(err2) {
-        Log.l(`ElectronService.electronDBInit(): Error creating '${db}' directory!`);
-        Log.e(err2);
-      }
-    }
+  // public electronDBInit() {
+  //   let currentDir:string = path.join(".");
+  //   let dataDir:string = this.remote.app.getPath('userData');
+  //   let dbDir:string = path.join(dataDir, "db");
+  //   let sep:string = path && path.sep ? path.sep : "/";
+  //   this.dbDir = dbDir + sep;
+  //   let db:string = this.dbDir;
+  //   Log.l(`ElectronService.electronDBInit(): Creating '${db}' directory if necessary ...`);
+  //   try {
+  //     fs.accessSync(db);
+  //     Log.l(`ElectronService.electronDBInit(): '${db}' directory existed already. We coo'.`);
+  //   } catch(err) {
+  //     try {
+  //       Log.l(`ElectronService.electronDBInit(): Could not access '${db}' directory, trying to create it ...`);
+  //       fs.mkdirSync(db);
+  //     } catch(err2) {
+  //       Log.l(`ElectronService.electronDBInit(): Error creating '${db}' directory!`);
+  //       Log.e(err2);
+  //     }
+  //   }
+  // }
+
+  public isElectron():boolean {
+    return isElectron();
+  }
+
+  public isElectronRenderer():boolean {
+    return typeof isRenderer === 'boolean' ? isRenderer : false;
   }
 
   public getDataDir():string {
@@ -167,8 +190,15 @@ export class ElectronService {
     return datadir + sep;
   }
 
-  public getDBDirAsPrefix():string {
-    let dbdir:string = this.dbDir;
+  public getDBDir(directoryName?:string):string {
+    // let dbdir:string = this.dbDir;
+    let dbdirname:string = typeof directoryName === 'string' ? directoryName : "db";
+    let dbdir:string = this.getFullDataPathForFile(dbdirname);
+    return dbdir;
+  }
+  
+  public getDBDirAsPrefix(directoryName?:string):string {
+    let dbdir:string = this.getDBDir(directoryName);
     let sep:string = path && path.sep ? path.sep : "/";
     let out:string = dbdir + sep;
     return out;
@@ -181,16 +211,83 @@ export class ElectronService {
   }
 
   public getFullDBPathForFile(filename:string):string {
-    let datadir:string = this.getDataDir();
-    let dbdir:string = path.join(datadir, "db");
+    let dbdir:string = this.getDBDir();
     let fullfile:string = path.normalize(path.join(dbdir, filename));
     return fullfile;
   }
 
+  public async isDirectory(directoryName:string):Promise<boolean> {
+    try {
+      // Log.l(`isDirectory(): Called with arguments:\n`, arguments);
+      let possibleDir:string = path.normalize(directoryName);
+      try {
+        let stat = await fsp.lstat(possibleDir);
+        let isDirectory:boolean = stat.isDirectory();
+        return isDirectory;
+      } catch (error) {
+        Log.l(`isDirectory(): Error checking '${directoryName}', returning false.`);
+        return false;
+      }
+    } catch(err) {
+      Log.l(`isDirectory(): Error checking for directory '${directoryName}'`);
+      Log.e(err);
+      return false;
+      // throw err;
+    }
+  }
+  
+  public async fileOrDirectoryExists(fullpath:string):Promise<boolean> {
+    try {
+      // Log.l(`isDirectory(): Called with arguments:\n`, arguments);
+      try {
+        // let stat;
+        let possibleFile:string = path.normalize(fullpath);
+        let stat = await fsp.lstat(possibleFile);
+        let exists:boolean = stat.isFile() || stat.isDirectory();
+        return exists;
+      } catch (error) {
+        Log.l(`fileOrDirectoryExists(): Error checking '${fullpath}', returning false.`);
+        return false;
+      }
+    } catch(err) {
+      Log.l(`fileOrDirectoryExists(): Error checking for directory '${fullpath}'`);
+      Log.e(err);
+      return false;
+      // throw err;
+    }
+  }
+  
+  public async makeDirectory(fullpath:string):Promise<boolean> {
+    try {
+      // Log.l(`isDirectory(): Called with arguments:\n`, arguments);
+      let possibleDir:string = fullpath;
+      try {
+        possibleDir = path.normalize(fullpath);
+        let stat = await fsp.lstat(possibleDir);
+        let isDirectory:boolean = stat.isDirectory();
+        return isDirectory;
+      } catch (error) {
+        Log.l(`makeDirectory(): '${fullpath}' does not exist. Creating …`);
+        try {
+          let res = await fsp.mkdir(possibleDir);
+          return true;
+        } catch (error2) {
+          // Log.l(`makeDirectory(): Error trying to create '${fullpath}'`);
+          // Log.e(error2);
+          throw error2;
+        }
+      }
+    } catch(err) {
+      Log.l(`makeDirectory(): Error forcing creation of directory '${fullpath}'`);
+      Log.e(err);
+      throw err;
+    }
+  }
+  
   public setApp(component:any) {
     Log.l("setApp(): Now setting app to:\n", component);
     this.app = component;
-    this.fspath = path;
+    // this.path = path;
   }
 
   public zoomIn() {
@@ -530,9 +627,9 @@ export class ElectronService {
   }
 
   public showAppOptions(value:string) {
-    this.zone.run(() => {
+    // this.zone.run(() => {
       this.dispatch.showGlobalOptions(value);
-    });
+    // });
   }
 
   public registerWindowStateKeeper() {
