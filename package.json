@@ -141,7 +141,7 @@
       ]
     },
     "dmg": {
-      "background": "resources/background.tiff",
+      "background": "resources/backgroundlight.tiff",
       "icon": "resources/icon.icns"
     },
     "win": {
