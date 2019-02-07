@@ -15,7 +15,8 @@ module.exports = {
     dest: '{{WWW}}/assets/config'
   },
   copyIndexContent: {
-    src: ['{{SRC}}/index.html', '{{SRC}}/manifest.json', '{{SRC}}/service-worker.js', '{{SRC}}/favicon.ico'],
+    // src: ['{{SRC}}/index.html', '{{SRC}}/manifest.json', '{{SRC}}/service-worker.js', '{{SRC}}/favicon.ico'],
+    src: ['{{SRC}}/index.html', '{{SRC}}/manifest.json', '{{SRC}}/service-worker.js', '{{SRC}}/favicon.ico', '{{SRC}}/test.html'],
     dest: '{{WWW}}'
   },
   copyFonts: {

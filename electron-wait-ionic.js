@@ -28,6 +28,21 @@ const startIonicServe = function() {
   console.log(`IonitronDev: Starting Ionic Serve ...`.bgGreen.white.bold);
   // ionicServeProcess = childproc.spawn('cmd.exe', ['/k', 'npm', 'run', 'start'], {stdio: 'inherit'});
   ionicServeProcess = childproc.spawn('node', [ionicServePath, 'serve', '-p', '8110', '-r', '35739', '--dev-logger-port', '53713', '--nobrowser'], {stdio: 'inherit'});
+  // ionicServeProcess = childproc.fork('node', [ionicServePath, 'serve', '-p', '8110', '-r', '35739', '--dev-logger-port', '53713', '--nobrowser'], {stdio: 'inherit'});
+  ionicServeProcess.on('close', () => {
+    console.log(`IonitronDev: Ionic Serve process got 'close' event, killing Electron if runing …`);
+    // if(electronProcess && typeof electronProcess.kill != undefined) {
+    if(electronProcess && typeof electronProcess.send != undefined) {
+      electronProcess.send("SIGINT");
+      // electronProcess.kill("SIGINT");
+    }
+    if(timeoutHandle != null) {
+      console.log(`IonitronDev: Ionic Serve 'close', clearing listener …`);
+      clearTimeout(timeoutHandle);
+    }
+    console.log(`IonitronDev: Ionic Serve 'close', done`);
+    process.exit();
+  });
   // ionicServeProcess = childproc.exec('npm run start', (error, stdout, stderr) => {
   // ionicServeProcess = childproc.exec('ironic', (error, stdout, stderr) => {
   // ionicServeProcess = childproc.exec('ironic', (error, stdout, stderr) => {
@@ -44,7 +59,20 @@ process.stdout.write(stdout);
 
 startIonicServe();
 process.on('SIGINT', () => {
-
+  console.log(`IonitronDev: Received SIGINT`);
+  // if(electronProcess && typeof electronProcess.on != undefined) {
+  // if(electronProcess && typeof electronProcess.kill != undefined) {
+  if(electronProcess && typeof electronProcess.send != undefined) {
+    console.log(`IonitronDev: Killing Electron process …`);
+    electronProcess.send("SIGINT");
+    // electronProcess.kill("SIGINT");
+  }
+  if(timeoutHandle != null) {
+    console.log(`IonitronDev: Clearing listener …`);
+    clearTimeout(timeoutHandle);
+  }
+  console.log(`IonitronDev: done`);
+  process.exit();
 });
 
 const client = new net.Socket();
@@ -59,8 +87,10 @@ const ionicConnected = function() {
     client.end();
     console.log(`IonitronDev: Starting Electron in '${homedir}' ...`.bgGreen.white.bold);
     // electronProcess = childproc.exec('electron . test');
-    electronProcess = childproc.spawn('node', [electronCLIPath, '.', 'test']);
-    electronProcess.on('exit', (code, signal) => {
+    // electronProcess = childproc.spawn('node', [electronCLIPath, '.', 'test']);
+    electronProcess = childproc.fork(electronCLIPath, ['.', 'test']);
+    // electronProcess.on('exit', (code, signal) => {
+    electronProcess.on('close', (code, signal) => {
       let datetime = moment().format();
       console.log(`IonitronDev: ELECTRON TERMINATED at ${datetime}`.bgBlue.white);
       if(ionicServeProcess) {
