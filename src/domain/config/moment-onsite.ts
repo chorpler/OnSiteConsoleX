@@ -13,14 +13,14 @@
 // import * as momentRecur       from 'moment-recur'       ;
 // import * as moRound       from 'moment-round'       ;
 // import * as moment            from 'moment-timezone'    ;
-declare const require                                    ;
+// declare const require                                    ;
 // import   * as momo              from 'moment'             ;
 import   * as moment              from 'moment'             ;
 // import Moment from 'moment';
 // import   * as momentTimezone      from 'moment-timezone'    ;
 import { Moment, Duration } from 'moment';
-import   * as momentShortFormat   from 'moment-shortformat' ;
-import   * as momentTimer         from 'moment-timer'       ;
+import   * as moShortFormat   from 'moment-shortformat' ;
+import   * as moTimer         from 'moment-timer'       ;
 import   * as momentRange         from 'moment-range'       ;
 import { PreciseRange, preciseDiff, staticPreciseDiff } from './moment-precise-range';
 import { extendMoment } from 'moment-range';
@@ -32,7 +32,7 @@ import { extendMoment } from 'moment-range';
 import { Log                    } from './config.log'       ;
 
 // const twix = require('twix');
-const momentDurationFormatSetup = require('moment-duration-format');
+// const momentDurationFormatSetup = require('moment-duration-format');
 // import {Twix,TwixStatic,} from 'twix';
 
 // const moment:momentRange.MomentRange & moment.Moment = extendMoment(Moment)
@@ -489,5 +489,7 @@ export type DateRange = momentRange.DateRange;
 // export {moment, momentTimezone};
 // export {moment, momentTimezone};
 export { moment };
+export const momentShortFormat = moShortFormat;         
+export const momentTimer       = moTimer;   
 // momentDurationFormat
 const momo = extendMoment(moment);

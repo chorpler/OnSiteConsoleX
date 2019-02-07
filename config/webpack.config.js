@@ -10,17 +10,22 @@
 var path = require('path');
 var webpack = require('webpack');
 var ionicWebpackFactory = require(process.env.IONIC_WEBPACK_FACTORY);
+var DefinePlugin = webpack.DefinePlugin;
+var ProvidePlugin = webpack.ProvidePlugin;
 var ModuleConcatPlugin = require('webpack/lib/optimize/ModuleConcatenationPlugin');
+var CommonsChunkPlugin = require('webpack/lib/optimize/CommonsChunkPlugin');
+var AggressiveSplittingPlugin = require('webpack/lib/optimize/AggressiveSplittingPlugin');
 // var PurifyPlugin = require('@angular-devkit/build-optimizer').PurifyPlugin;
 // var webpack = require('webpack');
 var CircularDependencyPlugin = require('circular-dependency-plugin');
+var IonicCommonChunksPlugin = ionicWebpackFactory.getCommonChunksPlugin();
 var MomentLocalesPlugin = require('moment-locales-webpack-plugin');
 var webpackConfig = require('@ionic/app-scripts/config/webpack.config');
 var tsconfig = require('../tsconfig.json');
 // var ionicWebpackFactory = require(process.env.IONIC_WEBPACK_FACTORY);
 // var ModuleConcatPlugin = require('webpack/lib/optimize/ModuleConcatenationPlugin');
 
-var NgxStoreConfigPlugin = new webpack.DefinePlugin({
+var NgxStoreConfigPlugin = new DefinePlugin({
   NGXSTORE_CONFIG: JSON.stringify({
     prefix: 'ngx_',      // default: 'ngx_'
     clearType: 'prefix', // default: 'prefix'
@@ -32,14 +37,102 @@ var NgxStoreConfigPlugin = new webpack.DefinePlugin({
   }),  
 });
 
-var providePlugin = new webpack.ProvidePlugin({
+var providePlugin = new ProvidePlugin({
   // $: "jquery",
   // jQuery: "jquery",
   // moment: "moment",
   // fullCalendar: "fullcalendar",
 });
 
+var AgSplitPlugin = new AggressiveSplittingPlugin({
+  minSize: 0,
+  maxSize: 5000000,
+});
+
+var ComChunkPlugin1 =  new CommonsChunkPlugin({
+  name: ['vendor'],
+  filename: '[name].js',
+  minChunks: (module, count) => {
+    // let kys = Object.keys(module);
+    // let keys = JSON.stringify(kys);
+    // console.log(`CCPLUGIN1: Module is: `, keys);
+    // let id = module && module.context ? module.context : "UNKNOWN_MODULE";
+    // console.log(`CCPLUGIN1: Module is: `, id);
+    let out = false;
+    if(module) {
+      out = true;
+      let vals = {};
+      let ctx = "", res = "", req = "", allStrings = "NONE";
+      let keys = Object.keys(module);
+      for(let key of keys) {
+        let val = module[key];
+        let valtype = typeof val;
+        // if(valtype != 'undefined' && valtype !== 'object' && valtype !== 'function') {
+        if(valtype === 'string') {
+          vals[key] = val;
+        }
+      }
+      allStrings = JSON.stringify(vals);
+      if(typeof module.context === 'string') {
+        ctx = module.context;
+      }
+      if(typeof module.request === 'string') {
+        req = module.request;
+      }
+      if(typeof module.resource === 'string') {
+        res = module.resource;
+      }
+      if(!(ctx && req)) {
+        console.log(`CCPLUGIN1: WEIRD: '${allStrings}'\n`);
+        out = true;
+      } else {
+        out = ctx.includes('node_modules') && !req.includes('pouchdb');
+      }
+    }
+    return out;
+  },
+});
+var ComChunkPlugin2 =  new CommonsChunkPlugin({
+  name: 'pouchdb',
+  chunks: ['vendor'],
+  minChunks: (module, count) => {
+    let out = false;
+    if(module) {
+      out = true;
+      let vals = {};
+      let ctx = "", res = "", req = "", allStrings = "NONE";
+      let keys = Object.keys(module);
+      for(let key of keys) {
+        let val = module[key];
+        let valtype = typeof val;
+        // if(valtype != 'undefined' && valtype !== 'object' && valtype !== 'function') {
+        if(valtype === 'string') {
+          vals[key] = val;
+        }
+      }
+      allStrings = JSON.stringify(vals);
+      if(typeof module.context === 'string') {
+        ctx = module.context;
+      }
+      if(typeof module.request === 'string') {
+        req = module.request;
+      }
+      if(typeof module.resource === 'string') {
+        res = module.resource;
+      }
+      if(!res) {
+        console.log(` ==CCPLUGIN2: WEIRD: '${allStrings}'\n`);
+        out = false;
+      } else {
+        out = (/node_modules(\\|\/)pouchdb/).test(res);
+      }
+    }
+    return out;
+  },
+});
+
 console.log(`IONIC WEBPACK LOADER: "${process.env.IONIC_WEBPACK_LOADER}"`);
+console.log(`IONIC COMMON CHUNKS PLUGIN:`, IonicCommonChunksPlugin);
 
 function srcPath(subdir) {
   return path.join(__dirname, "../src", subdir);
@@ -221,9 +314,15 @@ var devConfig = {
       localesToKeep: ['es-us', 'es'],
     }),
     ionicWebpackFactory.getIonicEnvironmentPlugin(),
-    ionicWebpackFactory.getCommonChunksPlugin(),
+    // ionicWebpackFactory.getCommonChunksPlugin(),
+    IonicCommonChunksPlugin,
+    // ComChunkPlugin1,
+    // ComChunkPlugin2,
+    new ModuleConcatPlugin(),
     providePlugin,
     CircDepPlugin,
+    // AgSplitPlugin,
+    // new PurifyPlugin(),
   ],
 
   // Some libraries import Node modules but don't use them in the browser.
@@ -273,11 +372,15 @@ var prodConfig = {
       localesToKeep: ['es-us', 'es'],
     }),
     ionicWebpackFactory.getIonicEnvironmentPlugin(),
-    ionicWebpackFactory.getCommonChunksPlugin(),
+    // ionicWebpackFactory.getCommonChunksPlugin(),
+    IonicCommonChunksPlugin,
+    // ComChunkPlugin1,
+    // ComChunkPlugin2,
     new ModuleConcatPlugin(),
-    // new PurifyPlugin(),
     providePlugin,
     CircDepPlugin,
+    // AgSplitPlugin,
+    // new PurifyPlugin(),
   ],
 
   // Some libraries import Node modules but don't use them in the browser.

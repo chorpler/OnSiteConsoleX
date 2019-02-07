@@ -1,4 +1,6 @@
 'use strict';
+const HARDCLOSE = true;
+const sprintf = require('sprintf-js').sprintf;
 const WHATWG    = require('whatwg-url');
 const URL       = WHATWG.URL;
 // const electron  = require('electron');
@@ -52,6 +54,7 @@ console.log(`Electron startup: file base path is: '${__dirname}'`);
 const icon_file_name     = 'onsitexconsole.ico';
 const splash_screen_name = 'splash-screen.html';
 const index_file_name    = 'index.html';
+const test_file_name     = 'test.html';
 const update_file_name   = 'version.html';
 
 function getWWWPath(file_name) {
@@ -125,7 +128,7 @@ const app_icon = nativeImage.createFromPath(icon_path);
 
 
 // let con, win, winUpdate, startupWin, pdfWin, mainWindowState;
-let win, winUpdate, pdfWin, mainWindowState, splashWindow;
+let win, winUpdate, pdfWin, mainWindowState, splashWindow, randomWindows = [];
 
 // function createPDFWindow(pdfFile, loadDevTools) {
 //   if(!win) {
@@ -243,17 +246,17 @@ function createWindow() {
   win.setTitle(windowTitle);
   win.once('ready-to-show', () => {
     // win.once('did-finish-load', () => {
-    log.info(`Main window 'ready-to-show' event fired`);
+    log.info(`MAIN WINDOW: 'ready-to-show' event fired`);
     win.setTitle(windowTitle);
     closeSplashWindow();
     // win.maximize();
     win.show();
     // Open the DevTools.
     if(loadDevTools) {
-      log.info("Developer tools loading.");
+      log.info("MAIN WINDOW: Developer tools loading.");
       win.webContents.openDevTools();
     } else {
-      log.info("Developer tools not being loaded.");
+      log.info("MAIN WINDOW: Developer tools not being loaded.");
       if(win.webContents.isDevToolsOpened()) {
         win.webContents.closeDevTools();
       }
@@ -308,14 +311,18 @@ function createWindow() {
   win.loadURL(url);
   // windowPlus.loadURL(win, url);
 
-  log.info("Done with createWindow()!");
+  log.info("createWindow(): Finished");
 
   // Emitted when the window is closed.
-  win.on('closed', () => {
+  win.on('close', () => {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
+    log.info(`MAIN WINDOW: 'close' event received.`);
     win = null;
+    closeAllRandomWindows();
+    closeUpdateWindow();
+    closeSplashWindow();
   });
 }
 
@@ -344,13 +351,6 @@ function createSplashWindow(loadDevTools, dimensions) {
   splashWindow.loadURL(url);
   if(loadDevTools) {
     splashWindow.webContents.openDevTools();
-  }
-}
-
-function closeSplashWindow() {
-  if(splashWindow) {
-    splashWindow.close();
-    splashWindow = null;
   }
 }
 
@@ -419,13 +419,194 @@ function createUpdateStatusWindow(updateVersion, showDevTools) {
   return winUpdate;
 }
 
+function closeWindow() {
+  if(win) {
+    log.info(`closeWindow(): Closing the main window.`);
+    let closeWin = win;
+    if(HARDCLOSE) {
+      closeWin.destroy();
+    } else {
+      closeWin.close();
+    }
+    // win.destroy();
+    win = null;
+  } else {
+    log.info(`closeWindow(): Main window already closed.`);
+  }
+}
+
+function closeSplashWindow() {
+  if(splashWindow) {
+    log.info(`closeSplashWindow(): Closing splash window`);
+    let closeWin = splashWindow;
+    if(HARDCLOSE) {
+      closeWin.destroy();
+    } else {
+      closeWin.close();
+    }
+    // splashWindow.destroy();
+    splashWindow = null;
+  } else {
+    log.info(`closeSplashWindow(): Splash window already closed`);
+  }
+}
+
 function closeUpdateWindow() {
   if(winUpdate) {
     log.info(`closeUpdateWindow(): Closing the update window.`);
-    winUpdate.close();
+    let closeWin = winUpdate;
+    if(HARDCLOSE) {
+      closeWin.destroy();
+    } else {
+      closeWin.close();
+    }
+    // winUpdate.close();
+    // winUpdate.destroy();
     winUpdate = null;
   } else {
     log.info(`closeUpdateWindow(): Update window did not exist.`);
+  }
+}
+
+function createRandomWindow() {
+  // log.info(`createRandomWindow(): `);
+  let opts = {
+    width  : 400  ,
+    height : 400  ,
+    frame  : true ,
+    show   : true,
+  };
+  if(win) {
+    opts.parent = win;
+  }
+  
+  let test_location = getWWWPath(test_file_name);
+  let url = getFilePathAsURL(test_location);
+  let count = randomWindows.length;
+  let title = sprintf("randomwindow%03d", count + 1);
+  if(count > 0) {
+    let lastWin = randomWindows[count - 1];
+    let pos = lastWin.getPosition();
+    let x = pos[0];
+    let y = pos[1];
+    opts.x = x + 30;
+    opts.y = y + 30;
+  }
+  let randomWin = new BrowserWindow(opts);
+  randomWin.setTitle(title);
+  randomWindows.push(randomWin);
+  let newCount = randomWindows.length;
+  let id = randomWin.id;
+  log.info(`createRandomWindow(): Created random window with title '${title}', ID is '${id}', there are now ${newCount} random windows`);
+  randomWin.on('page-title-updated', (evt) => {
+    evt.preventDefault();
+  });
+  randomWin.on('close', (event) => {
+    event.preventDefault();
+    let thiswin = event && event.sender && event.sender instanceof BrowserWindow ? event.sender : randomWin;
+    // let wintitle = randomWin.getTitle();
+
+    let id = thiswin.id;
+    // log.info(`RandomWindow: got 'close' event for window '${id}': `, event);
+    log.info(`RandomWindow: got 'close' event for window '${id}' …`);
+    // closeRandomWindow(wintitle);
+    closeRandomWindow(randomWin);
+    // let idx = randomWindows.findIndex(a => {
+    //   // return a === this;
+    //   // return a.getTitle() === wintitle;
+    //   return a === randomWin;
+    // });
+    // if(idx > -1) {
+    //   randomWindows.splice(idx, 1);
+    //   let count = randomWindows.length;
+    //   log.info(`RandomWindow: '${wintitle}' closed and removed from array, ${count} random windows left.`);
+    // } else {
+    //   log.info(`RandomWindow: '${wintitle}' could not be found to close`);
+    // }
+  });
+  randomWin.loadURL(url);
+  return randomWin;
+}
+
+function hardClose(browserwindow) {
+  if(browserwindow instanceof BrowserWindow && !browserwindow.isDestroyed()) {
+    let id = browserwindow.id;
+    log.info(`hardClose(): closing window '${id}' …`);
+    if(HARDCLOSE) {
+      browserwindow.destroy();
+    } else {
+      browserwindow.close();
+    }
+  } else {
+    log.info(`hardClose(): parameter was not an undestroyed BrowserWindow`);
+  }
+}
+
+function closeRandomWindow(randomWin) {
+  // log.info(`closeRandomWindow(): `);
+  // let randomWin, title, winID;
+  // let count = randomWindows.length;
+  if(randomWin instanceof BrowserWindow) {
+    let count = randomWindows.length;
+    let id = randomWin.id;
+    log.info(`closeRandomWindow(): Called for window ID '${id}' …`);
+    let idx = randomWindows.findIndex(a => {
+      return a === randomWin || a.id === id || a.title === id;
+    });
+    let winref = randomWindows.splice(idx, 1)[0];
+    hardClose(randomWin);
+    if(randomWin !== winref) {
+      hardClose(winref);
+    }
+    let newCount = randomWindows.length;
+    log.info(`closeRandomWindow(): closed random window ID '${id}', there are ${newCount} random windows left`);
+  } else {
+    log.info(`closeRandomWindow(): parameter was not a BrowserWindow`);
+  }
+}
+
+function closeRandomWindowWithID(id) {
+  let winID = Number(id);
+  log.info(`closeRandomWindowWithID(${winID}): called …`);
+  if(!isNaN(winID)) {
+    let randomWin = randomWindows.find(a => {
+      return a.id === winID;
+    });
+    if(randomWin) {
+      closeRandomWindow(randomWin);
+      return true;
+    }
+  }
+  log.info(`closeRandomWindowWithID(): failed to close random window '${id}'`);
+  return false;
+}
+
+function closeRandomWindowLast() {
+  let count = randomWindows.length;
+  // log.info(`closeRandomWindowLast(): `);
+  if(count > 0) {
+    let randomWindow = randomWindows.pop();
+    closeRandomWindow(randomWindow);
+  } else {
+    log.info(`closeRandomWindowLast(): No random windows exist`);
+  }
+}
+
+function closeAllRandomWindows() {
+  // let randomWin;
+  if(randomWindows && randomWindows.length) {
+    let count = randomWindows.length;
+    log.info(`closeAllRandomWindows(): closing ${count} random windows …`);
+    for(let i = count - 1; i >= 0; i--) {
+      let randomWin = randomWindows.pop();
+      // let id = randomWin.getTitle();
+      closeRandomWindow(randomWin);
+      // log.info(`closeAllRandomWindows(): closing random window '${id}' …`);
+      // randomWin.close();
+    }
+    log.info(`closeAllRandomWindows(): done closing all random windows`);
+  } else {
+    log.info(`closeAllRandomWindows(): No random windows to close`);
   }
 }
 
@@ -478,9 +659,12 @@ app.on('ready', () => {
 app.on('window-all-closed', () => {
   // On OS X it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  log.info(`MAIN APP: Got 'window-all-closed' event. Quitting.`);
+  // app.quit();
+  quitApp();
+  // if(process.platform !== 'darwin') {
+  //   app.quit();
+  // }
 });
 app.on('activate', () => {
   // On OS X it's common to re-create a window in the app when the
@@ -750,7 +934,8 @@ ipcMain.on('show-about', (event, options) => {
 
 ipcMain.on('exit-app', (event, options) => {
   log.info(`IPC: got exit-app event, options:\n`, options);
-  app.quit();
+  // app.quit();
+  quitApp();
 });
 
 ipcMain.on('window-console', (event, windowConsole) => {
@@ -807,6 +992,68 @@ ipcMain.on('progress-message', (event, progressObject) => {
   if(winUpdate && winUpdate.webContents) {
     winUpdate.webContents.send('progress-message', progressObject);
   }
+});
+
+ipcMain.on('random-window-create', (event, data) => {
+  log.info(`IPC: got random-window-create event`);
+  createRandomWindow();
+});
+
+ipcMain.on('random-window-close', (event, data) => {
+  let title = data && data.title ? data.title : data && data.id ? data.id : "";
+  if(title !== "") {
+    log.info(`IPC: got random-window-close event, trying to kill random window '${title}'`);
+    closeRandomWindowWithID(title);
+  } else {
+    log.info(`IPC: got random-window-close event, no ID provided`);
+    closeRandomWindowLast();
+  }
+});
+
+ipcMain.on('random-window-close-all', (event, data) => {
+  log.info(`IPC: got random-window-close-all event`);
+  closeAllRandomWindows();
+});
+
+function quitApp() {
+  log.info(`quitApp(): Quitting app …`);
+  closeWindow();
+  closeSplashWindow();
+  closeUpdateWindow();
+  closeAllRandomWindows();
+  app.exit(0);
+  // process.exit(0);
+}
+
+app.on('will-quit', () => {
+  log.info(`MAIN PROCESS: Got 'will-quit', shutting down ...`);
+  quitApp();
+  // app.quit();
+});
+
+app.on('dev-exit-app', () => {
+  log.info(`APP: Got 'dev-exit-app', shutting down ...`);
+  quitApp();
+});
+
+process.on('dev-exit-app', () => {
+  log.info(`MAIN PROCESS: Got 'dev-exit-app', shutting down ...`);
+  quitApp();
+});
+
+app.on('SIGINT', () => {
+  log.info(`APP: Got SIGINT, shutting down ...`);
+  quitApp();
+});
+
+process.on('SIGINT', () => {
+  log.info(`MAIN PROCESS: Got SIGINT, shutting down ...`);
+  quitApp();
+});
+
+process.on('exit', () => {
+  log.info(`MAIN PROCESS: Got exit event, shutting down ...`);
+  quitApp();
 });
 
 process.on('uncaughtException', (error) => {
