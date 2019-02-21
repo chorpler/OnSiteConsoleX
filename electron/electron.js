@@ -15,6 +15,7 @@ const process = require('process');
 const logger = require('electron-log');
 const nativeImage = require('electron').nativeImage;
 // const cp = require('child_process');
+// @ts-ignore
 const packageJson = require('../package.json');
 var packageVersion = packageJson.version;
 var windowTitle = `OnSiteConsoleX ${packageVersion}`;
@@ -838,11 +839,14 @@ function showDialog(dialogOpts) {
       opts[key] = dialogOpts[key];
     }
   }
-  if(!opts['type']) {
+  if(!opts.type) {
     opts.type = 'info';
   }
-  if(!opts['buttons']) {
+  if(!opts.buttons) {
     opts.buttons = ['OK'];
+  }
+  if(!opts.message) {
+    opts.message = "default message";
   }
   log.info(`showDialog(): Showing '${opts.type}' dialog box, title '${opts.title}'...`);
   dialog.showMessageBox(win, opts, (response) => {
@@ -859,21 +863,27 @@ function showDialogPromise(dialogOpts) {
       opts[key] = dialogOpts[key];
     }
   }
-  if(!opts['type']) {
+  if(!opts.type) {
     opts.type = 'info';
   }
-  if(!opts['buttons']) {
+  if(!opts.buttons) {
     opts.buttons = ['OK'];
+  }
+  if(!opts.message) {
+    opts.message = "default message";
   }
   log.info(`showDialog(): Showing '${opts.type}' dialog box from app, title '${opts.title}'...`);
   return new Promise((resolve) => {
-    dialog.showMessageBox(win, opts, (response) => {
-      log.info(`showDialog(): user responded '${response}', sending response to app...`);
-      resolve(response);
-    }).catch(err => {
-      logger.error(`showDialog(): Error showing dialog message box!`);
-      logger.error(err);
-    });
+    try {
+      dialog.showMessageBox(win, opts, (response) => {
+        log.info(`showDialog(): user responded '${response}', sending response to app...`);
+        resolve(response);
+      });
+    } catch(err) {
+      log.error(`showDialog(): Error showing dialog message box!`);
+      log.error(err);
+      resolve(null);
+    }
   });
 }
 
@@ -1031,16 +1041,19 @@ app.on('will-quit', () => {
   // app.quit();
 });
 
+// @ts-ignore
 app.on('dev-exit-app', () => {
   log.info(`APP: Got 'dev-exit-app', shutting down ...`);
   quitApp();
 });
 
+// @ts-ignore
 process.on('dev-exit-app', () => {
   log.info(`MAIN PROCESS: Got 'dev-exit-app', shutting down ...`);
   quitApp();
 });
 
+// @ts-ignore
 app.on('SIGINT', () => {
   log.info(`APP: Got SIGINT, shutting down ...`);
   quitApp();

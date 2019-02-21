@@ -267,12 +267,12 @@ export class Preferences {
 
   public getRemotePort():number {
     let port:number = Preferences && Preferences.SERVER && Preferences.SERVER.port != undefined ? Preferences.SERVER.port : 443;
-    return port;
+    return Number(port);
   }
 
   public getHowlerPort():number {
     let port:number = Preferences && Preferences.SERVER && Preferences.SERVER.howlerPort != undefined ? Preferences.SERVER.howlerPort : 3000;
-    return port;
+    return Number(port);
   }
 
 

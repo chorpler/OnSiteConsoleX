@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "baseUrl": "src",
+    "baseUrl": "./src/",
     "paths": {
       "app/*"        : [ "app/*"        ] ,
       "assets/*"     : [ "assets/*"     ] ,
@@ -21,8 +21,9 @@
     "lib": [
       "dom"
       ,"es2015"
+      ,"es2017"
     ],
-    "module": "es2015",
+    "module": "commonjs",
     "moduleResolution": "node",
     "sourceMap": true,
     "target": "es2015",
@@ -40,7 +41,8 @@
     "Docs",
     "**/*.spec.ts",
     "lib",
-    "dist"
+    "dist",
+    "www"
   ],
   "compileOnSave": false,
   "angularCompilerOptions": {

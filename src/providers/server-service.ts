@@ -676,7 +676,7 @@ export class ServerService {
         'iterations',
         'roles',
       ];
-      if(doc['roles'] !== undefined) {
+      if(doc['roles'] != undefined) {
         if(Array.isArray(doc.roles)) {
           let roles:any[] = doc.roles.slice(0);
           opts.roles = roles;

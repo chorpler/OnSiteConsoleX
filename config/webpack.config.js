@@ -157,12 +157,15 @@ let CircDepPlugin = new CircularDependencyPlugin({
 
 // var IGNORES = ["fs", "child_process", "electron", "path", "assert", "cluster", "crypto", "dns", "domain", "events", "http", "https", "net", "os", "process", "punycode", "querystring", "readline", "repl", "stream", "string_decoder", "tls", "tty", "dgram", "url", "util", "v8", "vm", "zlib"];
 var IGNORES = ["fs", "child_process", "electron", "path", "assert", "cluster", "crypto", "dns", "domain", "events", "http", "https", "net", "os", "process", "punycode", "querystring", "readline", "repl", "stream", "string_decoder", "tls", "tty", "dgram", "url", "util", "v8", "vm", "zlib"];
+// var IGNORES = ["fs", "child_process", "electron", "path", "assert", "cluster", "dns", "domain", "events", "http", "https", "net", "os", "process", "punycode", "querystring", "readline", "repl", "stream", "string_decoder", "tls", "tty", "dgram", "url", "util", "v8", "vm", "zlib"];
 var DATABASES = [
   // "pouchdb",
   // "leveldown",
   // "pouchdb-adapter-websql",
+  // "crypto",
   "pouchdb-adapter-leveldb",
   "pouchdb-adapter-node-websql",
+  "sqlite3",
   "websql"
 ];
 // var workerLoaderConfig = {
@@ -252,15 +255,22 @@ var devConfig = {
   },
   externals: [
     (function () {
-      // var DATABASES = ["pouchdb", "leveldown"];
       return function (context, request, callback) {
         if(IGNORES.indexOf(request) >= 0) {
-          return callback(null, "require('" + request + "')");
+          // if(request === 'crypto') {
+          //   return callback(null, "require('crypto-browserify')");
+          // } else {
+            return callback(null, "require('" + request + "')");
+          // }
         }
         if(DATABASES.indexOf(request) > -1) {
           console.log("externals: found request: ", request);
           // return callback(null, "'" + request + "'");
-          return callback(null, "require('" + request + "')");
+          // if(request === 'crypto') {
+          //   return callback(null, "require('crypto-browserify')");
+          // } else {
+            return callback(null, "require('" + request + "')");
+          // }
           // return callback(null, request);
         }
         return callback();
@@ -346,13 +356,19 @@ var prodConfig = {
     (function () {
       return function (context, request, callback) {
         if(IGNORES.indexOf(request) >= 0) {
-          return callback(null, "require('" + request + "')");
+          if(request === 'crypto') {
+            return callback(null, "require('crypto-browserify')");
+          } else {
+            return callback(null, "require('" + request + "')");
+          }
         }
         if(DATABASES.indexOf(request) > -1) {
           console.log("externals: found request: ", request);
-          // return callback(null, "'" + request + "'");
-          return callback(null, "require('" + request + "')");
-          // return callback(null, request);
+          if(request === 'crypto') {
+            return callback(null, "require('crypto-browserify')");
+          } else {
+            return callback(null, "require('" + request + "')");
+          }
         }
         return callback();
       };

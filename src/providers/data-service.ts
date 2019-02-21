@@ -286,6 +286,7 @@ export class OSData {
         let thisClass:OnSiteDomainClass =  this.domain.getClassForStoreKey(storeKey);
         if(thisClass) {
           let changes:PDBChangeEvent[] = this.dataqueue[storeKey];
+          Log.l(`processQueuedChangesForKey(): Queued changes for '${storeKey}':`, changes);
           if(changes && changes.length) {
             for(let change of changes) {
               this.processChangeEvent(storeKey, change);
@@ -306,19 +307,33 @@ export class OSData {
   }
 
   public processChangeEvent(storeKey:string, change:PDBChangeEvent) {
+    let keyname:string = storeKey && typeof storeKey === 'string' ? storeKey : "";
+    if(!keyname) {
+      Log.w(`processChangeEvent(): No storeKey provided, ignoring.`);
+      return;
+    }
     let store = this.dbdata[storeKey];
+    if(store == undefined) {
+      store = [];
+      this.dbdata[storeKey] = store;
+    }
     let storeClass:OnSiteDomainClass = this.domain.getClassForStoreKey(storeKey);
     if(storeKey === 'schedules') {
-      store = this.dbdata.schedules.schedules;
-    }
+      if(this.dbdata && this.dbdata.schedules && this.dbdata.schedules instanceof Schedules) {
+        store = this.dbdata.schedules.schedules;
+      } else {
+        this.dbdata.schedules = new Schedules();
+        store = this.dbdata.schedules.schedules;
+      }
+     }
     // if(storeKey !== 'schedules') {
     if(storeKey && storeClass) {
       // store = this.dbdata.reports;
       // storeClass = Report;
       // let store = this.dbdata.reports;
-      let docs:any[] = change.docs;
+      let docs:any[] = change && change.docs ? change.docs : [];
       let count:number = docs.length;
-      Log.t(`processChangeEvent(): Processing ${count} changes for '${storeKey}' ...`);
+      Log.l(`processChangeEvent(): Processing ${count} changes for '${keyname}':`, docs);
       for(let doc of docs) {
         let id:string = doc._id;
         let deleted:boolean = doc._deleted ? true : false;

@@ -83,9 +83,7 @@ import isElectron from 'is-electron';
 import fetchProgress from 'fetch-progress';
 import * as JSZip from 'jszip';
 import * as gracefulfs from 'graceful-fs';
-import * as Mousetrap from 'mousetrap';
-
-export const appVersion:string = "10.16.18";
+// import * as Mousetrap from 'mousetrap';
 
 declare const window:any;
 
@@ -219,7 +217,8 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
   public mainMenuStyle:any   = {width:'100%'}                    ;
   public pagesArray:any[] = []                                   ;
   public pagesAndSeparatorsArray:any[] = []                      ;
-  public appVersion       :string  = appVersion                  ;
+  // public appVersion       :string  = environment && environment.VERSION ? environment.VERSION : "x.y.z";
+  public appVersion       :string  = "xx.yy.zz";
   public panelMenuEnabled :boolean = false                       ;
   public menuType         :string  = 'nested'                    ;
   public dbProgress       :any                                   ;

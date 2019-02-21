@@ -7,7 +7,6 @@
 // import * as pdbAllDBs           from 'pouchdb-all-dbs'        ;
 // import * as websqlPouch         from 'pouchdb-adapter-websql' ;
 // import * as nodeSqlPouch        from 'pouchdb-adapter-node-sql';
-// import * as nodeWebsqlPouch     from 'pouchdb-adapter-node-websql';
 // import * as pdbReplicate       from 'pouchdb-replication'     ;
 // import { UUID                 } from 'domain/onsitexdomain'     ;
 // import { ElectronService      } from './electron-service'       ;
@@ -18,22 +17,48 @@ import { Log                  } from 'domain/config/config.log' ;
 import { Preferences          } from './preferences'            ;
 import { app as eApp          } from 'electron'                 ;
 import { remote as eRemote    } from 'electron'                 ;
-import   isElectron             from 'is-electron'              ;
-import   PouchDB                from 'pouchdb'                  ;
+// import { isElectron           } from 'is-electron'              ;
+import   PouchDB                from 'pouchdb-core'             ;
 import * as path                from 'path'                     ;
 import rimraf                   from 'rimraf'                   ;
 import mkdirp                   from 'mkdirp'                   ;
 import * as fs                  from 'graceful-fs'              ;
 import * as pdbDebug            from 'pouchdb-debug'            ;
+import * as pdbMapReduce        from 'pouchdb-mapreduce'        ;
+import * as pdbReplication      from 'pouchdb-replication'      ;
+import * as httpPouch           from 'pouchdb-adapter-http'     ;
 import * as levelPouch          from 'pouchdb-adapter-leveldb'  ;
-import * as PDBAuth             from 'pouchdb-authentication'   ;
+// import * as nodeWebsqlPouch     from 'pouchdb-adapter-node-websql';
+// import * as PDBAuth             from 'pouchdb-authentication'   ;
+import * as PDBAuth             from '@onsite/pouchdb-auth-utils';
 import * as pdbFind             from 'pouchdb-find'             ;
-import * as pdbUpsert           from 'pouchdb-upsert'           ;
+// import * as pdbUpsert           from 'pouchdb-upsert'           ;
+import * as pdbUpsert           from '@onsite/pouchdb-upsert-plugin' ;
 import * as UUID                from 'uuid'                     ;
+// import * as crypto              from 'crypto-browserify'        ;
+
+export function isElectron():boolean {
+  // Renderer process
+  if(typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') {
+    return true;
+  }
+
+  // Main process
+  if(typeof process !== 'undefined' && typeof process.versions === 'object' && !!process.versions.electron) {
+    return true;
+  }
+
+  // Detect the user agent when the `nodeIntegration` option is set to true
+  if(typeof navigator === 'object' && typeof navigator.userAgent === 'string' && navigator.userAgent.indexOf('Electron') >= 0) {
+    return true;
+  }
+
+  return false;
+}
 
 declare const window:any;
 const fsp = fs.promises;
-
+// const hash = crypto.createHash('md5');
 // const PDB1 = window && window.PouchDB ? window.PouchDB : PouchDB;
 const localAdapter:string = 'leveldb';
 const PDB1 = window && window.PouchDB ? window.PouchDB : PouchDB;
@@ -60,12 +85,14 @@ const addPouchDBPlugin = (pouchdbObject:any, plugin:any, description?:string) =>
       } else {
         pouchdbObject.plugin(plugin);
       }
+      return pouchdbObject;
     } else {
       Log.w(`addPouchDBPlugin(): plugin '${text}' did not exist:`, plugin);
-      return;
+      return pouchdbObject;
     }
   } else {
     Log.e(`addPouchDBPlugin(): Invalid PouchDB constructor provided: `, pouchdbObject);
+    return null;
   }
 };
 
@@ -107,6 +134,7 @@ export class PouchDBService {
     window['onsitepouchdbservice'] = this;
     window['onsitepouchdbserviceclass'] = PouchDBService;
     window['onsitepouchdbplugins'] = this.plugins;
+    // window['onsitecrypto'] = crypto;
     this.isElectron = isElectron();
     if(this.isElectron) {
       this.electronInit();
@@ -124,7 +152,7 @@ export class PouchDBService {
     // window['onsitepouchdbwebsql']         = websqlPouch;
     window['onsitepouchdbfind']           = pdbFind;
     // window['PouchDB2']                    = PouchDB2;
-    // window['onsitenodewebsql']            = pdbNodeWebSql;
+    // window['onsitenodewebsql']            = nodeWebsqlPouch;
     // window['onsitepouchdblevel']          = pdbLevelDB;
     window.PouchDB  = window.PouchDB || PouchDB;
     window.PouchDB2 = window.PouchDB || PouchDB;
@@ -134,12 +162,17 @@ export class PouchDBService {
     if(!this.initialized) {
       this.setupGlobals();
       let pouchdb = PouchDB;
-      addPouchDBPlugin(pouchdb, pdbUpsert, 'upsert');
-      addPouchDBPlugin(pouchdb, pdbFind, 'find');
-      addPouchDBPlugin(pouchdb, PDBAuth, 'auth');
       addPouchDBPlugin(pouchdb, pdbDebug, 'debug');
+      addPouchDBPlugin(pouchdb, pdbMapReduce, 'mapreduce');
+      addPouchDBPlugin(pouchdb, pdbReplication, 'replication');
+      addPouchDBPlugin(pouchdb, pdbFind, 'find');
+      addPouchDBPlugin(pouchdb, pdbUpsert, 'upsert');
+      addPouchDBPlugin(pouchdb, PDBAuth, 'auth');
       addPouchDBPlugin(pouchdb, levelPouch, 'adapter-leveldb');
-      // addPouchDBPlugin(pouchdb, nodeWebsqlPouch, 'adapter-nodewebsql');
+      addPouchDBPlugin(pouchdb, httpPouch, 'adapter-http');
+      // let SQLPouch = PouchDB.defaults({adapter:'websql'});
+      // addPouchDBPlugin(SQLPouch, nodeWebsqlPouch, 'adapter-nodewebsql');
+      // window.PouchDBSQL = SQLPouch;
 
       // addPouchDBPlugin(pouchdb, nodeSqlPouch, 'adapter-nodesql');
       // addPouchDBPlugin(pouchdb, websqlPouch, 'adapter-websql');
@@ -214,6 +247,26 @@ export class PouchDBService {
     }
   }
 
+  public async loadWebSql():Promise<any> {
+    try {
+      Log.l(`PouchDBService.loadWebSql(): Attempting to dynamically import 'pouchdb-adapter-node-websql' ...`);
+      let nodeWebsqlPouch = await import('pouchdb-adapter-node-websql');
+      if(nodeWebsqlPouch) {
+        addPouchDBPlugin(PouchDB, nodeWebsqlPouch, 'adapter-nodewebsql');
+        PouchDB.defaults({adapter:"leveldb"});
+        let PouchDBSQL = PouchDB.defaults({adapter:"websql"});
+        window['PouchDBSQL'] = PouchDBSQL;
+      }
+      Log.l(`PouchDBService.loadWebSql(): Success!`);
+      return true;
+    } catch(err) {
+      Log.l(`PouchDBService.loadWebSql(): Error loading pouchdb-adapter-node-websql`);
+      Log.e(err);
+      // throw err;
+      return false;
+    }
+  }
+
   public getAuthPouchDB():Promise<any> {
     return new Promise((resolve, reject) => {
       // let pouchdb = PouchDB;
@@ -238,9 +291,9 @@ export class PouchDBService {
 
   public getBaseURL():string {
     // let prefs    = PouchDBService.PREFS   ;
-    let port:number = this.prefs.getRemotePort();
-    let protocol:string = this.prefs.getProtocol();
-    let server:string = this.prefs.getServerHost();
+    let port:number     = this.prefs.getRemotePort() ;
+    let protocol:string = this.prefs.getProtocol()   ;
+    let server:string   = this.prefs.getServerHost() ;
     // let port     :number = this.prefs.SERVER.port     ;
     // let protocol :string = this.prefs.SERVER.protocol ;
     // let server   :string = this.prefs.SERVER.server   ;
@@ -267,9 +320,9 @@ export class PouchDBService {
 
   public getInsecureLoginBaseURL(user:string, pass:string):string {
     // let prefs    = ServerService.PREFS   ;
-    let port:number     = this.prefs.SERVER.port     ;
-    let protocol:string = this.prefs.SERVER.protocol ;
-    let server:string   = this.prefs.SERVER.server   ;
+    let port:number     = this.prefs.getRemotePort() ;
+    let protocol:string = this.prefs.getProtocol()   ;
+    let server:string   = this.prefs.getServerHost() ;
     if(server.indexOf('pico.sesa.us') !== -1) {
       let hostNumber:number = (this.hostNumber++ % 16) + 1;
       server     = sprintf("db%02d.sesa.us", hostNumber);
@@ -414,7 +467,7 @@ export class PouchDBService {
 
   public async closeRDB(dbname:string):Promise<boolean> {
   // public closeRDB(dbname:string):boolean {
-    Log.l(`closeRDB(): Called with arguments:\n`, arguments);
+    Log.l(`closeRDB(): called for database '${dbname}'`);
     try {
       let rdbmap:DBList = this.rdb;
       let url:string = this.getRemoteDatabaseURL(dbname);

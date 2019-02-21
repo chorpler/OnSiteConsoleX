@@ -962,8 +962,10 @@ export class DBService {
             binURL = URL.createObjectURL(sound);
             // out[i].push(sound)
           } else if(binData instanceof Uint8Array) {
-            let binBuffer:ArrayBuffer = binData.buffer;
-            let sound:Blob = blobUtil.arrayBufferToBlob(binBuffer, contentType);
+            // let binBuffer:ArrayBuffer = binData.buffer.slice(0);
+            // let binBuffer:any = binData.buffer;
+            let binBuffer = binData.buffer;
+            let sound:Blob = blobUtil.arrayBufferToBlob((binBuffer as ArrayBuffer), contentType);
             binURL = URL.createObjectURL(sound);
           } else if(binData instanceof Blob) {
             binURL = URL.createObjectURL(binData);

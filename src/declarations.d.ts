@@ -40,6 +40,7 @@ declare interface Blob {
   slice(start?: number, end?: number):Blob;
   arrayBuffer():Promise<ArrayBuffer>;
   text():Promise<string>;
+  dataURL():Promise<string>;
   url():string;
   json():Promise<any>;
   image():Promise<HTMLImageElement>;
