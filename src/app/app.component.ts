@@ -79,7 +79,7 @@ import { DomainService                                                     } fro
 import { MessageService as ToastService                                    } from 'primeng/api'                   ;
 // import { JsonEditorOptions                                                 } from 'ang-jsoneditor'                ;
 import { FileSaverSaveAs } from 'domain/onsitexdomain';
-import isElectron from 'is-electron';
+
 import fetchProgress from 'fetch-progress';
 import * as JSZip from 'jszip';
 import * as gracefulfs from 'graceful-fs';
@@ -228,6 +228,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
   public dbDownloadPercentage:number = 0                         ;
   public downloadUpdateSize:number = 5                           ;
   public downloadStatus   :string  = ""                          ;
+  public dbStatusVisible  :boolean = false                       ;
   public replicationStart :Moment                                ;
   public replicationEnd   :Moment                                ;
   public replicationTime  :Duration                              ;
@@ -469,6 +470,8 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
       // Log.l(`appSubscription: received event:\n`, data);
       if(data) {
         let channel:AppEvents = data.channel;
+        let event:Event|MouseEvent|KeyboardEvent = data && data.event && data.event.event ? data.event.event : data && data.event ? data.event : null;
+
         if(channel === 'openpage') {
           Log.l(`AppComponent: Received event 'openpage' ...`);
           if(data && data.event && data.event.page) {
@@ -493,6 +496,16 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
         } else if(channel === 'find-in-page') {
           Log.l(`AppComponent: Received event 'find-in-page' ...`);
           this.toggleFindInPage(true);
+        } else if(channel === 'showdbstatus') {
+          Log.l(`AppComponent: Received event 'showdbstatus' ...`);
+          this.showDBStatus(event);
+        } else if(channel === 'reinitializedb') {
+          Log.l(`AppComponent: Received event 'reinitializedb' ...`);
+          this.reinitializeDatabases();
+          // this.showDBStatus(event);
+        } else if(channel === 'downloaddb') {
+          Log.l(`AppComponent: Received event 'downloaddb' ...`);
+          this.showDBStatus(event);
         } else if(channel === 'saveprefs') {
           Log.l(`AppComponent: Received event 'saveprefs' ...`);
           this.savePreferences();
@@ -995,7 +1008,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
             // let fileStream = streamSaver.createWriteStream(fileName);
             // let stream1:ReadableStream = blob.stream();
             // await blob.stream().pipeTo(fileStream);
-            if(isElectron()) {
+            if(this.pouchdb.inElectron()) {
               this.downloadStatus = "Saving downloaded file ...";
               // let fs = require('graceful-fs');
               let fs = gracefulfs;
@@ -1068,6 +1081,24 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
       throw err;
     }
   }
+
+  public async reinitializeDatabases(evt?:Event):Promise<any> {
+    try {
+      Log.l(`reinitializeDatabases(): Called`);
+      let res:any;
+      res = await this.pouchdb.clearDatabaseDirectory();
+      res = await this.initialReplication();
+      // res = await this.syncData();
+      res = await this.initializeRestOfApp();
+      return res;
+    } catch(err) {
+      Log.l(`reinitializeDatabases(): Error reinitializing databases`);
+      Log.e(err);
+      throw err;
+    }
+  }
+  
+  
 
   public createDirectoryIfNotExists(directoryname:string) {
     let fs = gracefulfs;
@@ -1833,13 +1864,49 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
     this.electron.createMenus();
   }
 
+  public async showDBStatus(evt?:Event) {
+    try {
+      Log.l(`showDBStatus(): Event is:`, evt);
+      if(evt instanceof MouseEvent) {
+        if(evt.ctrlKey || evt.shiftKey) {
+          let confirm:boolean = await this.alert.showConfirmYesNo("RESTART DATABASES", "This will erase the existing databases on your computer and re-download them from the server. Continue?");
+          if(confirm) {
+            this.reinitializeDatabases();
+          }
+        } else {
+          this.dbStatusVisible = true;
+        }
+      }
+    } catch(err) {
+      Log.l(`showDBStatus(): Error after click`);
+      Log.e(err);
+      throw err;
+    }
+  }
+  
+  public hideDBStatus(evt?:Event) {
+    Log.l(`hideDBStatus(): Event is:`, evt);
+    this.dbStatusVisible = false;
+  }
+  
+  public toggleDBStatus(evt?:Event) {
+    Log.l(`toggleDBStatus(): Event is:`, evt);
+    this.dbStatusVisible = !this.dbStatusVisible;
+    return this.dbStatusVisible;
+  }
+  
+  public dbStatusClosed(evt?:Event) {
+    Log.l(`dbStatusClosed(): Event is:`, evt);
+    this.hideDBStatus();
+  }
+
   public progressClosed(evt?:Event) {
-    Log.l(`progressClosed(): Event is:\n`, evt);
+    Log.l(`progressClosed(): Event is:`, evt);
     this.progressVisible = false;
   }
 
   public progressAborted(evt?:Event) {
-    Log.l(`progressAborted(): Event is:\n`, evt);
+    Log.l(`progressAborted(): Event is:`, evt);
     this.progressVisible = false;
   }
 

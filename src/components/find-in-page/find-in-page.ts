@@ -4,7 +4,6 @@ import { Component, OnInit, OnDestroy, NgZone, ViewChild, ElementRef, Input, Out
 import { EventEmitter, ChangeDetectionStrategy, ApplicationRef, ChangeDetectorRef   } from '@angular/core'                        ;
 import { Log, } from 'domain/onsitexdomain'                 ;
 import * as findAndReplaceDOMText from 'findandreplacedomtext';
-import { b } from '@angular/core/src/render3';
 
 @Component({
   selector: 'find-in-page',
@@ -28,6 +27,9 @@ export class FindInPageComponent implements OnInit,OnDestroy {
   public countFinder       : any                            ;
   public matchFinder       : any                            ;
   public focusDelay        : number  = 100                  ;
+  public findScrollTimeout : number  = 50                   ;
+  public findScrollType    : 'auto'|'smooth'  = "auto"      ;
+  public findScrollAlways  : boolean = false                ;
   public isVisible         : boolean = true                 ;
   public dialogDrag        : boolean = false                ;
   public dialogResize      : boolean = false                ;
@@ -262,20 +264,40 @@ export class FindInPageComponent implements OnInit,OnDestroy {
 
   public findNext(evt?:Event):string {
     Log.l(`findNext(): Called`);
-    return this.findMatch(this.search, false);
+    let result:string = this.findMatch(this.search, false);
+    if(this.total > 0) {
+      this.showCurrentFindResult();
+    }
+    return result;
   }
 
   public findPrevious(evt?:Event):string {
     Log.l(`findPrevious(): Called`);
-    return this.findMatch(this.search, true);
+    let result:string = this.findMatch(this.search, true);
+    if(this.total > 0) {
+      this.showCurrentFindResult();
+    }
+    return result;
   }
 
   public findAfterControlChanged():string {
     this.current = 0;
     this.total = 0;
-    return this.findMatch(this.search, false);
+    let result:string = this.findMatch(this.search, false);
+    if(this.total > 0) {
+      this.showCurrentFindResult();
+    }
+    return result;
   }
 
+  public findModelMatch(findString:string, reverse?:boolean):string {
+    console.log("findModelMatch(): Called for: ", findString);
+    let result:string = this.findMatch(findString, reverse);
+    if(this.total > 0) {
+      this.showCurrentFindResult();
+    }
+    return result;
+  }
   public findMatch(findString:string, reverse?:boolean):string {
     this.total = 0;
     let prevFind:string = this.prevSearch;
@@ -374,6 +396,24 @@ export class FindInPageComponent implements OnInit,OnDestroy {
     // } else if(currentFind < 0) {
     //   currentFind = totalFinds - 1;
     // }
+  }
+
+  public showCurrentFindResult() {
+    let el1:HTMLElement = document.querySelector('.fardom-found-current');
+    if(el1) {
+      console.log("showCurrentFindResult(): Found result, scrolling ...")
+      window['onsitecurrentfind'] = el1;
+      let force:boolean = this.findScrollAlways === true ? true : false;
+      setTimeout(() => {
+        if(!force && typeof (el1 as any).scrollIntoViewIfNeeded === 'function') {
+          (el1 as any).scrollIntoViewIfNeeded({behavior: this.findScrollType});
+        } else {
+          el1.scrollIntoView({behavior: this.findScrollType});
+        }
+      }, this.findScrollTimeout);
+    } else {
+      console.log("showCurrentFindResult(): Result not found.");
+    }
   }
 
   public closeSearchWindow(evt?:Event) {

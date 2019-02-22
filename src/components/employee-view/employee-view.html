@@ -8,7 +8,7 @@
     <div class="p-grid button-grid">
       <div class="p-col">
         <span class="cell-button-like" (click)="defaultFill($event)" title="Fill in default test user info" *ngIf="data.status.role==='dev'">
-          <i class="fa fa-id-card-o icon-button-like"></i>
+          <i class="fal fa-id-card icon-button-like"></i>
         </span>
       </div>
       <div class="p-col">
@@ -18,7 +18,7 @@
       </div>
       <div class="p-col">
         <span class="cell-button-like" (click)="deleteEmployee(employee, $event)" title="Delete Employee">
-          <i class="fa fa-trash-o icon-button-like"></i>
+          <i class="fal fa-trash-alt icon-button-like"></i>
         </span>
       </div>
       <div class="p-col">
@@ -85,8 +85,8 @@
         <div class="grid-col grid-col-2 label">Suffix</div><div class="grid-col grid-col-10 data"><p-dropdown [options]="suffixList" [(ngModel)]="employee.suffix" [placeholder]="strBlank"></p-dropdown></div>
       </div>
       <div class="grid-row">
-        <!-- <div class="grid-col grid-col-2 label" [class.error]="errors.username">Username <i class="fa fa-envelope-o icon-button-like" title="Create E-mail Address" (click)="createEmail($event)"></i></div><div class="grid-col grid-col-10 data"><input #avatarName [(ngModel)]="employee.avatarName" (ngModelChange)="setError('username', false)" (blur)="updateUserEmail(employee.avatarName + '@sesafleetservices.com')"/></div> -->
-        <div class="grid-col grid-col-2 label" [class.error]="errors.username">Username <i class="fa fa-envelope-o icon-button-like" title="Create E-mail Address" (click)="createEmail($event)"></i></div><div class="grid-col grid-col-10 data"><input #avatarName [(ngModel)]="employee.avatarName" (ngModelChange)="setError('username', false)" /></div>
+        <!-- <div class="grid-col grid-col-2 label" [class.error]="errors.username">Username <i class="fal fa-envelope icon-button-like" title="Create E-mail Address" (click)="createEmail($event)"></i></div><div class="grid-col grid-col-10 data"><input #avatarName [(ngModel)]="employee.avatarName" (ngModelChange)="setError('username', false)" (blur)="updateUserEmail(employee.avatarName + '@sesafleetservices.com')"/></div> -->
+        <div class="grid-col grid-col-2 label" [class.error]="errors.username">Username <i class="fal fa-envelope icon-button-like" title="Create E-mail Address" (click)="createEmail($event)"></i></div><div class="grid-col grid-col-10 data"><input #avatarName [(ngModel)]="employee.avatarName" (ngModelChange)="setError('username', false)" /></div>
       </div>
       <div class="grid-row">
         <div class="grid-col grid-col-2 label">User Class</div><div class="grid-col grid-col-10 data"><textarea [(ngModel)]="userClass" (ngModelChange)="updateUserClass(userClass)"></textarea></div>
@@ -110,10 +110,10 @@
         <div class="grid-col grid-col-2 label">E-mail</div><div class="grid-col grid-col-10 data"><textarea #emailTextArea [(ngModel)]="userEmail" (ngModelChange)="updateUserEmail(userEmail)"></textarea></div>
       </div>
       <div class="grid-row">
-        <div class="grid-col grid-col-2 label">Phone <i class="fa fa-arrow-circle-o-down icon-button-like" title="Copy to Cell" (click)="copyPhone('phone', 'cell')"></i></div><div class="grid-col grid-col-10 data"><input [(ngModel)]="employee.phone" (keyup)="checkKeyUp('phone', $event)" /></div>
+        <div class="grid-col grid-col-2 label">Phone <i class="fal fa-arrow-circle-down icon-button-like" title="Copy to Cell" (click)="copyPhone('phone', 'cell')"></i></div><div class="grid-col grid-col-10 data"><input [(ngModel)]="employee.phone" (keyup)="checkKeyUp('phone', $event)" /></div>
       </div>
       <div class="grid-row">
-        <div class="grid-col grid-col-2 label">Cell <i class="fa fa-arrow-circle-o-up icon-button-like" title="Copy to Phone" (click)="copyPhone('cell', 'phone')"></i></div><div class="grid-col grid-col-10 data"><input [(ngModel)]="employee.cell" (keyup)="checkKeyUp('cell', $event)" /></div>
+        <div class="grid-col grid-col-2 label">Cell <i class="fal fa-arrow-circle-up icon-button-like" title="Copy to Phone" (click)="copyPhone('cell', 'phone')"></i></div><div class="grid-col grid-col-10 data"><input [(ngModel)]="employee.cell" (keyup)="checkKeyUp('cell', $event)" /></div>
       </div>
       <div class="grid-row">
         <div class="grid-col grid-col-2 label">Address</div>
@@ -203,7 +203,7 @@
           <td class="label">Suffix</td><td class="data"><p-dropdown [options]="suffixList" [(ngModel)]="employee.suffix" [placeholder]="strBlank"></p-dropdown></td>
         </tr>
         <tr class="body-row">
-          <td class="label" [class.error]="errors.username">Username <i class="fa fa-envelope-o icon-button-like" title="Create E-mail Address" (click)="createEmail($event)"></i></td><td class="data"><input #avatarName [(ngModel)]="employee.avatarName" (ngModelChange)="setError('username', false)" (blur)="updateUserEmail(employee.avatarName + '@sesafleetservices.com')"/></td>
+          <td class="label" [class.error]="errors.username">Username <i class="fal fa-envelope icon-button-like" title="Create E-mail Address" (click)="createEmail($event)"></i></td><td class="data"><input #avatarName [(ngModel)]="employee.avatarName" (ngModelChange)="setError('username', false)" (blur)="updateUserEmail(employee.avatarName + '@sesafleetservices.com')"/></td>
         </tr>
         <tr class="body-row">
           <td class="label">User Class</td><td class="data"><textarea [(ngModel)]="userClass" (ngModelChange)="updateUserClass(userClass)"></textarea></td>
@@ -227,10 +227,10 @@
           <td class="label">E-mail</td><td class="data"><textarea #emailTextArea [(ngModel)]="userEmail" (ngModelChange)="updateUserEmail(userEmail)"></textarea></td>
         </tr>
         <tr class="body-row">
-          <td class="label">Phone <i class="fa fa-arrow-circle-o-down icon-button-like" title="Copy to Cell" (click)="copyPhone('phone', 'cell')"></i></td><td class="data"><input [(ngModel)]="employee.phone" (keyup)="checkKeyUp('phone', $event)" /></td>
+          <td class="label">Phone <i class="fal fa-arrow-circle-down icon-button-like" title="Copy to Cell" (click)="copyPhone('phone', 'cell')"></i></td><td class="data"><input [(ngModel)]="employee.phone" (keyup)="checkKeyUp('phone', $event)" /></td>
         </tr>
         <tr class="body-row">
-          <td class="label">Cell <i class="fa fa-arrow-circle-o-up icon-button-like" title="Copy to Phone" (click)="copyPhone('cell', 'phone')"></i></td><td class="data"><input [(ngModel)]="employee.cell" (keyup)="checkKeyUp('cell', $event)" /></td>
+          <td class="label">Cell <i class="fal fa-arrow-circle-up icon-button-like" title="Copy to Phone" (click)="copyPhone('cell', 'phone')"></i></td><td class="data"><input [(ngModel)]="employee.cell" (keyup)="checkKeyUp('cell', $event)" /></td>
         </tr>
         <tr class="body-row">
           <td class="label">Address</td><td class="data"><input [(ngModel)]="employee.address.street.street1" /></td>

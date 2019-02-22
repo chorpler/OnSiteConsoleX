@@ -7,12 +7,12 @@
         <ion-icon name="menu"></ion-icon>
       </button>
       <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode">
-        <i class="fa fa-window-close-o"></i>
+        <i class="fal fa-window-close"></i>
       </button>
     </ion-buttons> -->
     <ion-buttons left>
       <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode && !data.currentlyOpeningPage">
-        <i class="fa fa-window-close-o"></i>
+        <i class="fal fa-window-close"></i>
       </button>
       <button ion-button menuToggle *ngIf="!modalMode && !data.currentlyOpeningPage">
         <ion-icon name="menu"></ion-icon>
@@ -79,10 +79,10 @@
             </span>
 
             <!-- <button class="menubar-button" ion-button icon-only (click)="generateSelectedReports($event)" title="Generate selected shift report(s)">
-              <i class="fa fa-file-text-o"></i>
+              <i class="fal fa-file-alt"></i>
             </button>
             <button class="menubar-button" ion-button icon-only (click)="clearReports($event)" title="Clear reports">
-              <i class="fa fa-trash-o"></i>
+              <i class="fal fa-trash-alt"></i>
             </button>
             <button class="menubar-button" ion-button icon-only (click)="printReports($event)" title="Print shift report(s)">
               <i class="fa fa-print"></i>
@@ -97,7 +97,7 @@
               </button>
 
               <button class="menubar-button" ion-button icon-only (click)="generateInvoices($event)" title="Generate invoices using these selections">
-                <i class="fa fa-file-text-o"></i>
+                <i class="fal fa-file-alt"></i>
               </button>
               <button class="menubar-button" ion-button icon-only (click)="clearInvoices($event)" title="Clear existing invoice display">
                 <i class="fa fa-ban"></i>

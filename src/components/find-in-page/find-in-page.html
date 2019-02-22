@@ -11,7 +11,8 @@
       <!-- <input #findInput class="find-input" type="search" placeholder="Search..." autocomplete="off" autofocus [(ngModel)]="search" (keypress)="inputKeyPressed($event)" /> -->
       <div class="find-input-and-controls">
         <span class="input-wrapper">
-          <input #findInput class="find-input" type="search" placeholder="Search..." autocomplete="off" autofocus [(ngModel)]="search" (keyup)="inputKeyUp($event)" (ngModelChange)="findMatch(search, false)" />
+          <!-- <input #findInput class="find-input" type="search" placeholder="Search..." autocomplete="off" autofocus [(ngModel)]="search" (keyup)="inputKeyUp($event)" (ngModelChange)="findMatch(search, false)" /> -->
+          <input #findInput class="find-input" type="search" placeholder="Search..." autocomplete="off" autofocus [(ngModel)]="search" (keyup)="inputKeyUp($event)" (ngModelChange)="findModelMatch(search, false)" />
         </span>
         <span class="controls-wrapper">
           <span class="control case-sensitive" [class.checked]="caseSensitive" title="Case sensitive (Alt-C)" (click)="toggleControl(1, $event)"></span>

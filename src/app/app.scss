@@ -125,6 +125,76 @@ $main-menu-scrollbar-color-inactive: rgba(187, 43, 79, 0.673);
   }
 }
 
+@mixin button-like-block {
+  cursor: pointer;
+  pointer-events: auto;
+  --hoverColor: rgba(0,0,220,0.3);
+  --activeColor: rgba(0,0,220,0.6);
+  --onsiteHoverImage: linear-gradient(to bottom, var(--hoverColor) 0%, var(--hoverColor) 100%);
+  --onsiteActiveImage: linear-gradient(to bottom, var(--activeColor) 0%, var(--activeColor) 100%);
+  transition: background-color 0.5s;
+  &:hover {
+    background-color: var(--hoverColor, rgba(0, 0, 220, 0.2));
+    background-blend-mode: multiply;
+    transition: background-color 0.5s;
+    
+    &:active {
+      background-color: var(--activeColor, rgba(0, 0, 220, 0.6));
+      background-blend-mode: multiply;
+      font-weight: bold;
+      color: white;
+    }
+  }
+}
+@mixin button-like-block-shadow {
+  @include button-like-block;
+  --shadowColor: rgba(128,128,128,0.99);
+  box-shadow: 1px 1px 1px 1px var(--shadowColor, grey);
+  &:hover {
+    &:active {
+      box-shadow: -1px -1px 1px 0px var(--shadowColor, grey);
+    }
+  }
+}
+@mixin button-like {
+  cursor: pointer;
+  pointer-events: auto;
+  --shadowColor: rgba(128,128,128,0.99);
+  --onsiteHoverShadow: rgba(255,0,0,0.5);
+  --onsiteActiveShadow: rgba(255,0,0,1.0);
+  box-shadow: 0px 0px 1px 1px var(--shadowColor, grey);
+  background-color: #2399e5;
+  color: white;
+  // --onsiteActiveColor: rgba(0,0,220,0.6);
+  // --onsiteHoverImage: linear-gradient(to bottom, var(--hoverColor) 0%, var(--hoverColor) 100%);
+  // --onsiteActiveImage: linear-gradient(to bottom, var(--activeColor) 0%, var(--activeColor) 100%);
+  // transition: background-color 0.5s;
+  transition: box-shadow 0.4s;
+  &:hover {
+    // animation: bordermove linear 0.5s infinite;
+    // animation: shadowmove linear 0.5s infinite;
+    transition: box-shadow 0.4s;
+    box-shadow: 0px 0px 2px 2px var(--onsiteHoverShadow, red);
+    &:active {
+      // box-shadow: inset 1px 1px 2px 2px var(--onsiteActiveShadow, red);
+      box-shadow: inset 1px 1px 2px 1px var(--shadowColor, grey), 0px 0px 0px 1px var(--onsiteHoverShadow, red);
+      // color: white;
+    }
+  }
+}
+@mixin button-like-icon {
+  cursor: pointer;
+  &:hover {
+    color: rgba(0, 0, 220, 1.0);
+  }
+  &:active {
+    color: rgba(220, 0, 220, 1.0);
+  }
+}
+
+@mixin button-like-menu {
+  cursor: pointer;
+}
 
 
 ion-app.md {
@@ -181,42 +251,6 @@ ion-menu {
       // }
     }
   }
-}
-@mixin button-like-block {
-  cursor: pointer;
-  pointer-events: auto;
-  // background-blend-mode: multiply;
-  --onsiteHoverColor: rgba(0,0,220,0.3);
-  --onsiteActiveColor: rgba(0,0,220,0.6);
-  --onsiteHoverImage: linear-gradient(to bottom, var(--hoverColor) 0%, var(--hoverColor) 100%);
-  --onsiteActiveImage: linear-gradient(to bottom, var(--activeColor) 0%, var(--activeColor) 100%);
-  transition: background-color 0.5s;
-  &:hover {
-    // background-color: rgba(0, 0, 220, 0.2);
-    background-color: var(--hoverColor, rgba(0, 0, 220, 0.2));
-    background-blend-mode: multiply;
-    transition: background-color 0.5s;
-    // transition: background-color 0.5s;
-    &:active {
-      background-color: var(--activeColor, rgba(0, 0, 220, 0.6));
-      background-blend-mode: multiply;
-      font-weight: bold;
-      color: white;
-    }
-  }
-}
-@mixin button-like-icon {
-  cursor: pointer;
-  &:hover {
-    color: rgba(0, 0, 220, 1.0);
-  }
-  &:active {
-    color: rgba(220, 0, 220, 1.0);
-  }
-}
-
-@mixin button-like-menu {
-  cursor: pointer;
 }
 
 .block-button-like {
@@ -704,6 +738,64 @@ ion-content {
 //     transform: rotate(360deg);
 //   }
 // }
+@keyframes bordermove {
+  $colr: rgba(255, 0, 0, 0.99);
+  0% {
+    border: 0;
+    border-top    : 1px solid transparent;
+    border-right  : 1px solid $colr;
+    border-bottom : 1px solid $colr;
+    border-left   : 1px solid $colr;
+  }
+  25% {
+    border: 0;
+    border-top    : 1px solid $colr;
+    border-right  : 1px solid transparent;
+    border-bottom : 1px solid $colr;
+    border-left   : 1px solid $colr;
+  }
+  50% {
+    border: 0;
+    border-top    : 1px solid $colr;
+    border-right  : 1px solid $colr;
+    border-bottom : 1px solid transparent;
+    border-left   : 1px solid $colr;
+  }
+  75% {
+    border: 0;
+    border-top    : 1px solid $colr;
+    border-right  : 1px solid $colr;
+    border-bottom : 1px solid $colr;
+    border-left   : 1px solid transparent;
+  }
+  100% {
+    border: 0;
+    border-top    : 1px solid transparent;
+    border-right  : 1px solid $colr;
+    border-bottom : 1px solid $colr;
+    border-left   : 1px solid $colr;
+  }
+}
+
+@keyframes shadowmove {
+  $colr: rgba(255, 0, 0, 0.99);
+  $thck: 3px;
+  0% {
+    box-shadow: $thck 0px 1px -1px $colr;
+  }
+  25% {
+    box-shadow: 0px $thck 1px -1px $colr;
+  }
+  50% {
+    box-shadow: -$thck 0px 1px -1px $colr;
+  }
+  75% {
+    box-shadow: 0px #{-$thck} 1px -1px $colr;
+  }
+  100% {
+    box-shadow: $thck 0px 1px -1px $colr;
+  }
+}
 
 @media print {
   $margin: 0.5in;

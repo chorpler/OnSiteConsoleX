@@ -35,6 +35,14 @@ module.exports = {
     src: ['{{SRC}}/assets/css/font-awesome.min.css'],
     dest: '{{WWW}}/assets/css'
   },
+  copyFontawesome5Fonts: {
+    src: ['{{ROOT}}/resources/fa5/webfonts/**/*'],
+    dest: '{{WWW}}/assets/webfonts'
+  },
+  copyFontawesome5Css: {
+    src: ['{{ROOT}}/resources/fa5/css/**/*.css'],
+    dest: '{{WWW}}/assets/css'
+  },
   copyPrimeNGCss: {
     src: [ '{{ROOT}}/node_modules/primeng/resources/*.css', '{{ROOT}}/node_modules/fullcalendar/dist/**/*', '{{ROOT}}/node_modules/primeicons/primeicons.css' ],
     // src: [ '{{ROOT}}/node_modules/primeng/resources/*.css', '{{ROOT}}/node_modules/primeicons/primeicons.css' ],

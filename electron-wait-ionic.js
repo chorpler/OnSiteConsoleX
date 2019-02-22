@@ -5,6 +5,7 @@ const moment    = require('moment')        ;
 const timer     = require('moment-timer')  ;
 const process   = require('process')       ;
 const childproc = require('child_process') ;
+const fs        = require('graceful-fs').promises;
 // const exec = childproc.exec;
 // let secondsToWait = 180;
 // let secondsToWait = 0;
@@ -27,7 +28,7 @@ let electronCLIPath = path.join(__dirname, 'node_modules', 'electron', 'cli.js')
 const startIonicServe = function() {
   console.log(`IonitronDev: Starting Ionic Serve ...`.bgGreen.white.bold);
   // ionicServeProcess = childproc.spawn('cmd.exe', ['/k', 'npm', 'run', 'start'], {stdio: 'inherit'});
-  ionicServeProcess = childproc.spawn('node', [ionicServePath, 'serve', '-p', '8110', '-r', '35739', '--dev-logger-port', '53713', '--nobrowser'], {stdio: 'inherit'});
+  ionicServeProcess = childproc.spawn('node', [ionicServePath, 'serve', '-p', '8110', '-r', '35739', '--dev-logger-port', '53713', '--nobrowser'], {stdio: 'inherit', env: process.env});
   // ionicServeProcess = childproc.fork('node', [ionicServePath, 'serve', '-p', '8110', '-r', '35739', '--dev-logger-port', '53713', '--nobrowser'], {stdio: 'inherit'});
   ionicServeProcess.on('close', () => {
     console.log(`IonitronDev: Ionic Serve process got 'close' event, killing Electron if runing …`);
@@ -78,14 +79,61 @@ process.on('SIGINT', () => {
 const client = new net.Socket();
 client.setTimeout(5000);
 
+const doesExist = async function(file) {
+  try {
+    let stat = await fs.lstat(file);
+    let exists = stat.isFile();
+    return exists;
+  } catch (error) {
+    return false;
+  }
+};
 
+const checkWebpackSuccess = async function() {
+  try {
+    let wwwDir = process.env.IONIC_WWW_DIR || path.join(__dirname, 'www');
+    let buildDir = process.env.IONIC_BUILD_DIR || path.join(__dirname, 'www', 'build');
+    let vendorFile = path.join(buildDir, 'vendor.js');
+    // console.log(`checkWebpackSuccess(): `);
+    let ionics = {};
+    let keys = Object.keys(process.env);
+    for(let key of keys) {
+      if(key.startsWith("IONIC")) {
+        ionics[key] = process.env[key];
+      }
+    }
+    let ionicenv = JSON.stringify(ionics);
+    console.log(`checkWebpackSuccess(): Ionic ENV vars:`, ionicenv);
+    console.log(`checkWebpackSuccess(): www dir is '${wwwDir}'`);
+    console.log(`checkWebpackSuccess(): build dir is '${buildDir}'`);
+    console.log(`checkWebpackSuccess(): vendor file is '${vendorFile}'`);
+    return doesExist(vendorFile);
+  } catch(err) {
+    // throw err;
+    return false;
+  }
+};
+
+const closeEverything = function() {
+  if(ionicServeProcess) {
+    console.log(`IonitronDev.closeEverything(): Killing Ionic Serve ...`.bgBlue.white);
+    ionicServeProcess.kill('SIGTERM');
+  }
+};
 
 // const ionicConnected = () => {
-const ionicConnected = function() {
+// async function ionicConnected () {
+const ionicConnected = async function () {
   if(!startedElectron) {
     startedElectron = true;
+    let succeeded = await checkWebpackSuccess();
+    if(!succeeded) {
+      console.log(`IonitronDev: Ionic Build failed, aborting.`.bgRed.white.bold);
+      closeEverything();
+      return;
+    }
     client.end();
-    console.log(`IonitronDev: Starting Electron in '${homedir}' ...`.bgGreen.white.bold);
+    console.log(`IonitronDev: Ionic Build succeeded, starting Electron in '${homedir}' ...`.bgGreen.white.bold);
     // electronProcess = childproc.exec('electron . test');
     // electronProcess = childproc.spawn('node', [electronCLIPath, '.', 'test']);
     electronProcess = childproc.fork(electronCLIPath, ['.', 'test']);

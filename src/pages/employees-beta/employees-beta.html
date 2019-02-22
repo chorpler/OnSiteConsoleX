@@ -21,7 +21,7 @@
         <i class="fa fa-table"></i>
       </button>
       <button class="employees-buttons employees-add-button" ion-button icon-only (click)="addEmployee($event)" title="Add Employee">
-        <i class="fa fa-plus-square-o"></i>
+        <i class="fal fa-plus-square"></i>
       </button>
     </ion-buttons>
   </ion-navbar>
@@ -63,8 +63,8 @@
           <span class="column-active-button" [class.highlight]="employeeHighlight[ri]" (click)="toggleActive(employee, $event)" title="Toggle employee active/inactive" (mouseenter)="setHighlight(ri, true)" (mouseleave)="setHighlight(ri, false)">
             <!-- <span class="row-edit-icon" *ngIf="employee.active"><i class="fa fa-lock"></i></span>
             <span class="row-edit-icon" *ngIf="!employee.active"><i class="fa fa-unlock"></i></span> -->
-            <span class="row-edit-icon" *ngIf="employee.active"><i class="fa fa-thumbs-o-up"></i></span>
-            <span class="row-edit-icon" *ngIf="!employee.active"><i class="fa fa-thumbs-o-down"></i></span>
+            <span class="row-edit-icon" *ngIf="employee.active"><i class="fal fa-thumbs-up"></i></span>
+            <span class="row-edit-icon" *ngIf="!employee.active"><i class="fal fa-thumbs-down"></i></span>
           </span>
         </ng-template>
       </p-column>

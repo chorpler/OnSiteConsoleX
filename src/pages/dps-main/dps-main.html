@@ -7,7 +7,7 @@
     </ion-buttons> -->
     <ion-buttons left>
       <button ion-button icon-only (click)="closeModal($event)" *ngIf="mode === 'modal' && !data.currentlyOpeningPage">
-        <i class="fa fa-window-close-o"></i>
+        <i class="fal fa-window-close"></i>
       </button>
       <button ion-button menuToggle *ngIf="mode !== 'modal' && !data.currentlyOpeningPage">
         <ion-icon name="menu"></ion-icon>
@@ -31,7 +31,7 @@
     <div class="dps-calc-select-period-wrapper">
       <p-dropdown [options]="periodList" [(ngModel)]="period" (onChange)="updatePeriod(period)"></p-dropdown>
       <p-tieredMenu class="dps-daily-summary-menu" #tieredMenu [model]="menuItems" [popup]="popupMode"></p-tieredMenu>
-      <button *ngIf="tabIndex==3" class="dps-daily-summary-menu-button" pButton type="button" #tieredMenuButton icon="fa-bars" (click)="tieredMenu.toggle($event)"></button>
+      <button *ngIf="tabIndex==3" class="dps-daily-summary-menu-button" pButton type="button" #tieredMenuButton icon="fal fa-bars" (click)="tieredMenu.toggle($event)"></button>
     </div>
     <p-tabView [activeIndex]="tabIndex" (onChange)="tabChange($event)">
       <p-tabPanel *ngFor="let tab of tabs; let idx=index" [header]="tab.header" [leftIcon]="tab.icon" [selected]="tab.selected">

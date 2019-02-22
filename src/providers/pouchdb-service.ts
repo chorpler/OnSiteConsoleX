@@ -1,7 +1,7 @@
 // import { PouchDB } from 'pouchdb';
 // import * as pdbMemory           from 'pouchdb-adapter-memory'    ;
 // import { Headers              } from 'pouchdb-fetch'            ;
-// import * as workerPouch         from 'worker-pouch'           ;
+// import * as pdbWorker         from 'worker-pouch'           ;
 // import { PDB } from 'pouchdb-authentication' ;
 // import { plugin as PDBAuthPlugin } from 'pouchdb-authentication';
 // import * as pdbAllDBs           from 'pouchdb-all-dbs'        ;
@@ -20,8 +20,8 @@ import { remote as eRemote    } from 'electron'                 ;
 // import { isElectron           } from 'is-electron'              ;
 import   PouchDB                from 'pouchdb-core'             ;
 import * as path                from 'path'                     ;
-import rimraf                   from 'rimraf'                   ;
-import mkdirp                   from 'mkdirp'                   ;
+import * as rimraf              from 'rimraf'                   ;
+import * as mkdirp              from 'mkdirp'                   ;
 import * as fs                  from 'graceful-fs'              ;
 import * as pdbDebug            from 'pouchdb-debug'            ;
 import * as pdbMapReduce        from 'pouchdb-mapreduce'        ;
@@ -63,6 +63,8 @@ const fsp = fs.promises;
 const localAdapter:string = 'leveldb';
 const PDB1 = window && window.PouchDB ? window.PouchDB : PouchDB;
 const PDB2 = PouchDB;
+// export type PouchDBMaker = typeof PouchDB;
+export type PouchDBMaker = any;
 
 enum FileOrDirectoryType {
   NONE      = 0,
@@ -108,6 +110,8 @@ export class PouchDBService {
   public set plugins(val:any) { PouchDBService.plugins = val; };
   public StaticPouchDB : any;
   public NodePouchDB   : any;
+  public PouchList     : PouchDBMaker[] = [];
+  public Pouches       : {[key:string]:PouchDBMaker} = {};
   public testDB        : Database;
   public working       : boolean                  = false              ;
   public initialized   : boolean                  = false              ;
@@ -130,11 +134,6 @@ export class PouchDBService {
   ) {
     Log.l('Hello PouchDBService Provider');
     // this.prefs = PouchDBService.PREFS;
-    window['pouchdbauthenticationdebug'] = false;
-    window['onsitepouchdbservice'] = this;
-    window['onsitepouchdbserviceclass'] = PouchDBService;
-    window['onsitepouchdbplugins'] = this.plugins;
-    // window['onsitecrypto'] = crypto;
     this.isElectron = isElectron();
     if(this.isElectron) {
       this.electronInit();
@@ -143,8 +142,10 @@ export class PouchDBService {
   }
 
   public setupGlobals() {
+    window['pouchdbauthenticationplugindebug'] = false;
     window['onsitePouchDB']               = PouchDB;
     window['onsitePouchDBService']        = PouchDBService;
+    window['onsitepouchdbserviceclass']   = PouchDBService;
     window['onsitepouchdbservice']        = this;
     // window['onsitepouchdbworker']         = workerPouch;
     window['onsitepouchdbauthentication'] = PDBAuth;
@@ -154,6 +155,8 @@ export class PouchDBService {
     // window['PouchDB2']                    = PouchDB2;
     // window['onsitenodewebsql']            = nodeWebsqlPouch;
     // window['onsitepouchdblevel']          = pdbLevelDB;
+    window['onsitepouchdbplugins'] = this.plugins;
+    // window['onsitecrypto'] = crypto;
     window.PouchDB  = window.PouchDB || PouchDB;
     window.PouchDB2 = window.PouchDB || PouchDB;
   }
@@ -225,6 +228,8 @@ export class PouchDBService {
       // window["StaticPouchDB"] = PouchDB;
       this.StaticPouchDB = PouchDB;
       this.NodePouchDB = PDB1;
+      this.PouchList.push(PouchDB);
+      this.Pouches.PouchDB = PouchDB;
       this.initialized = true;
       return this.StaticPouchDB;
     } else {
@@ -247,6 +252,36 @@ export class PouchDBService {
     }
   }
 
+  public inElectron():boolean {
+    return isElectron();
+  }
+
+  public async loadPouchPlugin(plugin:string, description?:string):Promise<any> {
+    try {
+      if(typeof plugin !== 'string') {
+        let text:string = "first parameter must be a string";
+        let err:Error = new Error(text);
+        throw err;
+      }
+      let name:string = typeof description === 'string' ? description : plugin;
+      Log.l(`PouchDBService.loadPouchPlugin(): Attempting to dynamically import '${plugin}' …`);
+      let pluginModule = await import(plugin);
+      if(pluginModule) {
+        addPouchDBPlugin(PouchDB, pluginModule, name);
+        Log.l(`PouchDBService.loadPouchPlugin(): Success!`);
+        return true;
+      } else {
+        Log.l(`PouchDBService.loadPouchPlugin(): FAILED to dynamically import '${plugin}'`);
+        return false;
+      }
+    } catch(err) {
+      Log.l(`PouchDBService.loadPouchPlugin(): Error loading plugin:`, plugin);
+      Log.e(err);
+      // throw err;
+      return false;
+    }
+  }
+
   public async loadWebSql():Promise<any> {
     try {
       Log.l(`PouchDBService.loadWebSql(): Attempting to dynamically import 'pouchdb-adapter-node-websql' ...`);
@@ -256,9 +291,14 @@ export class PouchDBService {
         PouchDB.defaults({adapter:"leveldb"});
         let PouchDBSQL = PouchDB.defaults({adapter:"websql"});
         window['PouchDBSQL'] = PouchDBSQL;
+        this.PouchList.push(PouchDBSQL);
+        this.Pouches.PouchDBSQL = PouchDBSQL;
+        Log.l(`PouchDBService.loadWebSql(): Success!`);
+        return true;
+      } else {
+        Log.l(`PouchDBService.loadWebSql(): FAILED to dynamically import 'pouchdb-adapter-node-websql'`);
+        return false;
       }
-      Log.l(`PouchDBService.loadWebSql(): Success!`);
-      return true;
     } catch(err) {
       Log.l(`PouchDBService.loadWebSql(): Error loading pouchdb-adapter-node-websql`);
       Log.e(err);
@@ -266,6 +306,110 @@ export class PouchDBService {
       return false;
     }
   }
+
+  public async loadIDB():Promise<any> {
+    try {
+      Log.l(`PouchDBService.loadIDB(): Attempting to dynamically import 'pouchdb-adapter-idb' ...`);
+      let pdbIDB = await import('pouchdb-adapter-idb');
+      if(pdbIDB) {
+        addPouchDBPlugin(PouchDB, pdbIDB, 'adapter-idb');
+        // if(!(PouchDB && (PouchDB as any).__defaults && (PouchDB as any).__defaults.adapters)) {
+          //   PouchDB.defaults({adapter:"idb"});
+          // }
+        let PouchDBIDB = PouchDB.defaults({adapter:"idb"});
+        window['PouchDBIDB'] = PouchDBIDB;
+        this.PouchList.push(PouchDBIDB);
+        this.Pouches.PouchDBIDB = PouchDBIDB;
+        Log.l(`PouchDBService.loadIDB(): Success!`);
+        return true;
+      } else {
+        Log.l(`PouchDBService.loadIDB(): FAILED to dynamically import 'pouchdb-adapter-idb'`);
+        return false;
+      }
+    } catch(err) {
+      Log.l(`PouchDBService.loadIDB(): Error loading pouchdb-adapter-idb`);
+      Log.e(err);
+      // throw err;
+      return false;
+    }
+  }
+
+  public async loadWorker():Promise<any> {
+    try {
+      Log.l(`PouchDBService.loadWorker(): Attempting to dynamically import 'worker-pouch' ...`);
+      let pdbWorker = await this.loadPouchPlugin('worker-pouch');
+      if(pdbWorker) {
+        addPouchDBPlugin(PouchDB, pdbWorker, 'adapter-worker');
+        // if(!(PouchDB && (PouchDB as any).__defaults && (PouchDB as any).__defaults.adapters)) {
+          //   PouchDB.defaults({adapter:"idb"});
+          // }
+        let PouchDBWorker = PouchDB.defaults({adapter:"worker"});
+        window['PouchDBWorker'] = PouchDBWorker;
+        this.PouchList.push(PouchDBWorker);
+        this.Pouches.PouchDBWorker = PouchDBWorker;
+        Log.l(`PouchDBService.loadWorker(): Success!`);
+        return true;
+      } else {
+        Log.l(`PouchDBService.loadWorker(): FAILED to dynamically import 'worker-pouch'`);
+        return false;
+      }
+    } catch(err) {
+      Log.l(`PouchDBService.loadWorker(): Error loading worker-pouch`);
+      Log.e(err);
+      // throw err;
+      return false;
+    }
+  }
+
+  public async loadMemory():Promise<any> {
+    try {
+      Log.l(`PouchDBService.loadMemory(): Attempting to dynamically import 'pouchdb-adapter-memory' ...`);
+      let pdbMemory = await this.loadPouchPlugin('pouchdb-adapter-memory', 'adapter-memory');
+      if(pdbMemory) {
+        addPouchDBPlugin(PouchDB, pdbMemory, 'adapter-memory');
+        // if(!(PouchDB && (PouchDB as any).__defaults && (PouchDB as any).__defaults.adapters)) {
+          //   PouchDB.defaults({adapter:"idb"});
+          // }
+        let PouchDBMemory = PouchDB.defaults({adapter:"memory"});
+        window['PouchDBMemory'] = PouchDBMemory;
+        this.PouchList.push(PouchDBMemory);
+        this.Pouches.PouchDBMemory = PouchDBMemory;
+        Log.l(`PouchDBService.loadMemory(): Success!`);
+        return true;
+      } else {
+        Log.l(`PouchDBService.loadMemory(): FAILED to dynamically import 'pouchdb-adapter-memory'`);
+        return false;
+      }
+    } catch(err) {
+      Log.l(`PouchDBService.loadMemory(): Error loading pouchdb-adapter-memory`);
+      Log.e(err);
+      // throw err;
+      return false;
+    }
+  }
+
+  // public async loadIndexedDB():Promise<any> {
+  //   try {
+  //     Log.l(`PouchDBService.loadIndexedDB(): Attempting to dynamically import 'pouchdb-adapter-indexeddb' ...`);
+  //     let pdbIndexedDB = await import('pouchdb-adapter-indexeddb');
+  //     if(pdbIndexedDB) {
+  //       addPouchDBPlugin(PouchDB, pdbIndexedDB, 'adapter-indexeddb');
+  //       // if(!(PouchDB && (PouchDB as any).__defaults && (PouchDB as any).__defaults.adapters)) {
+  //       //   PouchDB.defaults({adapter:"idb"});
+  //       // }
+  //       let PouchDBIndexedDB = PouchDB.defaults({adapter:"indexeddb"});
+  //       window['PouchDBIndexedDB'] = PouchDBIndexedDB;
+  //       this.Pouches.push(PouchDBIndexedDB);
+  //     }
+  //     Log.l(`PouchDBService.loadIndexedDB(): Success!`);
+  //     return true;
+  //   } catch(err) {
+  //     Log.l(`PouchDBService.loadIndexedDB(): Error loading pouchdb-adapter-indexeddb`);
+  //     Log.e(err);
+  //     // throw err;
+  //     return false;
+  //   }
+  // }
 
   public getAuthPouchDB():Promise<any> {
     return new Promise((resolve, reject) => {
@@ -334,6 +478,26 @@ export class PouchDBService {
       return `${protocol}://${user}:${pass}@${server}:${port}`;
     } else {
       return `${protocol}://${user}:${pass}@${server}`;
+    }
+  }
+
+  public getDB(dbname:string):Database {
+    let dbmap:DBList = this.pdb;
+    if(dbmap.has(dbname)) {
+      // Log.l(`addDB(): Not adding local database ${dbname} because it already exists.`);
+      return dbmap.get(dbname);
+    } else {
+      return null;
+    }
+  }
+
+  public getRDB(dbname:string):Database {
+    let dbmap:DBList = this.rdb;
+    if(dbmap.has(dbname)) {
+      // Log.l(`addDB(): Not adding local database ${dbname} because it already exists.`);
+      return dbmap.get(dbname);
+    } else {
+      return null;
     }
   }
 
@@ -449,7 +613,7 @@ export class PouchDBService {
             Log.w(`closeDB(): Database '${dbname}' sync was not properly canceled!`);
           }
         }
-        let result:any = await db.destroy();
+        let result:any = await db.close();
         // let result:any = db.destroy();
         let success:boolean = dbmap.delete(dbname);
         return success;
@@ -474,7 +638,10 @@ export class PouchDBService {
       // Log.l(`addRDB(): Now fetching remote DB ${dbname} at ${url} ...`);
       if(rdbmap.has(dbname)) {
         let rdb:Database = rdbmap.get(dbname);
-        let result:any = await rdb.destroy();
+        if(this.isSynced(dbname)) {
+          this.cancelSync(dbname);
+        }
+        let result:any = await rdb.close();
         // let result:any = rdb.destroy();
         let success:boolean = rdbmap.delete(dbname);
         return success;
@@ -487,6 +654,79 @@ export class PouchDBService {
       Log.e(err);
       // throw err;
       return false;
+    }
+  }
+
+  public async closeAllDB():Promise<boolean> {
+    try {
+      let dbmap:DBList = this.pdb;
+      let keys:string[] = Array.from(dbmap.keys());
+      let problem:boolean = false;
+      for(let key of keys) {
+        Log.l(`PouchDBService.closeAllDB(): Attempting to close '${key}' …`);
+        try {
+          let out = await this.closeDB(key);
+        } catch (error) {
+          Log.l(`PouchDBService.closeAllDB(): Error closing database:`, key);
+          Log.l(error);
+          problem = true;
+        }
+      }
+      Log.l(`closeAllDB(): RDB list is now:`, dbmap);
+      Log.l(`closeAllDB(): Sync list is now:`, this.PDBSyncs);
+      return problem;
+    } catch(err) {
+      Log.l(`closeAllDB(): Error closing all PouchDB databases`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public async closeAllRDB():Promise<boolean> {
+    try {
+      let dbmap:DBList = this.rdb;
+      let keys:string[] = Array.from(dbmap.keys());
+      let problem:boolean = false;
+      for(let key of keys) {
+        Log.l(`PouchDBService.closeAllRDB(): Attempting to close '${key}' …`);
+        try {
+          let out = await this.closeRDB(key);
+        } catch (error) {
+          Log.l(`PouchDBService.closeAllRDB(): Error closing remote database:`, key);
+          Log.l(error);
+          problem = true;
+        }
+      }
+      Log.l(`closeAllRDB(): RDB list is now:`, dbmap);
+      Log.l(`closeAllRDB(): Sync list is now:`, this.PDBSyncs);
+      return problem;
+    } catch(err) {
+      Log.l(`closeAllRDB(): Error closing all remote PouchDB databases`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public async clearDatabaseDirectory():Promise<boolean> {
+    try {
+      let pouchdir:string = this.getPouchDBPrefix();
+      try {
+        let res:boolean = await this.closeAllRDB();
+        res = await this.closeAllDB();
+        if(!res) {
+          return false;
+        }
+        let result:boolean = this.removeDirectoryContentsSync(pouchdir);
+        return result;
+      } catch (error) {
+        Log.l(`PouchDBService.clearDatabaseDirectory(): Error cleaning directory '${pouchdir}'`);
+        Log.l(error);
+        return false;
+      }
+    } catch(err) {
+      Log.l(`PouchDBService.clearDatabaseDirectory(): Error cleaning out DB directory`);
+      Log.e(err);
+      throw err;
     }
   }
 
@@ -605,6 +845,7 @@ export class PouchDBService {
         let dbsync:PDBSync = syncmap.get(dbname);
         Log.l(`cancelSync('${dbname}'): Attempting to cancel sync via dbsync:\n`, dbsync);
         let output:any = dbsync.cancel();
+        syncmap.delete(dbname);
         // Log.l(`cancelSync('${dbname}'): Output of cancel event was:\n`, output);
         return true;
       } else {
@@ -943,6 +1184,26 @@ export class PouchDBService {
       } else if(type === FileOrDirectoryType.DIRECTORY) {
         // fs.rmdirSync(possibleFile);
         rimraf.sync(possibleFile);
+        status = true;
+      }
+      return status;
+    } catch (err) {
+      Log.l(`removeFileOrDirectorySync(): Error removing '${fullpath}', returning false.`);
+      Log.e(err)
+      return false;
+    }
+  }
+  
+  public removeDirectoryContentsSync(fullpath:string):boolean {
+    let dir:string = fullpath;
+    let status:boolean = false;
+    try {
+      dir = path.normalize(fullpath);
+      let type:FileOrDirectoryType = this.isFileOrDirectorySync(dir);
+      if(type === FileOrDirectoryType.DIRECTORY) {
+        let rmTarget:string = path.join(dir, "**", "*");
+        rimraf.sync(rmTarget);
+        // fs.unlinkSync(possibleFile);
         status = true;
       }
       return status;

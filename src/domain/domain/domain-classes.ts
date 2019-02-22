@@ -1,6 +1,7 @@
 export * from './address'           ;
 export * from './comment'           ;
 export * from './database-progress' ;
+export * from './database-status'   ;
 export * from './dps'               ;
 export * from './employee'          ;
 // export * from './geolocation'       ;

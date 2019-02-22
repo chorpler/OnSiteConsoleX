@@ -5,12 +5,12 @@
         <ion-icon name="menu"></ion-icon>
       </button>
       <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode">
-        <i class="fa fa-window-close-o"></i>
+        <i class="fal fa-window-close"></i>
       </button>
     </ion-buttons> -->
     <ion-buttons left>
       <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode && !data.currentlyOpeningPage">
-        <i class="fa fa-window-close-o"></i>
+        <i class="fal fa-window-close"></i>
       </button>
       <button ion-button menuToggle *ngIf="!modalMode && !data.currentlyOpeningPage">
         <ion-icon name="menu"></ion-icon>
@@ -29,10 +29,10 @@
             <i class="fa fa-cog"></i>
           </span>
           <span class="menubar-button" (click)="newMessage($event)" title="Add New Message">
-            <i class="fa fa-plus-square-o"></i>
+            <i class="fal fa-plus-square"></i>
           </span>
           <span class="menubar-button" (click)="postMessage($event)" title="Send message to all users">
-            <i class="fa fa-paper-plane-o"></i>
+            <i class="fal fa-paper-plane"></i>
           </span>
         </span>
       </span>

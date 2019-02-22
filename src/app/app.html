@@ -14,6 +14,7 @@
 <!-- <database-progress #databaseProgressComponent *ngIf="progressVisible" [(dbProgress)]="dbProgress" (onPause)="progressPause($event)" (onClose)="progressClosed($event)" (onAbort)="progressAborted($event)"></database-progress> -->
 <database-progress #databaseProgressComponent *ngIf="progressVisible" [(percentage)]="dbDownloadPercentage" [(status)]="downloadStatus" (onClose)="progressClosed($event)" (onAbort)="progressAborted($event)"></database-progress>
 
+<database-status #databaseStatusComponent *ngIf="dbStatusVisible" (onClose)="dbStatusClosed($event)"></database-status>
 <!-- <editor-json #jsonEditor [options]="jsonEditorOptions" [data]="jsonData" (onCancel)="editPrefsCanceled($event)" (onUpdate)="editPrefsSaved($event)" *ngIf="jsonEditorVisible"></editor-json> -->
 
 <!-- <json-editor #jsonEditorComponent [options]="jsonEditorOptions" [data]="jsonData" *ngIf="jsonEditorVisible"></json-editor> -->

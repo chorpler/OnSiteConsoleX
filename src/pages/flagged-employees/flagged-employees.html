@@ -22,7 +22,7 @@
         <i class="fa fa-table"></i>
       </button>
       <button class="employees-buttons employees-add-button" ion-button icon-only (click)="addEmployee($event)" title="Add Employee">
-        <i class="fa fa-plus-square-o"></i>
+        <i class="fal fa-plus-square"></i>
       </button>
     </ion-buttons>
   </ion-navbar>
@@ -52,7 +52,7 @@
         <ng-template pTemplate="header">--</ng-template>
         <ng-template let-employee="rowData" let-col let-ri="rowIndex" pTemplate="body">
           <span class="column-button" (click)="deleteLoginEmployee(employee)" title="Delete Employee Login for '{{employee.getTechName()}}'" (mouseenter)="setHighlight(ri, true)" (mouseleave)="setHighlight(ri, false)">
-            <span class="row-edit-icon"><i class="fa fa-trash-o"></i></span>
+            <span class="row-edit-icon"><i class="fal fa-trash-alt"></i></span>
           </span>
         </ng-template>
       </p-column>

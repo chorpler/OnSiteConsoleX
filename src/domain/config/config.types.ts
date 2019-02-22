@@ -685,6 +685,13 @@ export interface IDatabaseProgress {
   percent ?: number;
 }
 
+export interface IDatabaseStatus {
+  dbname     ?: string;
+  dbkey      ?: string;
+  localDocs  ?: number;
+  remoteDocs ?: number;
+}
+
 export var STRINGS = {
   NUMCHARS: ["⓪", "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨"],
 }

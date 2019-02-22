@@ -406,48 +406,48 @@ export class HomePage implements OnInit,OnDestroy {
 
   public async viewLogisticsReports(evt?:Event):Promise<any> {
     try {
-      Log.l(`viewLogisticsReports(): Running with arguments:\n`, arguments);
+      Log.l(`viewLogisticsReports(): Running with arguments:`, arguments);
       // this.navCtrl.setRoot('Reports Gamma', {scrollTo: 'logistics'});
       this.goToPageDelay('Reports Gamma', {scrollTo: 'logistics'});
 
       // return res;
     } catch(err) {
-      Log.l(`viewLogisticsReports(): Error running with arguments:\n`, arguments);
+      Log.l(`viewLogisticsReports(): Error running with arguments:`, arguments);
       Log.e(err);
       throw err;
     }
   }
   public async loadLogisticsReports(evt?:Event):Promise<any> {
     try {
-      Log.l(`loadLogisticsReports(): Running with arguments:\n`, arguments);
+      Log.l(`loadLogisticsReports(): Running with arguments:`, arguments);
       this.dispatch.triggerAppEvent('updatelogistics');
     } catch(err) {
-      Log.l(`loadLogisticsReports(): Error running with arguments:\n`, arguments);
+      Log.l(`loadLogisticsReports(): Error running with arguments:`, arguments);
       Log.e(err);
       throw err;
     }
   }
   public async viewTimeCardReports(evt?:Event):Promise<any> {
     try {
-      Log.l(`viewTimeCardReports(): Running with arguments:\n`, arguments);
+      Log.l(`viewTimeCardReports(): Running with arguments:`, arguments);
       // this.navCtrl.setRoot('Reports Gamma', {scrollTo: 'timecards'});
       this.goToPageDelay('Reports Gamma', {scrollTo: 'timecards'});
 
       // return res;
     } catch(err) {
-      Log.l(`viewTimeCardReports(): Error running with arguments:\n`, arguments);
+      Log.l(`viewTimeCardReports(): Error running with arguments:`, arguments);
       Log.e(err);
       throw err;
     }
   }
   public async loadTimeCardReports(evt?:Event):Promise<any> {
     try {
-      Log.l(`loadTimeCardReports(): Running with arguments:\n`, arguments);
+      Log.l(`loadTimeCardReports(): Running with arguments:`, arguments);
       this.dispatch.triggerAppEvent('updatetimecards');
 
       // return res;
     } catch(err) {
-      Log.l(`loadTimeCardReports(): Error running with arguments:\n`, arguments);
+      Log.l(`loadTimeCardReports(): Error running with arguments:`, arguments);
       Log.e(err);
       throw err;
     }
@@ -455,7 +455,7 @@ export class HomePage implements OnInit,OnDestroy {
 
   public async viewWorkSites(type:string, evt?:Event):Promise<any> {
     try {
-      Log.l(`viewWorkSites(): Running with arguments:\n`, arguments);
+      Log.l(`viewWorkSites(): Running with arguments:`, arguments);
       // this.navCtrl.setRoot('Reports Gamma', {scrollTo: 'timecards'});
       if(type === 'active') {
         this.goToPageDelay('Work Sites', {show: 'active'});
@@ -465,7 +465,7 @@ export class HomePage implements OnInit,OnDestroy {
 
       // return res;
     } catch(err) {
-      Log.l(`viewWorkSites(): Error running with arguments:\n`, arguments);
+      Log.l(`viewWorkSites(): Error running with arguments:`, arguments);
       Log.e(err);
       throw err;
     }
@@ -473,7 +473,7 @@ export class HomePage implements OnInit,OnDestroy {
 
   public async viewEmployees(type:string, evt?:Event):Promise<any> {
     try {
-      Log.l(`viewEmployees(): Running with arguments:\n`, arguments);
+      Log.l(`viewEmployees(): Running with arguments:`, arguments);
       // this.navCtrl.setRoot('Reports Gamma', {scrollTo: 'timecards'});
       if(type === 'all') {
         this.goToPageDelay('Employees', {type: 'all'});
@@ -485,7 +485,7 @@ export class HomePage implements OnInit,OnDestroy {
 
       // return res;
     } catch(err) {
-      Log.l(`viewEmployees(): Error running with arguments:\n`, arguments);
+      Log.l(`viewEmployees(): Error running with arguments:`, arguments);
       Log.e(err);
       throw err;
     }
@@ -493,12 +493,12 @@ export class HomePage implements OnInit,OnDestroy {
 
   public async goToPageDelay(page:string, params?:any, options?:NavOptions, evt?:Event):Promise<any> {
     try {
-      Log.l(`goToPageDelay(): Called with arguments:\n`, arguments);
+      Log.l(`goToPageDelay(): Called with arguments:`, arguments);
       let pageDelay:number = 500;
       if(typeof this.navDelay === 'number') {
         pageDelay = this.navDelay;
       }
-      Log.l(`goToPageDelay(): About to set up timeout for page '${page}' with params:\n`, params);
+      Log.l(`goToPageDelay(): About to set up timeout for page '${page}' with params:`, params);
       setTimeout(() => {
         Log.l(`goToPageDelay(): Delay is up, now attempting to go to page '${page}' ...`);
         this.goToPage(page, params, options, evt);
@@ -514,7 +514,7 @@ export class HomePage implements OnInit,OnDestroy {
 
   public async goToPage(page:string, params?:any, options?:NavOptions, evt?:Event):Promise<any> {
     try {
-      Log.l(`goToPage(): Called with arguments:\n`, arguments);
+      Log.l(`goToPage(): Called with arguments:`, arguments);
       if(typeof page === 'string') {
         let navParams:any = {page: page};
         if(params != undefined) {
@@ -524,7 +524,7 @@ export class HomePage implements OnInit,OnDestroy {
           navParams['options'] = options;
           // this.navCtrl.setRoot(page, params);
         }
-        Log.l(`goToPage(): About to trigger 'openpage' event with data event:\n`, navParams);
+        Log.l(`goToPage(): About to trigger 'openpage' event with data event:`, navParams);
         this.dispatch.triggerAppEvent('openpage', navParams);
         // if(params != undefined) {
         //   if(options != undefined) {
@@ -536,20 +536,25 @@ export class HomePage implements OnInit,OnDestroy {
         //   this.navCtrl.setRoot(page);
         // }
       } else {
-        Log.w(`goToPage(): Invalid page called:\n`, page);
+        Log.w(`goToPage(): Invalid page called:`, page);
       }
     } catch(err) {
-      Log.l(`goToPage(): Error going to page:\n`, arguments);
+      Log.l(`goToPage(): Error going to page:`, arguments);
       Log.e(err);
       throw err;
     }
   }
 
   public menuButtonClick(event?:any) {
-    Log.l("menuButtonClick(): Event is:\n", event);
+    Log.l("menuButtonClick(): Event is:", event);
     if(event) {
       this.electron.buttonClick(event);
     }
+  }
+
+  public showDatabaseStatus(event?:MouseEvent) {
+    Log.l("Home.showDatabaseStatus(): Event is:", event);
+    this.dispatch.triggerAppEvent('showdbstatus', event);
   }
 
 }

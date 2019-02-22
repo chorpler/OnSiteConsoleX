@@ -5,7 +5,7 @@
         <!-- <td class="cell-button-like" (click)="splitReport($event)"  title="Split work report" ><span class="svg-icon"></span></td> -->
         <!-- <td class="cell-button-like" (click)="splitReport($event)"  title="Split work report" ><svg viewBox="0 0 26 26" class="icon svg-icon"></svg></td> -->
         <td class="cell-button-like" (click)="splitReport($event)"  title="Split work report" *ngIf="data.status.role==='dev'"><i class="icomoon-split icon-button-like"></i></td>
-        <td class="cell-button-like" (click)="deleteReport($event)" title="Delete work report"                                ><i class="fa fa-trash-o icon-button-like"></i></td>
+        <td class="cell-button-like" (click)="deleteReport($event)" title="Delete work report"                                ><i class="fal fa-trash-alt icon-button-like"></i></td>
         <td class="cell-button-like" (click)="saveNoExit($event)"   title="Save, don't exit"                                  ><i class="fa fa-save icon-button-like"   ></i></td>
         <div *ngIf="idx+1 > 1; then previousAvailable; else previousUnavailable"></div>
         <div *ngIf="idx+1 < count; then nextAvailable; else nextUnavailable"></div>

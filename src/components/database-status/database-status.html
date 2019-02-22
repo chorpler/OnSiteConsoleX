@@ -1,0 +1,47 @@
+<p-dialog #databaseStatusDialog [styleClass]="'db-status-dialog'" [header]="header" [showHeader]="headerVisible" [(visible)]="isVisible" [draggable]="isDraggable" [resizable]="isResizable" [closable]="isClosable" [modal]="isModal" (onHide)="cancel($event)">
+  <p-header>
+    <div class="header-row">
+      <div class="header-title">Database Replication Status</div>
+      <div class="header-buttons">
+        <span class="header-button" (click)="reinitializeDatabases($event)"><i class="fal fa-database"></i></span>
+      </div>
+      <div class="header-close">
+        <span class="header-close-button" (click)="cancel($event)"><i class="fa fa-times"></i></span>
+      </div>
+    </div>
+  </p-header>
+  <div class="db-status-wrapper">
+    <!-- <span class="status-sectiontitle">Database Replication Progress</span> -->
+    <div class="status-table">
+      <div class="header" [class.header-scroll-pad]="isBodyScrolling()">
+        <div class="row">
+          <div class="cell col-01">Database</div>
+          <div class="cell col-02">Local</div>
+          <div class="cell col-03">Server</div>
+          <div class="cell col-04">Remaining</div>
+          <div class="cell col-05">Sync %</div>
+        </div>
+      </div>
+      <div #databaseStatusBody class="body">
+        <ng-container *ngIf="dbProgress">
+          <div class="row" *ngFor="let key of getKeys(dbProgress)">
+            <div class="cell col-01"><span class="data-text">{{key}}</span></div>
+            <div class="cell col-02"><span class="data-text">{{sprintf("%07d", dbProgress[key]?.localDocs)}}</span></div>
+            <div class="cell col-03"><span class="data-text">{{sprintf("%07d", dbProgress[key]?.remoteDocs)}}</span></div>
+            <div class="cell col-04"><span class="data-text">{{dbProgress[key]?.getRemaining()}}</span></div>
+            <div class="cell col-05"><span class="progress-bar-wrapper"><p-progressBar [class.db-status-bar]="true" [value]="dbProgress[key]?.getPercent(2)"></p-progressBar></span></div>
+          </div>
+        </ng-container>
+        <ng-container *ngIf="!dbProgress">
+
+        </ng-container>
+      </div>
+    </div>
+  </div>
+  <p-footer>
+    <div class="status-buttons">
+      <!-- <button class="ui-button-danger  abort"                                 pButton type="button" (click)="abort($event)" label="Abort"></button> -->
+      <button class="ui-button-success close" pButton type="button" (click)="close($event)" label="OK"></button>
+    </div>
+  </p-footer>
+</p-dialog>

@@ -1,0 +1,285 @@
+database-status {
+  $min-width-table : 700px ;
+  $min-width-col01 : 160px ;
+  $min-width-col02 :  90px ;
+  $min-width-col03 :  90px ;
+  $min-width-col04 :  90px ;
+  $min-width-col05 : 250px ;
+  $width-col01     : 25%   ;
+  $width-col02     : 15%   ;
+  $width-col03     : 15%   ;
+  $width-col04     : 15%   ;
+  $width-col05     : 30%   ;
+  .db-status-dialog {
+    &.ui-dialog {
+      &.ui-widget {
+        .ui-dialog-titlebar {
+          text-align: center;
+          font-weight: bold;
+          background: rgba(225, 225, 225, 1.0);
+          // padding: 1em 1em;
+          padding: 0.7em 1em;
+          .ui-dialog-title {
+            text-align: center;
+            font-weight: bold;
+            display: block;
+          }
+
+        }
+      }
+    }
+  }
+  .header-row {
+    display         : flex        ;
+    flex-flow       : row nowrap  ;
+    justify-content : space-between ;
+    align-content   : center ;
+    align-items     : center ;
+    position: relative;
+    .header-title {
+      flex: 0 1 75%;
+      font-weight: bold;
+      text-align: center;
+    }
+    .header-buttons {
+      flex: 0 1 25%;
+      display         : flex        ;
+      flex-flow       : row nowrap  ;
+      justify-content : flex-end ;
+      align-content   : center ;
+      align-items     : center ;
+      font-size: 24px;
+      padding-right: 16px;
+      .header-button {
+        @include button-like;
+        // @include button-like-block;
+        // @include button-like-block-shadow;
+        padding: 4px 8px;
+        border-radius: 5px;
+        margin-left: 4px;
+        margin-right: 4px;
+      }
+    }
+    .header-close {
+      .header-close-button {
+        @include button-like-block;
+        position: absolute;
+        top: -10px;
+        right: -16px;
+        padding: 4px 8px;
+        border-radius: 5px;
+      }
+    }
+  }
+
+  .status-label {
+
+  }
+  .status-bar-wrapper {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    // min-height: 30px;
+    .db-status-bar,.db-progress-bar {
+      // min-height: 28px;
+      .ui-statusbar {
+        height: 2em;
+        .ui-statusbar-label {
+          font-size: 1.5em;
+        }
+      }
+    }
+  }
+  .download-status {
+    min-width: 420px;
+    min-height: 40px;
+    border: 1px dotted lightgrey;
+    font-weight: bold;
+    font-family: "RobotoMono";
+  }
+  .status-sectiontitle {
+    text-align: center;
+    font-size: 32px;
+    font-weight: bold;
+    border-top: 1px solid lightgrey;
+    border-bottom: 1px solid lightgrey;
+    width: 100%;
+    background-color: rgb(230, 225, 225);
+    margin-top: 30px;
+    margin-bottom: 15px;
+    &:first-of-type {
+      margin-top: 0;
+      border-top: 0;
+    }
+  }
+
+
+  // .db-status-bar {
+  //   .ui-status-bar {
+  //     &.ui-widget-content {
+  //       // border: 0;
+  //       width: 100%;
+  //       max-width: 100%;
+  //     }
+  //   }
+  // }
+
+  .status-table {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: flex-start;
+    align-content: center;
+    align-items: center;
+    width: 95%;
+    min-width: $min-width-table;
+    margin-left: auto;
+    margin-right: auto;
+    .row {
+      width: 100%;
+      .cell {
+        // border: 1px dotted lightgrey;
+      }
+    }
+    .col-01 {
+      min-width: $min-width-col01;
+      width: $width-col01;
+    }
+    .col-02 {
+      min-width: $min-width-col02;
+      width: $width-col02;
+    }
+    .col-03 {
+      min-width: $min-width-col03;
+      width: $width-col03;
+      text-align: center;
+    }
+    .col-04 {
+      min-width: $min-width-col04;
+      width: $width-col04;
+      text-align: center;
+    }
+    .col-05 {
+      min-width: $min-width-col05;
+      width: $width-col05;
+      text-align: center;
+    }
+    .header {
+      width: 100%;
+      flex: 0 1 auto;
+      text-align: center;
+      font-weight: bold;
+      text-decoration: underline;
+      // border-bottom: 3px dotted lightgrey;
+      &.header-scroll-pad {
+        padding-right: 12px;
+      }
+      .row {
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content: flex-start;
+        align-content: center;
+        align-items: center;
+        .cell {
+          display: table-cell;
+          text-align: center;
+          border-bottom: 2px solid lightgrey;
+          &.col-01 {
+            // min-width: $min-width-col01;
+            // width: $width-col01;
+            font-weight: bold;
+            // text-align: right;
+          }
+          &.col-02 {
+            // min-width: $min-width-col02;
+            // width: $width-col02;
+            // text-align: center;
+            padding-right: 0;
+          }
+          &.col-03 {
+            // min-width: $min-width-col03;
+            // width: $width-col03;
+            // text-align: right;
+          }
+          &.col-04 {
+            // min-width: $min-width-col03;
+            // width: $width-col03;
+            // text-align: right;
+          }
+          &.col-05 {
+            // min-width: $min-width-col03;
+            // width: $width-col03;
+            // text-align: right;
+          }
+        }
+      }
+    }
+    .body {
+      width: 100%;
+      flex: 0 1 auto;
+      max-height: 500px;
+      min-height: 500px;
+      overflow-y: auto;
+      @include fancy-scrollbar-console;
+      .row {
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content: flex-start;
+        align-content: center;
+        align-items: center;
+        margin-top: 2px;
+        margin-bottom: 2px;
+        border: 1px dotted lightgrey;
+        .cell {
+          padding-top: 4px;
+          padding-bottom: 4px;
+          &.col-01 {
+            font-weight: bold;
+            text-align: left;
+          }
+          &.col-02 {
+            text-align: center;
+            padding-right: 0;
+          }
+          &.col-03 {
+            text-align: center;
+            // padding-right: 5px;
+          }
+          &.col-04 {
+            text-align: center;
+            // padding-right: 5px;
+          }
+          &.col-05 {
+            text-align: right;
+            padding-left: 5px;
+            padding-right: 5px;
+          }
+        }
+        .data-text {
+        }
+      }
+    }
+  }
+  .footer {
+    .cell {}
+    .time-wrapper {}
+    .label {}
+    .time {}
+  }
+  .ui-dialog-footer {
+    border: none;
+    border-top: 2px outset lightgray;
+    // border-radius: 5px;
+    .status-buttons {
+      width: 100%;
+      // margin-top: 10px;
+      display         : flex         ;
+      flex-flow       : row nowrap   ;
+      justify-content : space-around ;
+      align-content   : center       ;
+      align-items     : center       ;
+      button {
+        width: 48%;
+        min-height: 35px;
+      }
+    }
+  }
+}

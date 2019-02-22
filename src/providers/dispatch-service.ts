@@ -5,7 +5,7 @@ import { Employee, Jobsite, Report, ReportOther,    } from 'domain/onsitexdomain
 import { Shift, PayrollPeriod, Schedule, Schedules, } from 'domain/onsitexdomain' ;
 import { Notice,                                    } from 'domain/onsitexdomain' ;
 
-export type AppEvents = 'openpage' | 'authenticate' | 'login' | 'logout' | 'updatedata' | 'updatelogistics' | 'updatetimecards' | 'dataupdated' | 'dbupdated' | 'options' | 'saveprefs' | 'testnotifications' | 'menuclosed' | 'starttime' | 'endtime' | 'elapsedtime' | 'replicationerror' | 'replicationcomplete' | 'find-in-page';
+export type AppEvents = 'openpage' | 'authenticate' | 'login' | 'logout' | 'updatedata' | 'updatelogistics' | 'updatetimecards' | 'dataupdated' | 'dbupdated' | 'options' | 'saveprefs' | 'testnotifications' | 'menuclosed' | 'starttime' | 'endtime' | 'elapsedtime' | 'replicationerror' | 'replicationcomplete' | 'find-in-page' | 'showdbstatus' | 'downloaddb' | 'reinitializedb';
 
 @Injectable()
 export class DispatchService {

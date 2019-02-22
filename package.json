@@ -331,6 +331,7 @@
     "uuid": "^3.3.2",
     "websql": "^1.0.0",
     "whatwg-url": "^7.0.0",
+    "worker-pouch": "^2.1.0",
     "zone.js": "^0.8.29"
   },
   "devDependencies": {

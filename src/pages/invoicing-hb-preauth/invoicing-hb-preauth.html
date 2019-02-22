@@ -2,7 +2,7 @@
   <ion-navbar>
     <ion-buttons left>
       <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode && !data.currentlyOpeningPage">
-        <i class="fa fa-window-close-o"></i>
+        <i class="fal fa-window-close"></i>
       </button>
       <button ion-button menuToggle *ngIf="!modalMode && !data.currentlyOpeningPage">
         <ion-icon name="menu"></ion-icon>
@@ -14,7 +14,7 @@
         <ion-icon name="menu"></ion-icon>
       </button>
       <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode">
-        <i class="fa fa-window-close-o"></i>
+        <i class="fal fa-window-close"></i>
       </button>
     </ion-buttons> -->
     <ion-title>
@@ -61,7 +61,7 @@
         <!-- Buttons -->
         <span class="final-buttons">
           <span class="menubar-button button-like-block" (click)="generatePreauths($event)" title="Generate selected preauth report(s)">
-            <i class="fa fa-file-text-o"></i>
+            <i class="fal fa-file-alt"></i>
           </span>
           <span class="menubar-button button-like-block" (click)="clearPreauth($event)" title="Clear existing preauth sheet(s)">
             <i class="fa fa-ban"></i>

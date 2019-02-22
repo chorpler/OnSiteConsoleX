@@ -5,7 +5,7 @@
     </button> -->
     <ion-buttons left>
       <button ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode && !data.currentlyOpeningPage">
-        <i class="fa fa-window-close-o"></i>
+        <i class="fal fa-window-close"></i>
       </button>
       <button ion-button menuToggle *ngIf="!modalMode && !data.currentlyOpeningPage">
         <ion-icon name="menu"></ion-icon>
@@ -55,7 +55,7 @@
       <div class="config-table-wrapper">
         <div class="table-title-wrapper">
           <div class="table-title-buttons">
-            <i class="fa fa-check-square-o icon-button-like config-button" (click)="saveConfig('locID', $event)"></i>
+            <i class="fal fa-check-square icon-button-like config-button" (click)="saveConfig('locID', $event)"></i>
           </div>
           <div class="table-title">Location IDs</div>
           <div class="table-title-buttons">
@@ -83,7 +83,7 @@
       <div class="config-table-wrapper">
         <div class="table-title-wrapper">
           <div class="table-title-buttons">
-            <i class="fa fa-check-square-o icon-button-like config-button" (click)="saveConfig('client', $event)"></i>
+            <i class="fal fa-check-square icon-button-like config-button" (click)="saveConfig('client', $event)"></i>
           </div>
           <div class="table-title">Clients</div>
           <div class="table-title-buttons">
@@ -111,7 +111,7 @@
       <div class="config-table-wrapper">
         <div class="table-title-wrapper">
           <div class="table-title-buttons">
-            <i class="fa fa-check-square-o icon-button-like config-button" (click)="saveConfig('location', $event)"></i>
+            <i class="fal fa-check-square icon-button-like config-button" (click)="saveConfig('location', $event)"></i>
           </div>
           <div class="table-title">Locations</div>
           <div class="table-title-buttons">
