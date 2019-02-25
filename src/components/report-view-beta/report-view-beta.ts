@@ -1,4 +1,4 @@
-import { Subscription                                              } from 'rxjs'             ;
+import { Subscription                                              } from 'rxjs'                          ;
 import { sprintf                                                   } from 'sprintf-js'                    ;
 import { Component, OnInit, OnDestroy, NgZone, Input, Output,      } from '@angular/core'                 ;
 import { ElementRef, ViewChild, EventEmitter,                      } from '@angular/core'                 ;

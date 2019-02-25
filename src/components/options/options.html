@@ -63,7 +63,7 @@
             <span class="options-item-wrapper has-buttons" title="Current invoice number for Halliburton invoices">
               <span class="options-label">Halliburton Invoice Number</span>
               <input class="options-input" type="number" min="0" step="1" [(ngModel)]="halliburtonInvoiceNumber" />
-              <i class="fa fa-check-circle-o options-button save-button" aria-hidden="true" title="Save to server" (click)="saveHalliburtonInvoiceNumber($event)"></i>
+              <i class="fal fa-check-circle options-button save-button" aria-hidden="true" title="Save to server" (click)="saveHalliburtonInvoiceNumber($event)"></i>
               <i class="fa fa-refresh options-button refresh-button" aria-hidden="true" [class.spin-icon]="spinner1On" [class.stop-icon]="!spinner1On" title="Refresh from server" (click)="refreshHalliburtonInvoiceNumber($event)"></i>
             </span>
           </span>
@@ -71,7 +71,7 @@
             <span class="options-item-wrapper has-buttons" title="Current invoice number for Keane invoices">
               <span class="options-label">Keane Invoice Number</span>
               <input class="options-input" type="number" min="0" step="1" [(ngModel)]="keaneInvoiceNumber" />
-              <i class="fa fa-check-circle-o options-button save-button" aria-hidden="true" title="Save to server" (click)="saveKeaneInvoiceNumber($event)"></i>
+              <i class="fal fa-check-circle options-button save-button" aria-hidden="true" title="Save to server" (click)="saveKeaneInvoiceNumber($event)"></i>
               <i class="fa fa-refresh options-button refresh-button" aria-hidden="true" [class.spin-icon]="spinner2On" [class.stop-icon]="!spinner2On" title="Refresh from server" (click)="refreshKeaneInvoiceNumber($event)"></i>
             </span>
           </span>

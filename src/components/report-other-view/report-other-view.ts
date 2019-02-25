@@ -1,4 +1,4 @@
-import { Subscription                                              } from 'rxjs'             ;
+import { Subscription                                              } from 'rxjs'                          ;
 import { sprintf                                                   } from 'sprintf-js'                    ;
 import { Component, OnInit, OnDestroy, NgZone, Input, Output,      } from '@angular/core'                 ;
 import { ElementRef, ViewChild, EventEmitter,                      } from '@angular/core'                 ;
@@ -36,12 +36,18 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
   @Input('shift')     shift : Shift                   ;
   @Input('period')   period : PayrollPeriod           ;
   @Input('other')     other : ReportOther             ;
-  @Input('others')   others : Array<ReportOther> = [] ;
+  @Input('others')   others : ReportOther[] = []      ;
   @Input('tech')       tech : Employee                ;
   @Input('site')       site : Jobsite                 ;
-  @Input('sites')     sites : Array<Jobsite> = []     ;
+  @Input('sites')     sites : Jobsite[] = []          ;
+  @Output('cancel') cancel = new EventEmitter<any>();
   @Output('finished') finished = new EventEmitter<any>();
   @Output('reportChange') reportChange = new EventEmitter<any>();
+  
+  public visible    : boolean        = true               ;
+  public dialogLeft : number         = 250                ;
+  public dialogTop  : number         = 100                ;
+  public header     : string         = "View Misc Report" ;
   public title      : string         = "View Misc Report" ;
   public keySubscription: Subscription                    ;
   public dateFormat : "excel"|"moment" = "excel"          ;
@@ -50,13 +56,13 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
   public idx        : number         = 0                  ;
   public count      : number         = 0                  ;
   public report_date: Date                                ;
-  public client     : any            ;
-  public location   : any            ;
-  public locID      : any            ;
+  public client     : any                                 ;
+  public location   : any                                 ;
+  public locID      : any                                 ;
 
-  public clients     :Array<any>     = []                 ;
-  public locations   :Array<any>     = []                 ;
-  public locIDs      :Array<any>     = []                 ;
+  public clients     :any[]     = []                      ;
+  public locations   :any[]     = []                      ;
+  public locIDs      :any[]     = []                      ;
   public repair_hours:number = 0;
   public time_start  :Date           = new Date()         ;
   public time_end    :Date           = new Date()         ;
@@ -67,12 +73,24 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
   public locIDList   :SelectItem[]   = []                 ;
   public timeList    :SelectItem[]   = []                 ;
   public unassigned  :Jobsite                             ;
-  public reportUndo  :Array<any>     = []                 ;
+  public oldComponent:any                                 ;
+  public reportUndo  :any[]     = []                      ;
   public dataReady   :boolean        = false              ;
 
-  constructor(public db:DBService, public server:ServerService, public alert:AlertService, public data:OSData, public notify:NotifyService, public keyService:KeyCommandService, public numServ:NumberService) {
-    window['reportviewcomponent'] = this;
+  constructor(
+    public db         : DBService         ,
+    public server     : ServerService     ,
+    public alert      : AlertService      ,
+    public data       : OSData            ,
+    public notify     : NotifyService     ,
+    public keyService : KeyCommandService ,
+    public numServ    : NumberService     ,
+  ) {
+    window['reportviewcomponent' ] = this;
+    // window['reportviewcomponent2'] = this;
     window['_dedupe'] = _dedupe;
+    this.oldComponent = window['p'];
+    window['p'] = this;
   }
 
   ngOnInit() {
@@ -86,11 +104,11 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
       }
     });
 
-    this.data.appReady().then(res => {
+    if(this.data.isAppReady()) {
       let backupReport = oo.clone(this.other);
       this.reportUndo.push(backupReport);
       this.runWhenReady();
-    });
+    }
   }
 
   ngOnDestroy() {
@@ -98,6 +116,7 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
     if(this.keySubscription) {
       this.keySubscription.unsubscribe();
     }
+    window['p'] = this.oldComponent;
   }
 
   public runWhenReady() {
@@ -205,11 +224,11 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
     this.other.setSite(site);
   }
 
-  public cancel(event?:any) {
-    // this.viewCtrl.dismiss();
-    Log.l("cancel(): Clicked, event is:\n", event);
-    this.finished.emit(event);
-  }
+  // public cancel(event?:any) {
+  //   // this.viewCtrl.dismiss();
+  //   Log.l("cancel(): Clicked, event is:\n", event);
+  //   this.finished.emit(event);
+  // }
 
   public saveNoExit() {
     this.db.saveOtherReport(this.other).then(res => {
@@ -251,7 +270,7 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
     let report = this.other;
     this.db.deleteOtherReport(report).then(res => {
       Log.l("deleteReport(): Successfully deleted report.");
-      this.cancel(event);
+      this.cancel.emit(event);
     }).catch(err => {
       Log.l("deleteReport(): Error deleting report.");
       Log.e(err);
@@ -370,6 +389,13 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
     } else {
       this.dateFormat = 'excel';
     }
+  }
+
+  public cancelClicked(event?:Event) {
+    // this.viewCtrl.dismiss();
+    Log.l("cancelClicked(): Clicked, event is:", event);
+    this.cancel.emit(event);
+    this.finished.emit(event);
   }
 
   // public splitReport(event?:any) {
