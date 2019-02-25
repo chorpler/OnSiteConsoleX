@@ -1,6 +1,6 @@
 {
   "name": "onsiteconsolex",
-  "version": "10.16.21",
+  "version": "10.16.22",
   "productName": "OnSiteConsoleX",
   "author": {
     "name": "Michael Bates",
@@ -153,8 +153,7 @@
         "private": false
       }
     ],
-    "appId": "com.sesa.onsiteconsolex",
-    "productName": "OnSiteConsoleX",
+    "appId": "com.sesaonsite.onsiteconsolex",
     "npmRebuild": false,
     "artifactName": "${productName}_${version}_${os}.${ext}",
     "mac": {
