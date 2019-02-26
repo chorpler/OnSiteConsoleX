@@ -98,7 +98,7 @@ let version = v1;
 document.getElementById('version').innerText = v1;
 document.getElementById('newversion').innerText = v2;
 // Listen for messages
-const {ipcRenderer} = require('electron');
+const {remote, ipcRenderer} = require('electron');
 ipcRenderer.on('progress-message', function(event, progressObject) {
   var messageEl = document.getElementById('messages');
   console.log(`Version: progress-message event received:\n`, arguments);
@@ -118,6 +118,50 @@ ipcRenderer.on('error-message', function(event, error) {
   let errText = error && typeof error.message === 'string' ? error.message : typeof error === 'string' ? error : "UNKNOWN_ERROR (code -42)";
   messageEl.innerHTML = `<span class="error-message-header">Error getting update! Close this window and try again.</span><span class="error-message-body">${errText}</span>`;
 });
+let winUpdate   = remote.getCurrentWindow();
+let winUpdateWC = remote.getCurrentWebContents();
+function createUpdateStatusMenu() {
+  let template = [
+    {
+      label: 'File',
+      submenu: [
+        {
+          label: 'Developer Tools',
+          accelerator: 'F12',
+          click: () => {
+            console.log("Attempting to open Dev Tools");
+            if(remote && remote.getCurrentWindow) {
+              let wc = remote.getCurrentWebContents();
+              if(wc.isDevToolsOpened() && !wc.isDevToolsFocused()) {
+                wc.devToolsWebContents.focus();
+              } else {
+                wc.openDevTools();
+              }
+            } else {
+              console.log("Cannot open dev tools, remote does not exist");
+            }
+          }
+        },
+        {
+          label: "Close",
+          accelerator: 'CommandOrControl+W',
+          click: () => {
+            if(remote && remote.getCurrentWindow) {
+              let winUpdate = remote.getCurrentWindow();
+              if(winUpdate && winUpdate.close) {
+                winUpdate.close();
+              }
+            }
+          },
+        }
+      ]
+    },
+  ];
+  let menu = remote.Menu.buildFromTemplate(template);
+  winUpdate.setMenu(menu);
+  return menu;
+}
+createUpdateStatusMenu();
 
 </script>
 </body>

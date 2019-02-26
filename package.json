@@ -1,6 +1,6 @@
 {
   "name": "onsiteconsolex",
-  "version": "10.16.22",
+  "version": "10.16.23",
   "productName": "OnSiteConsoleX",
   "author": {
     "name": "Michael Bates",
@@ -370,6 +370,7 @@
     "awesome-typescript-loader": "^3.4.1",
     "circular-dependency-plugin": "^4.4.0",
     "colors": "^1.3.2",
+    "devtron": "^1.4.0",
     "electron": "^4.0.5",
     "electron-builder": "^20.38.5",
     "electron-rebuild": "^1.8.4",

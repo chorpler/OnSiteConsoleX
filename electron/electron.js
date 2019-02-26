@@ -1,14 +1,14 @@
 'use strict';
 const HARDCLOSE = true;
 const sprintf = require('sprintf-js').sprintf;
-const WHATWG    = require('whatwg-url');
-const URL       = WHATWG.URL;
+// const WHATWG    = require('whatwg-url');
+// const URL       = WHATWG.URL;
 // const electron  = require('electron');
 // const PDFWindow = require('electron-pdf-window');
 const windowStateKeeper = require('electron-window-state');
 // const windowPlus = require('electron-window-plus');
 // Module to control application life.
-const { app, BrowserWindow, dialog, ipcMain, globalShortcut } = require('electron');
+const { app, remote, BrowserWindow, dialog, ipcMain, globalShortcut } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const fspath = require('path');
 const process = require('process');
@@ -91,14 +91,15 @@ function getFilePathAsURL(filename) {
     if(fullPath.slice(0, 7) !== 'file://') {
       fullPath = "file://" + fullPath;
     }
-    let parsedURL = WHATWG.parseURL(fullPath);
-    if(!(parsedURL && parsedURL.scheme)) {
+    // let parsedURL = WHATWG.parseURL(fullPath);
+    let parsedURL = new URL(fullPath);
+    if(!(parsedURL && parsedURL.protocol)) {
       console.log(`getFilePathAsURL(): ERROR! could not parse full path as URL!`);
       return null;
     } else {
       // let fileURL = parsedURL;
       let fileURL = fullPath;
-      if(parsedURL.scheme === 'file') {
+      if(parsedURL.protocol === 'file:') {
         let newURL = new URL(`${fullPath}`);
         fileURL = newURL.href;
       } else {
@@ -129,7 +130,7 @@ const app_icon = nativeImage.createFromPath(icon_path);
 
 
 // let con, win, winUpdate, startupWin, pdfWin, mainWindowState;
-let win, winUpdate, pdfWin, mainWindowState, splashWindow, randomWindows = [];
+let win, winUpdate, pdfWin, mainWindowState, splashWindow, randomWindows = [], updateSignal;
 
 // function createPDFWindow(pdfFile, loadDevTools) {
 //   if(!win) {
@@ -385,6 +386,8 @@ function sendEventToWindow(channel, event) {
     win.webContents.send(channel, event);
   }
 }
+
+
 function createUpdateStatusWindow(updateVersion, showDevTools) {
   winUpdate = new BrowserWindow({
     width  : 400  ,
@@ -408,14 +411,15 @@ function createUpdateStatusWindow(updateVersion, showDevTools) {
   winUpdate.loadURL(url);
   winUpdate.once('ready-to-show', () => {
     winUpdate.show();
-    winUpdate.setMenu(null);
+    // createUpdateStatusMenu();
+    // winUpdate.setMenu(null);
     // winUpdate.setTitle(`DOWNLOADING UPDATE`);
-    if(devTools) {
-      winUpdate.webContents.openDevTools();
-    }
-    setTimeout(() => {
-      winUpdate.setMenu(null);
-    }, 500);
+    // if(devTools) {
+    //   winUpdate.webContents.openDevTools();
+    // }
+    // setTimeout(() => {
+    //   winUpdate.setMenu(null);
+    // }, 500);
   });
   return winUpdate;
 }
@@ -790,6 +794,16 @@ ipcMain.on('manual-check-update', (event) => {
     // let out = JSON.stringify(res);
     log.info(res);
     sendEventToWindow('done-checking-update');
+    autoUpdater.signals.progress((info) => {
+      if(info && info.bytesPerSecond) {
+        // let log_message = "Download speed: " + progressObj.bytesPerSecond;
+        // log_message += ' - Downloaded ' + progressObj.percent + '%';
+        // log_message += ' (' + progressObj.transferred + "/" + progressObj.total + ')';
+        // sendEventToWindow('update-download-progress', log_message);
+        // sendStatusToWindow('progress-message', progressObj);
+        sendEventToUpdateWindow('progress-message', info);
+      }
+    });
   }).catch(err => {
     logger.error("Error checking for update:\n", err);
     let errText = err && typeof err.message === 'string' ? err.message : err && typeof err.status === 'string' ? err.status : typeof err.status === 'number' ? err.status : typeof err === 'string' ? err : "UNKNOWN_ERROR (code -42)";
