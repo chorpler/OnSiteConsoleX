@@ -1,0 +1,74 @@
+<!-- Employee List dialog -->
+<p-dialog #employeeListDialog [styleClass]="'employee-list-dialog'" [header]="employeeListHeader" [(visible)]="showEmployeeList" [draggable]="true" [resizable]="true" [responsive]="true" [modal]="employeesModal" [closable]="employeeListClosable" [closeOnEscape]="employeeListESCable" (onHide)="closeTechList($event)" [appendTo]="dialogTarget">
+  <div class="empoyee-list-search">
+    <!-- <div class="label">Search</div>
+    <div class="data" ><input class="search-input" type="text" placeholder="Employee Name" [(ngModel)]="employeeSearch" (ngModelChange)="filterEmployees(employeeSearch, $event)" /></div> -->
+    <div class="search">
+      <div class="ui-inputgroup">
+        <span class="ui-inputgroup-addon"><i class="fa fa-search"></i></span>
+        <input #employeeSearchInput class="search-input" type="text" placeholder="Employee Name" pInputText [(ngModel)]="employeeSearch" (ngModelChange)="filterEmployees(employeeSearch, $event)" />
+        <span class="ui-inputgroup-addon group-button" (click)="clearEmployeeSearch($event)"><i class="fa fa-times"></i></span>
+      </div>
+    </div>
+  </div>
+  <div class="employee-list-header">
+    <div class="employee-row header">
+      <div class="employee-enabled" [class.sorted]="sorts[0]!==-1" title="Employee in current schedule" (click)="toggleSortColumn(0)">
+        <span class="sort-icon">
+          <i class="fa fa-sort" *ngIf="sorts[0] === -1"></i>
+          <i class="fa fa-sort-asc" *ngIf="sorts[0] === 1"></i>
+          <i class="fa fa-sort-desc" *ngIf="sorts[0] === 2"></i>
+        </span>
+      </div>
+      <div class="employee-active" [class.sorted]="sorts[1]!==-1" title="Employee active" (click)="toggleSortColumn(1)">
+        <span class="sort-icon">
+          <i class="fa fa-sort" *ngIf="sorts[1] === -1"></i>
+          <i class="fa fa-sort-asc" *ngIf="sorts[1] === 1"></i>
+          <i class="fa fa-sort-desc" *ngIf="sorts[1] === 2"></i>
+        </span>
+      </div>
+      <div class="employee-name" [class.sorted]="sorts[2]!==-1" title="Employee name" (click)="toggleSortColumn(2)">
+        <span class="sort-icon">
+          <i class="fa fa-sort" *ngIf="sorts[2] === -1"></i>
+          <i class="fa fa-sort-asc" *ngIf="sorts[2] === 1"></i>
+          <i class="fa fa-sort-desc" *ngIf="sorts[2] === 2"></i>
+        </span>
+      </div>
+    </div>
+  </div>
+  <div class="employee-list-container">
+    <ng-container *ngFor="let item of employeeList; let i=index">
+      <div class="employee-row" [class.employee-inactive]="!item.tech.active" *ngIf="showAllEmployees || item.tech.active">
+        <span class="employee-enabled">
+          <p-checkbox [(ngModel)]="item.scheduled" binary="true" (onChange)="techToggled(i, $event)"></p-checkbox>
+        </span>
+        <span class="employee-active">
+          <span class="column-active-button" [class.highlight]="!item.tech.active" (click)="toggleTechActive(item.tech, $event)" title="Toggle employee active/inactive">
+            <span class="row-edit-icon" *ngIf="item.tech.active"><i class="fal fa-thumbs-up"></i></span>
+            <span class="row-edit-icon" *ngIf="!item.tech.active"><i class="fal fa-thumbs-down"></i></span>
+          </span>
+        </span>
+        <span class="employee-name" title="{{item.tech.getUsername()}}" (click)="editTech(item.tech, $event)">
+          {{item.tech.getFullName()}}
+        </span>
+      </div>
+    </ng-container>
+  </div>
+  <p-footer>
+    <div class="toggles">
+      <div class="toggle-start">
+        <span class="label">Show Inactive</span>
+        <span class="data"><p-inputSwitch [(ngModel)]="showAllEmployees"></p-inputSwitch></span>
+      </div>
+      <div class="toggle-end">
+        <span class="label">Unassigned Only</span>
+        <span class="data"><p-inputSwitch [(ngModel)]="showUnassignedOnly" (onChange)="toggleShowUnassignedOnly($event)"></p-inputSwitch></span>
+      </div>
+    </div>
+    <div class="dialog-buttons">
+      <!-- <button class="ui-button-secondary abort" pButton type="button" (click)="cancelEmployeeList($event)" label="Cancel"></button> -->
+      <button class="ui-button-primary   pause" pButton type="button" (click)="closeTechList($event)"   label="OK"></button>
+    </div>
+  </p-footer>
+</p-dialog>
+

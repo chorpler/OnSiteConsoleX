@@ -63,4 +63,5 @@ export * from "./training";
 export * from "./training-select";
 export * from "./work-site";
 export * from "./work-sites";
+export * from "./work-sites-beta";
 export * from "./worksite-report-optional-items";

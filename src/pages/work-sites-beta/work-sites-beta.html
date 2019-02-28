@@ -45,7 +45,7 @@
   </ion-navbar>
 </ion-header>
 
-<ion-content padding>
+<ion-content padding *ngIf="dataReady && data.ready()">
   <p-table #dt [styleClass]="'work-sites-table'" [columns]="selectedCols" [value]="jobsites" [autoLayout]="prefs.CONSOLE.jobsites.autoLayoutTable" [columnResizeMode]="prefs.CONSOLE.jobsites.tableResizeMode"  [rowHover]="'true'" [reorderableColumns]="true" [resizableColumns]="'true'" [loading]="!dataReady" [scrollable]="tableScrollable" [scrollHeight]="scrollHeight" [sortMode]="multiple" selectionMode="single" [(selection)]="jobsite" (onRowReorder)="reorderSites($event)" (onRowSelect)="onRowSelect($event)">
     <ng-template pTemplate="caption">
       <div class="table-header-contents">
@@ -69,7 +69,7 @@
       </tr>
       <tr>
         <th *ngFor="let col of columns" class="col-filter-header" [class]="col.class">
-          <input [class.sites-col-filter]="true" pInputText type="text" [placeholder]="col.header" (input)="dt.filter($event.target.value, col.field, 'contains')">
+          <input [class.sites-col-filter]="true" pInputText type="text" [placeholder]="col.filterPlaceholder" (input)="dt.filter($event.target.value, col.field, 'contains')">
         </th>
       </tr>
     </ng-template>
@@ -92,6 +92,6 @@
       </tr>
     </ng-template>
   </p-table>
+  <options-generic #optionsComponent *ngIf="optionsVisible" [type]="optionsType" (onCancel)="optionsClosed($event)" (onSave)="optionsSaved($event)"></options-generic>
+  <work-site-view #workSiteComponent *ngIf="viewWorkSiteVisible" [sites]="jobsites" [jobsite]="site" [mode]="siteEditMode" (onCancel)="cancelViewWorkSite($event)" (onSave)="saveViewWorkSite($event)"></work-site-view>
 </ion-content>
-<options-generic #optionsComponent *ngIf="optionsVisible" [type]="optionsType" (onCancel)="optionsClosed($event)" (onSave)="optionsSaved($event)"></options-generic>
-<work-site-view #workSiteComponent *ngIf="viewWorkSiteVisible" [sites]="sites" [jobsite]="site" [mode]="'Edit'" (onCancel)="cancelViewWorkSite($event)" (onSave)="saveViewWorkSite($event)"></work-site-view>

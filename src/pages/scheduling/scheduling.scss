@@ -1007,6 +1007,21 @@ page-scheduling {
           flex-grow: 0;
         }
       }
+      .toggle-full {
+        display         : flex        ;
+        flex-flow       : row nowrap  ;
+        justify-content : flex-end ;
+        align-content   : center ;
+        align-items     : center ;
+        width: 96%;
+        .label {
+          text-align: right;
+        }
+        .data {
+          text-align: left;
+          flex-grow: 0;
+        }
+      }
       .label {
         flex: 0 1 auto;
         font-size: 18px;

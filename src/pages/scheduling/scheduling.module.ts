@@ -16,7 +16,7 @@ import { VideoPlayComponentModule      } from 'components/video-play'           
 import { EmployeeViewComponentModule   } from 'components/employee-view'         ;
 import { ScheduleOpenComponentModule   } from 'components/schedule-open'         ;
 import { ScheduleNewComponentModule    } from 'components/schedule-new'          ;
-// import { FontAwesomeModule             } from '@fortawesome/angular-fontawesome' ;
+import { WorkSiteComponentModule       } from 'components/work-site'             ;
 
 @NgModule({
   declarations: [
@@ -40,6 +40,7 @@ import { ScheduleNewComponentModule    } from 'components/schedule-new'         
     EmployeeViewComponentModule,
     ScheduleOpenComponentModule,
     ScheduleNewComponentModule,
+    WorkSiteComponentModule,
   ],
   exports: [
     SchedulingPage,

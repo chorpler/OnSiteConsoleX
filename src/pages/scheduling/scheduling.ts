@@ -89,6 +89,8 @@ export class SchedulingPage implements OnInit,OnDestroy {
   @ViewChild('scheduleOpenTemplate') scheduleOpenTemplate:ScheduleOpenComponent ;
   @ViewChild('scheduleDateDropdown') scheduleDateDropdown:Dropdown              ;
   @ViewChild('op1') overlayPanel1:OverlayPanel                                  ;
+  @ViewChild('employeeListContainer') employeeListContainer:ElementRef          ;
+  @ViewChild('siteListContainer') siteListContainer:ElementRef                  ;
 
   public title           : string          = "Scheduling"                       ;
   public panelTarget     : any             = 'body'                             ;
@@ -108,8 +110,10 @@ export class SchedulingPage implements OnInit,OnDestroy {
   public allTechs        : Employee[] = []                                 ;
   public unassignedTechs : Employee[] = []                                 ;
   public legrave         : Employee[] = []                                 ;
-  public clients         : any[]      = []                                      ;
+  public clients         : any[]      = []                                 ;
+  public site            : Jobsite                                         ;
   public sites           : Jobsite[]  = []                                 ;
+  public siteMode        : string     = "Edit"                             ;
   public scheduleSites   : Jobsite[]  = []                                 ;
   public unscheduledSites: Jobsite[]  = []                                 ;
   public shiftTypes      : any[]      = []                                 ;
@@ -155,6 +159,7 @@ export class SchedulingPage implements OnInit,OnDestroy {
   public employeeViewVisible  : boolean     = false                             ;
   public scheduleOpenVisible  : boolean     = false                             ;
   public scheduleNewVisible   : boolean     = false                             ;
+  public viewWorkSiteVisible  : boolean     = false                             ;
   public componentsAreReady   : boolean     = false                             ;
   public unsavedChanges       : boolean     = false                             ;
   public unsavedReason        : string      = ""                                ;
@@ -174,8 +179,9 @@ export class SchedulingPage implements OnInit,OnDestroy {
   public fullEmployeeList     : InSchedule[]= []                                ;
   public fullSitesList        : InSchedule[]= []                                ;
   public sorts                : number[]    = [ -1, -1, -1 ]                    ;
-  public showAllEmployees     : boolean     = true                              ;
-  public showUnassignedOnly   : boolean     = true                              ;
+  public showAllEmployees     : boolean     = false                             ;
+  public showUnassignedOnly   : boolean     = false                             ;
+  public showActiveUnscheduledOnly : boolean = true                             ;
   public employeeListClosable : boolean     = true                              ;
   public employeeListESCable  : boolean     = true                              ;
   public sitesModal           : boolean     = false                             ;
@@ -184,7 +190,10 @@ export class SchedulingPage implements OnInit,OnDestroy {
   // public dialogTarget         : string      = "body"                            ;
   public employeeSearch       : string      = ""                                ;
   public sitesSearch          : string      = ""                                ;
-  public switchDelay          : number      = 500                               ;
+  public switchDelay          : number      = 50                                ;
+  public previousComponent    : any                                             ;
+  public employeeListHandle   : any                                             ;
+  public siteListHandle       : any                                             ;
 
   constructor(
     public navCtrl     : NavController     ,
@@ -206,8 +215,9 @@ export class SchedulingPage implements OnInit,OnDestroy {
   ) {
       this.doc              = {}   ;
       window['scheduling']  = this ;
-      window['scheduling2'] = this ;
-      window['p']           = this ;
+      // window['scheduling2'] = this ;
+      this.previousComponent = window['p'];
+      window['p']            = this ;
   }
 
   public ngOnInit() {
@@ -220,6 +230,9 @@ export class SchedulingPage implements OnInit,OnDestroy {
   public ngOnDestroy() {
     Log.l("SchedulingPage: ngOnDestroy() fired.");
     this.cancelSubscriptions();
+    if(this.previousComponent) {
+      window['p'] = this.previousComponent;
+    }
   }
 
   public ionViewDidEnter() {
@@ -375,6 +388,12 @@ export class SchedulingPage implements OnInit,OnDestroy {
   public cancelSubscriptions() {
     if(this.keySubscription && this.keySubscription.unsubscribe) {
       this.keySubscription.unsubscribe();
+    }
+    if(this.employeeListHandle) {
+      clearTimeout(this.employeeListHandle);
+    }
+    if(this.siteListHandle) {
+      clearTimeout(this.siteListHandle);
     }
   }
 
@@ -922,8 +941,8 @@ export class SchedulingPage implements OnInit,OnDestroy {
   public viewSiteList(event?:any) {
     Log.l(`viewSiteList(): Event is:\n`, event);
     if(!(this.siteList && this.siteList.length)) {
-      this.generateSiteList();
     }
+    this.generateSiteList();
     Log.l(`viewSiteList(): Site list is:\n`, this.siteList);
     // }
     this.showSitesList = true;
@@ -1053,6 +1072,13 @@ export class SchedulingPage implements OnInit,OnDestroy {
       list.push(item);
     }
     this.fullSitesList = list.slice(0);
+    if(!this.data.isDevMode()) {
+      list = list.filter((a:InSchedule) => {
+        let site:Jobsite = a.site;
+        let test:boolean = site.test_site;
+        return !test;
+      });
+    }
     this.siteList = list;
     this.siteSorts = [ -1, -1, 2 ];
     return list;
@@ -1085,6 +1111,13 @@ export class SchedulingPage implements OnInit,OnDestroy {
       list.push(item);
     }
     this.fullEmployeeList = list.slice(0);
+    if(!this.data.isDevMode()) {
+      list = list.filter((a:InSchedule) => {
+        let tech:Employee = a.tech;
+        let test:boolean = tech.isTestUser;
+        return !test;
+      });
+    }
     this.employeeList = list;
     this.sorts = [ -1, -1, 2 ];
     this.clearEmployeeSearch();
@@ -1094,8 +1127,8 @@ export class SchedulingPage implements OnInit,OnDestroy {
   public viewTechList(event?:any) {
     Log.l(`viewTechList(): Event is:\n`, event);
     if(!(this.employeeList && this.employeeList.length)) {
-      this.generateEmployeeList();
     }
+    this.generateEmployeeList();
     Log.l(`viewTechList(): Employee list is:\n`, this.employeeList);
     // }
     this.showEmployeeList = true;
@@ -1600,6 +1633,7 @@ z
     let modal = this.modalCtrl.create('Work Site', { mode: 'Edit', modal:true, source: 'scheduling', jobsite: site }, {cssClass: 'site-edit-modal'});
     modal.onDidDismiss(data => {
       Log.l("editSite(): Modal dismissed.");
+      window['p'] = this;
       if(data) {
         Log.l("editSite(): Data:\n", data);
       }
@@ -2231,43 +2265,68 @@ z
   }
 
   public filterEmployees(value:string, evt?:Event):InSchedule[] {
-    let startList:InSchedule[];
+    let startList:InSchedule[], list:InSchedule[];
     if(this.showUnassignedOnly) {
       startList = this.getUnassignedList();
     } else {
       startList = this.fullEmployeeList;
     }
+    list = startList.slice(0);
     if(value) {
       let searchValue:string = value.toLowerCase();
-      let list:InSchedule[] = startList.filter((a:InSchedule) => {
+      list = startList.filter((a:InSchedule) => {
         let tech:Employee = a.tech;
         let name:string = tech.getFullName().toLowerCase();
         if(name.indexOf(searchValue) > -1) {
           return true;
         }
       });
-      this.employeeList = list;
-      return list;
-    } else {
-      this.employeeList = startList.slice(0);
     }
+    if(this.showActiveUnscheduledOnly) {
+      list = list.filter((a:InSchedule) => {
+        let tech:Employee = a.tech;
+        let active:boolean = tech.active;
+        let scheduled:boolean = a.scheduled;
+        if(active && !scheduled) {
+          return true;
+        }
+        return false;
+      });
+    }
+    if(!this.data.isDevMode()) {
+      list = list.filter((a:InSchedule) => {
+        let tech:Employee = a.tech;
+        let test:boolean = tech.isTestUser;
+        return !test;
+      });
+    }
+    this.employeeList = list;
+    return list;
   }
 
   public filterSites(value:string, evt?:Event):InSchedule[] {
+    let startList:InSchedule[], list:InSchedule[];
+    startList = this.fullSitesList;
+    list = startList.slice(0);
     if(value) {
       let searchValue:string = value.toLowerCase();
-      let list:InSchedule[] = this.fullSitesList.filter((a:InSchedule) => {
+      list = this.fullSitesList.filter((a:InSchedule) => {
         let site:Jobsite = a.site;
         let name:string = site.getScheduleName().toLowerCase();
         if(name.indexOf(searchValue) > -1) {
           return true;
         }
       });
-      this.siteList = list;
-      return list;
-    } else {
-      this.siteList = this.fullSitesList.slice(0);
     }
+    if(!this.data.isDevMode()) {
+      list = list.filter((a:InSchedule) => {
+        let site:Jobsite = a.site;
+        let test:boolean = site.test_site;
+        return !test;
+      });
+    }
+    this.siteList = list;
+    return list;
   }
 
   public getUnassignedList():InSchedule[] {
@@ -2284,9 +2343,12 @@ z
     return techs;
   }
 
-  public toggleShowUnassignedOnly(evt?:Event) {
-    // let show:boolean = this.showUnassignedOnly;
-    // if(show) {
+  public toggleShowInactiveEmployees(evt?:Event) {
+    let show:boolean = this.showAllEmployees;
+    if(show) {
+      // this.showUnassignedOnly = false;
+      this.showActiveUnscheduledOnly = false;
+    }
     //   let techsToShow:Employee[] = this.schedule.getUnassigned();
     //   let techsToShowUsernames:string[] = techsToShow.map((a:Employee) => {
     //     return a.getUsername();
@@ -2306,6 +2368,45 @@ z
     }, this.switchDelay);
   }
 
+  public toggleShowUnassignedOnly(evt?:Event) {
+    let show:boolean = this.showUnassignedOnly;
+    if(show) {
+      this.showActiveUnscheduledOnly = false;
+    }
+    //   let techsToShow:Employee[] = this.schedule.getUnassigned();
+    //   let techsToShowUsernames:string[] = techsToShow.map((a:Employee) => {
+    //     return a.getUsername();
+    //   });
+    //   let techs:InSchedule[] = this.fullEmployeeList.filter((a:InSchedule) => {
+    //     let tech:Employee = a.tech;
+    //     let username:string = tech.getUsername();
+    //     let index:number = techsToShowUsernames.indexOf(username);
+    //     return index > -1;
+    //   });
+    //   let value:string = this.employeeSearch;
+    //   this.filterEmployees(value);
+    // }
+    setTimeout(() => {
+      let value:string = this.employeeSearch;
+      this.filterEmployees(value);
+    }, this.switchDelay);
+  }
+
+  public toggleShowActiveUnscheduledOnly(evt?:Event) {
+    let show:boolean = this.showActiveUnscheduledOnly;
+    Log.l("toggleShowActiveUnscheduledOnly(): Set to:", show);
+    if(show) {
+      this.showUnassignedOnly = false;
+      this.showAllEmployees = false;
+    } else {
+
+    }
+    setTimeout(() => {
+      let value:string = this.employeeSearch;
+      this.filterEmployees(value);
+    }, this.switchDelay);
+  }
+
   public clearEmployeeSearch(evt?:Event) {
     this.employeeSearch = "";
     this.filterEmployees("");
@@ -2313,6 +2414,84 @@ z
   public clearSiteSearch(evt?:Event) {
     this.sitesSearch = "";
     this.filterSites("");
+  }
+
+  public getVisibleEmployeeCount():number {
+    if(this.employeeListContainer) {
+      let el:HTMLElement = this.employeeListContainer.nativeElement;
+      let count:number = el.childElementCount;
+      return count;
+    } else {
+      return 0;
+    }
+  }
+  
+  public getVisibleSiteCount():number {
+    if(this.siteListContainer) {
+      let el:HTMLElement = this.siteListContainer.nativeElement;
+      let count:number = el.childElementCount;
+      return count;
+    } else {
+      return 0;
+    }
+  }
+
+  public updateEmployeeListHeader() {
+    if(this.employeeListHandle) {
+      return;
+    }
+    this.employeeListHandle = setTimeout(() => {
+      let title:string = "Employee List";
+      let count:number = this.getVisibleEmployeeCount();
+      let out:string = title + " (" + count + " visible)";
+      this.employeeListHandle = null;
+      this.employeeListHeader = out;
+      return out;
+    }, this.switchDelay);
+  }
+  public updateSitesListHeader() {
+    if(this.siteListHandle) {
+      return;
+    }
+    this.siteListHandle = setTimeout(() => {
+      let title:string = "Site List";
+      let count:number = this.getVisibleSiteCount();
+      let out:string = title + " (" + count + " visible)";
+      this.siteListHandle = null;
+      this.sitesListHeader = out;
+      return out;
+    }, this.switchDelay);
+  }
+
+  public getEmployeeListHeader():string {
+    let out:string = this.employeeListHeader;
+    if(this.employeeListHandle) {
+      return out;
+    }
+    this.employeeListHandle = setTimeout(() => {
+      let title:string = "Employee List";
+      let count:number = this.getVisibleEmployeeCount();
+      let total:number = this.fullEmployeeList.length;
+      let out:string = title + " (" + count + " / " + total + " shown)";
+      this.employeeListHeader = out;
+      this.employeeListHandle = null;
+    }, this.switchDelay);
+    return out;
+  }
+  public getSitesListHeader():string {
+    let out:string = this.sitesListHeader;
+    if(this.siteListHandle) {
+      return out;
+    }
+    this.siteListHandle = setTimeout(() => {
+      let title:string = "Site List";
+      let count:number = this.getVisibleSiteCount();
+      let total:number = this.fullSitesList.length;
+      let out:string = title + " (" + count + " / " + total + " shown)";
+      this.sitesListHeader = out;
+      this.siteListHandle = null;
+    }, this.switchDelay);
+    return out;
   }
 
   public async toggleApproveSchedule(evt?:Event) {
@@ -2341,6 +2520,20 @@ z
       Log.e(err);
       throw err;
     }
+  }
+
+  public showViewWorkSite(site:Jobsite, evt?:Event) {
+    Log.l(`showViewWorkSite(): Event is:`, evt);
+    this.site = site;
+    this.viewWorkSiteVisible = true;
+  }
+  public cancelViewWorkSite(evt?:Event) {
+    Log.l(`cancelViewWorkSite(): Event is:`, evt);
+    this.viewWorkSiteVisible = false;
+  }
+  public saveViewWorkSite(evt?:Event) {
+    Log.l(`saveViewWorkSite(): Event is:`, evt);
+    this.viewWorkSiteVisible = false;
   }
 
 }

@@ -3,7 +3,7 @@
 // import { SharedModule                  } from 'primeng/shared'             ;
 import { NgModule                      } from '@angular/core'              ;
 import { IonicPageModule               } from 'ionic-angular'              ;
-import { WorkSitesPage                 } from './work-sites'               ;
+import { WorkSitesBetaPage             } from './work-sites-beta'          ;
 import { ScrollPanelModule             } from 'primeng/scrollpanel'        ;
 import { TableModule                   } from 'primeng/table'              ;
 import { MultiSelectModule             } from 'primeng/multiselect'        ;
@@ -12,10 +12,10 @@ import { WorkSiteComponentModule       } from 'components/work-site'       ;
 
 @NgModule({
   declarations: [
-    WorkSitesPage,
+    WorkSitesBetaPage,
   ],
   imports: [
-    IonicPageModule.forChild(WorkSitesPage),
+    IonicPageModule.forChild(WorkSitesBetaPage),
     // DataTableModule,
     // DndModule,
     // SharedModule,
@@ -26,7 +26,7 @@ import { WorkSiteComponentModule       } from 'components/work-site'       ;
     WorkSiteComponentModule,
   ],
   exports: [
-    WorkSitesPage,
+    WorkSitesBetaPage,
   ]
 })
-export class WorkSitesPageModule {}
+export class WorkSitesBetaPageModule {}

@@ -386,6 +386,10 @@ export class OSData {
     });
   }
 
+  public isDevMode():boolean {
+    return this.status.role === 'dev';
+  }
+
   public checkDeveloperStatus():boolean {
     let realUsername:string = (this.getUser() && this.getUser().getUsername()) ? this.getUser().getUsername() : "nobody";
     let username:string = realUsername.toLowerCase();

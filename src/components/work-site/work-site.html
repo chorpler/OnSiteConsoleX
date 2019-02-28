@@ -1,0 +1,235 @@
+<!-- <p-dialog #workSiteDialog [styleClass]="'work-site-dialog'" [header]="workSiteHeader" [(visible)]="showWorkSite" [draggable]="true" [resizable]="true" [responsive]="true" [modal]="workSiteModal" [closable]="workSiteClosable" [closeOnEscape]="workSiteESCable" (onHide)="close($event)" [appendTo]="dialogTarget"> -->
+<p-dialog #workSiteDialog [styleClass]="'work-site-dialog'" [contentStyle]="contentStyle" [(visible)]="showWorkSite" [draggable]="true" [resizable]="true" [responsive]="true" [modal]="workSiteModal" [closable]="workSiteClosable" [closeOnEscape]="workSiteESCable" (onHide)="close($event)" [appendTo]="dialogTarget">
+  <p-header>
+    <div class="header-row">
+      <div class="header-title">{{workSiteHeader}}</div>
+      <div class="header-buttons">
+        <span class="header-button"          title="Edit site hours"          (click)="editSiteHours($event)"><i class="fal fa-clock"></i></span>
+        <span class="header-button"          title="Add work site"            (click)="addJobSite($event)"><i class="fal fa-plus-circle"></i></span>
+        <span class="header-button"          title="Clone work site"          (click)="cloneJobSite($event)"><i class="fal fa-clone"></i></span>
+        <span class="header-button"          title="Save but don't exit page" (click)="saveNoExit($event)"><i class="fal fa-check-circle"></i></span>
+        <span class="header-button"          title="Previous work site"       (click)="sitePrevious($event)" *ngIf="siteIndex > 1"><i class="fas fa-caret-left"></i></span>
+        <span class="header-button disabled" title="(No previous work site)"  *ngIf="!(siteIndex > 1)"><i class="fas fa-caret-left icon-greyedout"></i></span>
+        <span class="header-button"          title="Next work site"           (click)="siteNext($event)" *ngIf="siteIndex < siteCount"><i class="fas fa-caret-right"></i></span>
+        <span class="header-button disabled" title="(No next work site)"      *ngIf="!(siteIndex < siteCount)"><i class="fas fa-caret-right icon-greyedout"></i></span>
+      </div>
+      <div class="header-close">
+        <span class="header-close-button" (click)="cancel($event)"><i class="fa fa-times"></i></span>
+      </div>
+    </div>
+  </p-header>
+
+  <div class="main-content-container">
+    <div class="main-content">
+      <div class="main-content-list">
+        <div class="content-divider">Site Database Keys</div>
+
+        <!-- WorkSite DB Location Keys -->
+        <div class="main-content-list-item">
+          <table class="worksite-location-info-table">
+            <tr class="worksite-location-info-row row-01">
+              <td class="col-01 label">Client</td>
+              <td class="col-02 data">
+                <span class="dropdown-and-button-wrapper">
+                  <span class="dropdown-wrapper">
+                    <p-dropdown id="client-select" [class.worksite-dropdown]="true" [class.data]="true" [scrollHeight]="dropdownHeight" [options]="clientMenu" [(ngModel)]="client" (onChange)="updateClient(client)"></p-dropdown>
+                  </span>
+                  <span class="dropdown-button" (click)="addNewClient($event)"><i class="fal fa-plus-square"></i></span>
+                </span>
+              </td>
+              <td class="col-03 label">Location</td>
+              <td class="col-04 data">
+                <span class="dropdown-and-button-wrapper">
+                  <span class="dropdown-wrapper">
+                    <p-dropdown id="loc-select" [class.worksite-dropdown]="true" [class.data]="true" [scrollHeight]="dropdownHeight" [options]="locationMenu" [(ngModel)]="location" (onChange)="updateLocation(location)"></p-dropdown>
+                  </span>
+                  <span class="dropdown-button" (click)="addNewLocation($event)"><i class="fal fa-plus-square"></i></span>
+                </span>
+              </td>
+              <td class="col-05 label">Tech Class</td>
+              <td class="col-06 data">
+                <span class="dropdown-and-button-wrapper">
+                  <span class="dropdown-wrapper">
+                    <p-dropdown id="loc-id-select" [class.worksite-dropdown]="true" [class.data]="true" [scrollHeight]="dropdownHeight" [options]="locIDMenu" [(ngModel)]="locID" (onChange)="updateLocID(locID)"></p-dropdown>
+                  </span>
+                  <span class="dropdown-button" (click)="addNewLocID($event)"><i class="fal fa-plus-square"></i></span>
+                </span>
+              </td>
+            </tr>
+            <!-- <tr class="worksite-location-info-row row-01">
+              <td class="col-01 col-client">
+                <span class="label">Client</span>
+                <span class="data"><p-dropdown id="client-select" [class.worksite-dropdown]="true" [class.data]="true" [scrollHeight]="dropdownHeight" [options]="clientMenu" [(ngModel)]="client" (onChange)="updateClient(client, $event)"></p-dropdown></span>
+                <span class="button button-like-block"(click)="addNewClient($event)"><i class="fa fa-plus"></i></span>
+              </td>
+              <td class="col-02 col-location">
+                <span class="label">Location</span>
+                <span class="data"><p-dropdown id="location-select" [class.worksite-dropdown]="true" [class.data]="true" [scrollHeight]="dropdownHeight" [options]="locationMenu" [(ngModel)]="location" (onChange)="updateLocation(location, $event)"></p-dropdown></span>
+                <span class="button button-like-block"(click)="addNewLocation($event)"><i class="fa fa-plus"></i></span>
+              </td>
+              <td class="col-03 col-locid">
+                <span class="label">Tech Class ID</span>
+                <span class="data"><p-dropdown id="locid-select" [class.worksite-dropdown]="true" [class.data]="true" [scrollHeight]="dropdownHeight" [options]="locIDMenu" [(ngModel)]="locID" (onChange)="updateLocID(locID, $event)"></p-dropdown></span>
+                <span class="button button-like-block"(click)="addNewLocID($event)"><i class="fa fa-plus"></i></span>
+              </td>
+            </tr> -->
+            <tr class="worksite-location-info-row row-02">
+              <td class="col-01 label">Schedule Name</td>
+              <td class="col-01 data">
+                <input class="data" id="input-name" [(ngModel)]="jobsite.schedule_name" />
+              </td>
+              <td class="col-02 label" title="Permanent site number. Changing this in an existing job site will likely cause huge problems.">Site ID #</td>
+              <td class="col-02 data"  title="Permanent site number. Changing this in an existing job site will likely cause huge problems.">
+                <input class="input-site-number" id="input-number" type="number" step="1" min="1001" [(ngModel)]="jobsite.site_number" />
+              </td>
+              <td class="col-03 label">Sort Number</td>
+              <td class="col-03 data">
+                <input class="data" id="input-sort" type="number" step="1" min="0" [(ngModel)]="jobsite.sort_number" />
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="content-divider">Site Location Details</div>
+        <!-- WorkSite Details -->
+        <div class="main-content-list-item">
+          <div class="worksite-table-address-wrapper">
+            <div class="worksite-address-single-table-wrapper">
+              <span class="table-title-button-wrapper">
+                <span class="table-title">Site Address</span>
+                <span class="table-title-button">
+                  <i class="fal fa-arrow-circle-right icon-button" aria-hidden="true" title="Copy to Billing Address" (click)="addressCopy('down')"></i>
+                </span>
+              </span>
+              <span class="worksite-address-table-container">
+                <table class="worksite-table-address">
+                  <tr>
+                    <td class="label">Address</td>
+                    <td  class="data"><input type="text" [(ngModel)]="jobsite.address.street.street1" /></td>
+                  </tr>
+                  <tr>
+                    <td class="label">City</td>
+                    <td  class="data"><input type="text" [(ngModel)]="jobsite.address.city" /></td>
+                  </tr>
+                  <tr>
+                    <td class="label">State</td>
+                    <td  class="data"><input type="text" [(ngModel)]="jobsite.address.state" /></td>
+                  </tr>
+                  <tr>
+                    <td class="label">ZIP</td>
+                    <td  class="data"><input type="text" [(ngModel)]="jobsite.address.zip" /></td>
+                  </tr>
+                </table>
+              </span>
+            </div>
+            <div class="worksite-address-single-table-wrapper">
+              <span class="table-title-button-wrapper">
+                <span class="table-title-button">
+                  <i class="fal fa-arrow-circle-left icon-button" aria-hidden="true" title="Copy to Billing Address"  (click)="addressCopy('up')"></i>
+                </span>
+                <span class="table-title">Billing Address</span>
+              </span>
+              <span class="worksite-address-table-container">
+                <table class="worksite-table-address">
+                  <tr>
+                    <td class="label">Address</td>
+                    <td  class="data"><input type="text" [(ngModel)]="jobsite.billing_address.street.street1" /></td>
+                  </tr>
+                  <tr>
+                    <td class="label">City</td>
+                    <td  class="data"><input type="text" [(ngModel)]="jobsite.billing_address.city" /></td>
+                  </tr>
+                  <tr>
+                    <td class="label">State</td>
+                    <td  class="data"><input type="text" [(ngModel)]="jobsite.billing_address.state" /></td>
+                  </tr>
+                  <tr>
+                    <td class="label">ZIP</td>
+                    <td  class="data"><input type="text" [(ngModel)]="jobsite.billing_address.zip" /></td>
+                  </tr>
+                </table>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="content-divider">Site Geolocation Details</div>
+        <div class="main-content-list-item">
+          <table class="site-geolocation-table">
+            <tr class="site-geolocation-row">
+              <td class="label col-01">Latitude</td>
+              <td class="data  col-01"><input type="text" [(ngModel)]="jobsite.latitude" debounce [delay]="750" (func)="updateLatLon($event)" /></td>
+              <td class="label col-02">Longitude</td>
+              <td class="data  col-02"><input type="text" [(ngModel)]="jobsite.longitude" debounce [delay]="750" (func)="updateLatLon($event)" /></td>
+              <td class="label col-03" title="Radius of geofence (in meters)">Geofence Radius</td>
+              <td class="data  col-03" title="Radius of geofence (in meters)"><input type="number" step="1" min="0" [(ngModel)]="jobsite.within" debounce [delay]="750" (func)="updateRadius($event)" /></td>
+            </tr>
+          </table>
+          <!-- <ion-item-group>
+            <ion-item-divider color="light">Site Location Details</ion-item-divider>
+            <ion-item>
+              <ion-label>Latitude</ion-label>
+              <input type="text" [(ngModel)]="siteLat" debounce [delay]="750" (func)="updateLatLon()" />
+            </ion-item>
+            <ion-item>
+              <ion-label>Longitude</ion-label>
+              <input type="text" [(ngModel)]="siteLon" debounce [delay]="750" (func)="updateLatLon()" />
+            </ion-item>
+            <ion-item>
+              <ion-label>Geofence Radius (meters)</ion-label>
+              <input type="number" step="1" min="0" [(ngModel)]="siteRadius" debounce [delay]="750" (func)="updateRadius()" />
+            </ion-item>
+          </ion-item-group> -->
+        </div>
+        <div class="content-divider">Site Configuration</div>
+        <div class="main-content-list-item">
+          <div class="site-config-table">
+            <div class="site-config-row row-01">
+              <span class="col col-01"><span class="config-item"><span class="label">Account No.</span><span class="data"><input type="text" [(ngModel)]="jobsite.account_number" /></span></span></span>
+              <span class="col col-02"><span class="config-item"><span class="label">Acct Type</span><span class="data"><p-dropdown id="loc-id-select" [class.worksite-dropdown]="true" [class.data]="true" [scrollHeight]="dropdownHeight" [options]="accountMenu" [(ngModel)]="jobsite.account_or_contract"></p-dropdown></span></span></span>
+              <span class="col col-03"><span class="config-item"><span class="label">PO No.</span><span class="data"><input type="text" [(ngModel)]="jobsite.po_number" /></span></span></span>
+            </div>
+            <div class="site-config-row row-02">
+              <span class="col col-01" title="Travel time in hours"><span class="config-item"><span class="label">Travel Time</span  ><span class="data"><input type="number" min="0" step="0.50" [(ngModel)]="jobsite.travel_time"     /></span></span></span>
+              <span class="col col-02" title="Per diem in dollars"><span class="config-item"><span class="label">Per Diem Rate</span><span class="data"><input type="number" min="0" step="0.01" [(ngModel)]="jobsite.per_diem_rate"   /></span></span></span>
+              <span class="col col-03" title="Daily lodging rate in dollars"><span class="config-item"><span class="label">Lodging Rate</span ><span class="data"><input type="number" min="0" step="0.01" [(ngModel)]="jobsite.lodging_rate"    /></span></span></span>
+              <span class="col col-04" title="Billing rate in dollars"><span class="config-item"><span class="label">Billing Rate</span ><span class="data"><input type="number" min="0" step="0.01" [(ngModel)]="jobsite.billing_rate"    /></span></span></span>
+              <span class="col col-05" title="Lunch time in hours"><span class="config-item"><span class="label">Lunch Hour</span   ><span class="data"><input type="number" min="0" step="0.25" [(ngModel)]="jobsite.lunch_hour_time" /></span></span></span>
+            </div>
+            <div class="site-config-row row-03">
+              <span class="col col-01" title="Requires preauthorization from client before invoicing"><span class="config-item"><span class="label">Requires Preauth</span><span class="data"><p-checkbox [(ngModel)]="jobsite.requires_preauth" binary="true"></p-checkbox></span></span></span>
+              <span class="col col-02" title="Site requires work order reports (tech shift reports)"><span class="config-item"><span class="label">Tech Shift Reports</span><span class="data"><p-checkbox [(ngModel)]="jobsite.requires_invoice_woreports" binary="true"></p-checkbox></span></span></span>
+              <span class="col col-03" title="Site has premium hours (billable site)"><span class="config-item"><span class="label">Premium Hours</span><span class="data"><p-checkbox [(ngModel)]="jobsite.premium_hours" binary="true"></p-checkbox></span></span></span>
+            </div>
+            <div class="site-config-row row-04">
+              <span class="col col-01" title="Site is currently in active use"><span class="config-item"><span class="label">Site Active</span><span class="data"><p-checkbox [(ngModel)]="jobsite.site_active" binary="true"></p-checkbox></span></span></span>
+              <span class="col col-02" title="Site is a test site (developers only)"><span class="config-item"><span class="label">Test Site</span><span class="data"><p-checkbox [(ngModel)]="jobsite.test_site" binary="true"></p-checkbox></span></span></span>
+              <span class="col col-03" title="Site is only for collecting inactive users"><span class="config-item"><span class="label">Inactive Users</span><span class="data"><p-checkbox [(ngModel)]="jobsite.inactive_users" binary="true"></p-checkbox></span></span></span>
+              <span class="col col-04" title="Site is an office site"><span class="config-item"><span class="label">Office Site</span><span class="data"><p-checkbox [(ngModel)]="jobsite.is_office" binary="true"></p-checkbox></span></span></span>
+            </div>
+          </div>
+        </div>
+        <!-- <div class="main-content-list-item">
+          <button type="button" ion-button color="favorite" (click)="cancel($event)">Cancel</button>
+          <button type="button" ion-button color="favorite" (click)="onSubmit($event)">Save</button>
+          <button type="button" ion-button color="favorite" (click)="saveNoExit($event)">Save, Don't Exit</button>
+        </div> -->
+      </div>
+    </div>
+    <div class="add-site-right-column">
+      <div class="map-col">
+        <p-gmap *ngIf="googleMapVisible" #googleMapComponent [styleClass]="'map-pane-class'" [options]="gmapOptions" [overlays]="gmapOverlays"></p-gmap>
+      </div>
+    </div>
+  </div>
+  <p-footer>
+    <div class="status-buttons">
+      <button type="button" class="ui-button-success close" (click)="cancel($event)">Cancel</button>
+      <button type="button" class="ui-button-success save" (click)="onSubmit($event)">Save</button>
+      <button type="button" class="ui-button-success save" (click)="saveNoExit($event)">Save, Don't Exit</button>
+      <!-- <button class="ui-button-success close" pButton type="button" (click)="close($event)" label="OK"></button> -->
+    </div>
+  </p-footer>
+</p-dialog>
+<add-site-locale #addSiteLocaleComponent *ngIf="addSiteLocaleVisible" [type]="addSiteLocaleType" (onSubmit)="addSiteLocaleSave($event)" (onCancel)="addSiteLocaleCancel($event)"></add-site-locale>
+<work-site-hours #workSiteHours *ngIf="hoursDialogVisible" [jobsite]="jobsite" (jobsiteUpdated)="jobsiteUpdated($event)"></work-site-hours>

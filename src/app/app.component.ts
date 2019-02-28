@@ -473,7 +473,8 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
         let event:Event|MouseEvent|KeyboardEvent = data && data.event && data.event.event ? data.event.event : data && data.event ? data.event : null;
 
         if(channel === 'openpage') {
-          Log.l(`AppComponent: Received event 'openpage' ...`);
+          let event = data.event ? data.event : null;
+          Log.l(`AppComponent: Received event 'openpage':`, event);
           if(data && data.event && data.event.page) {
             let pageData = data.event;
             let page:string = pageData.page;

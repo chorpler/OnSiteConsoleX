@@ -62,10 +62,10 @@
           <span class="scheduling-menubar-button" (click)="incrementSchedule()" title="Increment Rotation">
             <i class="fa fa-angle-double-right scheduling-menubar-button-circled"></i>
           </span>
-          <span class="scheduling-menubar-button" (click)="viewSiteList($event)" title="Add new jobsite to schedule">
+          <span class="scheduling-menubar-button" (click)="viewSiteList($event)" title="Show job sites and add/remove them from schedule">
             <i class="icomoon-oil-well"></i>
           </span>
-          <span class="scheduling-menubar-button" (click)="viewTechList($event)" title="Show list of all employees and add/remove them from schedule">
+          <span class="scheduling-menubar-button" (click)="viewTechList($event)" title="Show employees and add/remove them from schedule">
             <i class="fa fa-user-plus"></i>
           </span>
           <span class="scheduling-menubar-button" (click)="clearCurrentSchedule($event)" title="Clear Schedule">
@@ -283,11 +283,13 @@
   <video-play #videoComponent *ngIf="videoVisible" (onEnd)="videoEnded($event)"></video-play>
   <schedule-open #scheduleOpenTemplate *ngIf="scheduleOpenVisible" (onClose)="closeScheduleChoose($event)" (onChoose)="scheduleChosen($event)"></schedule-open>
   <schedule-new #scheduleNewTemplate *ngIf="scheduleNewVisible" (onCancel)="cancelNewSchedule($event)" (onNewSchedule)="createNewSchedule($event)"></schedule-new>
+  <work-site-view #scheduleWorkSite *ngIf="viewWorkSiteVisible" [sites]="sites" [jobsite]="site" [mode]="'Edit'" (onCancel)="cancelViewWorkSite($event)" (onSave)="saveViewWorkSite($event)"></work-site-view>
   <!-- </span> -->
 
 
 <!-- Employee List dialog -->
-<p-dialog #employeeListDialog [styleClass]="'employee-list-dialog'" [header]="employeeListHeader" [(visible)]="showEmployeeList" [draggable]="true" [resizable]="true" [responsive]="true" [modal]="employeesModal" [closable]="employeeListClosable" [closeOnEscape]="employeeListESCable" (onHide)="closeTechList($event)" [appendTo]="dialogTarget">
+<!-- <p-dialog #employeeListDialog [styleClass]="'employee-list-dialog'" [header]="employeeListHeader" [(visible)]="showEmployeeList" [draggable]="true" [resizable]="true" [responsive]="true" [modal]="employeesModal" [closable]="employeeListClosable" [closeOnEscape]="employeeListESCable" (onHide)="closeTechList($event)" [appendTo]="dialogTarget"> -->
+<p-dialog #employeeListDialog [styleClass]="'employee-list-dialog'" [header]="getEmployeeListHeader()" [(visible)]="showEmployeeList" [draggable]="true" [resizable]="true" [responsive]="true" [modal]="employeesModal" [closable]="employeeListClosable" [closeOnEscape]="employeeListESCable" (onHide)="closeTechList($event)" [appendTo]="dialogTarget">
   <div class="empoyee-list-search">
     <!-- <div class="label">Search</div>
     <div class="data" ><input class="search-input" type="text" placeholder="Employee Name" [(ngModel)]="employeeSearch" (ngModelChange)="filterEmployees(employeeSearch, $event)" /></div> -->
@@ -324,7 +326,7 @@
       </div>
     </div>
   </div>
-  <div class="employee-list-container">
+  <div #employeeListContainer class="employee-list-container">
     <ng-container *ngFor="let item of employeeList; let i=index">
       <div class="employee-row" [class.employee-inactive]="!item.tech.active" *ngIf="showAllEmployees || item.tech.active">
         <span class="employee-enabled">
@@ -346,11 +348,17 @@
     <div class="toggles">
       <div class="toggle-start">
         <span class="label">Show Inactive</span>
-        <span class="data"><p-inputSwitch [(ngModel)]="showAllEmployees"></p-inputSwitch></span>
+        <span class="data"><p-inputSwitch [(ngModel)]="showAllEmployees" (onChange)="toggleShowInactiveEmployees($event)"></p-inputSwitch></span>
       </div>
       <div class="toggle-end">
         <span class="label">Unassigned Only</span>
         <span class="data"><p-inputSwitch [(ngModel)]="showUnassignedOnly" (onChange)="toggleShowUnassignedOnly($event)"></p-inputSwitch></span>
+      </div>
+    </div>
+    <div class="toggles">
+      <div class="toggle-full">
+        <span class="label">Active Unscheduled</span>
+        <span class="data"><p-inputSwitch [(ngModel)]="showActiveUnscheduledOnly" (onChange)="toggleShowActiveUnscheduledOnly($event)"></p-inputSwitch></span>
       </div>
     </div>
     <div class="dialog-buttons">
@@ -361,7 +369,8 @@
 </p-dialog>
 
 <!-- Jobsite List dialog -->
-<p-dialog #sitesListDialog [styleClass]="'employee-list-dialog'" [header]="sitesListHeader" [(visible)]="showSitesList" [draggable]="true" [resizable]="true" [responsive]="true" [modal]="sitesModal" [closable]="sitesListClosable" [closeOnEscape]="sitesListESCable" (onHide)="closeSitesList($event)" [appendTo]="dialogTarget">
+<!-- <p-dialog #sitesListDialog [styleClass]="'employee-list-dialog'" [header]="siteListHeader" [(visible)]="showSitesList" [draggable]="true" [resizable]="true" [responsive]="true" [modal]="sitesModal" [closable]="sitesListClosable" [closeOnEscape]="sitesListESCable" (onHide)="closeSitesList($event)" [appendTo]="dialogTarget"> -->
+<p-dialog #sitesListDialog [styleClass]="'employee-list-dialog'" [header]="getSitesListHeader()" [(visible)]="showSitesList" [draggable]="true" [resizable]="true" [responsive]="true" [modal]="sitesModal" [closable]="sitesListClosable" [closeOnEscape]="sitesListESCable" (onHide)="closeSitesList($event)" [appendTo]="dialogTarget">
   <div class="empoyee-list-search">
     <!-- <div class="label">Search</div>
     <div class="data" ><input class="search-input" type="text" placeholder="Work Site Name" [(ngModel)]="sitesSearch" (ngModelChange)="filterSites(sitesSearch, $event)" /></div> -->
@@ -398,7 +407,7 @@
       </div>
     </div>
   </div>
-  <div class="employee-list-container">
+  <div #siteListContainer class="employee-list-container">
     <ng-container *ngFor="let item of siteList; let i=index">
       <div class="employee-row" [class.employee-inactive]="!item.site.site_active" *ngIf="showAllSites || item.site.site_active">
         <span class="employee-enabled">
@@ -410,7 +419,8 @@
             <span class="row-edit-icon" *ngIf="!item.site.site_active"><i class="fal fa-thumbs-down"></i></span>
           </span>
         </span>
-        <span class="employee-name" title="{{item.site.getScheduleName()}}" (click)="editSite(item.tech, $event)">
+        <!-- <span class="employee-name" title="{{item.site.getScheduleName()}}" (click)="editSite(item.site, $event)"> -->
+        <span class="employee-name" title="{{item.site.getScheduleName()}}" (click)="showViewWorkSite(item.site, $event)">
           {{item.site.getScheduleName()}}
         </span>
       </div>

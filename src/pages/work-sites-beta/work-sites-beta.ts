@@ -2,7 +2,7 @@
 import { Subscription                                        } from 'rxjs'                     ;
 import { sprintf                                             } from 'sprintf-js'               ;
 import { Component, OnInit, OnDestroy, NgZone, ViewChild,    } from '@angular/core'            ;
-import { IonicPage, NavController, NavParams, ViewController } from 'ionic-angular'            ;
+import { IonicPage, NavParams, ViewController                } from 'ionic-angular'            ;
 import { Log                                                 } from 'domain/onsitexdomain'     ;
 import { AuthService                                         } from 'providers/auth-service'   ;
 import { DBService                                           } from 'providers/db-service'     ;
@@ -16,12 +16,12 @@ import { SelectItem                                          } from 'primeng/api
 import { Table                                               } from 'primeng/table'            ;
 import { MultiSelect                                         } from 'primeng/multiselect'      ;
 
-@IonicPage({name: "Work Sites"})
+@IonicPage({name: "Work Sites Beta"})
 @Component({
-  selector: 'page-work-sites',
-  templateUrl: 'work-sites.html',
+  selector: 'work-sites-beta',
+  templateUrl: 'work-sites-beta.html',
 })
-export class WorkSitesPage implements OnInit,OnDestroy {
+export class WorkSitesBetaPage implements OnInit,OnDestroy {
   @ViewChild('dt') dt:Table                                     ;
   @ViewChild('columnMultiselect') columnMultiselect:MultiSelect ;
   public title          : string         = "Work Sites" ;
@@ -29,7 +29,8 @@ export class WorkSitesPage implements OnInit,OnDestroy {
   public optionsVisible : boolean        = false        ;
   public optionsType    : string         = 'jobsites'   ;
   public prefsSub       : Subscription                  ;
-  public jobsites       : Jobsite[] = []           ;
+  public site           : Jobsite                       ;
+  public jobsites       : Jobsite[] = []                ;
   public selectedJobsite: any                           ;
   public selectedClient : any                           ;
   public clientList     : any                           ;
@@ -46,11 +47,14 @@ export class WorkSitesPage implements OnInit,OnDestroy {
   public sortUpdated    : boolean = false               ;
   public tableScrollable: boolean = false               ;
   public modalMode      : boolean = false               ;
+  public viewWorkSiteVisible: boolean = false           ;
+  public siteEditMode   : string = "Edit"               ;
+  public prevComp       : any                           ;
   public get rowCount()   : number { return this.prefs.CONSOLE.pages.jobsites; };
   public set rowCount(val:number) { this.prefs.CONSOLE.pages.jobsites = val; };
 
   constructor(
-    public navCtrl   : NavController   ,
+    // public navCtrl   : NavController   ,
     public navParams : NavParams       ,
     public viewCtrl  : ViewController  ,
     public zone      : NgZone          ,
@@ -63,25 +67,32 @@ export class WorkSitesPage implements OnInit,OnDestroy {
     public notify    : NotifyService   ,
     public dispatch  : DispatchService ,
   ) {
-    window['Street'] = Street;
-    window['Address'] = Address;
-    window['Jobsite'] = Jobsite;
-    window['worksites'] = this;
-    window['sprintf'] = sprintf;
+    this.prevComp = window['p'];
+    window['p'] = this;
+    window['onsiteworksites']  = this;
+    window['onsiteworksites2'] = this;
+    // window['Street'] = Street;
+    // window['Address'] = Address;
+    // window['Jobsite'] = Jobsite;
+    // window['worksites'] = this;
+    // window['sprintf'] = sprintf;
     // this.clientList = [{client: "HB", fullName:"Halliburton"}];
     // this.selectedClient = this.clientList[0];
   }
 
   public ngOnInit() {
-    Log.l("WorkSites: ngOnInit() fired");
+    Log.l("WorkSitesBeta: ngOnInit() fired");
     if(this.data.isAppReady()) {
       this.runWhenReady();
     }
   }
 
   public ngOnDestroy() {
-    Log.l("WorkSites: ngOnDestroy() fired");
+    Log.l("WorkSitesBeta: ngOnDestroy() fired");
     this.cancelSubscriptions();
+    if(this.prevComp) {
+      window['p'] = this.prevComp;
+    }
   }
 
   public async runWhenReady() {
@@ -90,7 +101,7 @@ export class WorkSitesPage implements OnInit,OnDestroy {
       this.initializeSubscriptions();
       this.updatePageSizes();
       let res:any = await this.updateJobsiteList();
-      Log.l("WorkSites: ionViewWillEnter() updated job sites successfully.");
+      Log.l("WorkSitesBeta: ionViewWillEnter() updated job sites successfully.");
       // this.selectedCols = this.getColumns();
       this.getColumns();
       this.dataReady = true;
@@ -135,7 +146,7 @@ export class WorkSitesPage implements OnInit,OnDestroy {
   public getColumns() {
     let fields = [];
     let colList:SelectItem[] = [];
-    fields.push({ field : 'site_number'       , subfield: ""      , header: '#'           , order: 0 , filter: true, filterPlaceholder: "Site #"      , class: "col-01 col-siteno"   });
+    fields.push({ field : 'site_number'       , subfield: ""      , header: 'Site No.'    , order: 0 , filter: true, filterPlaceholder: "Site #"      , class: "col-01 col-siteno"   });
     fields.push({ field : 'schedule_name'     , subfield: ""      , header: 'Name'        , order: 1 , filter: true, filterPlaceholder: "Name"        , class: "col-00 col-name"     });
     fields.push({ field : '_id'               , subfield: ""      , header: 'Site ID'     , order: 2 , filter: true, filterPlaceholder: "Site ID"     , class: "col-01 col-id"       });
     fields.push({ field : 'client'            , subfield: "value" , header: 'Client'      , order: 3 , filter: true, filterPlaceholder: "Client"      , class: "col-02 col-client"   });
@@ -166,11 +177,23 @@ export class WorkSitesPage implements OnInit,OnDestroy {
     return fields;
   }
 
-  public addJobSite(event?:any) {
+  public addJobSite(event?:MouseEvent) {
+    // if(event && event.shiftKey) {
+    //   this.navCtrl.push('Add Work Site', { mode: 'Add' });
+    // } else {
+    //   this.navCtrl.push('Work Site', {mode: 'Add', sites: this.jobsites});
+    // }
+    this.siteEditMode = 'Add';
     if(event && event.shiftKey) {
-      this.navCtrl.push('Add Work Site', { mode: 'Add' });
+      let site:Jobsite = new Jobsite();
+      this.jobsites.push(site);
+      this.site = site;
+      this.showViewWorkSite(site);
     } else {
-      this.navCtrl.push('Work Site', {mode: 'Add', sites: this.jobsites});
+      let site:Jobsite = new Jobsite();
+      this.jobsites.push(site);
+      this.site = site;
+      this.showViewWorkSite(site);
     }
   }
 
@@ -185,7 +208,7 @@ export class WorkSitesPage implements OnInit,OnDestroy {
         resolve(this.jobsites);
       } else {
         this.server.getJobsites().then((docs:Jobsite[]) => {
-          Log.l("WorkSites: got job sites:\n", docs);
+          Log.l("WorkSitesBeta: got job sites:\n", docs);
           // this.jobsites = [];
           let jobsites:Jobsite[] = docs;
           // for (let doc of docs) {
@@ -194,7 +217,7 @@ export class WorkSitesPage implements OnInit,OnDestroy {
           //   let newSite = new Jobsite();
           //   newSite.readFromDoc(doc);
           //   jobsites.push(newSite);
-          //   // Log.l("WorkSites: Read in job site:\n", newSite);
+          //   // Log.l("WorkSitesBeta: Read in job site:\n", newSite);
           //   // this.jobsites = [...this.jobsites, newSite];
           // }
           this.jobsites = jobsites.sort((a:Jobsite,b:Jobsite) => {
@@ -202,7 +225,7 @@ export class WorkSitesPage implements OnInit,OnDestroy {
           });
           resolve(this.jobsites);
         }).catch((err) => {
-          Log.l("WorkSites: Error retrieving jobsites!");
+          Log.l("WorkSitesBeta: Error retrieving jobsites!");
           Log.e(err);
           reject(err);
         });
@@ -216,12 +239,14 @@ export class WorkSitesPage implements OnInit,OnDestroy {
     let event = evt.originalEvent;
     let site = evt.data;
     this.data.currentlyOpeningPage = true;
-    if(event && event.shiftKey) {
-      // this.navCtrl.push('Add Work Site', { mode: 'Edit', jobsite: this.selectedJobsite, sites: this.jobsites });
-      this.navCtrl.push('Work Site', { mode: 'Edit', jobsite: this.selectedJobsite, sites: this.jobsites });
-    } else {
-      this.navCtrl.setRoot('Work Site', {mode: 'Edit', jobsite: site, sites: this.jobsites});
-    }
+    this.siteEditMode = 'Edit';
+    this.showViewWorkSite(site);
+    // if(event && event.shiftKey) {
+    //   // this.navCtrl.push('Add Work Site', { mode: 'Edit', jobsite: this.selectedJobsite, sites: this.jobsites });
+    //   this.navCtrl.push('Work Site', { mode: 'Edit', jobsite: this.selectedJobsite, sites: this.jobsites });
+    // } else {
+    //   this.navCtrl.setRoot('Work Site', {mode: 'Edit', jobsite: site, sites: this.jobsites});
+    // }
   }
 
   public async reorderSites(evt:any):Promise<any> {
@@ -271,11 +296,13 @@ export class WorkSitesPage implements OnInit,OnDestroy {
     }
     Log.l("editSite(): Event and site are:\n", event);
     Log.l(site);
-    if(event && event.shiftKey) {
-      this.navCtrl.push('Add Work Site', { mode: 'Edit', jobsite: this.selectedJobsite, sites: this.jobsites });
-    } else {
-      this.navCtrl.push('Work Site', {mode: 'Edit', jobsite: site, sites: this.jobsites});
-    }
+    this.siteEditMode = 'Edit';
+    this.showViewWorkSite(site);
+    // if(event && event.shiftKey) {
+    //   this.navCtrl.push('Add Work Site', { mode: 'Edit', jobsite: this.selectedJobsite, sites: this.jobsites });
+    // } else {
+    //   this.navCtrl.push('Work Site', {mode: 'Edit', jobsite: site, sites: this.jobsites});
+    // }
   }
 
   public showFields(sel:MultiSelect, evt?:any) {
@@ -367,5 +394,25 @@ export class WorkSitesPage implements OnInit,OnDestroy {
   public closeModal(evt?:any) {
     this.viewCtrl.dismiss();
   }
-
+  public showViewWorkSite(site:Jobsite, evt?:Event) {
+    Log.l(`showViewWorkSite(): Event is:`, evt);
+    this.site = site;
+    this.viewWorkSiteVisible = true;
+  }
+  public cancelViewWorkSite(evt?:Event) {
+    Log.l(`cancelViewWorkSite(): Event is:`, evt);
+    window['p'] = this;
+    this.viewWorkSiteVisible = false;
+    let site:Jobsite = this.site;
+    if(this.siteEditMode === 'Add') {
+      this.jobsites = this.jobsites.filter((a:Jobsite) => {
+        return a !== site;
+      });
+    }
+  }
+  public saveViewWorkSite(evt?:Event) {
+    Log.l(`saveViewWorkSite(): Event is:`, evt);
+    window['p'] = this;
+    this.viewWorkSiteVisible = false;
+  }
 }
