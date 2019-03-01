@@ -1,20 +1,26 @@
 // import { DataTable                                                   } from 'primeng/datatable'        ;
-import { Subscription                                        } from 'rxjs'                     ;
-import { sprintf                                             } from 'sprintf-js'               ;
-import { Component, OnInit, OnDestroy, NgZone, ViewChild,    } from '@angular/core'            ;
-import { IonicPage, NavParams, ViewController                } from 'ionic-angular'            ;
-import { Log                                                 } from 'domain/onsitexdomain'     ;
-import { AuthService                                         } from 'providers/auth-service'   ;
-import { DBService                                           } from 'providers/db-service'     ;
-import { ServerService                                       } from 'providers/server-service' ;
-import { AlertService                                        } from 'providers/alert-service'  ;
-import { OSData                                              } from 'providers/data-service'   ;
-import { Preferences                                         } from 'providers/preferences'    ;
-import { DispatchService, NotifyService,                     } from 'providers'                ;
-import { Street, Address, Jobsite                            } from 'domain/onsitexdomain'     ;
-import { SelectItem                                          } from 'primeng/api'              ;
-import { Table                                               } from 'primeng/table'            ;
-import { MultiSelect                                         } from 'primeng/multiselect'      ;
+import { Subscription    } from 'rxjs'                     ;
+import { sprintf         } from 'sprintf-js'               ;
+import { Component       } from '@angular/core'            ;
+import { OnInit          } from '@angular/core'            ;
+import { OnDestroy       } from '@angular/core'            ;
+import { ViewChild       } from '@angular/core'            ;
+import { IonicPage       } from 'ionic-angular'            ;
+import { NavParams       } from 'ionic-angular'            ;
+import { ViewController  } from 'ionic-angular'            ;
+import { Log             } from 'domain/onsitexdomain'     ;
+import { AuthService     } from 'providers/auth-service'   ;
+import { DBService       } from 'providers/db-service'     ;
+import { ServerService   } from 'providers/server-service' ;
+import { AlertService    } from 'providers/alert-service'  ;
+import { OSData          } from 'providers/data-service'   ;
+import { Preferences     } from 'providers/preferences'    ;
+import { DispatchService } from 'providers'                ;
+import { NotifyService   } from 'providers'                ;
+import { Jobsite         } from 'domain/onsitexdomain'     ;
+import { SelectItem      } from 'primeng/api'              ;
+import { Table           } from 'primeng/table'            ;
+import { MultiSelect     } from 'primeng/multiselect'      ;
 
 @IonicPage({name: "Work Sites Beta"})
 @Component({
@@ -52,12 +58,19 @@ export class WorkSitesBetaPage implements OnInit,OnDestroy {
   public prevComp       : any                           ;
   public get rowCount()   : number { return this.prefs.CONSOLE.pages.jobsites; };
   public set rowCount(val:number) { this.prefs.CONSOLE.pages.jobsites = val; };
+  public get autoLayout():boolean {
+    if(this.prefs && this.prefs.CONSOLE && this.prefs.CONSOLE.jobsites && this.prefs.CONSOLE.jobsites.autoLayoutTable) {
+      return true;
+    } else {
+      return false;
+    }
+  };
 
   constructor(
     // public navCtrl   : NavController   ,
     public navParams : NavParams       ,
     public viewCtrl  : ViewController  ,
-    public zone      : NgZone          ,
+    // public zone      : NgZone          ,
     public prefs     : Preferences     ,
     public db        : DBService       ,
     public server    : ServerService   ,
@@ -97,6 +110,7 @@ export class WorkSitesBetaPage implements OnInit,OnDestroy {
 
   public async runWhenReady() {
     try {
+      this.prefs.CONSOLE.jobsites.autoLayoutTable = true;
       if(this.navParams.get('modalMode') != undefined) { this.modalMode = this.navParams.get('modalMode'); }
       this.initializeSubscriptions();
       this.updatePageSizes();
@@ -391,6 +405,13 @@ export class WorkSitesBetaPage implements OnInit,OnDestroy {
     }
   }
 
+  public deselectAll() {
+    let dt:Table = this.dt;
+    if(dt) {
+      dt.selection = null;
+    }
+  }
+
   public closeModal(evt?:any) {
     this.viewCtrl.dismiss();
   }
@@ -403,6 +424,7 @@ export class WorkSitesBetaPage implements OnInit,OnDestroy {
     Log.l(`cancelViewWorkSite(): Event is:`, evt);
     window['p'] = this;
     this.viewWorkSiteVisible = false;
+    this.deselectAll();
     let site:Jobsite = this.site;
     if(this.siteEditMode === 'Add') {
       this.jobsites = this.jobsites.filter((a:Jobsite) => {
@@ -414,5 +436,27 @@ export class WorkSitesBetaPage implements OnInit,OnDestroy {
     Log.l(`saveViewWorkSite(): Event is:`, evt);
     window['p'] = this;
     this.viewWorkSiteVisible = false;
+    this.deselectAll();
   }
+
+  public toggleShowAll() {
+
+  }
+
+  public async toggleSiteActive(site:Jobsite, event?:MouseEvent):Promise<any> {
+    try {
+      Log.l(`toggleSiteActive(): Event is:`, event);
+      if(event) {
+        event.stopPropagation();
+        // event.preventDefault();
+      }
+      site.site_active = !site.site_active;
+      let res:any = await this.db.saveJobsite(site);
+    } catch(err) {
+      Log.l(`toggleSiteActive(): Error toggling site!`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
 }

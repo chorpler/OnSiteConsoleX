@@ -934,7 +934,7 @@ export class SchedulingPage implements OnInit,OnDestroy {
       Log.l(`addSiteToSchedule(): Error adding site to schedule!`);
       Log.e(err);
       this.notify.addError("ERROR", `Error adding site to schedule: '${err.message}'`, 5000);
-      // throw new Error(err);
+      // throw err;
     }
   }
 
@@ -1031,7 +1031,7 @@ export class SchedulingPage implements OnInit,OnDestroy {
     } catch(err) {
       Log.l(`siteToggled(): Error toggling site!`);
       Log.e(err);
-      throw new Error(err);
+      throw err;
     }
   }
   public toggleSiteActive(event?:any) {
@@ -1180,7 +1180,7 @@ export class SchedulingPage implements OnInit,OnDestroy {
       Log.e(err);
       let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       this.notify.addError("ERROR", `Error toggling employee '${username}': '${err.message}'`, 4000);
-      // throw new Error(err);
+      // throw err;
     }
   }
 
@@ -1998,7 +1998,7 @@ z
     } catch(err) {
       // Log.l(`optionsSaved(): Error updating options and updating display!`);
       // Log.e(err);
-      // throw new Error(err);
+      // throw err;
       Log.l("optionsSaved(): Error saving options!");
       Log.e(err);
       this.notify.addError("ERROR", `Error saving preferences: '${err.message}'`, 10000);

@@ -1,8 +1,9 @@
 import { sprintf                                          } from 'sprintf-js'           ;
 import { Injectable, NgZone                               } from '@angular/core'        ;
 import { Log, moment, Moment, isMoment                    } from 'domain/onsitexdomain' ;
-import { PouchDBService, Database,                        } from './pouchdb-service'    ;
-import { PDBInfo,                                         } from './pouchdb-service'    ;
+import { PouchDBService,                                  } from './pouchdb-service'    ;
+import { Database, PDBInfo,                               } from './pouchdb-service'    ;
+import { UpsertResponse, UpsertDiffCallback,              } from './pouchdb-service'    ;
 import { AuthService                                      } from './auth-service'       ;
 import { AlertService                                     } from './alert-service'      ;
 import { NotifyService                                    } from './notify-service'     ;
@@ -1271,62 +1272,36 @@ export class DBService {
     });
   }
 
-  public saveJobsite(jobsite:Jobsite) {
-    Log.l("saveJobsite(): Saving job site...\n", jobsite);
-    return new Promise((resolve,reject) => {
+  public async saveJobsite(jobsite:Jobsite):Promise<UpsertResponse> {
+    try {
+      Log.l("saveJobsite(): Saving job site:", jobsite);
       let db1 = this.addDB('sesa-jobsites');
       if(!jobsite._id) {
         jobsite._id = jobsite.getSiteID();
       }
       Log.l(`saveJobsite(): Now attempting to save jobsite '${jobsite._id}:\n`,jobsite);
-      db1.upsert(jobsite._id, (doc:any) => {
+      let siteDoc = jobsite.serialize();
+      let res:UpsertResponse = await db1.upsert(siteDoc._id, (doc:any) => {
         if(doc._id && doc._rev) {
-          jobsite._rev = doc._rev;
+          siteDoc._rev = doc._rev;
         } else {
-          delete jobsite._rev;
+          delete siteDoc._rev;
         }
-        return jobsite;
-      }).then(res => {
-        if(!res['ok'] && !res.updated) {
-          Log.l(`saveJobsite(): Upsert error saving jobsite '${jobsite._id}!`);
-          Log.e(res);
-          reject(res);
-        } else {
-          resolve(res);
-        }
-      }).catch(err => {
-        Log.l(`saveJobsite(): Error saving jobsite '${jobsite._id}!`);
-        Log.e(err);
-        reject(err);
+        return siteDoc;
       });
-    //   db1.get(jobsite._id).then((res) => {
-    //     Log.l(`saveJobsite(): Retrieved jobsite '${jobsite._id}' successfully:\n`, res);
-    //     jobsite._rev = res._rev;
-    //     Log.l(`saveJobsite(): Now saving jobsite '${jobsite._id}'...`);
-    //     return db1.put(jobsite);
-    //   }).then((res) => {
-    //     Log.l(`saveJobsite(): Successfully saved job site ${jobsite._id}.\n`, res);
-    //     resolve(res);
-    //   }).catch((err) => {
-    //     if(err) {
-    //     Log.l("saveJobsite(): Error saving job site!");
-    //     Log.e(err);
-    //     if(err['status'] == 404) {
-    //       Log.l(`saveJobsite(): Jobsite ${jobsite._id} was not found, saving new...`);
-    //       db1.put(jobsite).then((res) => {
-    //         Log.l(`saveJobsite(): Jobsite ${jobsite._id} was newly saved successfully!\n`, res);
-    //         resolve(res);
-    //       }).catch((err) => {
-    //         Log.l(`saveJobsite(): Error saving new jobsite ${jobsite._id}!`);
-    //         Log.l(err);
-    //         reject(err);
-    //       });
-    //     } else {
-    //       reject(err);
-    //     }
-    //   });
-    // });
-    });
+      if(!res.ok && !res.updated) {
+        Log.l(`saveJobsite(): Upsert error saving jobsite '${jobsite._id}:`, res);
+        let text:string = res && typeof res.message === 'string' ? res.message : "unknown_upsert_error";
+        let err = new Error(text);
+        throw err;
+      } else {
+        return res;
+      }
+    } catch(err) {
+      Log.l(`saveJobsite(): Error saving jobsite:`, jobsite);
+      Log.e(err);
+      throw err;
+    }
   }
 
   public saveInvoice(type:string, invoice: Invoice) {
