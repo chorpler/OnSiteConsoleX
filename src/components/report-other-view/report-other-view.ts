@@ -279,9 +279,10 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
   }
 
   public updateDate(newDate:Date) {
-    let date = moment(newDate);
-    let report = this.other;
-    report.report_date = moment(date);
+    let date:Moment = moment(newDate);
+    let report:ReportOther = this.other;
+    // report.report_date = moment(date);
+    report.setReportDate(date);
     report.shift_serial = Shift.getShiftSerial(date);
     report.payroll_period = PayrollPeriod.getPayrollSerial(date);
   }

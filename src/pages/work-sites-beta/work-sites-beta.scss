@@ -169,9 +169,21 @@ page-work-sites-beta, work-sites-beta {
       width: 2em;
     }
     tr {
-      &:hover {
+      &.uncolored {
+        &:hover {
+          background-color: rgba(255, 0, 0, 0) !important;
+          box-shadow: inset 0px 0.4px 21px 1px rgba(0, 0, 255, 0.4);
+          // box-shadow: inset 0px 0.4px 21px 1px rgba(0, 172, 255, 0.4);
+        }
+      }
+      &.notinactive {
         background-color: rgba(255, 0, 0, 0) !important;
-        box-shadow: inset 0px 0.4px 21px 1px rgba(0, 0, 255, 0.4);
+        box-shadow: inset 0px 0.4px 21px 1px rgba(0, 255, 0, 0.4);
+        &:hover {
+          background-color: rgba(255, 0, 0, 0) !important;
+          box-shadow: inset 0px 0.4px 21px 1px rgba(0, 0, 255, 0.4);
+          // box-shadow: inset 0px 0.4px 21px 1px rgba(0, 172, 255, 0.4);
+        }
       }
       &.inactive {
         // background-color: rgba(255, 0, 0, 0.1) !important;

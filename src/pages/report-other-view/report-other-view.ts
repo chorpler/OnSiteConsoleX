@@ -70,19 +70,21 @@ export class ReportOtherViewPage implements OnInit {
     }
     if(this.navParams.get('other') !== undefined) {
       this.report = this.navParams.get('other');
-      this.report_date = this.report.report_date.format("YYYY-MM-DD");
-      let XL = Number(this.report.timestamp);
+      // this.report_date = this.report.report_date.format("YYYY-MM-DD");
+      this.report_date = this.report.getReportDateAsString();
+      let XL:number = Number(this.report.timestamp);
       this.timestampXL = XL;
       this.timestampM = moment().fromExcel(XL);
     } else {
       this.report = new ReportOther();
-      let now = moment().startOf('day');
+      let now:Moment = moment();
       this.timestampM = moment(now);
-      this.report.timestampM = moment(this.timestampM);
+      this.report.timestampM = this.timestampM.format();
       this.timestampXL = this.timestampM.toExcel();
       this.report.timestamp = this.timestampXL;
 
-      this.report.report_date = now;
+      // this.report.report_date = now;
+      this.report.setReportDate(now);
       this.report_date = now.format("YYYY-MM-DD");
     }
     if(this.navParams.get('tech') !== undefined) { this.tech = this.navParams.get('tech');}
@@ -132,30 +134,32 @@ export class ReportOtherViewPage implements OnInit {
   }
 
   public updateReportDate(reportDate:string) {
-    let date = moment(reportDate, "YYYY-MM-DD");
-    this.report.report_date = date;
+    let date:Moment = moment(reportDate, "YYYY-MM-DD");
+    // this.report.report_date = date;
+    this.report.setReportDate(date);
     this.report.shift_serial = Shift.getShiftSerial(date);
     this.report.payroll_period = PayrollPeriod.getPayrollSerial(date);
     return this.report;
   }
 
   public modifyTimestamp(XL:number) {
-    let report = this.report;
-    let date = moment().fromExcel(XL);
-    Log.l(`modifyTimestamp(): Using ${XL} as timestamp, setting report.timestampM to:\n`, date);
-    this.report.timestampM = moment(date);
-    this.report.timestamp = Number(XL);
-    this.timestampDate = moment(date).format();
+    let date:Moment = moment.fromExcel(XL);
+    Log.l(`modifyTimestamp(): Using ${XL} as timestamp, setting report.timestampM to:`, date.format());
+    // this.report.timestampM = moment(date);
+    // this.report.timestampM = moment(date);
+    // this.report.timestamp = Number(XL);
+    this.report.setTimestamp(date);
+    this.timestampDate = date.format();
     // this.timestampM = moment(date);
   }
 
   public modifyTimestampM(ts:string) {
-    let report = this.report;
     // let date = moment(ts, "YYYY-MM-DDTHH:mm:ssZ");
-    let date = moment(ts);
-    let xl = date.toExcel();
-    Log.l(`modifyTimestampM(): Using ${ts} as timestamp, setting report.timestampM to:\n`, date);
-    this.report.timestampM = moment(date);
+    let date:Moment = moment(ts);
+    let xl:number = date.toExcel();
+    Log.l(`modifyTimestampM(): Using ${ts} as timestamp, setting report.timestampM to:`, date.format());
+    // this.report.timestampM = moment(date);
+    this.report.setTimestamp(date);
     this.report.timestamp = xl;
     this.timestampM = moment(date);
   }

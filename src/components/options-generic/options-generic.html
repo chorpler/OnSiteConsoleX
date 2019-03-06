@@ -17,6 +17,14 @@
 
     <!-- Work Sites Page -->
     <div class="options-main" *ngIf="optionType==='jobsites'">
+      <div class="options-item" title="Color inactive and active sites">
+        <span class="data-item-wrapper">
+          <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.jobsites.colorSitesByStatus" binary="true"></p-checkbox>
+        </span>
+        <span class="data-label-wrapper">
+          <span class="label">Color job sites by status (active/inactive)</span>
+        </span>
+      </div>
       <div class="options-item" title="Size table columns automatically, based on contents. (Otherwise, table is always full-page.)">
         <span class="data-item-wrapper">
           <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.jobsites.autoLayoutTable" binary="true"></p-checkbox>

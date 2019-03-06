@@ -459,4 +459,12 @@ export class WorkSitesBetaPage implements OnInit,OnDestroy {
     }
   }
 
+  public toggleViewAll(evt?:MouseEvent):boolean {
+    let current:boolean = this.prefs && this.prefs.CONSOLE && this.prefs.CONSOLE.jobsites && this.prefs.CONSOLE.jobsites.showAllSites ? true : false;
+    let visible:boolean = !current;
+    Log.l(`toggleViewAll(): View All Sites mode is:`, visible);
+    this.prefs.CONSOLE.jobsites.showAllSites = visible;
+    return visible;
+  }
+
 }

@@ -1635,12 +1635,12 @@ export class OSData {
       let shifts     = techPeriod.getPayrollShifts();
       for (let shift of shifts) {
         let shiftDate = shift.getShiftDate().format("YYYY-MM-DD");
-        reports   = this.dbdata.reports.filter((obj, pos, arr) => {
-          return obj['report_date'] === shiftDate && obj['username'] === tech.username;
+        reports   = this.dbdata.reports.filter((a:Report) => {
+          return a.report_date === shiftDate && a.username === tech.username;
         });
-        let others = this.dbdata.others.filter((obj, pos, arr) => {
-          let otherDate = obj['report_date'].format("YYYY-MM-DD");
-          return otherDate === shiftDate && obj['username'] === tech.username;
+        let others:ReportOther[] = this.dbdata.others.filter((a:ReportOther) => {
+          let date:string = a.getReportDateAsString();
+          return date === shiftDate && a.username === tech.username;
         });
         shift.setShiftReports([]);
         shift.setOtherReports([]);

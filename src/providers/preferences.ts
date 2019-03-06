@@ -167,6 +167,8 @@ export class Preferences {
     jobsites: {
       autoLayoutTable: false,
       tableResizeMode: 'fit',
+      showAllSites: true,
+      colorSitesByStatus: true,
     },
     techphones: {
       autoLayoutTable: false,
@@ -1002,6 +1004,8 @@ export class Preferences {
       jobsites: {
         autoLayoutTable: false,
         tableResizeMode: 'fit',
+        showAllSites: true,
+        colorSitesByStatus: true,
       },
       techphones: {
         autoLayoutTable: false,

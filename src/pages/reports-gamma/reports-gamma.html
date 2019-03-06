@@ -15,7 +15,7 @@
     </ion-title>
     <ion-buttons right>
       <span class="menubar-buttons">
-        <span class="menubar-button" (click)="resetReportsTable($event)" title="Reset reports table (clear filters, etc.)">
+        <span class="menubar-button" (click)="resetReportsTable($event)" title="Reset all reports tables (clear filters, etc.)">
           <i class="fa fa-ban clear-button"></i>
         </span>
         <span class="menubar-button" title="Run Tech Shift Reports for visible reports" (click)="openTechShiftReports($event)">
@@ -68,20 +68,10 @@
     <p-header>
       <span class="panel-header">
         <span class="button-left">
-          <span class="panel-header-button db-download" title="Load work reports from database" (click)="possibleUpdateReports(0, $event)">
-            <!-- <i class="fal fa-database"></i> -->
-            <!-- <fa-icon [icon]="faDatabase" [size]="faSize"></fa-icon> -->
-            <!-- <fa-layers [fixedWidth]="faFixedWidth" [ngClass]="faLayerClass">
-              <fa-icon [icon]="faDBIcon" [size]="faSize" [inverse]="faIcon1Invert" [transform]="faIcon1Transform"></fa-icon>
-              <fa-icon [icon]="faArrowIcon" [size]="faSize2" [inverse]="faIcon2Invert" [transform]="faIcon2Transform" [style]="faArrowStyle"></fa-icon>
-              <fa-icon [inverse]="true" [icon]="['fas', 'spinner']" transform="shrink-6"></fa-icon>
-            </fa-layers> -->
-            <!-- <fa-layers [fixedWidth]="faFixedWidth" [ngClass]="faLayerClass">
-              <fa-icon [icon]="faDBIcon" [size]="faSize" [inverse]="faIcon1Invert" [transform]="faIcon1Transform" [styles]="faIcon1Styles"></fa-icon>
-              <fa-icon [icon]="faCircleIcon" [size]="faSize3" [transform]="faIcon3Transform" [styles]="faIcon3Styles"></fa-icon>
-              <fa-icon [icon]="faArrowIcon" [size]="faSize2" [inverse]="faIcon2Invert" [transform]="faIcon2Transform" [styles]="faIcon2Styles"></fa-icon>
-            </fa-layers> -->
-          </span>
+          <span class="panel-header-button db-download" title="Load work reports from database" (click)="possibleUpdateReports(0, $event)"></span>
+        </span>
+        <span class="button-left">
+          <span class="panel-header-button" title="Calculate total hours shown" (click)="calculateHoursShown($event)"><i class="fal fa-calculator-alt"></i></span>
         </span>
         <span class="panel-title">
           Work Reports<span class="report-count"> ({{reports?.length}} loaded<span class="report-count-filtered" *ngIf="filteredCount">, {{filteredCount}} matches</span>)</span>
@@ -160,15 +150,10 @@
     <p-header>
       <span class="panel-header">
         <span class="button-left">
-          <span class="panel-header-button db-download" title="Load miscellaneous reports from database" (click)="possibleUpdateReports(1, $event)">
-            <!-- <i class="fal fa-database"></i> -->
-            <!-- <fa-icon [icon]="faDatabase" [size]="faSize"></fa-icon> -->
-            <!-- <fa-layers [fixedWidth]="faFixedWidth" [ngClass]="faLayerClass">
-              <fa-icon [icon]="faDBIcon" [size]="faSize" [inverse]="faIcon1Invert" [transform]="faIcon1Transform" [styles]="faIcon1Styles"></fa-icon>
-              <fa-icon [icon]="faCircleIcon" [size]="faSize3" [transform]="faIcon3Transform" [styles]="faIcon3Styles"></fa-icon>
-              <fa-icon [icon]="faArrowIcon" [size]="faSize2" [inverse]="faIcon2Invert" [transform]="faIcon2Transform" [styles]="faIcon2Styles"></fa-icon>
-            </fa-layers> -->
-          </span>
+          <span class="panel-header-button db-download" title="Load miscellaneous reports from database" (click)="possibleUpdateReports(1, $event)"></span>
+        </span>
+        <span class="button-left">
+          <span class="panel-header-button" title="Calculate total misc report hours shown" (click)="calculateMiscHoursShown($event)"><i class="fal fa-calculator-alt"></i></span>
         </span>
         <span class="panel-title">
           Misc Reports<span class="report-count"> ({{others?.length}} loaded<span class="report-count-filtered" *ngIf="filteredCountOthers">, {{filteredCountOthers}} matches</span>)</span>
@@ -231,7 +216,9 @@
                 {{rowData[col?.field]}}
               </span>
               <span class="cell-body-data" *ngIf="col?.format">
-                {{rowData[col?.field].format(col?.format)}}
+                <!-- {{rowData[col?.field].format(col?.format)}} -->
+                <!-- {{rowData[col?.field].getReportDateAsString(col?.format)}} -->
+                {{getMomentString(rowData[col?.field], col?.format)}}
               </span>
             </td>
           </tr>
@@ -247,15 +234,13 @@
     <p-header>
       <span class="panel-header">
         <span class="button-left">
-          <span class="panel-header-button db-download" title="Load logistics reports from database" (click)="possibleUpdateReports(2, $event)">
-            <!-- <i class="fal fa-database"></i> -->
-            <!-- <fa-icon [icon]="faDatabase" [size]="faSize"></fa-icon> -->
-            <!-- <fa-layers [fixedWidth]="faFixedWidth" [ngClass]="faLayerClass">
-              <fa-icon [icon]="faDBIcon" [size]="faSize" [inverse]="faIcon1Invert" [transform]="faIcon1Transform" [styles]="faIcon1Styles"></fa-icon>
-              <fa-icon [icon]="faCircleIcon" [size]="faSize3" [transform]="faIcon3Transform" [styles]="faIcon3Styles"></fa-icon>
-              <fa-icon [icon]="faArrowIcon" [size]="faSize2" [inverse]="faIcon2Invert" [transform]="faIcon2Transform" [styles]="faIcon2Styles"></fa-icon>
-            </fa-layers> -->
-          </span>
+          <span class="panel-header-button db-download" title="Load logistics reports from database" (click)="possibleUpdateReports(2, $event)"></span>
+        </span>
+        <span class="button-left">
+          <span class="panel-header-button" title="Calculate total logistics hours shown" (click)="calculateLogisticsHoursShown($event)"><i class="fal fa-calculator-alt"></i></span>
+        </span>
+        <span class="button-left">
+          <span class="panel-header-button" title="Calculate total logistics miles shown" (click)="calculateLogisticsMilesShown($event)"><i class="fal fa-ruler"></i></span>
         </span>
         <span class="panel-title">
           Logistics Reports<span class="report-count"> ({{logistics?.length}} loaded<span class="report-count-filtered" *ngIf="filteredCountLogistics">, {{filteredCountLogistics}} matches</span>)</span>
@@ -328,7 +313,7 @@
               </span>
               <span class="cell-body-data" *ngIf="!col?.type && col?.format">
                 <!-- {{moment(rowData[col?.field]).format(col?.format)}} -->
-                {{getMomentString(rowData[col?.field])}}
+                {{getMomentString(rowData[col?.field], col.format)}}
               </span>
             </td>
           </tr>
@@ -344,15 +329,10 @@
     <p-header>
       <span class="panel-header">
         <span class="button-left">
-          <span class="panel-header-button db-download" title="Load time cards from database" (click)="possibleUpdateReports(3, $event)">
-            <!-- <i class="fal fa-database"></i> -->
-            <!-- <fa-icon [icon]="faDatabase" [size]="faSize"></fa-icon> -->
-            <!-- <fa-layers [fixedWidth]="faFixedWidth" [ngClass]="faLayerClass">
-              <fa-icon [icon]="faDBIcon" [size]="faSize" [inverse]="faIcon1Invert" [transform]="faIcon1Transform" [styles]="faIcon1Styles"></fa-icon>
-              <fa-icon [icon]="faCircleIcon" [size]="faSize3" [transform]="faIcon3Transform" [styles]="faIcon3Styles"></fa-icon>
-              <fa-icon [icon]="faArrowIcon" [size]="faSize2" [inverse]="faIcon2Invert" [transform]="faIcon2Transform" [styles]="faIcon2Styles"></fa-icon>
-            </fa-layers> -->
-          </span>
+          <span class="panel-header-button db-download" title="Load time cards from database" (click)="possibleUpdateReports(3, $event)"></span>
+        </span>
+        <span class="button-left">
+          <span class="panel-header-button" title="Calculate total timecard hours shown" (click)="calculateTimeCardHoursShown($event)"><i class="fal fa-calculator-alt"></i></span>
         </span>
         <span class="panel-title">
           Time Cards<span class="report-count"> ({{timecards?.length}} loaded<span class="report-count-filtered" *ngIf="filteredCountTimeCards">, {{filteredCountTimeCards}} matches</span>)</span>

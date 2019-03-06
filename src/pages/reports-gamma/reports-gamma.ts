@@ -1076,9 +1076,9 @@ export class ReportsGammaPage implements OnInit,OnDestroy {
       this.logisticsTable,
       this.timecardsTable,
     ];
-    for(let dt of tables) {
-      if(dt && dt instanceof Table) {
-        this.clearDates(dt, event);
+    for(let table of tables) {
+      if(table && table instanceof Table) {
+        this.clearDates(table, event);
       }
     }
   }
@@ -1495,22 +1495,28 @@ export class ReportsGammaPage implements OnInit,OnDestroy {
     // grid[0] = header;
     let keys = ['payroll_period', 'type', 'training_type', 'report_date', 'timestamp', 'last_name', 'first_name', 'time_start', 'time_end', 'repair_hours', 'client', 'location', 'location_id', 'unit_number', 'work_order_number', 'notes'];
     let others = this.others.filter((a:ReportOther) => {
-      let date = a.report_date.format("YYYY-MM-DD");
+      // let date:string = a.report_date.format("YYYY-MM-DD");
+      let date:string = a.getReportDateAsString();
       return date >= strStart && date <= strEnd;
     }).sort((a,b) => {
-      let dA=a.report_date.format("YYYY-MM-DD"), dB=b.report_date.format("YYYY-MM-DD");
+      // let dA:string = a.report_date.format("YYYY-MM-DD");
+      // let dB:string = b.report_date.format("YYYY-MM-DD");
+      let dA:string = a.getReportDateAsString();
+      let dB:string = b.getReportDateAsString();
       return dA > dB ? 1 : dA < dB ? -1 : 0;
     });
     let allreports = [...reports, ...others];
-    Log.l("createExportData(): showreports is now:\n", allreports);
+    Log.l("createExportData(): showreports is now:", allreports);
     let showreports = allreports.filter((a:Report|ReportOther) => {
       // let date = obj['report_date'];
       // return date >= strStart && date <= strEnd;
       let lname = a.last_name, fname = a.first_name;
       return !((lname === 'Bates' && fname === 'Michael') || (lname === 'Sargeant' && fname === 'David') || (fname === 'Cecilio' && lname === 'Jauregui'));
     }).sort((a:Report|ReportOther, b:Report|ReportOther) => {
-      let dA:string = a instanceof Report ? a.report_date : a.report_date.format("YYYY-MM_DD");
-      let dB:string = b instanceof Report ? b.report_date : b.report_date.format("YYYY-MM_DD");
+      // let dA:string = a instanceof Report ? a.report_date : a.report_date.format("YYYY-MM_DD");
+      // let dB:string = b instanceof Report ? b.report_date : b.report_date.format("YYYY-MM_DD");
+      let dA:string = a.getReportDateAsString();
+      let dB:string = b.getReportDateAsString();
       return dA > dB ? 1 : dA < dB ? -1 : 0;
     });
     Log.l("createExportData(): showreports is now:\n", showreports);
@@ -1539,7 +1545,8 @@ export class ReportsGammaPage implements OnInit,OnDestroy {
           if(report instanceof Report) {
             row.push(report[key]);
           } else if(report instanceof ReportOther) {
-            row.push(report[key].format("YYYY-MM-DD"));
+            // row.push(report[key].format("YYYY-MM-DD"));
+            row.push(report[key]);
           }
         } else {
           row.push(report[key]);
@@ -1831,9 +1838,17 @@ export class ReportsGammaPage implements OnInit,OnDestroy {
         }
       }
     }
-    if(this.globalFilterInput && this.globalFilterInput instanceof ElementRef) {
-      let gfInput:HTMLInputElement = this.globalFilterInput.nativeElement;
-      gfInput.value = "";
+    let inputs:ElementRef[] = [
+      this.globalFilterInput,
+      this.globalFilterInputOthers,
+      this.globalFilterInputLogistics,
+      this.globalFilterInputTimeCards,
+    ];
+    for(let el of inputs) {
+      if(el && el instanceof ElementRef) {
+        let input:HTMLInputElement = el.nativeElement;
+        input.value = "";
+      }
     }
     this.clearAllDates(evt);
   }
@@ -1874,11 +1889,11 @@ export class ReportsGammaPage implements OnInit,OnDestroy {
     this.viewCtrl.dismiss();
   }
 
-  public getMomentString(val:string|Moment):string {
+  public getMomentString(val:string|Moment, format?:string):string {
     let out:string;
     let time:Moment;
     // let format:string = "DD MMM YYYY HH:mm";
-    let format:string = this.dateFormat;
+    let fmt:string = typeof format === 'string' ? format : this.dateFormat;
     if(typeof val === 'string') {
       time = moment(val);
     } else if(isMoment(val)) {
@@ -1893,4 +1908,139 @@ export class ReportsGammaPage implements OnInit,OnDestroy {
     }
     return out;
   }
+
+  public async showTotalHours(total:number, count:number, evt?:MouseEvent):Promise<boolean> {
+    try {
+      Log.l(`showTotalHours(): Called`);
+      await this.alert.showAlert("TOTAL HOURS", `<b>Hours</b>: ${total}<br><b>Count</b>: ${count}`);
+      return true;
+    } catch(err) {
+      Log.l(`showTotalHours(): Error showing total hours`);
+      Log.e(err);
+      throw err;
+    }
+  }
+  
+  public async showTotalMiles(total:number, count:number, evt?:MouseEvent):Promise<boolean> {
+    try {
+      Log.l(`showTotalMiles(): Called`);
+      await this.alert.showAlert("TOTAL MILES", `<b>Miles</b>: ${total}<br><b>Count</b>: ${count}`);
+      return true;
+    } catch(err) {
+      Log.l(`showTotalMiles(): Error showing total hours`);
+      Log.e(err);
+      throw err;
+    }
+  }
+  
+  public async calculateHoursShown(evt?:MouseEvent):Promise<number> {
+    try {
+      Log.l(`calculateHoursShown(): Called event:`, evt);
+      let table:Table = this.dt;
+      let reports:Report[];
+      reports = table && typeof table.hasFilter === 'function' && table.hasFilter() ? table.filteredValue : table && Array.isArray(table.value) ? table.value : [];
+      let total:number = 0;
+      let count:number = reports.length;
+      for(let report of reports) {
+        let hours:number = report.getRepairHours();
+        total += hours;
+      }
+      await this.showTotalHours(total, count);
+      return total;
+    } catch(err) {
+      Log.l(`calculateHoursShown(): Error calculating visible report hours`);
+      Log.e(err);
+      throw err;
+    }
+  }
+  
+  public async calculateMiscHoursShown(evt?:MouseEvent):Promise<number> {
+    try {
+      Log.l(`calculateMiscHoursShown(): Called event:`, evt);
+      let table:Table = this.othersTable;
+      let reports:ReportOther[];
+      reports = table && typeof table.hasFilter === 'function' && table.hasFilter() ? table.filteredValue : table && Array.isArray(table.value) ? table.value : [];
+      let total:number = 0;
+      let count:number = reports.length;
+      for(let report of reports) {
+        let hours:number = Number(report.getTotalHours());
+        if(isNaN(hours)) {
+          hours = 0;
+        }
+        total += hours;
+      }
+      await this.showTotalHours(total, count);
+      return total;
+    } catch(err) {
+      Log.l(`calculateMiscHoursShown(): Error calculating visible misc report hours`);
+      Log.e(err);
+      throw err;
+    }
+  }
+  
+  public async calculateLogisticsHoursShown(evt?:MouseEvent):Promise<number> {
+    try {
+      Log.l(`calculateLogisticsHoursShown(): Called event:`, evt);
+      let table:Table = this.logisticsTable;
+      let reports:ReportLogistics[];
+      reports = table && typeof table.hasFilter === 'function' && table.hasFilter() ? table.filteredValue : table && Array.isArray(table.value) ? table.value : [];
+      let total:number = 0;
+      let count:number = reports.length;
+      for(let report of reports) {
+        // let hours:number = report.getTotalTime();
+        let hours:number = report.getTotalTravelHours();
+        total += hours;
+      }
+      await this.showTotalHours(total, count);
+      return total;
+    } catch(err) {
+      Log.l(`calculateLogisticsHoursShown(): Error calculating visible report hours`);
+      Log.e(err);
+      throw err;
+    }
+  }
+  
+  public async calculateTimeCardHoursShown(evt?:MouseEvent):Promise<number> {
+    try {
+      Log.l(`calculateTimecardHoursShown(): Called event:`, evt);
+      let table:Table = this.timecardsTable;
+      let reports:ReportTimeCard[];
+      reports = table && typeof table.hasFilter === 'function' && table.hasFilter() ? table.filteredValue : table && Array.isArray(table.value) ? table.value : [];
+      let total:number = 0;
+      let count:number = reports.length;
+      for(let report of reports) {
+        let hours:number = report.getTotalTime();
+        total += hours;
+      }
+      await this.showTotalHours(total, count);
+      return total;
+    } catch(err) {
+      Log.l(`calculateTimecardHoursShown(): Error calculating visible report hours`);
+      Log.e(err);
+      throw err;
+    }
+  }
+  
+  public async calculateLogisticsMilesShown(evt?:MouseEvent):Promise<number> {
+    try {
+      Log.l(`calculateLogisticsMilesShown(): Called event:`, evt);
+      let table:Table = this.logisticsTable;
+      let reports:ReportLogistics[];
+      reports = table && typeof table.hasFilter === 'function' && table.hasFilter() ? table.filteredValue : table && Array.isArray(table.value) ? table.value : [];
+      let total:number = 0;
+      let count:number = reports.length;
+      for(let report of reports) {
+        let miles:number = report.getTotalTravelMiles();
+        total += miles;
+      }
+      await this.showTotalMiles(total, count);
+      return total;
+    } catch(err) {
+      Log.l(`calculateLogisticsMilesShown(): Error calculating visible report hours`);
+      Log.e(err);
+      throw err;
+    }
+  }
+  
+  
 }

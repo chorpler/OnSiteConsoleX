@@ -371,10 +371,12 @@ export class FlaggedReportsPage implements OnInit,OnDestroy {
     // grid[0] = header;
     let keys = ['payroll_period', 'type', 'training_type', 'report_date', 'timestamp', 'last_name', 'first_name', 'time_start', 'time_end', 'repair_hours', 'client', 'location', 'location_id', 'unit_number', 'work_order_number', 'notes'];
     let others = this.others.filter((a:ReportOther) => {
-      let date = a.report_date.format("YYYY-MM-DD");
+      // let date = a.report_date.format("YYYY-MM-DD");
+      let date:string = a.getReportDateAsString();
       return date >= strStart && date <= strEnd;
-    }).sort((a,b) => {
-      let dA=a.report_date.format("YYYY-MM-DD"), dB=b.report_date.format("YYYY-MM-DD");
+    }).sort((a:ReportOther,b:ReportOther) => {
+      let dA:string = a.getReportDateAsString();
+      let dB:string = a.getReportDateAsString();
       return dA > dB ? 1 : dA < dB ? -1 : 0;
     });
     let allreports = [...reports, ...others];
@@ -385,8 +387,10 @@ export class FlaggedReportsPage implements OnInit,OnDestroy {
       let lname = a.last_name, fname = a.first_name;
       return !((lname === 'Bates' && fname === 'Michael') || (lname === 'Sargeant' && fname === 'David') || (fname === 'Cecilio' && lname === 'Jauregui'));
     }).sort((a:Report|ReportOther, b:Report|ReportOther) => {
-      let dA:string = a instanceof Report ? a.report_date : a.report_date.format("YYYY-MM_DD");
-      let dB:string = b instanceof Report ? b.report_date : b.report_date.format("YYYY-MM_DD");
+      // let dA:string = a instanceof Report ? a.report_date : a.report_date.format("YYYY-MM_DD");
+      // let dB:string = b instanceof Report ? b.report_date : b.report_date.format("YYYY-MM_DD");
+      let dA:string = a.getReportDateAsString();
+      let dB:string = a.getReportDateAsString();
       return dA > dB ? 1 : dA < dB ? -1 : 0;
     });
     Log.l("createExportData(): showreports is now:\n", showreports);
@@ -415,7 +419,8 @@ export class FlaggedReportsPage implements OnInit,OnDestroy {
           if(report instanceof Report) {
             row.push(report[key]);
           } else if(report instanceof ReportOther) {
-            row.push(report[key].format("YYYY-MM-DD"));
+            // row.push(report[key].format("YYYY-MM-DD"));
+            row.push(report[key]);
           }
         } else {
           row.push(report[key]);

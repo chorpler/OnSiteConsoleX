@@ -165,7 +165,9 @@ export class ReportsOtherPage implements OnInit,OnDestroy {
 
     Log.l(`updateFromDate(): Now filtering from ${fromDate} - ${toDate}...`);
     this.others = this.allOthers.filter((a:ReportOther) => {
-      return a.report_date.format("YYYY-MM-DD") >= fromDate && a.report_date.format("YYYY-MM-DD") <= toDate;
+      // return a.report_date.format("YYYY-MM-DD") >= fromDate && a.report_date.format("YYYY-MM-DD") <= toDate;
+      let dA:string = a.getReportDateAsString();
+      return dA >= fromDate && dA <= toDate;
     });
   }
 
@@ -180,7 +182,9 @@ export class ReportsOtherPage implements OnInit,OnDestroy {
     }
     Log.l(`updateToDate(): Now filtering from ${fromDate} - ${toDate}...`);
     this.others = this.allOthers.filter((a:ReportOther) => {
-      return a.report_date.format("YYYY-MM-DD") >= fromDate && a.report_date.format("YYYY-MM-DD") <= toDate;
+      // return a.report_date.format("YYYY-MM-DD") >= fromDate && a.report_date.format("YYYY-MM-DD") <= toDate;
+      let dA:string = a.getReportDateAsString();
+      return dA >= fromDate && dA <= toDate;
     });
   }
 
@@ -220,35 +224,39 @@ export class ReportsOtherPage implements OnInit,OnDestroy {
     let strEnd   = end.format("YYYY-MM-DD");
     let period = new PayrollPeriod(start, end);
     period.getPayrollShifts();
-    let reports = this.allOthers.filter((a:ReportOther) => {
-      let date = a.report_date.format("YYYY-MM-DD");
+    let reports:ReportOther[] = this.allOthers.filter((a:ReportOther) => {
+      // let date = a.report_date.format("YYYY-MM-DD");
+      let date:string = a.getReportDateAsString();
       return date >= strStart && date <= strEnd;
-    }).sort((a,b) => {
-      let dA=a['report_date'], dB=b['report_date'];
+    }).sort((a:ReportOther,b:ReportOther) => {
+      let dA:string = a.getReportDateAsString();
+      let dB:string = b.getReportDateAsString();
       return dA > dB ? 1 : dA < dB ? -1 : 0;
     });
 
     let grid = [];
     // grid[0] = header;
     let keys = ['payroll_period', 'type', 'training_type', 'report_date', 'timestamp', 'last_name', 'first_name', 'time_start', 'time_end', 'repair_hours', 'client', 'location', 'location_id', 'unit_number', 'work_order_number', 'notes'];
-    let others = this.others.slice(0).filter((obj,pos,arr) => {
-      let date = obj['report_date'].format("YYYY-MM-DD");
+    let others:ReportOther[] = this.others.slice(0).filter((a:ReportOther) => {
+      // let date = obj['report_date'].format("YYYY-MM-DD");
+      let date:string = a.getReportDateAsString();
       return date >= strStart && date <= strEnd;
-    }).sort((a,b) => {
-      let dA=a['report_date'].format("YYYY-MM-DD"), dB=b['report_date'].format("YYYY-MM-DD");
+    }).sort((a:ReportOther,b:ReportOther) => {
+      // let dA=a['report_date'].format("YYYY-MM-DD"), dB=b['report_date'].format("YYYY-MM-DD");
+      let dA:string = a.getReportDateAsString();
+      let dB:string = b.getReportDateAsString();
       return dA > dB ? 1 : dA < dB ? -1 : 0;
     });
-    let allreports = [...reports, ...others];
-    let showreports = allreports.slice(0)
-    .filter((obj, pos, arr) => {
-      // let date = obj['report_date'];
-      // return date >= strStart && date <= strEnd;
-      let lname = obj['last_name'], fname = obj['first_name'];
+    let allreports  : ReportOther[] = [...reports, ...others];
+    let showreports : ReportOther[] = allreports.slice(0).filter((a:ReportOther) => {
+      let lname:string = a.last_name;
+      let fname:string = a.first_name;
       return !((lname === 'Bates' && fname === 'Michael') || (lname === 'Sargeant' && fname === 'David') || (fname === 'Cecilio' && lname === 'Jauregui'));
-    })
-    .sort((a:ReportOther, b:ReportOther) => {
-      let dA:string = a.report_date.format("YYYY-MM-DD");
-      let dB:string = b.report_date.format("YYYY-MM-DD");
+    }).sort((a:ReportOther, b:ReportOther) => {
+      // let dA:string = a.report_date.format("YYYY-MM-DD");
+      // let dB:string = b.report_date.format("YYYY-MM-DD");
+      let dA:string = a.getReportDateAsString();
+      let dB:string = b.getReportDateAsString();
       return dA > dB ? 1 : dA < dB ? -1 : 0;
     });
     for(let report of showreports) {
@@ -276,7 +284,8 @@ export class ReportsOtherPage implements OnInit,OnDestroy {
           if(report instanceof Report) {
             row.push(report[key]);
           } else if(report instanceof ReportOther) {
-            row.push(report[key].format("YYYY-MM-DD"));
+            // row.push(report[key].format("YYYY-MM-DD"));
+            row.push(report[key]);
           }
         } else {
           row.push(report[key]);

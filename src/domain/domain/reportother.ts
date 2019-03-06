@@ -1,8 +1,9 @@
 /**
  * Name: ReportOther domain class
- * Vers: 4.1.1
- * Date: 2018-12-13
+ * Vers: 5.0.1
+ * Date: 2019-03-06
  * Auth: David Sargeant
+ * Logs: 5.0.1 2019-03-06: Changed Moment types to string, added AsMoment() methods
  * Logs: 4.1.1 2018-12-13: Refactored imports to remove circular dependencies; added standard OnSite methods
  * Logs: 4.0.5 2018-12-04: Added isTest property
  * Logs: 4.0.4 2018-01-21: Changed flagging to flagged and flagged_fields fields, plus flags(), getFlagNumber(), isFlagged(), isFieldFlagged(), setFlag(), unsetFlag(), clearFlags() methods
@@ -51,54 +52,64 @@ const fields = [
 ];
 
 export class ReportOther {
-  public type             : string = "";
-  public training_type    : string = "";
-  public travel_location  : string = "";
-  public time             : number = 0 ;
-  public notes            : string = "";
-  public report_date      : Moment;
-  public last_name        : string = "";
-  public first_name       : string = "";
-  public client           : string = "";
-  public location         : string = "";
-  public location_id      : string = "";
-  public workSite         : string = "";
-  public timestamp        : number = 0;
-  public timestampM       : Moment;
-  public username         : string = "";
-  public shift_serial     : string = "";
-  public payroll_period   : number = 0;
-  public flagged          : boolean = false;
-  public flagged_fields   : ReportFlag[] = [];
-  public site_number      : number = -1001;
-  public isTest           : boolean = false;
-  public _id              : string = "";
-  public _rev             : string = "";
+  public type             : string       = ""    ;
+  public training_type    : string       = ""    ;
+  public travel_location  : string       = ""    ;
+  public time             : number       = 0     ;
+  public notes            : string       = ""    ;
+  // public report_date      : Moment               ;
+  public report_date      : string               ;
+  public last_name        : string       = ""    ;
+  public first_name       : string       = ""    ;
+  public client           : string       = ""    ;
+  public location         : string       = ""    ;
+  public location_id      : string       = ""    ;
+  public workSite         : string       = ""    ;
+  public timestamp        : number       = 0     ;
+  // public timestampM       : Moment               ;
+  public timestampM       : string               ;
+  public username         : string       = ""    ;
+  public shift_serial     : string       = ""    ;
+  public payroll_period   : number       = 0     ;
+  public flagged          : boolean      = false ;
+  public flagged_fields   : ReportFlag[] = []    ;
+  public site_number      : number       = -1001 ;
+  public isTest           : boolean      = false ;
+  public _id              : string       = ""    ;
+  public _rev             : string       = ""    ;
 
-  constructor() {
-    this.type              = ""                       ;
-    this.training_type     = ""                       ;
-    this.time              = 0                        ;
-    this.notes             = ""                       ;
-    this.report_date       = null                     ;
-    this.last_name         = ""                       ;
-    this.first_name        = ""                       ;
-    this.client            = ""                       ;
-    this.location          = ""                       ;
-    this.location_id       = ""                       ;
-    this.workSite          = ""                       ;
-    this.shift_serial      = ""                       ;
-    this.username          = ""                       ;
-    this.shift_serial      = ""                       ;
-    this.payroll_period    = 0                        ;
-    this.flagged           = false                    ;
-    this.flagged_fields    = []                       ;
-    this.site_number       = -1001                    ;
-    this.isTest            = false                    ;
-    this._id               = ""                       ;
-    this._rev              = ""                       ;
-    this.timestampM        = moment()                 ;
-    this.timestamp         = this.timestampM.toExcel();
+  constructor(doc?:any) {
+    if(doc) {
+      this.deserialize(doc);
+    } else {
+      let now:Moment = moment();
+      this.timestampM = now.format();
+      this.timestamp = now.toExcel();
+    }
+    return this;
+    // this.type              = ""                       ;
+    // this.training_type     = ""                       ;
+    // this.time              = 0                        ;
+    // this.notes             = ""                       ;
+    // this.report_date       = null                     ;
+    // this.last_name         = ""                       ;
+    // this.first_name        = ""                       ;
+    // this.client            = ""                       ;
+    // this.location          = ""                       ;
+    // this.location_id       = ""                       ;
+    // this.workSite          = ""                       ;
+    // this.shift_serial      = ""                       ;
+    // this.username          = ""                       ;
+    // this.shift_serial      = ""                       ;
+    // this.payroll_period    = 0                        ;
+    // this.flagged           = false                    ;
+    // this.flagged_fields    = []                       ;
+    // this.site_number       = -1001                    ;
+    // this.isTest            = false                    ;
+    // this._id               = ""                       ;
+    // this._rev              = ""                       ;
+    // this.timestampM        = moment()                 ;
+    // this.timestamp         = this.timestampM.toExcel();
   }
 
   public readFromDoc(doc:any) {
@@ -107,8 +118,8 @@ export class ReportOther {
       let key  = fields[i];
       this[key] = doc[key] ? doc[key] : this[key];
     }
-    this.report_date = moment(this.report_date, "YYYY-MM-DD");
-    this.timestampM  = moment(this.timestampM);
+    // this.report_date = moment(this.report_date, "YYYY-MM-DD");
+    // this.timestampM  = moment(this.timestampM);
     return this;
   }
 
@@ -123,7 +134,7 @@ export class ReportOther {
   }
 
   public serialize() {
-    Log.l("ReportOther.serialize(): Now serializing report...");
+    // Log.l("ReportOther.serialize(): Now serializing report...");
     // let ts = moment(this.timestamp);
     // Log.l("Report.serialize(): timestamp moment is now:\n", ts);
     // let XLDate = moment([1900, 0, 1]);
@@ -137,7 +148,8 @@ export class ReportOther {
       if(key === 'report_date') {
         let date = this[key];
         if(isMoment(date)) {
-          newReport[key] = this[key].format("YYYY-MM-DD");
+          // newReport[key] = this[key].format("YYYY-MM-DD");
+          newReport[key] = this[key];
         } else if(typeof date === 'string') {
           newReport[key] = this[key];
         } else {
@@ -145,7 +157,8 @@ export class ReportOther {
           newReport[key] = this[key];
         }
       } else if(key === 'timestampM') {
-        newReport[key] = this[key].format();
+        // newReport[key] = this[key].format();
+        newReport[key] = this[key];
       // } else if(key === 'technician') {
       //   newReport[key] = tech.getTechName();
       } else {
@@ -192,7 +205,61 @@ export class ReportOther {
     return docID;
   }
 
-  public getTotalHours() {
+  public getReportDate():Moment {
+    let report_date:Moment = moment(this.report_date, "YYYY-MM-DD");
+    if(isMoment(report_date)) {
+      return report_date;
+    } else {
+      Log.w(`ReportOther.getReportDate(): Report date was not valid:`, this.report_date);
+      return null;
+    }
+  }
+
+  public getReportDateAsString(format?:string):string {
+    if(typeof format !== 'string') {
+      return this.report_date;
+    } else {
+      let date:Moment = this.getReportDate();
+      let out:string = "";
+      if(isMoment(date)) {
+        out = date.format(format);
+      }
+      return out;
+    }
+  }
+
+  public setReportDate(date:string|Date|Moment):string {
+    if(typeof date === 'string') {
+      this.report_date = date;
+    } else if(isMoment(date) || date instanceof Date) {
+      let rdate:Moment = moment(date);
+      this.report_date = rdate.format("YYYY-MM-DD");
+    } else {
+      Log.w("ReportOther.setReportDate(): date must be a string, Date, or Moment:", date);
+    }
+    return this.report_date;
+  }
+
+  public setTimestamp(timestamp:string|number|Moment|Date):string {
+    let ts:Moment;
+    if(typeof timestamp === 'string') {
+      ts = moment(timestamp);
+    } else if(typeof timestamp === 'number') {
+      ts = moment.fromExcel(timestamp);
+    } else if(isMoment(timestamp) || timestamp instanceof Date) {
+      ts = moment(timestamp);
+    }
+    if(isMoment(ts)) {
+      this.timestampM = ts.format();
+      this.timestamp = ts.toExcel();
+    } else {
+      Log.w("ReportOther.setTimestamp(): parameter must be a string (ISO-8601 format), number (Excel timestamp), Moment, or Date:", timestamp);
+      return "";
+    }
+    return this.timestampM;
+  }
+
+  public getTotalHours():number|string {
     let hours:number|string = Number(this.time);
     if(!isNaN(hours)) {
       return hours;

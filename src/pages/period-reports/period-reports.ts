@@ -59,10 +59,11 @@ export class PeriodReportsPage {
   }
 
   public newReportOther() {
-    let now = moment();
-    let other = new ReportOther();
-    let tech = this.tech;
-    other.report_date = moment().startOf('day');
+    let now:Moment = moment();
+    let other:ReportOther = new ReportOther();
+    let tech:Employee = this.tech;
+    // other.report_date = moment().startOf('day');
+    other.setReportDate(now);
     other.first_name = tech.firstName;
     other.last_name = tech.lastName;
     other.username = tech.getUsername();

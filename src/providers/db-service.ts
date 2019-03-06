@@ -835,8 +835,10 @@ export class DBService {
         loading.setContent(loadText + "sesa-reports-other...");
         let ros:ReportOther[] = await this.getReportOthers();
         data.others = ros.sort((a:ReportOther, b:ReportOther) => {
-          let dA = a.report_date.format("YYYYMMDD");
-          let dB = b.report_date.format("YYYYMMDD");
+          // let dA = a.report_date.format("YYYYMMDD");
+          // let dB = b.report_date.format("YYYYMMDD");
+          let dA:string = a.getReportDateAsString();
+          let dB:string = b.getReportDateAsString();
           let tA = a.timestamp;
           let tB = b.timestamp;
           let uA = a.username;
@@ -895,8 +897,10 @@ export class DBService {
         return this.getReportOthers();
       }).then((res:ReportOther[]) => {
         data.others = res.sort((a:ReportOther, b:ReportOther) => {
-          let dA = a.report_date.format("YYYYMMDD");
-          let dB = b.report_date.format("YYYYMMDD");
+          // let dA = a.report_date.format("YYYYMMDD");
+          // let dB = b.report_date.format("YYYYMMDD");
+          let dA:string = a.getReportDateAsString();
+          let dB:string = b.getReportDateAsString();
           let tA = a.timestamp;
           let tB = b.timestamp;
           let uA = a.username;

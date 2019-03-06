@@ -1,8 +1,9 @@
 /**
  * Name: Report domain class
- * Vers: 7.5.1
- * Date: 2019-01-29
+ * Vers: 7.6.1
+ * Date: 2019-03-06
  * Auth: David Sargeant
+ * Logs: 7.6.1 2019-03-06: Modified getReportDate() and getReportDateAsString()
  * Logs: 7.5.1 2019-01-29: Removed Shift and PayrollPeriod imports; added static methods getPayrollPeriodDate(), getPayrollSerial(), getShiftNumber(), getShiftWeek(), getShiftSerial()
  * Logs: 7.4.1 2018-12-13: refactored imports; added standard OnSite methods
  * Logs: 7.3.3 2018-12-04: Added isTest property
@@ -469,26 +470,31 @@ export class Report {
     }
   }
 
-  public getReportDateAsString():string {
-    let reportDate:any = this.report_date;
-    if(isMoment(reportDate) || reportDate instanceof Date) {
-      let mo = moment(reportDate);
-      return mo.format("YYYY-MM-DD");
-    } else if(typeof reportDate === 'string') {
-      let mo = moment(reportDate, "YYYY-MM-DD");
-      return mo.format("YYYY-MM-DD");
+  public getReportDateAsString(format?:string):string {
+    let date:any = this.report_date;
+    if(typeof format !== 'string') {
+      return date;
     } else {
-      return moment(reportDate).format("YYYY-MM-DD");
+      if(isMoment(date) || date instanceof Date) {
+        let mo:Moment = moment(date);
+        return mo.format(format);
+      } else if(typeof date === 'string') {
+        // return date;
+        let mo = moment(date, "YYYY-MM-DD");
+        return mo.format(format);
+      } else {
+        return moment(date).format(format);
+      }
     }
   }
 
   public getReportDateAsMoment():Moment {
     let reportDate:any = this.report_date;
     if(isMoment(reportDate) || reportDate instanceof Date) {
-      let mo = moment(reportDate);
+      let mo:Moment = moment(reportDate);
       return mo;
     } else if(typeof reportDate === 'string') {
-      let mo = moment(reportDate, "YYYY-MM-DD");
+      let mo:Moment = moment(reportDate, "YYYY-MM-DD");
       return mo;
     } else {
       return moment(reportDate);

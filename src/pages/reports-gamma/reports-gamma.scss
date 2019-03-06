@@ -28,6 +28,12 @@ page-reports-gamma {
     .scroll-content {
       @include fancy-scrollbar-console;
     }
+    > .scroll-content {
+      @include fancy-scrollbar-console;
+      padding-top: 16px;
+      padding-bottom: 16px;
+      margin-bottom: 56px;
+    }
   }
   .reports-panel, .others-panel, .logistics-panel, .timecards-panel {
     &.ui-panel {
@@ -56,6 +62,7 @@ page-reports-gamma {
           border-radius: 4px;
           background: white;
           border: 1px solid lightgrey;
+          margin-right: 4px;
           &.db-download {
             display: block;
             width: 32px;

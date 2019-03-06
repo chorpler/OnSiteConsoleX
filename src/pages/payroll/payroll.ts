@@ -262,7 +262,8 @@ export class PayrollPage implements OnInit,OnDestroy {
     });
     this.others = this.allData.others.filter((a:ReportOther) => {
       if(a instanceof ReportOther) {
-        let date = a.report_date.format("YYYY-MM-DD");
+        // let date = a.report_date.format("YYYY-MM-DD");
+        let date:string = a.getReportDateAsString();
         return date >= start && date <= end;
       }
     });
@@ -407,8 +408,10 @@ export class PayrollPage implements OnInit,OnDestroy {
         if(a instanceof Report && b instanceof Report) {
           return a.report_date > b.report_date ? 1 : a.report_date < b.report_date ? -1 : 0;
         } else if(a instanceof ReportOther && b instanceof ReportOther) {
-          let dA = a.report_date.toExcel();
-          let dB = b.report_date.toExcel();
+          // let dA:number = a.report_date.toExcel();
+          // let dB:number = b.report_date.toExcel();
+          let dA:string = a.getReportDateAsString();
+          let dB:string = b.getReportDateAsString();
           return dA > dB ? 1 : dA < dB ? -1 : 0;
         } else if(a instanceof ReportLogistics && b instanceof ReportLogistics) {
           return a.report_date > b.report_date ? 1 : a.report_date < b.report_date ? -1 : 0;
@@ -634,8 +637,9 @@ export class PayrollPage implements OnInit,OnDestroy {
           return a.report_date === shiftDate && a.username === tech.username;
         });
         let others:ReportOther[] = this.others.filter((a:ReportOther) => {
-          let otherDate = a.report_date.format("YYYY-MM-DD");
-          return otherDate === shiftDate && a.username === tech.username;
+          // let otherDate = a.report_date.format("YYYY-MM-DD");
+          let date:string = a.getReportDateAsString();
+          return date === shiftDate && a.username === tech.username;
         });
         let logistics:ReportLogistics[] = this.logistics.filter((a:ReportLogistics) => {
           return a.report_date === shiftDate && a.username === tech.username;
