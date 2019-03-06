@@ -126,11 +126,11 @@
             <td class="table-col col-01 button-like" title="View Work Sites" (click)="viewWorkSites('all', $event)">{{totalSites.length}}</td>
           </ng-template>
         </tr>
-        <tr class="console-home-list-table-row" title="View Work Sites" (click)="viewWorkSites($event)">
+        <tr class="console-home-list-table-row" title="View Work Sites">
           <td class="table-col col-00">Active Work Sites</td>
           <div *ngIf="sites && sites.length; then sitesCount; else noCount"></div>
           <ng-template #sitesCount>
-            <td class="table-col col-01 button-like" title="View Work Sites" (click)="viewWorkSites('active', $event)">{{sites.length}}</td>
+            <td class="table-col col-01 button-like" title="View Active Work Sites" (click)="viewWorkSites('active', $event)">{{sites.length}}</td>
           </ng-template>
         </tr>
       </table>

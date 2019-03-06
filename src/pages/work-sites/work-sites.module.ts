@@ -3,7 +3,7 @@
 // import { SharedModule                  } from 'primeng/shared'             ;
 import { NgModule                      } from '@angular/core'              ;
 import { IonicPageModule               } from 'ionic-angular'              ;
-import { WorkSitesPage                 } from './work-sites'               ;
+import { WorkSitesPage             } from './work-sites'          ;
 import { ScrollPanelModule             } from 'primeng/scrollpanel'        ;
 import { TableModule                   } from 'primeng/table'              ;
 import { MultiSelectModule             } from 'primeng/multiselect'        ;

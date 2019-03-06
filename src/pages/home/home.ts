@@ -89,7 +89,7 @@ export class HomePage implements OnInit,OnDestroy {
     public electron       : ElectronService   ,
   ) {
     window['consolehome']  = this;
-    window['consolehome2'] = this;
+    // window['consolehome2'] = this;
     window['p'] = this;
     // this.AppBootPage = OnSiteConsoleX;
     window.document.title = "OnSiteX Console";
@@ -299,14 +299,14 @@ export class HomePage implements OnInit,OnDestroy {
 
   public async viewReports(event?:Event) {
     Log.l("viewReports(): Clicked.");
-    // this.navCtrl.setRoot('Reports Gamma');
-    this.goToPageDelay('Reports Gamma');
+    // this.navCtrl.setRoot('Reports');
+    this.goToPageDelay('Reports');
   }
 
   public async viewReportOthers(event?:Event) {
     Log.l("viewReportOthers(): Clicked.");
-    // this.navCtrl.setRoot('Reports Gamma', {scrollTo: 'others'});
-    this.goToPageDelay('Reports Gamma', {scrollTo: 'others'});
+    // this.navCtrl.setRoot('Reports', {scrollTo: 'others'});
+    this.goToPageDelay('Reports', {scrollTo: 'others'});
   }
 
   public async loadReports(event?:Event) {
@@ -407,8 +407,8 @@ export class HomePage implements OnInit,OnDestroy {
   public async viewLogisticsReports(evt?:Event):Promise<any> {
     try {
       Log.l(`viewLogisticsReports(): Running with arguments:`, arguments);
-      // this.navCtrl.setRoot('Reports Gamma', {scrollTo: 'logistics'});
-      this.goToPageDelay('Reports Gamma', {scrollTo: 'logistics'});
+      // this.navCtrl.setRoot('Reports', {scrollTo: 'logistics'});
+      this.goToPageDelay('Reports', {scrollTo: 'logistics'});
 
       // return res;
     } catch(err) {
@@ -430,8 +430,8 @@ export class HomePage implements OnInit,OnDestroy {
   public async viewTimeCardReports(evt?:Event):Promise<any> {
     try {
       Log.l(`viewTimeCardReports(): Running with arguments:`, arguments);
-      // this.navCtrl.setRoot('Reports Gamma', {scrollTo: 'timecards'});
-      this.goToPageDelay('Reports Gamma', {scrollTo: 'timecards'});
+      // this.navCtrl.setRoot('Reports', {scrollTo: 'timecards'});
+      this.goToPageDelay('Reports', {scrollTo: 'timecards'});
 
       // return res;
     } catch(err) {
@@ -456,7 +456,7 @@ export class HomePage implements OnInit,OnDestroy {
   public async viewWorkSites(type:string, evt?:Event):Promise<any> {
     try {
       Log.l(`viewWorkSites(): Running with arguments:`, arguments);
-      // this.navCtrl.setRoot('Reports Gamma', {scrollTo: 'timecards'});
+      // this.navCtrl.setRoot('Reports', {scrollTo: 'timecards'});
       if(type === 'active') {
         this.goToPageDelay('Work Sites', {show: 'active'});
       } else {
@@ -474,7 +474,7 @@ export class HomePage implements OnInit,OnDestroy {
   public async viewEmployees(type:string, evt?:Event):Promise<any> {
     try {
       Log.l(`viewEmployees(): Running with arguments:`, arguments);
-      // this.navCtrl.setRoot('Reports Gamma', {scrollTo: 'timecards'});
+      // this.navCtrl.setRoot('Reports', {scrollTo: 'timecards'});
       if(type === 'all') {
         this.goToPageDelay('Employees', {type: 'all'});
       } else if(type === 'techs') {

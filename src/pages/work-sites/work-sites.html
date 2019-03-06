@@ -9,14 +9,6 @@
       </button>
       <ion-spinner name="bubbles" [class.spinner-opening-page]="true" *ngIf="data.currentlyOpeningPage"></ion-spinner>
     </ion-buttons>
-    <!-- <ion-buttons left>
-      <button ion-button menuToggle *ngIf="!modalMode">
-        <ion-icon name="menu"></ion-icon>
-      </button>
-      <button class="modal-close-button" ion-button icon-only (click)="closeModal($event)" *ngIf="modalMode">
-        <i class="fa fa-times"></i>
-      </button>
-    </ion-buttons> -->
     <ion-title>
       <span class="page-title">
         {{title}}
@@ -29,12 +21,15 @@
           <span class="menubar-button button-like-block" (click)="showOptions($event)" title="Show options">
             <i class="fa fa-cog"></i>
           </span>
+          <span class="menubar-button button-like-block" (click)="toggleViewAll($event)" title="Toggle all sites visible or only active sites visible" *ngIf="prefs.CONSOLE.jobsites.showAllSites">
+            <i class="fas fa-eye"></i>
+          </span>
+          <span class="menubar-button button-like-block" (click)="toggleViewAll($event)" title="Toggle all sites visible or only active sites visible" *ngIf="!prefs.CONSOLE.jobsites.showAllSites">
+            <i class="fas fa-eye-slash"></i>
+          </span>
           <span class="menubar-button button-like-block" (click)="saveSortOrder($event)" title="Save sort order of work sites">
             <i class="fa fa-floppy-o"></i>
           </span>
-          <!-- <span class="menubar-button button-like-block" (click)="dt.exportCSV($event)" title="Export CSV">
-            <i class="fa fa-table"></i>
-          </span> -->
           <span class="menubar-button button-like-block" (click)="addJobSite($event)" title="Add Work Site">
             <i class="fal fa-plus-square"></i>
           </span>
@@ -45,8 +40,8 @@
   </ion-navbar>
 </ion-header>
 
-<ion-content padding>
-  <p-table #dt [styleClass]="'work-sites-table'" [columns]="selectedCols" [value]="jobsites" [autoLayout]="prefs.CONSOLE.jobsites.autoLayoutTable" [columnResizeMode]="prefs.CONSOLE.jobsites.tableResizeMode"  [rowHover]="'true'" [reorderableColumns]="true" [resizableColumns]="'true'" [loading]="!dataReady" [scrollable]="tableScrollable" [scrollHeight]="scrollHeight" [sortMode]="multiple" selectionMode="single" [(selection)]="jobsite" (onRowReorder)="reorderSites($event)" (onRowSelect)="onRowSelect($event)">
+<ion-content padding *ngIf="dataReady && data.ready()">
+  <p-table #dt [styleClass]="'work-sites-table'" [columns]="selectedCols" [value]="jobsites" [autoLayout]="autoLayout" [columnResizeMode]="prefs.CONSOLE.jobsites.tableResizeMode"  [rowHover]="true" [reorderableColumns]="true" [resizableColumns]="'true'" [loading]="!dataReady" [scrollable]="tableScrollable" [scrollHeight]="scrollHeight" [sortMode]="multiple" selectionMode="single" [(selection)]="jobsite" (onRowReorder)="reorderSites($event)" (onRowSelect)="onRowSelect($event)">
     <ng-template pTemplate="caption">
       <div class="table-header-contents">
         <div class="column-choose-wrapper">
@@ -61,6 +56,7 @@
     <ng-template pTemplate="header" let-columns>
       <tr [class.sites-table-caption]="true">
         <th [class.row-reorder-handle]="true" rowspan="2"></th>
+        <th [class.col-active]="true"rowspan="2"></th>
         <th [class.col-index]="true" rowspan="2">#</th>
         <th *ngFor="let col of columns; let i=index" [class.header-col]="true" [class]="col.class" [pSortableColumn]="col.field" [ngStyle]="col.style">
           {{col.header}}
@@ -69,14 +65,20 @@
       </tr>
       <tr>
         <th *ngFor="let col of columns" class="col-filter-header" [class]="col.class">
-          <input [class.sites-col-filter]="true" pInputText type="text" [placeholder]="col.header" (input)="dt.filter($event.target.value, col.field, 'contains')">
+          <input [class.sites-col-filter]="true" pInputText type="text" [placeholder]="col.filterPlaceholder" (input)="dt.filter($event.target.value, col.field, 'contains')">
         </th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-rowData let-columns="columns" let-index="rowIndex">
-      <tr [pReorderableRow]="index" [pSelectableRow]="rowData">
+      <tr [class.uncolored]="!prefs.CONSOLE.jobsites.colorSitesByStatus" [class.inactive]="prefs.CONSOLE.jobsites.colorSitesByStatus && !rowData.site_active" [class.notinactive]="prefs.CONSOLE.jobsites.colorSitesByStatus && rowData.site_active" [pReorderableRow]="index" [pSelectableRow]="rowData" *ngIf="rowData.site_active || prefs.CONSOLE.jobsites.showAllSites">
         <td [class.row-reorder-handle]="true" title="Reorder work site (drag to a new order by this handle)">
           <i class="fa fa-bars" pReorderableRowHandle></i>
+        </td>
+        <td [class.col-active]="true">
+          <span class="column-active-button" (click)="toggleSiteActive(rowData, $event)" title="Toggle site active/inactive">
+            <span class="row-edit-icon" *ngIf="rowData.site_active"><i class="fal fa-thumbs-up"></i></span>
+            <span class="row-edit-icon" *ngIf="!rowData.site_active"><i class="fal fa-thumbs-down"></i></span>
+          </span>
         </td>
         <td [class.col-index]="true">
           {{index}}
@@ -92,6 +94,6 @@
       </tr>
     </ng-template>
   </p-table>
+  <options-generic #optionsComponent *ngIf="optionsVisible" [type]="optionsType" (onCancel)="optionsClosed($event)" (onSave)="optionsSaved($event)"></options-generic>
+  <work-site-view #workSiteComponent *ngIf="viewWorkSiteVisible" [sites]="jobsites" [jobsite]="site" [mode]="siteEditMode" (onCancel)="cancelViewWorkSite($event)" (onSave)="saveViewWorkSite($event)"></work-site-view>
 </ion-content>
-<options-generic #optionsComponent *ngIf="optionsVisible" [type]="optionsType" (onCancel)="optionsClosed($event)" (onSave)="optionsSaved($event)"></options-generic>
-<work-site-view #workSiteComponent *ngIf="viewWorkSiteVisible" [sites]="sites" [jobsite]="site" [mode]="'Edit'" (onCancel)="cancelViewWorkSite($event)" (onSave)="saveViewWorkSite($event)"></work-site-view>

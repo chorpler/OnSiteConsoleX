@@ -1,0 +1,275 @@
+page-reports {
+  user-select: text;
+  .menubar-buttons {
+    display         : flex        ;
+    flex-flow       : row nowrap  ;
+    justify-content : flex-end    ;
+    align-content   : center      ;
+    align-items     : center      ;
+    pointer-events: auto;
+    .menubar-button {
+      @include button-like-block;
+      pointer-events: auto;
+      border-radius: 3px;
+      font-size: 24px;
+      padding-left: 10px;
+      padding-right: 10px;
+      padding-top: 3px;
+      padding-bottom: 3px;
+      margin-left: 1px;
+      margin-right: 1px;
+     i {
+        font-size: 24px;
+      }
+    }
+  }
+  .ui-table {
+    .ui-table-caption {
+      border: 0;
+    }
+    thead {
+      border-top: 1px solid $headerBorderColor;
+      border-left: 1px solid $headerBorderColor;
+      border-right: 1px solid $headerBorderColor;
+      background: $headerBgColor;
+      // border: 1px solid $headerBorderColor;
+      color: $headerTextColor;
+  }
+  }
+  .reports-search-header {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-start;
+    align-items: center;
+    align-content: center;
+    .reports-search-header-button {
+      display: block;
+      flex: 0 0 auto;
+      width: 36px;
+      text-align: center;
+      margin-right: 25px;
+    }
+    .reports-search-header-item {
+      display: block;
+      flex: 0 1 230px;
+      margin-right: 35px;
+      &:nth-of-type(2) {
+        margin-right: 0px;
+      }
+      width: 230px;
+      // max-width: 350px;
+    }
+    .reports-title {
+      display: inline-block;
+      flex: 1 1 250px;
+      // width: 250px;
+      max-width: 350px;
+    }
+    // .menubar-button {
+    //   font-size: 28px;
+    //   color: #2399e5;
+    //   @include button-like-block;
+    // }
+  }
+  .table-wrapper {
+
+  }
+  .reports-table {
+    .ui-table-caption {
+      background: transparent;
+    }
+  }
+  .table-caption {
+    display         : flex        ;
+    flex-flow       : row nowrap  ;
+    justify-content : space-between ;
+    align-content   : center ;
+    align-items     : center ;
+    .column-choose-wrapper {
+      flex: 0 1 auto;
+      text-align: left;
+      // display         : flex        ;
+      // flex-flow       : row nowrap  ;
+      // justify-content : center ;
+      // align-content   : center ;
+      // align-items     : center ;
+      width: 50%;
+
+      .column-multiselect {
+
+      }
+    }
+    .caption-right {
+      display         : flex        ;
+      flex-flow       : row nowrap  ;
+      justify-content : flex-end ;
+      align-content   : center ;
+      align-items     : center ;
+      width: 50%;
+      .date-wrapper {
+        display         : flex        ;
+        flex-flow       : row nowrap  ;
+        justify-content : flex-end ;
+        align-content   : center ;
+        align-items     : center ;
+        flex: 0 1 auto;
+        margin-right: 20px;
+        .date-range-calendar-wrapper {
+          flex: 0 1 auto;
+          min-width: 200px;
+          .date-range-calendar {
+            .ui-datepicker {
+              min-width: 250px;
+            }
+          }
+        }
+        .header-button {
+          flex: 0 1 auto;
+          margin-left: 12px;
+          font-size: 22px;
+          // color: #2399e5;
+          padding-left: 4px;
+          padding-right: 4px;
+          @include button-like-block;
+        }
+      }
+      .global-filter-wrapper {
+        display         : flex        ;
+        flex-flow       : row nowrap  ;
+        justify-content : flex-end    ;
+        align-content   : center ;
+        align-items     : center ;
+        flex: 0 1 auto;
+        .global-filter-icon {
+
+        }
+        .global-filter-input {
+
+        }
+      }
+    }
+  }
+  .reports-search-header-items {
+    display: inline-block;
+  }
+  .tiny-numeric-column {
+    width: 50px;
+    max-width: 50px;
+  }
+  .icon-button-wrapper {
+    display: block;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    margin: 0;
+    @include button-like-block;
+  }
+  // .col-nowrap {
+    .cell-body-data {
+      display: block;
+      width: 100%;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+  // }
+  // .col-wrap {
+  //   .cell-body-data {
+  //     display: block;
+  //     width: 100%;
+  //     white-space: normal;
+  //   }
+  // }
+  .body-col {
+    min-width: 75px;
+    max-width: 200px;
+  }
+  .col-id {
+
+  }
+  .col-date {
+
+  }
+  .col-time {
+
+  }
+  .col-last {
+
+  }
+  .col-first {
+
+  }
+  .col-start {
+
+  }
+  .col-end {
+
+  }
+  .col-hours {
+
+  }
+  .col-cli {
+
+  }
+  .col-loc {
+
+  }
+  .col-lid {
+
+  }
+  .col-unitno {
+
+  }
+  .col-wonum {
+
+  }
+  .col-notes {
+
+  }
+  .col-sitenum {
+
+  }
+  .col-worksite {
+
+  }
+  .col-changelog {
+
+  }
+  .col-flgd {
+
+  }
+  .col-preauthed {
+
+  }
+  .col-padates {
+
+  }
+  .col-invoiced {
+
+  }
+  .col-invdates {
+
+  }
+  .col-invno {
+
+  }
+  .col-05,.col-06 {
+    max-width: 75px;
+  }
+  .col-07 {
+    max-width: 75px;
+  }
+
+  .reports-col-filter {
+    width: 100%;
+    border-radius: 3px;
+    &::placeholder {
+      color: rgba(32, 32, 32, 0.3);
+    }
+  }
+  .work-reports-button {
+  }
+  .icon-button-like {
+
+  }
+}

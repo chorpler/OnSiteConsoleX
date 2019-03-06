@@ -1,4 +1,4 @@
-page-work-sites {
+page-work-sites, work-sites {
   // ion-buttons {
   //   height: 48px;
   // }
@@ -138,7 +138,7 @@ page-work-sites {
     // width: 1180px;
     // max-width: 100%;
     // max-width: 1350px;
-    width: 95vw;
+    width: 98vw;
     min-width: 1215px;
     // width: 1180px;
     margin-left: auto;
@@ -168,6 +168,50 @@ page-work-sites {
       text-align: center;
       width: 2em;
     }
+    tr {
+      &.uncolored {
+        &:hover {
+          background-color: rgba(255, 0, 0, 0) !important;
+          box-shadow: inset 0px 0.4px 21px 1px rgba(0, 0, 255, 0.4);
+          // box-shadow: inset 0px 0.4px 21px 1px rgba(0, 172, 255, 0.4);
+        }
+      }
+      &.notinactive {
+        background-color: rgba(255, 0, 0, 0) !important;
+        box-shadow: inset 0px 0.4px 21px 1px rgba(0, 255, 0, 0.4);
+        &:hover {
+          background-color: rgba(255, 0, 0, 0) !important;
+          box-shadow: inset 0px 0.4px 21px 1px rgba(0, 0, 255, 0.4);
+          // box-shadow: inset 0px 0.4px 21px 1px rgba(0, 172, 255, 0.4);
+        }
+      }
+      &.inactive {
+        // background-color: rgba(255, 0, 0, 0.1) !important;
+        background-color: rgba(255, 0, 0, 0) !important;
+        box-shadow: inset 0px 0.4px 24px 2px rgba(255, 0, 0, 0.25);
+        &:hover {
+          // background-color: rgba(255, 0, 0, 0.3) !important;
+          box-shadow: inset 0px 0.4px 21px 2px rgba(122, 64, 214, 0.7);
+        }
+      }
+      .col-active {
+        text-align: center;
+        flex: 0 1 25px;
+        min-width: 25px;
+        max-width: 25px;
+        // padding: 2px;
+        padding: 0;
+        border-left: 1px solid lightgrey;
+        border-right: 1px solid lightgrey;
+        .column-active-button {
+          @include button-like-block;
+          display: block;
+          width: 100%;
+          text-align: center;
+          line-height: 20px;
+        }
+      }
+    }
     .row-reorder-handle {
       padding-left: 2px !important;
       padding-right: 2px !important;
@@ -192,6 +236,19 @@ page-work-sites {
         text-align: right;
       }
     }
+    $width-sort     : 2em ;
+    $width-active   : 25px;
+    $width-index    : 3em ;
+    $width-name     : 17% ;
+    $width-id       : 16% ;
+    $width-siteno   : 5%  ;
+    $width-client   : 12% ;
+    $width-location : 17% ;
+    $width-locID    : 17% ;
+    $width-city     : 9%  ;
+    $width-state    : 8%  ;
+    $width-zip      : 8%  ;
+    $width-time     : 6%  ;
     .col-name {
       max-width: 275px;
       width: 17%;
@@ -221,6 +278,11 @@ page-work-sites {
       width: 9%;
     }
     .col-state {
+      max-width: 50px;
+      width: 8%;
+      text-align: center;
+    }
+    .col-zip {
       max-width: 50px;
       width: 8%;
       text-align: center;

@@ -1,24 +1,30 @@
 // import { DataTable                                                   } from 'primeng/datatable'        ;
-import { Subscription                                        } from 'rxjs'                     ;
-import { sprintf                                             } from 'sprintf-js'               ;
-import { Component, OnInit, OnDestroy, NgZone, ViewChild,    } from '@angular/core'            ;
-import { IonicPage, NavController, NavParams, ViewController } from 'ionic-angular'            ;
-import { Log                                                 } from 'domain/onsitexdomain'     ;
-import { AuthService                                         } from 'providers/auth-service'   ;
-import { DBService                                           } from 'providers/db-service'     ;
-import { ServerService                                       } from 'providers/server-service' ;
-import { AlertService                                        } from 'providers/alert-service'  ;
-import { OSData                                              } from 'providers/data-service'   ;
-import { Preferences                                         } from 'providers/preferences'    ;
-import { DispatchService, NotifyService,                     } from 'providers'                ;
-import { Street, Address, Jobsite                            } from 'domain/onsitexdomain'     ;
-import { SelectItem                                          } from 'primeng/api'              ;
-import { Table                                               } from 'primeng/table'            ;
-import { MultiSelect                                         } from 'primeng/multiselect'      ;
+import { Subscription    } from 'rxjs'                     ;
+import { sprintf         } from 'sprintf-js'               ;
+import { Component       } from '@angular/core'            ;
+import { OnInit          } from '@angular/core'            ;
+import { OnDestroy       } from '@angular/core'            ;
+import { ViewChild       } from '@angular/core'            ;
+import { IonicPage       } from 'ionic-angular'            ;
+import { NavParams       } from 'ionic-angular'            ;
+import { ViewController  } from 'ionic-angular'            ;
+import { Log             } from 'domain/onsitexdomain'     ;
+import { AuthService     } from 'providers/auth-service'   ;
+import { DBService       } from 'providers/db-service'     ;
+import { ServerService   } from 'providers/server-service' ;
+import { AlertService    } from 'providers/alert-service'  ;
+import { OSData          } from 'providers/data-service'   ;
+import { Preferences     } from 'providers/preferences'    ;
+import { DispatchService } from 'providers'                ;
+import { NotifyService   } from 'providers'                ;
+import { Jobsite         } from 'domain/onsitexdomain'     ;
+import { SelectItem      } from 'primeng/api'              ;
+import { Table           } from 'primeng/table'            ;
+import { MultiSelect     } from 'primeng/multiselect'      ;
 
 @IonicPage({name: "Work Sites"})
 @Component({
-  selector: 'page-work-sites',
+  selector: 'work-sites',
   templateUrl: 'work-sites.html',
 })
 export class WorkSitesPage implements OnInit,OnDestroy {
@@ -29,7 +35,8 @@ export class WorkSitesPage implements OnInit,OnDestroy {
   public optionsVisible : boolean        = false        ;
   public optionsType    : string         = 'jobsites'   ;
   public prefsSub       : Subscription                  ;
-  public jobsites       : Jobsite[] = []           ;
+  public site           : Jobsite                       ;
+  public jobsites       : Jobsite[] = []                ;
   public selectedJobsite: any                           ;
   public selectedClient : any                           ;
   public clientList     : any                           ;
@@ -46,14 +53,24 @@ export class WorkSitesPage implements OnInit,OnDestroy {
   public sortUpdated    : boolean = false               ;
   public tableScrollable: boolean = false               ;
   public modalMode      : boolean = false               ;
+  public viewWorkSiteVisible: boolean = false           ;
+  public siteEditMode   : string = "Edit"               ;
+  public prevComp       : any                           ;
   public get rowCount()   : number { return this.prefs.CONSOLE.pages.jobsites; };
   public set rowCount(val:number) { this.prefs.CONSOLE.pages.jobsites = val; };
+  public get autoLayout():boolean {
+    if(this.prefs && this.prefs.CONSOLE && this.prefs.CONSOLE.jobsites && this.prefs.CONSOLE.jobsites.autoLayoutTable) {
+      return true;
+    } else {
+      return false;
+    }
+  };
 
   constructor(
-    public navCtrl   : NavController   ,
+    // public navCtrl   : NavController   ,
     public navParams : NavParams       ,
     public viewCtrl  : ViewController  ,
-    public zone      : NgZone          ,
+    // public zone      : NgZone          ,
     public prefs     : Preferences     ,
     public db        : DBService       ,
     public server    : ServerService   ,
@@ -63,11 +80,15 @@ export class WorkSitesPage implements OnInit,OnDestroy {
     public notify    : NotifyService   ,
     public dispatch  : DispatchService ,
   ) {
-    window['Street'] = Street;
-    window['Address'] = Address;
-    window['Jobsite'] = Jobsite;
-    window['worksites'] = this;
-    window['sprintf'] = sprintf;
+    this.prevComp = window['p'];
+    window['p'] = this;
+    window['onsiteworksites']  = this;
+    window['onsiteworksites2'] = this;
+    // window['Street'] = Street;
+    // window['Address'] = Address;
+    // window['Jobsite'] = Jobsite;
+    // window['worksites'] = this;
+    // window['sprintf'] = sprintf;
     // this.clientList = [{client: "HB", fullName:"Halliburton"}];
     // this.selectedClient = this.clientList[0];
   }
@@ -82,11 +103,21 @@ export class WorkSitesPage implements OnInit,OnDestroy {
   public ngOnDestroy() {
     Log.l("WorkSites: ngOnDestroy() fired");
     this.cancelSubscriptions();
+    if(this.prevComp) {
+      window['p'] = this.prevComp;
+    }
   }
 
   public async runWhenReady() {
     try {
+      this.prefs.CONSOLE.jobsites.autoLayoutTable = true;
       if(this.navParams.get('modalMode') != undefined) { this.modalMode = this.navParams.get('modalMode'); }
+      let show:string = this.navParams.get('show');
+      if(show === 'active') {
+        this.prefs.CONSOLE.jobsites.showAllSites = false;
+      } else {
+        this.prefs.CONSOLE.jobsites.showAllSites = true;
+      }
       this.initializeSubscriptions();
       this.updatePageSizes();
       let res:any = await this.updateJobsiteList();
@@ -135,7 +166,7 @@ export class WorkSitesPage implements OnInit,OnDestroy {
   public getColumns() {
     let fields = [];
     let colList:SelectItem[] = [];
-    fields.push({ field : 'site_number'       , subfield: ""      , header: '#'           , order: 0 , filter: true, filterPlaceholder: "Site #"      , class: "col-01 col-siteno"   });
+    fields.push({ field : 'site_number'       , subfield: ""      , header: 'Site No.'    , order: 0 , filter: true, filterPlaceholder: "Site #"      , class: "col-01 col-siteno"   });
     fields.push({ field : 'schedule_name'     , subfield: ""      , header: 'Name'        , order: 1 , filter: true, filterPlaceholder: "Name"        , class: "col-00 col-name"     });
     fields.push({ field : '_id'               , subfield: ""      , header: 'Site ID'     , order: 2 , filter: true, filterPlaceholder: "Site ID"     , class: "col-01 col-id"       });
     fields.push({ field : 'client'            , subfield: "value" , header: 'Client'      , order: 3 , filter: true, filterPlaceholder: "Client"      , class: "col-02 col-client"   });
@@ -166,11 +197,23 @@ export class WorkSitesPage implements OnInit,OnDestroy {
     return fields;
   }
 
-  public addJobSite(event?:any) {
+  public addJobSite(event?:MouseEvent) {
+    // if(event && event.shiftKey) {
+    //   this.navCtrl.push('Add Work Site', { mode: 'Add' });
+    // } else {
+    //   this.navCtrl.push('Work Site', {mode: 'Add', sites: this.jobsites});
+    // }
+    this.siteEditMode = 'Add';
     if(event && event.shiftKey) {
-      this.navCtrl.push('Add Work Site', { mode: 'Add' });
+      let site:Jobsite = new Jobsite();
+      this.jobsites.push(site);
+      this.site = site;
+      this.showViewWorkSite(site);
     } else {
-      this.navCtrl.push('Work Site', {mode: 'Add', sites: this.jobsites});
+      let site:Jobsite = new Jobsite();
+      this.jobsites.push(site);
+      this.site = site;
+      this.showViewWorkSite(site);
     }
   }
 
@@ -216,12 +259,14 @@ export class WorkSitesPage implements OnInit,OnDestroy {
     let event = evt.originalEvent;
     let site = evt.data;
     this.data.currentlyOpeningPage = true;
-    if(event && event.shiftKey) {
-      // this.navCtrl.push('Add Work Site', { mode: 'Edit', jobsite: this.selectedJobsite, sites: this.jobsites });
-      this.navCtrl.push('Work Site', { mode: 'Edit', jobsite: this.selectedJobsite, sites: this.jobsites });
-    } else {
-      this.navCtrl.setRoot('Work Site', {mode: 'Edit', jobsite: site, sites: this.jobsites});
-    }
+    this.siteEditMode = 'Edit';
+    this.showViewWorkSite(site);
+    // if(event && event.shiftKey) {
+    //   // this.navCtrl.push('Add Work Site', { mode: 'Edit', jobsite: this.selectedJobsite, sites: this.jobsites });
+    //   this.navCtrl.push('Work Site', { mode: 'Edit', jobsite: this.selectedJobsite, sites: this.jobsites });
+    // } else {
+    //   this.navCtrl.setRoot('Work Site', {mode: 'Edit', jobsite: site, sites: this.jobsites});
+    // }
   }
 
   public async reorderSites(evt:any):Promise<any> {
@@ -271,11 +316,13 @@ export class WorkSitesPage implements OnInit,OnDestroy {
     }
     Log.l("editSite(): Event and site are:\n", event);
     Log.l(site);
-    if(event && event.shiftKey) {
-      this.navCtrl.push('Add Work Site', { mode: 'Edit', jobsite: this.selectedJobsite, sites: this.jobsites });
-    } else {
-      this.navCtrl.push('Work Site', {mode: 'Edit', jobsite: site, sites: this.jobsites});
-    }
+    this.siteEditMode = 'Edit';
+    this.showViewWorkSite(site);
+    // if(event && event.shiftKey) {
+    //   this.navCtrl.push('Add Work Site', { mode: 'Edit', jobsite: this.selectedJobsite, sites: this.jobsites });
+    // } else {
+    //   this.navCtrl.push('Work Site', {mode: 'Edit', jobsite: site, sites: this.jobsites});
+    // }
   }
 
   public showFields(sel:MultiSelect, evt?:any) {
@@ -364,8 +411,66 @@ export class WorkSitesPage implements OnInit,OnDestroy {
     }
   }
 
+  public deselectAll() {
+    let dt:Table = this.dt;
+    if(dt) {
+      dt.selection = null;
+    }
+  }
+
   public closeModal(evt?:any) {
     this.viewCtrl.dismiss();
+  }
+  public showViewWorkSite(site:Jobsite, evt?:Event) {
+    Log.l(`showViewWorkSite(): Event is:`, evt);
+    this.site = site;
+    this.viewWorkSiteVisible = true;
+  }
+  public cancelViewWorkSite(evt?:Event) {
+    Log.l(`cancelViewWorkSite(): Event is:`, evt);
+    window['p'] = this;
+    this.viewWorkSiteVisible = false;
+    this.deselectAll();
+    let site:Jobsite = this.site;
+    if(this.siteEditMode === 'Add') {
+      this.jobsites = this.jobsites.filter((a:Jobsite) => {
+        return a !== site;
+      });
+    }
+  }
+  public saveViewWorkSite(evt?:Event) {
+    Log.l(`saveViewWorkSite(): Event is:`, evt);
+    window['p'] = this;
+    this.viewWorkSiteVisible = false;
+    this.deselectAll();
+  }
+
+  public toggleShowAll() {
+
+  }
+
+  public async toggleSiteActive(site:Jobsite, event?:MouseEvent):Promise<any> {
+    try {
+      Log.l(`toggleSiteActive(): Event is:`, event);
+      if(event) {
+        event.stopPropagation();
+        // event.preventDefault();
+      }
+      site.site_active = !site.site_active;
+      let res:any = await this.db.saveJobsite(site);
+    } catch(err) {
+      Log.l(`toggleSiteActive(): Error toggling site!`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public toggleViewAll(evt?:MouseEvent):boolean {
+    let current:boolean = this.prefs && this.prefs.CONSOLE && this.prefs.CONSOLE.jobsites && this.prefs.CONSOLE.jobsites.showAllSites ? true : false;
+    let visible:boolean = !current;
+    Log.l(`toggleViewAll(): View All Sites mode is:`, visible);
+    this.prefs.CONSOLE.jobsites.showAllSites = visible;
+    return visible;
   }
 
 }
