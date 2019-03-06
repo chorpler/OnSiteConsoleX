@@ -1,8 +1,9 @@
 /**
  * Name: DatabaseStatus domain class
- * Vers: 1.0.1
- * Date: 2019-02-21
+ * Vers: 1.0.2
+ * Date: 2019-03-06
  * Auth: David Sargeant
+ * Logs: 1.0.2 2019-03-06: Fixed bug where getFraction() with 0-length remote led to 0 instead of 1
  * Logs: 1.0.1 2019-02-21: Initial creation (added IDatabaseStatus to config.types.ts)
  */
 
@@ -46,9 +47,9 @@ export class DatabaseStatus implements IDatabaseStatus {
     }
     if(remote === 0) {
       if(local) {
-        return 1;
-      } else {
         return 0;
+      } else {
+        return 1;
       }
     } else if(local > remote) {
       return remote / local;
