@@ -957,7 +957,8 @@ ipcMain.on('show-about', (event, options) => {
     let thisAppVersion = app.getVersion();
     let strDate = "UNKNOWN_DATE_AND_TIME";
     let message = "Version: UNKNOWN_VERSION\n     Built: UNKNOWN_DATE_AND_TIME", date;
-    let fmt = "dddd DD MMM YYYY HH:mm:ss Z";
+    // let fmt = "dddd DD MMM YYYY HH:mm:ss Z";
+    let fmt = "ddd DD MMM YYYY HH:mm";
     let opts = {
       type: 'info',
       title: 'About OnSiteX Console',
