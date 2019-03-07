@@ -88,7 +88,7 @@
     "ionic_sass": "./config/sass.config.js"
   },
   "scripts": {
-    "electron:rebuild": "electron-rebuild -p -t \"prod,dev,optional\" -f",
+    "electron:rebuild": "electron-rebuild -f -p -t \"prod,dev,optional\"",
     "electron:clean": "rimraf www/*",
     "eclean": "npm run electron:clean",
     "clrscr": "node config/clear_terminal.js",

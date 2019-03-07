@@ -42,6 +42,7 @@ import { OSData              } from './data-service'             ;
 import { NotifyService       } from './notify-service'           ;
 import { DispatchService     } from './dispatch-service'         ;
 import isElectron from 'is-electron';
+import { MenuItemContent } from 'primeng/primeng';
 
 declare const window:any;
 const fsp = fs.promises;
@@ -99,6 +100,7 @@ export class ElectronService {
   public fs = fs;
   public fsp = fsp;
   public searcher;
+  public defaultTitle:string;
   // public childproc = childProc;
 
   constructor(
@@ -117,6 +119,10 @@ export class ElectronService {
     this.app = { openPage: (pageName?:string) => {this.notify.addError("ERROR", `Error loading page '${pageName}'.`, 5000);}};
     this.searchSubject = new Subject<any>();
     this.searchEvent = this.searchSubject.asObservable();
+    let win:BrowserWindow = remote.getCurrentWindow();
+    if(win) {
+      this.defaultTitle = win.getTitle();
+    }
     // this.electronDBInit();
     // this.pdfWindow = PDFWindow;
   }
@@ -342,6 +348,22 @@ export class ElectronService {
     // let template1:MenuItem = {
     let thisApp = this.app;
     let pages = this.app.pagesNested;
+    let viewSubmenu:MenuItemConstructorOptions[] = [
+      { label: 'Developer Tools', accelerator: 'F12', click: () => { this.showDeveloperTools(); }},
+      { role: 'toggledevtools' },
+      { label: 'Toggle Dev Mode', accelerator: 'CommandOrControl+F12', click: () => { this.toggleDeveloperMode(); } },
+      { type: 'separator' },
+      { role: 'resetzoom' },
+      { role: 'zoomin' },
+      { role: 'zoomout' },
+      { type: 'separator' },
+      { role: 'togglefullscreen' },
+    ];
+    if(!this.data.isDeveloper) {
+      viewSubmenu = viewSubmenu.filter((a:MenuItemConstructorOptions) => {
+        return a.label !== 'Toggle Dev Mode';
+      });
+    }
     let template:MenuItemConstructorOptions[] = [
       {
         label: 'File',
@@ -368,16 +390,7 @@ export class ElectronService {
       {
         label: 'View',
         accelerator: 'Alt+V',
-        submenu: [
-          { label: 'Developer Tools', accelerator: 'F12', click: () => { this.showDeveloperTools(); }},
-          { role: 'toggledevtools' },
-          { type: 'separator' },
-          { role: 'resetzoom' },
-          { role: 'zoomin' },
-          { role: 'zoomout' },
-          { type: 'separator' },
-          { role: 'togglefullscreen' }
-        ]
+        submenu: viewSubmenu,
       },
       {
         label: 'App',
@@ -624,6 +637,40 @@ export class ElectronService {
   public toggleDeveloperTools() {
     let wc = remote.getCurrentWebContents();
     wc.toggleDevTools();
+  }
+
+  public toggleDeveloperMode() {
+    this.dispatch.triggerAppEvent('toggledevmode');
+  }
+
+  public setWindowTitle(title:string) {
+    let win:BrowserWindow = remote.getCurrentWindow();
+    let winTitle:string = typeof title === 'string' ? title : this.defaultTitle;
+    if(win) {
+      win.setTitle(winTitle);
+    }
+  }
+
+  public getWindowTitle():string {
+    let win:BrowserWindow = remote.getCurrentWindow();
+    if(win && typeof win.getTitle === 'function') {
+      return win.getTitle();
+    } else {
+      return "";
+    }
+  }
+
+  public toggleDevModeTitle():string {
+    let title:string = this.defaultTitle;
+    let win:BrowserWindow = remote.getCurrentWindow();
+    if(win && typeof win.setTitle === 'function') {
+      let mode:boolean = this.data.isDevMode();
+      if(mode) {
+        title = title + " (DEV MODE)";
+      }
+      win.setTitle(title);
+    }
+    return title;
   }
 
   public showAppOptions(value:string) {

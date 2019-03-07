@@ -284,6 +284,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
     // this.jsonEditorOptions.modes = [ 'code', 'text', 'tree', 'view' ];
     this.jsonData = this.prefs.getPrefs();
     this.createConsoleObjects();
+    this.electron.defaultTitle = `OnSiteConsoleX ${this.appVersion}`;
   }
 
   ngOnInit() {
@@ -497,6 +498,9 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
         } else if(channel === 'find-in-page') {
           Log.l(`AppComponent: Received event 'find-in-page' ...`);
           this.toggleFindInPage(true);
+        } else if(channel === 'toggledevmode') {
+          Log.l(`AppComponent: Received event 'find-in-page' ...`);
+          this.toggleDeveloperMode();
         } else if(channel === 'showdbstatus') {
           Log.l(`AppComponent: Received event 'showdbstatus' ...`);
           this.showDBStatus(event);
@@ -804,6 +808,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
       if(!this.rootPage) {
         this.data.setReady(true);
         this.dispatch.setAppReady(true);
+        this.electron.toggleDevModeTitle();
         let page:string = this.prefs.getStartupPage();
         if(page) {
           this.rootPage = page;
@@ -816,6 +821,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
         Log.l("initializeRestOfApp(): initializeData() result is:\n", res);
         this.data.setReady(true);
         this.dispatch.setAppReady(true);
+        this.electron.toggleDevModeTitle();
         // this.rootPage = this.rootPage || "OnSiteX Console";
         this.goToHomePage();
       }
@@ -827,6 +833,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
       OnSiteConsoleX.initializing = false;
       this.data.setReady(true);
       this.dispatch.setAppReady(true);
+      this.electron.toggleDevModeTitle();
       this.showLogin();
       return false;
     }
@@ -1863,6 +1870,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
       }
     }
     this.electron.createMenus();
+    this.electron.toggleDevModeTitle();
   }
 
   public async showDBStatus(evt?:Event) {

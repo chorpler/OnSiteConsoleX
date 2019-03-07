@@ -8,9 +8,11 @@ const sprintf = require('sprintf-js').sprintf;
 const windowStateKeeper = require('electron-window-state');
 // const windowPlus = require('electron-window-plus');
 // Module to control application life.
+const moment = require('moment');
 const { app, remote, BrowserWindow, dialog, ipcMain, globalShortcut } = require('electron');
 const { autoUpdater } = require('electron-updater');
-const fspath = require('path');
+const path = require('path');
+const fs = require('graceful-fs');
 const process = require('process');
 const logger = require('electron-log');
 const nativeImage = require('electron').nativeImage;
@@ -45,8 +47,13 @@ const conlog = function(...args) {
   // }
 };
 
+const conerr = function(...args) {
+  logger.error(...args);
+}
+
 const log = {
   info: conlog,
+  err: conerr,
 };
 
 console.log(`Electron startup: file base path is: '${__dirname}'`);
@@ -64,9 +71,9 @@ function getWWWPath(file_name) {
   let relative_path = filename;
   let first = filename.slice(0,1);
   if(first !== '/' && first !== '.') {
-    relative_path = fspath.join('..', 'www', filename);
+    relative_path = path.join('..', 'www', filename);
   }
-  // let file_path = fspath.join(__dirname, relative_path);
+  // let file_path = path.join(__dirname, relative_path);
   console.log(`getWWWPath(): Path is '${relative_path}'`);
   return relative_path;
   // } else {
@@ -79,7 +86,7 @@ function getFilePath(filename) {
   if(filename.indexOf(path1) > -1 || filename.indexOf('app.asar') > -1) {
     return filename;
   } else {
-    let fullPath = fspath.join(__dirname, filename);
+    let fullPath = path.join(__dirname, filename);
     return fullPath;
   }
 }
@@ -904,8 +911,10 @@ function showDialogPromise(dialogOpts) {
 ipcMain.on('dialog-show', (event, dialogOpts) => {
   let stringOpts = JSON.stringify(dialogOpts);
   log.info(`IPC: Got dialog request with options:\n`, stringOpts);
-  showDialog(dialogOpts);
-  // const genericOpts = {
+  showDialogPromise(dialogOpts).then(res => {
+    sendEventToWindow('dialog-response', res);
+  });
+// const genericOpts = {
   //   type: 'info',
   //   buttons: ['OK'],
   //   title: 'Dialog',
@@ -943,17 +952,60 @@ ipcMain.on('show-update-status-window', (event, options) => {
 });
 
 ipcMain.on('show-about', (event, options) => {
-  log.info(`IPC: Got show-about event, options:\n`, options);
-  let thisAppVersion = app.getVersion();
-  let opts = {
-    type: 'info',
-    title: 'About OnSiteX Console',
-    buttons: ['OK'],
-    message: `Version: ${thisAppVersion}`,
-  };
-  showDialogPromise(opts).then(res => {
-    sendEventToWindow('dialog-response', res);
-  });
+  log.info(`IPC: Got show-about event, options: `, options);
+  try {
+    let thisAppVersion = app.getVersion();
+    let strDate = "UNKNOWN_DATE_AND_TIME";
+    let message = "Version: UNKNOWN_VERSION\n     Built: UNKNOWN_DATE_AND_TIME", date;
+    let fmt = "dddd DD MMM YYYY HH:mm:ss Z";
+    let opts = {
+      type: 'info',
+      title: 'About OnSiteX Console',
+      buttons: ['OK'],
+      message: message,
+    };
+    if(options) {
+      if(options.date) {
+        date = moment(options.date);
+      }
+      if(options.version) {
+        thisAppVersion = options.version;
+      }
+      if(options.format) {
+        fmt = options.format;
+      }
+    }
+    if(!date) {
+      try {
+        let appdir = getFilePath('..');
+        let wwwdir = path.join(appdir, 'www');
+        let builddir = path.join(wwwdir, 'build');
+        let vendorfile = path.join(builddir, 'vendor.js');
+        // let stats = await fs.stats(vendorfile);
+        log.info(`IPC: SHOW-ABOUT says vendorFile is at '${vendorfile}'`);
+        let stats = fs.statSync(vendorfile);
+        if(stats.isFile() && stats.mtime instanceof Date) {
+          date = moment(stats.mtime);
+          strDate = date.format(fmt);
+        }
+      } catch(err) {
+        log.info("IPC: SHOW-ABOUT could not get date for app build.");
+        // date = moment("1970-01-01");
+        // strDate = date.format(fmt); 
+        strDate = "UNKNOWN_DATE_AND_TIME";
+      }
+    } else {
+      strDate = date.format(fmt);
+    }
+    message = `Version: ${thisAppVersion}\n     Built: ${strDate}`;
+    opts.message = message;
+    showDialogPromise(opts).then(res => {
+      sendEventToWindow('dialog-response', res);
+    });
+  } catch(err) {
+    log.info("IPC: Show-About failure");
+    log.err(err);
+  }
 });
 
 ipcMain.on('exit-app', (event, options) => {
