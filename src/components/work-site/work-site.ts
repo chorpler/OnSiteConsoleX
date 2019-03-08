@@ -394,6 +394,9 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
   }
 
   public keydown(evt:KeyboardEvent) {
+    if(evt && evt.repeat) {
+      return;
+    }
     let key = evt.key;
     // let code = evt.code;
     // let isModifierKey:boolean = true;
@@ -437,6 +440,9 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
   }
 
   public keyup(evt:KeyboardEvent) {
+    if(evt && evt.repeat) {
+      return;
+    }
     let key = evt.key;
     // let code = evt.code;
     // let isModifierKey:boolean = true;
