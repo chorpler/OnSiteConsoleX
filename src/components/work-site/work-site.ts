@@ -51,7 +51,13 @@ export class ModKeys {
   public meta   :boolean = false;
   public control:boolean = false;
   public command:boolean = false;
+  public option :boolean = false;
   public windows:boolean = false;
+  public context:boolean = false;
+  public left   :boolean = false;
+  public right  :boolean = false;
+  public get cmdctrl():boolean { return (this.command || this.control); };
+  public get commandcontrol():boolean { return (this.command || this.control); };
   constructor() {
 
   }
@@ -135,6 +141,8 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
   public startPM                   : string        = ""        ;
   public timeAM                    : string        = ""        ;
   public timePM                    : string        = ""        ;
+  public onkeyup                   : any                       ;
+  public onkeydown                 : any                       ;
 
   // public addClient   : SESAClient   = new SESAClient(  { name: "__", fullName: "Add new client"      , code: "__", value: "Add new client"      , capsName: "ADD NEW CLIENT"      , scheduleName: "Add new client"      ,});
   // public addLocation : SESALocation = new SESALocation({ name: "__", fullName: "Add new location"    , code: "__", value: "Add new location"    , capsName: "ADD NEW LOCATION"    , scheduleName: "Add new location"    ,});
@@ -332,6 +340,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
       this.keySubscription.unsubscribe();
     }
     let el = window;
+    let item:EventListenerOrEventListenerObject;
     el.removeEventListener('keydown', this.keydown);
     el.removeEventListener('keyup', this.keyup);
     let map:GoogleMap = this.googleMapComponent.getMap();
@@ -358,18 +367,25 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
         passive: undefined,
       };
       opts = null;
-      function keydown(evt:KeyboardEvent) {
-        let key = evt.key;
-        Log.l(`KeyDown: '${key}'`);
-      }
-      function keyup(evt:KeyboardEvent) {
-        let key = evt.key;
-        Log.l(`KeyUp: '${key}'`);
-      }
+      const keydown = (evt:KeyboardEvent) => {
+        // let key = evt.key;
+        // Log.l(`KeyDown: '${key}'`);
+
+        return this.keydown(evt);
+      };
+      const keyup = (evt:KeyboardEvent) => {
+        // let key = evt.key;
+        // Log.l(`KeyUp: '${key}'`);
+        return this.keyup(evt);
+      };
+      this.onkeydown = keydown;
+      this.onkeyup = keyup;
       // el.addEventListener('keydown', keydown, opts);
       // el.addEventListener('keyup', keyup, opts);
-      el.addEventListener('keydown', this.keydown, opts);
-      el.addEventListener('keyup', this.keyup, opts);
+      // el.addEventListener('keydown', this.keydown.bind(this) , opts);
+      // el.addEventListener('keyup'  , this.keyup.bind(this)   , opts);
+      el.addEventListener('keydown', this.keydown.bind(this) , opts);
+      el.addEventListener('keyup'  , this.keyup.bind(this)   , opts);
       // dlg.addEventListener('onkeydown', keydown, opts);
       // dlg.addEventListener('onkeyup', keyup, opts);
     } else {
@@ -379,12 +395,88 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
 
   public keydown(evt:KeyboardEvent) {
     let key = evt.key;
-    Log.l(`KeyDown: '${key}':`, evt);
+    // let code = evt.code;
+    // let isModifierKey:boolean = true;
+    // Log.l(`KeyDown: '${key}':`, evt);
+    // Log.l(`KeyDown: 'this' points to:`, this);
+    switch(key) {
+      case 'Alt':
+        this.keys.alt     = true;
+        break;
+      case 'Command':
+        this.keys.command = true;
+        break;
+      case 'ContextMenu':
+        this.keys.context = true;
+        break;
+      case 'Control':
+        this.keys.control = true;
+        break;
+      case 'Meta':
+        this.keys.meta    = true;
+        this.keys.windows = true;
+        break;
+      case 'Option':
+        this.keys.option  = true;
+        break;
+      case 'Shift':
+        this.keys.shift   = true;
+        break;
+      default:
+        // isModifierKey     = false;
+    }
+    window['onsitekeys'] = this.keys;
+    // if(isModifierKey) {
+    //   if(code.indexOf('Left') > -1) {
+    //     this.keys.left    = true;
+    //   }
+    //   if(code.indexOf('Right') > -1) {
+    //     this.keys.right   = true;
+    //   }
+    // }
   }
 
   public keyup(evt:KeyboardEvent) {
     let key = evt.key;
-    Log.l(`KeyUp: '${key}':`, evt);
+    // let code = evt.code;
+    // let isModifierKey:boolean = true;
+    // Log.l(`KeyDown: '${key}':`, evt);
+    // Log.l(`KeyUp: 'this' points to:`, this);
+    switch(key) {
+      case 'Alt':
+        this.keys.alt     = false;
+        break;
+      case 'Command':
+        this.keys.command = false;
+        break;
+      case 'ContextMenu':
+        this.keys.context = false;
+        break;
+      case 'Control':
+        this.keys.control = false;
+        break;
+      case 'Meta':
+        this.keys.meta    = false;
+        this.keys.windows = false;
+        break;
+      case 'Option':
+        this.keys.option  = false;
+        break;
+      case 'Shift':
+        this.keys.shift   = false;
+        break;
+      default:
+        // isModifierKey     = false;
+    }
+    window['onsitekeys'] = this.keys;
+    // if(isModifierKey) {
+    //   if(code.indexOf('Left') > -1) {
+    //     this.keys.left    = true;
+    //   }
+    //   if(code.indexOf('Right') > -1) {
+    //     this.keys.right   = true;
+    //   }
+    // }
   }
 
   public closeModal(evt?:any) {
@@ -1143,9 +1235,9 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
     if(this.googleMapComponent) {
       let map:google.maps.Map = this.googleMapComponent.getMap();
       // map.addListener('dblclick', (e) => {
-      map.addListener('rightclick', this.handleMapRightClick);
-      map.addListener('dblclick', this.handleMapRightClick);
-      map.addListener('click', this.handleMapSingleClick);
+      map.addListener('rightclick', this.handleMapRightClick.bind(this));
+      map.addListener('dblclick'  , this.handleMapRightClick.bind(this));
+      map.addListener('click'     , this.handleMapSingleClick.bind(this));
     }
   }
 
@@ -1266,9 +1358,14 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
     this.gmapOverlays.push(tmpCircle);
   }
 
-  public async handleMapRightClick(evt?:MapMouseEvent) {
+  public async handleMapRightClick(evt?:MapMouseEvent, thisObject?:any) {
     try {
       Log.l(`handleMapRightClick(): Map clicked, event is:`, evt);
+      let self = this;
+      if(thisObject) {
+        self = thisObject;
+      }
+      Log.l(`handleMapRightClick(): Self is:`, self);
       // let keys = Object.keys(evt);
       // let event:MouseEvent;
       // for(let key of keys) {
@@ -1327,7 +1424,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
 
   public async handleMapSingleClick(evt?:MapMouseEvent) {
     try {
-      Log.l(`handleMapSingleClick(): Map clicked, event is:`, evt);
+      // Log.l(`handleMapSingleClick(): Map clicked, event and this:`, evt, this);
       // let keys = Object.keys(evt);
       // let event:MouseEvent;
       // for(let key of keys) {
@@ -1338,31 +1435,45 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
       //   }
       // }
       // let event:any = evt && evt.fa ? evt.fa : evt;
-      let loc:google.maps.LatLng = evt && evt.latLng ? evt.latLng : null;
-      if(evt && typeof evt.stop === 'function') {
-        evt.stop();
+
+      // let keys:ModKeys = this.keys && typeof this.keys.shift === 'boolean' ? this.keys : window['onsitekeys'] && typeof window['onsitekeys'].shift === 'boolean' ? window['onsitekeys'] : new ModKeys();
+      // const rightClick = (event?:MapMouseEvent) => {
+      //   return this.handleMapRightClick(event);
+      // };
+      // if(keys.shift || keys.cmdctrl) {
+      //   await rightClick(evt);
+      // }
+      // if(this.keys) {
+      if(this.keys.shift || this.keys.cmdctrl) {
+        return this.handleMapRightClick(evt);
       }
-      // if(event && loc) {
-      if(loc) {
-        let lat:number = loc.lat();
-        let lon:number = loc.lng();
-        let strLat:string = sprintf("%.6f", lat);
-        let strLon:string = sprintf("%.6f", lon);
-        let newLat:number = Number(strLat);
-        let newLon:number = Number(strLon);
-        let pos = {
-          lat: newLat,
-          lng: newLon,
-        };
-        // this.addTempMapMarker(pos);
-        // if(event.shiftKey) {
-        //   this.notify.addInfo("MAP CLICKED", `Map shift-clicked at (${lat}, ${lon})`, 3000);
-        // } else {
-          // this.notify.addInfo("MAP CLICKED", `Map clicked at (${lat}, ${lon})`, 3000);
-        // }
-      }
+      // }
+
+      // let loc:google.maps.LatLng = evt && evt.latLng ? evt.latLng : null;
+      // if(evt && typeof evt.stop === 'function') {
+      //   evt.stop();
+      // }
+      // // if(event && loc) {
+      // if(loc) {
+      //   let lat:number = loc.lat();
+      //   let lon:number = loc.lng();
+      //   let strLat:string = sprintf("%.6f", lat);
+      //   let strLon:string = sprintf("%.6f", lon);
+      //   let newLat:number = Number(strLat);
+      //   let newLon:number = Number(strLon);
+      //   let pos = {
+      //     lat: newLat,
+      //     lng: newLon,
+      //   };
+      //   // this.addTempMapMarker(pos);
+      //   // if(event.shiftKey) {
+      //   //   this.notify.addInfo("MAP CLICKED", `Map shift-clicked at (${lat}, ${lon})`, 3000);
+      //   // } else {
+      //     // this.notify.addInfo("MAP CLICKED", `Map clicked at (${lat}, ${lon})`, 3000);
+      //   // }
+      // }
     } catch(err) {
-      Log.l(`handleMapClick(): Error during handling of map click!`);
+      Log.l(`handleMapSingleClick(): Error during handling of map click!`);
       Log.e(err);
       this.notify.addError("ERROR", `Error clicking map: '${err.message}'`, 4000);
       // throw err;
