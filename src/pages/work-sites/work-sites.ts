@@ -415,6 +415,7 @@ export class WorkSitesPage implements OnInit,OnDestroy {
     let dt:Table = this.dt;
     if(dt) {
       dt.selection = null;
+      dt.selectRange(undefined, undefined);
     }
   }
 

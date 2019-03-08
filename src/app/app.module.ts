@@ -135,12 +135,6 @@ const CustomCurrencyMaskConfig:CurrencyMaskConfig = {
     // GrowlModule,
     BlockUIModule,
     OverlayPanelModule,
-    // AgmCoreModule.forRoot({
-    //   apiKey: 'AIzaSyBut4WZDku34NbzfwOOBPHfNJRn60dH-4k'
-    // }),
-    // AgmCoreOverrideModule.forRoot({
-    //   apiKey: 'AIzaSyBut4WZDku34NbzfwOOBPHfNJRn60dH-4k'
-    // }),
     HotkeyModule.forRoot(),
     CurrencyMaskModule,
     PipesModule.forRoot(),

@@ -39,8 +39,12 @@
 import { Injectable                  } from '@angular/core'        ;
 import { Log, oo, ooPatch, ooPointer } from 'domain/onsitexdomain' ;
 
-const version = 77       ;
-var adapter   = 'idb'    ;
+const version:number = 77       ;
+
+// const GMAPI1:string = "QUl6YVN5QnV0NFdaRGt1MzROYnpmd09PQlBIZk5KUm42MGRILTRr";
+const GMAPI1:string = "QUl6YVN5Q243NjJEcXpTOWhvSGtDSV9xM3JRZHpaZlBXbmVkdkh3";
+var gmkey:string = atob(GMAPI1);
+var adapter:string   = 'idb'    ;
 // var adapter   = 'worker' ;
 
 // var server            = "db.cellar.sesa.us"        ;
@@ -111,10 +115,10 @@ export class Preferences {
   };
   public static CONSOLE: any = {
     scripts: {
-      maps         : "https://maps.google.com/maps/api/js?key=AIzaSyBut4WZDku34NbzfwOOBPHfNJRn60dH-4k" ,
-      charts       : "https://www.gstatic.com/charts/loader.js"                                        ,
-      quill        : "build/quill.js"                                                                  ,
-      fullcalendar : "build/fullcalendar.min.js"                                                       ,
+      maps         : `https://maps.google.com/maps/api/js?key=${gmkey}` ,
+      charts       : "https://www.gstatic.com/charts/loader.js"         ,
+      quill        : "build/quill.js"                                   ,
+      fullcalendar : "build/fullcalendar.min.js"                        ,
     },
     global: {
       payroll_periods: 4,
@@ -948,10 +952,10 @@ export class Preferences {
     };
     Preferences.CONSOLE = {
       scripts: {
-        maps         : "https://maps.google.com/maps/api/js?key=AIzaSyBut4WZDku34NbzfwOOBPHfNJRn60dH-4k" ,
-        charts       : "https://www.gstatic.com/charts/loader.js"                                        ,
-        quill        : "build/quill.js"                                                                  ,
-        fullcalendar : "build/fullcalendar.min.js"                                                       ,
+        maps         : `https://maps.google.com/maps/api/js?key=${gmkey}` ,
+        charts       : "https://www.gstatic.com/charts/loader.js"         ,
+        quill        : "build/quill.js"                                   ,
+        fullcalendar : "build/fullcalendar.min.js"                        ,
       },
       global: {
         payroll_periods: 4,

@@ -24,13 +24,20 @@ import { Dialog                                                      } from 'pri
 // import { Checkbox,                                                   } from 'primeng/checkbox'              ;
 import { GMap                                                        } from 'primeng/gmap'                  ;
 
-declare const google:any;
+// declare const google:any;
+
+export type GoogleMap     = google.maps.Map;
+export type MapOptions    = google.maps.MapOptions;
+export type MapTypeId     = google.maps.MapTypeId;
+export type MapMouseEvent = google.maps.MouseEvent;
+export type MapCircle     = google.maps.Circle;
+export type MapOverlay    = google.maps.MVCObject;
+export type MapOverlays   = MapOverlay[];
 
 @Component({
   selector: 'work-site-view',
   templateUrl: 'work-site.html'
 })
-
 export class WorkSiteComponent implements OnInit,OnDestroy {
   @Input('jobsite') jobsite:Jobsite;
   @Input('sites') sites:Jobsite[] = [];
@@ -88,8 +95,9 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
   public cancelEdit     : boolean        = false               ;
   public addSiteLocaleVisible:boolean    = false               ;
   public addSiteLocaleType:string        = 'client'            ;
-  public gmapOptions    : any                                  ;
-  public gmapOverlays   : any[]          = []                  ;
+  // public gmapOptions    : any                                  ;
+  public gmapOptions    : MapOptions                                  ;
+  public gmapOverlays   : MapOverlays   = []                  ;
   // public mapUpdateDelay : number         = 750                 ;
   public mapUpdateDelay : number         = 400                 ;
   public googleMapVisible          : boolean       = false     ;
@@ -612,7 +620,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
   }
 
   public updateRadius(evt?:any) {
-    Log.l(`updateRadius(): Event is:\n`, evt);
+    Log.l(`updateRadius(): Event is:`, evt);
     // let radius = Number(this.siteRadius);
     let radius = Number(this.jobsite.within);
     if(!isNaN(radius)) {
@@ -1047,21 +1055,26 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
 
   public fitMapBounds() {
     if(this.googleMapComponent && Array.isArray(this.gmapOverlays) && this.gmapOverlays.length > 0) {
-      let map = this.googleMapComponent.getMap();
+      let map:GoogleMap = this.googleMapComponent.getMap();
       let circle = this.gmapOverlays[0];
-      let bounds = circle.getBounds();
-      map.fitBounds(bounds);
+      if(circle instanceof google.maps.Circle) {
+        let bounds = circle.getBounds();
+        map.fitBounds(bounds);
+      }
     }
   }
 
   public addGoogleMapListener() {
     if(this.googleMapComponent) {
-      let map = this.googleMapComponent.getMap();
+      let map:google.maps.Map = this.googleMapComponent.getMap();
       // map.addListener('dblclick', (e) => {
-      map.addListener('rightclick', (e) => {
+      map.addListener('rightclick', (e:google.maps.MouseEvent) => {
         this.handleMapRightClick(e);
       });
-      map.addListener('click', (e) => {
+      map.addListener('dblclick', (e:google.maps.MouseEvent) => {
+        this.handleMapRightClick(e);
+      });
+      map.addListener('click', (e:google.maps.MouseEvent) => {
         this.handleMapSingleClick(e);
       });
     }
@@ -1071,7 +1084,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
     try {
       return new Promise((resolve,reject) => {
         if(this.jobsite) {
-          Log.l(`createGoogleMapsOverlays(): current jobsite is:\n`, this.jobsite)
+          Log.l(`createGoogleMapsOverlays(): current jobsite is:`, this.jobsite)
           let latitude  : number = Number(this.jobsite.latitude)  ||  26.177260;
           let longitude : number = Number(this.jobsite.longitude) || -97.964594;
           let radius    : number = this.jobsite.within ? Number(this.jobsite.within) : 500;
@@ -1093,16 +1106,18 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
           } else {
             zoom = 16;
           }
-          let center:any = {
+          let center:ILatLng = {
             lat: latitude ,
             lng: longitude,
           }
-          let options:any = {
+          let options:MapOptions = {
             center: center,
-            mapTypeId: 'hybrid',
+            // mapTypeId: 'hybrid',
+            mapTypeId: google.maps.MapTypeId.HYBRID,
             zoom: zoom,
+            disableDoubleClickZoom: true,
           };
-          let circle:any = new google.maps.Circle(
+          let circle = new google.maps.Circle(
             {
               center: center,
               fillColor: strColor,
@@ -1179,32 +1194,38 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
     this.gmapOverlays.push(tmpCircle);
   }
 
-  public async handleMapRightClick(evt?:any) {
+  public async handleMapRightClick(evt?:MapMouseEvent) {
     try {
-      let keys = Object.keys(evt);
-      let event:MouseEvent;
-      for(let key of keys) {
-        let item:any = evt[key];
-        if(item instanceof MouseEvent) {
-          event = item;
-          break;
-        }
+      Log.l(`handleMapRightClick(): Map clicked, event is:`, evt);
+      // let keys = Object.keys(evt);
+      // let event:MouseEvent;
+      // for(let key of keys) {
+      //   let item:any = evt[key];
+      //   if(item instanceof MouseEvent) {
+      //     event = item;
+      //     break;
+      //   }
+      // }
+      let loc:google.maps.LatLng = evt && evt.latLng ? evt.latLng : null;
+      if(evt && typeof evt.stop === 'function') {
+        // evt.stop();
       }
-      // let event:any = evt && evt.fa ? evt.fa : evt;
-      let loc:any = evt && evt.latLng ? evt.latLng : null;
-      Log.l(`handleMapRightClick(): Map clicked, event is:\n`, evt);
-      if(event && loc) {
+      // if(event && loc) {
+      if(loc) {
         let lat:number = loc.lat();
         let lon:number = loc.lng();
         let strLat:string = sprintf("%.6f", lat);
         let strLon:string = sprintf("%.6f", lon);
         let newLat:number = Number(strLat);
         let newLon:number = Number(strLon);
-        let pos = {
+        let pos:ILatLng = {
           lat: newLat,
           lng: newLon,
         };
         this.addTempMapMarker(pos);
+        let map:GoogleMap = this.googleMapComponent.getMap();
+        let oldCenter = map.getCenter();
+        map.setCenter(pos);
         // if(event.shiftKey) {
         let addNewLocation:boolean = true;
         if(addNewLocation) {
@@ -1217,6 +1238,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
             Log.l("handleMapRightClick(): User chose not to update jobsite.");
             this.gmapOverlays.pop();
             this.gmapOverlays.pop();
+            map.setCenter(oldCenter);
             this.notify.addInfo("CANCELED", `Job site location not updated.`, 3000);
           }
         } else {
@@ -1231,21 +1253,25 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
     }
   }
 
-  public async handleMapSingleClick(evt?:any) {
+  public async handleMapSingleClick(evt?:MapMouseEvent) {
     try {
-      let keys = Object.keys(evt);
-      let event:MouseEvent;
-      for(let key of keys) {
-        let item:any = evt[key];
-        if(item instanceof MouseEvent) {
-          event = item;
-          break;
-        }
-      }
+      Log.l(`handleMapSingleClick(): Map clicked, event is:`, evt);
+      // let keys = Object.keys(evt);
+      // let event:MouseEvent;
+      // for(let key of keys) {
+      //   let item:any = evt[key];
+      //   if(item instanceof MouseEvent) {
+      //     event = item;
+      //     break;
+      //   }
+      // }
       // let event:any = evt && evt.fa ? evt.fa : evt;
-      let loc:any = evt && evt.latLng ? evt.latLng : null;
-      Log.l(`handleMapSingleClick(): Map clicked, event is:\n`, evt);
-      if(event && loc) {
+      let loc:google.maps.LatLng = evt && evt.latLng ? evt.latLng : null;
+      if(evt && typeof evt.stop === 'function') {
+        evt.stop();
+      }
+      // if(event && loc) {
+      if(loc) {
         let lat:number = loc.lat();
         let lon:number = loc.lng();
         let strLat:string = sprintf("%.6f", lat);
@@ -1257,11 +1283,11 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
           lng: newLon,
         };
         // this.addTempMapMarker(pos);
-        if(event.shiftKey) {
-          this.notify.addInfo("MAP CLICKED", `Map shift-clicked at (${lat}, ${lon})`, 3000);
-        } else {
-          this.notify.addInfo("MAP CLICKED", `Map clicked at (${lat}, ${lon})`, 3000);
-        }
+        // if(event.shiftKey) {
+        //   this.notify.addInfo("MAP CLICKED", `Map shift-clicked at (${lat}, ${lon})`, 3000);
+        // } else {
+          // this.notify.addInfo("MAP CLICKED", `Map clicked at (${lat}, ${lon})`, 3000);
+        // }
       }
     } catch(err) {
       Log.l(`handleMapClick(): Error during handling of map click!`);

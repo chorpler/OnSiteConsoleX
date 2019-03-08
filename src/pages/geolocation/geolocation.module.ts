@@ -27,9 +27,6 @@ import { GMapModule                   } from 'primeng/gmap'                 ;
     CheckboxModule,
     WorkSiteHoursComponentModule,
     GMapModule,
-    // AgmCoreModule.forRoot({
-    //   apiKey: 'AIzaSyBut4WZDku34NbzfwOOBPHfNJRn60dH-4k'
-    // })
   ],
   exports: [
     GeolocationPage,

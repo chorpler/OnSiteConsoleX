@@ -863,6 +863,7 @@ work-site-view {
           justify-content: flex-start;
           align-content: center;
           align-items: center;
+          width: 100%;
         }
         // vertical-align: bottom;
         .label {
@@ -873,7 +874,8 @@ work-site-view {
           // width: 59%;
         }
         .data {
-          flex: 0 1 auto;
+          // flex: 0 1 auto;
+          flex: 1 1 50%;
           padding-left: 2px;
           // width: 39%;
           .worksite-dropdown {
