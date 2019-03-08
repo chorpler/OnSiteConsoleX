@@ -5,7 +5,7 @@ const moment    = require('moment')        ;
 const timer     = require('moment-timer')  ;
 const process   = require('process')       ;
 const childproc = require('child_process') ;
-const fs        = require('graceful-fs').promises;
+const fs        = require('graceful-fs')   ;
 // const exec = childproc.exec;
 // let secondsToWait = 180;
 // let secondsToWait = 0;
@@ -79,17 +79,19 @@ process.on('SIGINT', () => {
 const client = new net.Socket();
 client.setTimeout(5000);
 
-const doesExist = async function(file) {
+const doesExist = function(file) {
   try {
-    let stat = await fs.lstat(file);
-    let exists = stat.isFile();
+    let stats = fs.statSync(file);
+    let exists = stats.isFile();
     return exists;
   } catch (error) {
+    console.log("doesExist(): Error checking for file:", file);
+    console.log(error);
     return false;
   }
 };
 
-const checkWebpackSuccess = async function() {
+const checkWebpackSuccess = function() {
   try {
     let wwwDir = process.env.IONIC_WWW_DIR || path.join(__dirname, 'www');
     let buildDir = process.env.IONIC_BUILD_DIR || path.join(__dirname, 'www', 'build');
@@ -123,10 +125,10 @@ const closeEverything = function() {
 
 // const ionicConnected = () => {
 // async function ionicConnected () {
-const ionicConnected = async function () {
+const ionicConnected = function () {
   if(!startedElectron) {
     startedElectron = true;
-    let succeeded = await checkWebpackSuccess();
+    let succeeded = checkWebpackSuccess();
     if(!succeeded) {
       console.log(`IonitronDev: Ionic Build failed, aborting.`.bgRed.white.bold);
       closeEverything();
