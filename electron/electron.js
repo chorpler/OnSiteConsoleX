@@ -49,7 +49,7 @@ const conlog = function(...args) {
 
 const conerr = function(...args) {
   logger.error(...args);
-}
+};
 
 const log = {
   info: conlog,

@@ -9,7 +9,7 @@ import { ipcRenderer                    } from 'electron' ;
 
 import { globalShortcut  } from 'electron';
 import * as electron from 'electron';
-import * as WHATWG from 'whatwg-url';
+// import * as WHATWG from 'whatwg-url';
 import { isRenderer } from 'is-electron-renderer';
 // import * as Mousetrap from 'mousetrap';
 // import * as NapaJS from 'napajs';
@@ -93,8 +93,8 @@ export class ElectronService {
   // public autoUpdater:any;
   public dialog:Dialog = dialog;
   public ipc:IPCRenderer = ipcRenderer;
-  public WHATWG    = WHATWG;
-  public URL       = WHATWG.URL;
+  // public WHATWG    = WHATWG;
+  // public URL       = WHATWG.URL;
   public pdfWindow = PDFWindow;
   public path = path;
   public fs = fs;
@@ -112,7 +112,7 @@ export class ElectronService {
   ) {
     window['onsiteelectronservice'] = this;
     window['oselectron'] = electron;
-    window['WHATWG'] = WHATWG;
+    // window['WHATWG'] = WHATWG;
     // window['NapaJS'] = NapaJS;
     // window['PDFWindow'] = PDFWindow;
     this.subscribeConsole();
@@ -830,12 +830,18 @@ export class ElectronService {
       this.printPreviewWindow = pdfWin;
       // pdfWin = new PDFWindow(pdfWindowOptions);
 
-      let parsedURL = WHATWG.parseURL(pdfFile);
+      // let parsedURL = WHATWG.parseURL(pdfFile);
+      // let pdfURL = pdfFile;
+      // if(!(parsedURL && parsedURL.scheme && parsedURL.scheme === 'file')) {
+      //   pdfURL = new URL(`file:///${pdfFile}`).href;
+      // }
+      let parsedURL = new URL(pdfFile);
       let pdfURL = pdfFile;
-      if(!(parsedURL && parsedURL.scheme && parsedURL.scheme === 'file')) {
-        pdfURL = new URL(`file:///${pdfFile}`).href;
+      if(!(parsedURL && parsedURL.protocol && parsedURL.protocol === 'file:')) {
+        // fileURL = new URL(`file:///${viewerPath}`).href;
+        pdfURL = parsedURL.href;
       }
-
+  
       Log.l(`createPDFWin(): Loading URL '${pdfURL}'`);
 
       PDFWindow.addSupport(pdfWin);

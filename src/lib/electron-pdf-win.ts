@@ -1,10 +1,11 @@
 import { Log } from 'domain/onsitexdomain';
 import { isRenderer } from 'is-electron-renderer';
-import * as WHATWG from 'whatwg-url';
+// import * as WHATWG from 'whatwg-url';
 import * as electron from 'electron';
 import * as path from 'path';
 import * as readChunk from 'read-chunk';
-import * as fileType from 'file-type';
+// import * as fileType from 'file-type';
+import fileType from 'file-type';
 import * as extend from 'deep-extend';
 import got from 'got';
 import { remote as electronRemote, BrowserWindow as electronBrowserWindow } from 'electron';
@@ -122,7 +123,7 @@ export class PDFWindow extends electronRemote.BrowserWindow {
           return isit;
         } else {
           let contentType:string = res && res.headers && typeof res.headers['content-type'] === 'string' ? res.headers['content-type'] : "unknown";
-          return contentType.indexOf('application/pdf') !== -1
+          return contentType.indexOf('application/pdf') !== -1;
         }
       }
     } catch(err) {
@@ -146,10 +147,15 @@ export class PDFWindow extends electronRemote.BrowserWindow {
     // let parsedURL = WHATWG.parseURL(pdfFile);
     let base:string = PDFWindow.getBaseURL();
     let viewerPath:string = path.join(base, 'www', 'pdfjs', 'web', 'viewer.html')
-    let parsedURL = WHATWG.parseURL(viewerPath);
+    // let parsedURL = WHATWG.parseURL(viewerPath);
+    let parsedURL = new URL(viewerPath);
     let fileURL = viewerPath;
-    if(!(parsedURL && parsedURL.scheme && parsedURL.scheme === 'file')) {
-      fileURL = new WHATWG.URL(`file:///${viewerPath}`).href;
+    // if(!(parsedURL && parsedURL.scheme && parsedURL.scheme === 'file')) {
+    //   fileURL = new WHATWG.URL(`file:///${viewerPath}`).href;
+    // }
+    if(!(parsedURL && parsedURL.protocol && parsedURL.protocol === 'file:')) {
+      // fileURL = new URL(`file:///${viewerPath}`).href;
+      fileURL = parsedURL.href;
     }
     return fileURL;
   }

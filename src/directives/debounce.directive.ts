@@ -1,8 +1,8 @@
 import { Subject              } from 'rxjs'                 ;
 import { Observable           } from 'rxjs'                 ;
 import { Subscription         } from 'rxjs'                 ;
-import { fromEvent            } from 'rxjs'                 ;
-import { map                  } from 'rxjs/operators'       ;
+// import { fromEvent            } from 'rxjs'                 ;
+// import { map                  } from 'rxjs/operators'       ;
 import { debounceTime         } from 'rxjs/operators'       ;
 import { distinctUntilChanged } from 'rxjs/operators'       ;
 import { EventEmitter         } from '@angular/core'        ;
@@ -22,18 +22,18 @@ declare const window:any;
 @Directive({ selector: '[debounce]' })
 // export class DebounceDirective implements OnInit,OnDestroy,OnChanges {
 export class DebounceDirective implements OnInit,OnDestroy {
-  @Input('delay') delay: number = 700;
-  @Output('func') func: EventEmitter<any> = new EventEmitter();
-  private eventStream:Observable<any>;
+  @Input('delay') delay:number = 700;
+  @Output('func') func:EventEmitter<any> = new EventEmitter();
+  // private eventStream:Observable<any>;
   private eventSubscription:Subscription;
-  private modelChanged:Subject<string> = new Subject<string>();
+  // private modelChanged:Subject<string> = new Subject<string>();
   constructor(
     private elementRef : ElementRef ,
     private model      : NgModel    ,
   ) {
-    Log.l(`DebounceDirective: Constructed for:`, this);
-    window.onsitedebounces = window.onsitedebounces || [];
-    window.onsitedebounces.push(this);
+    // Log.l(`DebounceDirective: Constructed for:`, this);
+    // window.onsitedebounces = window.onsitedebounces || [];
+    // window.onsitedebounces.push(this);
   }
 
   ngOnInit(): void {
@@ -50,8 +50,14 @@ export class DebounceDirective implements OnInit,OnDestroy {
     // });
     // this.model.ngOnChanges(changes)
     this.eventSubscription = this.model.valueChanges.pipe(debounceTime(this.delay), distinctUntilChanged()).subscribe((input) => {
-      Log.l("DebounceDirective: ModelChanged event fired, input is: ", input);
-      this.func.emit(input);
+      let el:HTMLInputElement|HTMLTextAreaElement = this.elementRef.nativeElement;
+      let activeEl:Element = document.activeElement;
+      if(el === activeEl) {
+        // Log.l("DebounceDirective: ModelChanged event fired, input is: ", input);
+        this.func.emit(input);
+      } else {
+        // Log.l("DebounceDirective: ModelChanged fired while input not active. Not firing.");
+      }
     });
     // this.eventSubscription = this.modelChanged.pipe(debounceTime(this.delay), distinctUntilChanged()).subscribe((input) => {
     //   Log.l("DebounceDirective: ModelChanged event fired, input is: ", input);
@@ -66,13 +72,13 @@ export class DebounceDirective implements OnInit,OnDestroy {
   // }
 
   ngOnDestroy() {
-    Log.l("DebounceDirective: ngOnDestroy() fired.");
+    // Log.l("DebounceDirective: ngOnDestroy() fired.");
     if(this.eventSubscription && !this.eventSubscription.closed) {
       // this.eventStream.unsubscribe();
       this.eventSubscription.unsubscribe();
     }
-    window.onsitedebounces = window.onsitedebounces || [];
-    window.onsitedebounces = window.onsitedebounces.filter(a => a !== this);
+    // window.onsitedebounces = window.onsitedebounces || [];
+    // window.onsitedebounces = window.onsitedebounces.filter(a => a !== this);
   }
 
 }

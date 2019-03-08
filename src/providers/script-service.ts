@@ -74,7 +74,7 @@ export class ScriptService {
     return this.scripts;
   }
 
-  public loadScript(key:string):Promise<any> {
+  public loadScript(key:string):Promise<ScriptLoadResult> {
     return new Promise((resolve, reject) => {
       try {
         Log.l(`loadScript(): Attempting to load script '${key}' ...`);

@@ -13,7 +13,7 @@ import { AuthService                                                 } from 'pro
 import { DBService                                                   } from 'providers/db-service'          ;
 import { ServerService                                               } from 'providers/server-service'      ;
 import { AlertService                                                } from 'providers/alert-service'       ;
-import { ScriptService                                               } from 'providers/script-service'      ;
+import { ScriptService, ScriptLoadResult,                            } from 'providers/script-service'      ;
 import { Street, Address, Jobsite,                                   } from 'domain/onsitexdomain'          ;
 import { OnSiteGeolocation, ILatLng, LatLng,                         } from 'domain/onsitexdomain'          ;
 import { Command, KeyCommandService                                  } from 'providers/key-command-service' ;
@@ -23,7 +23,7 @@ import { SelectItem                                                  } from 'pri
 import { Dialog                                                      } from 'primeng/dialog'                ;
 // import { Checkbox,                                                   } from 'primeng/checkbox'              ;
 import { GMap                                                        } from 'primeng/gmap'                  ;
-
+// import '@types/googlemaps';
 // declare const google:any;
 
 export type GoogleMap     = google.maps.Map;
@@ -33,6 +33,29 @@ export type MapMouseEvent = google.maps.MouseEvent;
 export type MapCircle     = google.maps.Circle;
 export type MapOverlay    = google.maps.MVCObject;
 export type MapOverlays   = MapOverlay[];
+
+// export enum GoogleMapType {
+//   HYBRID    = "hybrid"    ,
+//   ROADMAP   = "roadmap"   ,
+//   SATELLITE = "satellite" ,
+//   TERRAIN   = "terrain"   ,
+// }
+
+// export enum GoogleMapType {
+//   HYBRID = google.maps.MapTypeId.HYBRID,
+// }
+
+export class ModKeys {
+  public shift  :boolean = false;
+  public alt    :boolean = false;
+  public meta   :boolean = false;
+  public control:boolean = false;
+  public command:boolean = false;
+  public windows:boolean = false;
+  constructor() {
+
+  }
+}
 
 @Component({
   selector: 'work-site-view',
@@ -50,6 +73,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
   @ViewChild('workSiteHours') workSiteHours:ElementRef;
   @ViewChild('overlayTarget') overlayTarget:ElementRef;
   @ViewChild('googleMapComponent') googleMapComponent:GMap;
+  @ViewChild('workSiteDialog') workSiteDialog:Dialog;
 
   public workSiteHeader   : string         = "Work Site"       ;
   public showWorkSite     : boolean        = true              ;
@@ -59,6 +83,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
   public title            : string         = "Work Site"       ;
   // public static    PREFS: any            = new Preferences()   ;
   public keySubscription: Subscription                         ;
+  public keys           : ModKeys        = new ModKeys()       ;
   public newSite        : Jobsite                              ;
   public siteIndex      : number         = 0                   ;
   public siteCount      : number         = 0                   ;
@@ -141,7 +166,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
     public notify     : NotifyService        ,
   ) {
     window['onsiteworksite']  = this;
-    // window['onsiteworksite2'] = this;
+    window['onsiteworksite2'] = this;
     this.prevComp = window['p'];
     window['p'] = this;
     window['_dedupe'] = _dedupe;
@@ -166,7 +191,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
     try {
       Log.l(`loadGoogleMapsScript(): Starting`)
       let key:string = "maps";
-      let res:any = await this.scripts.loadScript(key);
+      let res:ScriptLoadResult = await this.scripts.loadScript(key);
       if(res && res.loaded) {
         Log.l(`loadGoogleMapsScript(): Returning in a good way`)
         return res;
@@ -274,6 +299,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
       setTimeout(() => {
         let out:any = this.addGoogleMapListener();
         this.setPageLoaded();
+        this.initializeKeyListeners();
         Log.l(`WorkSiteComponent.runWhenReady(): Done with all timeouts and stuff!`);
       }, this.mapUpdateDelay);
       Log.l(`WorkSiteComponent.runWhenReady(): Returning...`);
@@ -305,11 +331,60 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
     if(this.keySubscription && this.keySubscription.unsubscribe) {
       this.keySubscription.unsubscribe();
     }
+    let el = window;
+    el.removeEventListener('keydown', this.keydown);
+    el.removeEventListener('keyup', this.keyup);
+    let map:GoogleMap = this.googleMapComponent.getMap();
+    if(map && google && google.maps && google.maps.event) {
+      google.maps.event.clearListeners(map, 'click');
+      google.maps.event.clearListeners(map, 'dblclick');
+      google.maps.event.clearListeners(map, 'rightclick');
+    }
   }
 
   public setPageLoaded() {
     Log.l(`setPageLoaded(): Now setting page loaded ...`);
     this.data.currentlyOpeningPage = false;
+  }
+
+  public initializeKeyListeners() {
+    Log.l(`initializeKeyListeners(): Started …`);
+    if(this.workSiteDialog && this.workSiteDialog.el && this.workSiteDialog.el.nativeElement) {
+      // let dlg:HTMLElement = this.workSiteDialog.el.nativeElement;
+      let el = window;
+      let opts:AddEventListenerOptions = {
+        capture: undefined,
+        once: false,
+        passive: undefined,
+      };
+      opts = null;
+      function keydown(evt:KeyboardEvent) {
+        let key = evt.key;
+        Log.l(`KeyDown: '${key}'`);
+      }
+      function keyup(evt:KeyboardEvent) {
+        let key = evt.key;
+        Log.l(`KeyUp: '${key}'`);
+      }
+      // el.addEventListener('keydown', keydown, opts);
+      // el.addEventListener('keyup', keyup, opts);
+      el.addEventListener('keydown', this.keydown, opts);
+      el.addEventListener('keyup', this.keyup, opts);
+      // dlg.addEventListener('onkeydown', keydown, opts);
+      // dlg.addEventListener('onkeyup', keyup, opts);
+    } else {
+      Log.w(`initializeKeyListeners(): Could not find dialog to attach key listener to`);
+    }
+  }
+
+  public keydown(evt:KeyboardEvent) {
+    let key = evt.key;
+    Log.l(`KeyDown: '${key}':`, evt);
+  }
+
+  public keyup(evt:KeyboardEvent) {
+    let key = evt.key;
+    Log.l(`KeyUp: '${key}':`, evt);
   }
 
   public closeModal(evt?:any) {
@@ -608,7 +683,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
   }
 
   public updateLatLon(evt?:any) {
-    Log.l(`updateLatLon(): Event is:\n`, evt);
+    Log.l(`updateLatLon(): Event is:`, evt);
     let lat = Number(this.jobsite.latitude);
     let lon = Number(this.jobsite.longitude);
     if(!isNaN(lat) && !isNaN(lon)) {
@@ -914,7 +989,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
 
   public cancelAndExitModal(evt?:any) {
     let event = evt ? evt : null;
-    Log.l(`cancelAndExitModal(): Event is:\n`, event);
+    Log.l(`cancelAndExitModal(): Event is:`, event);
     this.cancel(event);
   }
 
@@ -994,7 +1069,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
 
   public addSiteLocaleSave(evt?:any) {
     let event:any = evt ? evt : "NO_SITE_LOCALE";
-    Log.l(`addSiteLocaleSave(): Site Locale added, event is:\n`, event);
+    Log.l(`addSiteLocaleSave(): Site Locale added, event is:`, event);
     this.addSiteLocaleVisible = false;
     if(event instanceof SESAClient) {
       let client:SESAClient = event;
@@ -1068,15 +1143,9 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
     if(this.googleMapComponent) {
       let map:google.maps.Map = this.googleMapComponent.getMap();
       // map.addListener('dblclick', (e) => {
-      map.addListener('rightclick', (e:google.maps.MouseEvent) => {
-        this.handleMapRightClick(e);
-      });
-      map.addListener('dblclick', (e:google.maps.MouseEvent) => {
-        this.handleMapRightClick(e);
-      });
-      map.addListener('click', (e:google.maps.MouseEvent) => {
-        this.handleMapSingleClick(e);
-      });
+      map.addListener('rightclick', this.handleMapRightClick);
+      map.addListener('dblclick', this.handleMapRightClick);
+      map.addListener('click', this.handleMapSingleClick);
     }
   }
 
@@ -1110,10 +1179,13 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
             lat: latitude ,
             lng: longitude,
           }
+          // let maptype:GoogleMapType = 'hybrid';
+          // let maptype:MapTypeId = GoogleMapType.HYBRID;
           let options:MapOptions = {
             center: center,
             // mapTypeId: 'hybrid',
-            mapTypeId: google.maps.MapTypeId.HYBRID,
+            // mapTypeId: google.maps.MapTypeId.HYBRID,
+            mapTypeId: ('hybrid' as any),
             zoom: zoom,
             disableDoubleClickZoom: true,
           };
