@@ -400,7 +400,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
     let key = evt.key;
     // let code = evt.code;
     // let isModifierKey:boolean = true;
-    // Log.l(`KeyDown: '${key}':`, evt);
+    Log.l(`KeyDown: '${key}':`, evt);
     // Log.l(`KeyDown: 'this' points to:`, this);
     switch(key) {
       case 'Alt':
