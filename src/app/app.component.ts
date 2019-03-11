@@ -233,6 +233,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
   public replicationEnd   :Moment                                ;
   public replicationTime  :Duration                              ;
   public elapsedTime      :Duration                              ;
+  public toastEnabled     :boolean = true                        ;
   public toastPosition    : string = "top-right"                 ;
   public toastStyle       : any = {
     marginTop: '80px',
@@ -511,6 +512,10 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
         } else if(channel === 'downloaddb') {
           Log.l(`AppComponent: Received event 'downloaddb' ...`);
           this.showDBStatus(event);
+        // } else if(channel === 'optionsopened') {
+          // Log.l(`AppComponent: Received event 'optionsopened' ...`);
+        // } else if(channel === 'optionsclosed') {
+          // Log.l(`AppComponent: Received event 'optionsclosed' ...`);
         } else if(channel === 'saveprefs') {
           Log.l(`AppComponent: Received event 'saveprefs' ...`);
           this.savePreferences();
@@ -1803,15 +1808,18 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
 
   public hideOptions() {
     this.globalOptionsVisible = false;
+    this.updateDateTimeFormats();
   }
-
+  
   public optionsClosed(event:any) {
+    Log.l("optionsClosed(): Event is:", event);
     this.globalOptionsVisible = false;
-    Log.l("optionsClosed(): Event is:\n", event);
+    this.updateDateTimeFormats();
   }
-
+  
   public optionsSaved(event:any) {
     this.globalOptionsVisible = false;
+    this.updateDateTimeFormats();
     Log.l("optionsSaved(): Event is:\n", event);
     let prefs = this.prefs.getPrefs();
     this.savePreferences(prefs).then(res => {
@@ -1822,6 +1830,14 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
       Log.e(err);
       this.notify.addError("ERROR", `Error saving preferences: '${err.message}'`, 10000);
     });
+  }
+
+  public updateDateTimeFormats() {
+    if(this.prefs.is24Hour()) {
+      this.data.calendarFormats = this.data.calendarFormats24;
+    } else {
+      this.data.calendarFormats = this.data.calendarFormats12;
+    }
   }
 
   // public showSearch() {
@@ -1883,6 +1899,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
             this.reinitializeDatabases();
           }
         } else {
+          this.data.status.showLastUpdated = false;
           this.dbStatusVisible = true;
         }
       }
@@ -1895,12 +1912,15 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
   
   public hideDBStatus(evt?:Event) {
     Log.l(`hideDBStatus(): Event is:`, evt);
+    this.data.status.showLastUpdated = true;
     this.dbStatusVisible = false;
   }
   
   public toggleDBStatus(evt?:Event) {
     Log.l(`toggleDBStatus(): Event is:`, evt);
-    this.dbStatusVisible = !this.dbStatusVisible;
+    let show:boolean = !this.dbStatusVisible;
+    this.data.status.showLastUpdated = !show;
+    this.dbStatusVisible = show;
     return this.dbStatusVisible;
   }
   

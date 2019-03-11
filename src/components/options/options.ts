@@ -30,7 +30,8 @@ export class OptionsComponent implements OnInit,OnDestroy {
   public spinner2On:boolean = false;
   public lastPeriod:string = "";
   public firstPeriodDate:Moment;
-  public payPeriodsOptions:Array<number> = [
+  public exampleDate:Moment = moment("2000-01-01T06:00:00.012-06:00");
+  public payPeriodsOptions:number[] = [
     1,
     2,
     3,
@@ -52,6 +53,7 @@ export class OptionsComponent implements OnInit,OnDestroy {
   public currentPage:string = "";
   public showCurrentPage:boolean = false;
   public isVisible:boolean = true;
+  public prevComp:any;
 
   constructor(
     public zone           : NgZone          ,
@@ -62,7 +64,10 @@ export class OptionsComponent implements OnInit,OnDestroy {
     public dispatch       : DispatchService ,
     public prefs          : Preferences     ,
   ) {
-    window['consoleoptions'] = this;
+    window['consoleoptions']  = this;
+    window['consoleoptions2'] = this;
+    this.prevComp = window['p'];
+    window['p'] = this;
   }
 
   ngOnInit() {
@@ -76,6 +81,9 @@ export class OptionsComponent implements OnInit,OnDestroy {
 
   ngOnDestroy() {
     Log.l("OptionsComponent: ngOnDestroy() called...");
+    if(this.prevComp) {
+      window['p'] = this.prevComp;
+    }
   }
 
   public async runAppNotReady() {
@@ -276,4 +284,27 @@ export class OptionsComponent implements OnInit,OnDestroy {
       this.audio.playRandomSound('sweet');
     }
   }
+
+  public resetDateFormat(type:string, evt?:MouseEvent) {
+    if(type === 'long') {
+      this.prefs.CONSOLE.global.dateFormatLong  = "ddd DD MMM YYYY";
+    } else if(type === 'med') {
+      this.prefs.CONSOLE.global.dateFormatMed   = "DD MMM YYYY";
+    } else if(type === 'short') {
+      this.prefs.CONSOLE.global.dateFormatShort = "MMM DD";
+    } else {
+    }
+  }
+
+  public resetTimeFormat(evt?:MouseEvent) {
+    this.prefs.CONSOLE.global.timeFormat = "hh:mm A";
+    if(this.prefs.is24Hour()) {
+      this.prefs.CONSOLE.global.timeFormat = "HH:mm";
+    }
+  }
+
+  public resetDateTimeFormat(evt?:MouseEvent) {
+    this.prefs.CONSOLE.global.dateTimeFormat = "YYYY-MM-DD HH:mm";
+  }
+
 }

@@ -35,6 +35,7 @@ export class HomePage implements OnInit,OnDestroy {
   public mainPanelTitle    : string          = "OnSiteX Information"  ;
   public mainPanelSubheader: string          = ""                     ;
   public dsSubscription    : Subscription                             ;
+  public showLastUpdated   : boolean         = true                   ;
   public loginData         : any                                      ;
   public currentlyLoggedIn : boolean         = false                  ;
   public username          : string          = "unknown"              ;
@@ -89,7 +90,7 @@ export class HomePage implements OnInit,OnDestroy {
     public electron       : ElectronService   ,
   ) {
     window['consolehome']  = this;
-    // window['consolehome2'] = this;
+    window['consolehome2'] = this;
     window['p'] = this;
     // this.AppBootPage = OnSiteConsoleX;
     window.document.title = "OnSiteX Console";

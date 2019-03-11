@@ -685,11 +685,22 @@ export interface IDatabaseProgress {
   percent ?: number;
 }
 
+export enum DatabaseStatusState {
+  NORMAL   = 'normal'   ,
+  DONE     = 'done'     ,
+  UNSYNCED = 'unsynced' ,
+  WAITING  = 'waiting'  ,
+  ERROR    = 'error'    ,
+}
+
 export interface IDatabaseStatus {
-  dbname     ?: string;
-  dbkey      ?: string;
-  localDocs  ?: number;
-  remoteDocs ?: number;
+  dbname     ?: string              ;
+  dbkey      ?: string              ;
+  localDocs  ?: number              ;
+  remoteDocs ?: number              ;
+  error      ?: boolean             ;
+  waiting    ?: boolean             ;
+  state      ?: DatabaseStatusState ;
 }
 
 export var STRINGS = {

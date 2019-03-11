@@ -1,8 +1,9 @@
 <p-dialog #databaseStatusDialog [styleClass]="'db-status-dialog'" [header]="header" [showHeader]="headerVisible" [(visible)]="isVisible" [draggable]="isDraggable" [resizable]="isResizable" [closable]="isClosable" [modal]="isModal" (onHide)="cancel($event)">
   <p-header>
     <div class="header-row">
-      <div class="header-title">Database Replication Status</div>
+      <div class="header-title">{{title}}</div>
       <div class="header-buttons">
+        <span class="header-button" (click)="refreshDatabaseInfo($event)"><i class="fal fa-sync"></i></span>
         <span class="header-button" (click)="reinitializeDatabases($event)"><i class="fal fa-database"></i></span>
       </div>
       <div class="header-close">
@@ -11,10 +12,14 @@
     </div>
   </p-header>
   <div class="db-status-wrapper">
-    <!-- <span class="status-sectiontitle">Database Replication Progress</span> -->
+    <!-- <span class="status-sectiontitle">Last updated: {{ lastUpdated | amTimeAgo }}</span> -->
+    <!-- <span class="status-sectiontitle">Last updated: {{ lastUpdated | amCalendar }}</span> -->
+    <!-- <span class="status-sectiontitle">Last updated: {{ lastUpdatedString }}</span> -->
     <div class="status-table">
-      <div class="header" [class.header-scroll-pad]="isBodyScrolling()">
+      <!-- <div class="header" [class.header-scroll-pad]="isBodyScrolling()"> -->
+      <div class="header header-scroll-pad">
         <div class="row">
+          <div class="cell col-00"></div>
           <div class="cell col-01">Database</div>
           <div class="cell col-02">Local</div>
           <div class="cell col-03">Server</div>
@@ -24,7 +29,17 @@
       </div>
       <div #databaseStatusBody class="body">
         <ng-container *ngIf="dbProgress">
-          <div class="row" *ngFor="let key of getKeys(dbProgress)">
+          <div class="row" [class.row-error]="dbProgress[key]?.state === DatabaseStatusState.ERROR" [class.row-waiting]="dbProgress[key]?.state === DatabaseStatusState.WAITING" *ngFor="let key of getKeys(dbProgress)">
+            <div class="cell col-00">
+              <!-- <span class="status-icon error" title="Error checking for database status (try refreshing)" *ngIf="dbProgress[key]?.error"><i class="fal fa-exclamation-triangle"></i></span>
+              <span class="status-icon wait"  title="Not yet finished synchronizing" *ngIf="!dbProgress[key]?.error && (dbProgress[key]?.localDocs !== dbProgress[key]?.remoteDocs) || (dbProgress[key]?.waiting)">  <i class="fas fa-spinner fa-pulse"></i></span>
+              <span class="status-icon done"  title="Database is synchronized"  *ngIf="!dbProgress[key]?.error && dbProgress[key]?.localDocs === dbProgress[key]?.remoteDocs"><i class="fal fa-check-square"></i></span> -->
+              <span class="status-icon error" title="Error checking for database status (try refreshing)" *ngIf="dbProgress[key]?.state === DatabaseStatusState.ERROR"><i class="fal fa-exclamation-triangle"></i></span>
+              <span class="status-icon wait"  title="Checking database synchronization status …" *ngIf="dbProgress[key]?.state === DatabaseStatusState.WAITING"><i class="fas fa-spinner fa-pulse"></i></span>
+              <span class="status-icon pause" title="Not yet finished synchronizing (waiting for remote database)" *ngIf="dbProgress[key]?.state === DatabaseStatusState.UNSYNCED"><i class="fal fa-clock"></i></span>
+              <span class="status-icon done"  title="Database is synchronized"  *ngIf="dbProgress[key]?.state === DatabaseStatusState.DONE"><i class="fal fa-check-square"></i></span>
+              <span class="status-icon weird" title="Database state is unknown" *ngIf="dbProgress[key]?.state !== DatabaseStatusState.ERROR && dbProgress[key]?.state !== DatabaseStatusState.UNSYNCED && dbProgress[key]?.state !== DatabaseStatusState.DONE && dbProgress[key]?.state !== DatabaseStatusState.WAITING"><i class="fal fa-question-square"></i></span>
+            </div>
             <div class="cell col-01"><span class="data-text">{{key}}</span></div>
             <div class="cell col-02"><span class="data-text">{{sprintf("%07d", dbProgress[key]?.localDocs)}}</span></div>
             <div class="cell col-03"><span class="data-text">{{sprintf("%07d", dbProgress[key]?.remoteDocs)}}</span></div>

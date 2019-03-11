@@ -1,32 +1,33 @@
-// import { NgZone       } from '@angular/core'        ;
-// import { oo           } from 'domain/onsitexdomain' ;
-import { sprintf         } from 'sprintf-js'                 ;
-import { Subscription    } from 'rxjs'                       ;
-import { Component       } from '@angular/core'              ;
-import { OnInit          } from '@angular/core'              ;
-import { OnDestroy       } from '@angular/core'              ;
-import { EventEmitter    } from '@angular/core'              ;
-import { Input           } from '@angular/core'              ;
-import { Output          } from '@angular/core'              ;
-import { ViewChild       } from '@angular/core'              ;
-import { ElementRef      } from '@angular/core'              ;
-import { Log             } from 'domain/onsitexdomain'       ;
-import { Moment          } from 'domain/onsitexdomain'       ;
-import { Duration        } from 'domain/onsitexdomain'       ;
-import { moment          } from 'domain/onsitexdomain'       ;
-import { sizeOf          } from 'domain/onsitexdomain'       ;
-import { DatabaseStatus, } from 'domain/onsitexdomain'       ;
-import { OSData          } from 'providers/data-service'     ;
-import { Preferences     } from 'providers/preferences'      ;
-import { NotifyService   } from 'providers/notify-service'   ;
-import { DispatchService } from 'providers/dispatch-service' ;
-import { AppEvents       } from 'providers/dispatch-service' ;
-import { AlertService    } from 'providers/alert-service'    ;
-import { DomainService   } from 'providers/domain-service'   ;
-import { PouchDBService  } from 'providers/pouchdb-service'  ;
-import { Database        } from 'providers/pouchdb-service'  ;
-import { Dialog          } from 'primeng/dialog'             ;
-import { ProgressBar     } from 'primeng/progressbar'        ;
+// import { NgZone            } from '@angular/core'        ;
+// import { oo                } from 'domain/onsitexdomain' ;
+import { sprintf              } from 'sprintf-js'                 ;
+import { Subscription         } from 'rxjs'                       ;
+import { Component            } from '@angular/core'              ;
+import { OnInit               } from '@angular/core'              ;
+import { OnDestroy            } from '@angular/core'              ;
+import { EventEmitter         } from '@angular/core'              ;
+import { Input                } from '@angular/core'              ;
+import { Output               } from '@angular/core'              ;
+import { ViewChild            } from '@angular/core'              ;
+import { ElementRef           } from '@angular/core'              ;
+import { Log                  } from 'domain/onsitexdomain'       ;
+import { Moment               } from 'domain/onsitexdomain'       ;
+import { Duration             } from 'domain/onsitexdomain'       ;
+import { moment               } from 'domain/onsitexdomain'       ;
+import { sizeOf               } from 'domain/onsitexdomain'       ;
+import { DatabaseStatus,      } from 'domain/onsitexdomain'       ;
+import { DatabaseStatusState, } from 'domain/onsitexdomain'       ;
+import { OSData               } from 'providers/data-service'     ;
+import { Preferences          } from 'providers/preferences'      ;
+import { NotifyService        } from 'providers/notify-service'   ;
+import { DispatchService      } from 'providers/dispatch-service' ;
+import { AppEvents            } from 'providers/dispatch-service' ;
+import { AlertService         } from 'providers/alert-service'    ;
+import { DomainService        } from 'providers/domain-service'   ;
+import { PouchDBService       } from 'providers/pouchdb-service'  ;
+import { Database             } from 'providers/pouchdb-service'  ;
+import { Dialog               } from 'primeng/dialog'             ;
+import { ProgressBar          } from 'primeng/progressbar'        ;
 
 @Component({
   selector: 'database-status',
@@ -46,7 +47,15 @@ export class DatabaseStatusComponent implements OnInit,OnDestroy {
   @ViewChild('databaseStatusBody') databaseStatusBody:ElementRef;
 
   public repTimeSub   :Subscription;
+  public titleString  :string = "Database Replication Status";
+  public title        :string = this.titleString;
   public reinitDelay  :number = 500;
+  public lastUpdated  :Moment = moment();
+  public lastFormat   :string = "DD MMM HH:mm";
+  public lastUpdatedString:string = this.lastUpdated.format(this.lastFormat);
+  public scrollCheckDelay : number = 100;
+  public DatabaseStatusState = DatabaseStatusState;
+
   public startTime    :Moment;
   public endTime      :Moment;
   public elapsedTime  :Duration;
@@ -134,71 +143,23 @@ export class DatabaseStatusComponent implements OnInit,OnDestroy {
     }
   }
 
-  public async createList(dbNameList?:string[]) {
-    let dbkeys:string[] = this.prefs.getSyncableDBKeys() || [];
-    // let dbnames = Array.isArray(dbNameList) ? dbNameList : this.prefs.getSyncableDBList();
-    let dbnames:string[] = dbkeys.map((key:string) => {
-      return this.prefs.getDB(key);
-    });
-    dbnames = dbnames.filter(a => typeof a === 'string');
-    let progressArray:DatabaseStatus[] = [];
-    let progressDoc:any = {};
-    // this.dbProgress = {};
-    for(let key of dbkeys) {
-      let dbname:string = this.prefs.getDB(key);
-      Log.l(`DatabaseStatus.createList(): Getting status for '${key}' ('${dbname}') …`);
-      let db1 :Database = this.pouchdb.getDB(dbname);
-      let rdb1:Database = this.pouchdb.getRDB(dbname);
-      if(db1 && rdb1) {
-        let dbInfo, rdbInfo;
-        try {
-          dbInfo  = await db1.info();
-          rdbInfo = await rdb1.info();
-        } catch (error) {
-          Log.l(`Error getting status:`);
-          Log.l(error);
-          rdbInfo = {doc_count: 0};
-          if(!(dbInfo && typeof dbInfo.doc_count === 'number')) {
-            dbInfo = {doc_count: 0};
-          }
+  public async isBodyScrolling():Promise<boolean> {
+    try {
+      let status:boolean = false;
+      if(this.databaseStatusBody) {
+        let el1:HTMLElement = this.databaseStatusBody.nativeElement;
+        let scrollHeight:number = typeof el1.scrollHeight === 'number' ? el1.scrollHeight : 0;
+        let clientHeight:number = typeof el1.clientHeight === 'number' ? el1.clientHeight : 0;
+        if(scrollHeight - clientHeight > 0) {
+          status = true;
         }
-        let localCount :number = dbInfo.doc_count ? dbInfo.doc_count : 0;
-        let remoteCount:number = rdbInfo.doc_count ? rdbInfo.doc_count : 0;
-        // let dbprog:DatabaseStatus = new DatabaseStatus({
-        //   dbnam
-        //   done    : 0,
-        //   total   : 0,
-        //   percent : 0,
-        // });
-        let dbstatus:DatabaseStatus = new DatabaseStatus({
-          dbname     : dbname      ,
-          dbkey      : key         ,
-          localDocs  : localCount  ,
-          remoteDocs : remoteCount ,
-        });
-        progressDoc[key] = dbstatus;
-        progressArray.push(dbstatus);
-        this.dbProgress = progressDoc;
-      } else {
-        continue;
       }
+      let delay:number = typeof this.scrollCheckDelay === 'number' ? this.scrollCheckDelay : 100;
+      let out:any = await this.data.delay(delay);
+      return status;
+    } catch(err) {
+      throw err;
     }
-    this.progressArray = progressArray;
-    this.dbProgress = progressDoc;
-    return progressDoc;
-  }
-
-  public isBodyScrolling():boolean {
-    let status:boolean = false;
-    if(this.databaseStatusBody) {
-      let el1:HTMLElement = this.databaseStatusBody.nativeElement;
-      let scrollHeight:number = typeof el1.scrollHeight === 'number' ? el1.scrollHeight : 0;
-      let clientHeight:number = typeof el1.clientHeight === 'number' ? el1.clientHeight : 0;
-      if(scrollHeight - clientHeight > 0) {
-        status = true;
-      }
-    }
-    return status;
   }
 
   public async abort(evt?:Event) {
@@ -261,6 +222,217 @@ export class DatabaseStatusComponent implements OnInit,OnDestroy {
     } catch(err) {
       Log.l(`DatabaseStatus.reinitializeDatabases(): Error of some kind`);
       Log.e(err);
+      throw err;
+    }
+  }
+
+  public async getMomentString(date:Moment|Date, format?:string):Promise<string> {
+    let res:string = "UNKNOWN_TIME";
+    try {
+      let format24:boolean = typeof this.prefs.is24Hour === 'function' ? this.prefs.is24Hour() : false;
+      let timeFmt:string = this.prefs.getTimeFormat('short') || "hh:mm A";
+      let fmt:string = typeof format === 'string' ? format : "ddd MMM DD" + timeFmt;
+      let mo:Moment = moment(date);
+      res = mo.format(fmt);
+      let delay:number = typeof this.scrollCheckDelay === 'number' ? this.scrollCheckDelay : 100;
+      let out:any = await this.data.delay(delay);
+      return res;
+    } catch(err) {
+      Log.l(`getMomentString(): Error getting string from:`, date, format);
+      Log.e(err);
+      // throw err;
+      return res;
+    }
+  }
+
+  public async createList(dbNameList?:string[]) {
+    let dbkeys:string[] = this.prefs.getSyncableDBKeys() || [];
+    // let dbnames = Array.isArray(dbNameList) ? dbNameList : this.prefs.getSyncableDBList();
+    let dbnames:string[] = dbkeys.map((key:string) => {
+      return this.prefs.getDB(key);
+    });
+    let now:Moment;
+    this.title = this.titleString + " (updating …)";
+    dbnames = dbnames.filter(a => typeof a === 'string');
+    let progressArray:DatabaseStatus[] = [];
+    let progressDoc:any = {};
+    // this.dbProgress = {};
+    for(let key of dbkeys) {
+      let dbname:string = this.prefs.getDB(key);
+      let db1 :Database = this.pouchdb.getDB(dbname);
+      if(!db1) {
+        continue;
+      }
+      let dbstatus:DatabaseStatus = new DatabaseStatus({
+        dbname     : dbname      ,
+        dbkey      : key         ,
+        localDocs  : 0           ,
+        remoteDocs : 0           ,
+        error      : false       ,
+        waiting    : true        ,
+        state      : DatabaseStatusState.WAITING ,
+      });
+      progressDoc[key] = dbstatus;
+    }
+    this.dbProgress = progressDoc;
+    let keys:string[] = Object.keys(progressDoc);
+    for(let key of keys) {
+      let dbname:string = this.prefs.getDB(key);
+      let dberror:boolean = false;
+      Log.gc(`DatabaseStatus.createList(): Getting status for '${key}' ('${dbname}') …`);
+      let dbstatus:DatabaseStatus = progressDoc[key];
+      if(!dbstatus) {
+        continue;
+      }
+      let db1 :Database = this.pouchdb.getDB(dbname);
+      let rdb1:Database = this.pouchdb.getRDB(dbname);
+      if(db1 && rdb1) {
+        let dbInfo, rdbInfo;
+        try {
+          dbInfo  = await db1.info();
+          rdbInfo = await rdb1.info();
+        } catch (error) {
+          Log.l(`DatabaseStatus.createList(): Error getting status for '${key}':`);
+          Log.e(error);
+          rdbInfo = {doc_count: 0};
+          if(!(dbInfo && typeof dbInfo.doc_count === 'number')) {
+            dbInfo = {doc_count: 0};
+          }
+          dberror = true;
+        }
+        let localCount :number = dbInfo.doc_count ? dbInfo.doc_count : 0;
+        let remoteCount:number = rdbInfo.doc_count ? rdbInfo.doc_count : 0;
+        // let dbprog:DatabaseStatus = new DatabaseStatus({
+        //   dbnam
+        //   done    : 0,
+        //   total   : 0,
+        //   percent : 0,
+        // });
+
+        dbstatus.localDocs  = localCount;
+        dbstatus.remoteDocs = remoteCount;
+        dbstatus.waiting = false;
+        dbstatus.state = DatabaseStatusState.DONE;
+        if(localCount !== remoteCount) {
+          dbstatus.state = DatabaseStatusState.UNSYNCED;
+        }
+        if(dberror) {
+          dbstatus.state = DatabaseStatusState.ERROR;
+        }
+        Log.l(`DatabaseStatus.createList(): Final status for '${key}' ('${dbname}') is:`, dbstatus);
+        
+        // progressDoc[key] = dbstatus;
+        progressArray.push(dbstatus);
+        // this.dbProgress = progressDoc;
+        Log.ge();
+      } else {
+        Log.ge();
+        continue;
+      }
+    }
+    this.progressArray = progressArray;
+    this.dbProgress = progressDoc;
+    now = moment();
+    this.lastUpdated = moment(now);
+    this.lastUpdatedString = now.format(this.lastFormat);
+    this.title = this.titleString + " (last updated " + this.lastUpdatedString + ")";
+    return progressDoc;
+  }
+
+  public async refreshDatabaseInfo(keys?:string[], evt?:Event):Promise<any> {
+    try {
+      this.title = this.titleString + " (updating …)";
+      let pkeys:string[] = Object.keys(this.dbProgress);
+      let dbkeys:string[] = Array.isArray(keys) ? keys : pkeys.length ? pkeys : [];
+      // let dbkeys:string[] = Array.isArray(keys) ? keys : this.prefs.getSyncableDBKeys() || [];
+      // let dbnames = Array.isArray(dbNameList) ? dbNameList : this.prefs.getSyncableDBList();
+      let dbnames:string[] = dbkeys.map((key:string) => {
+        return this.prefs.getDB(key);
+      });
+      dbnames = dbnames.filter(a => typeof a === 'string');
+      let progressArray:DatabaseStatus[] = [];
+      let progressDoc:any = this.dbProgress;
+      // this.dbProgress = {};
+      for(let key of dbkeys) {
+        let dberror:boolean = false;
+        let dbname:string = this.prefs.getDB(key);
+        let status:DatabaseStatus = progressDoc[key];
+        if(!status) {
+          continue;
+        }
+        let db1 :Database = this.pouchdb.getDB(dbname);
+        let rdb1:Database = this.pouchdb.getRDB(dbname);
+        if(!(db1 && rdb1)) {
+          continue;
+        }
+        status.error = false;
+        status.waiting = true;
+        status.state = DatabaseStatusState.WAITING;
+        // status.localDocs = 0;
+        // status.remoteDocs = 0;
+        Log.gc(`DatabaseStatus.refreshDatabaseInfo(): Getting status for '${key}' ('${dbname}') …`);
+        if(db1 && rdb1) {
+          let dbInfo, rdbInfo;
+          try {
+            dbInfo  = await db1.info();
+            rdbInfo = await rdb1.info();
+          } catch (error) {
+            Log.l(`DatabaseStatus.refreshDatabaseInfo(): Error getting status for '${key}':`);
+            Log.e(error);
+            rdbInfo = {doc_count: 0};
+            if(!(dbInfo && typeof dbInfo.doc_count === 'number')) {
+              dbInfo = {doc_count: 0};
+            }
+            dberror = true;
+          }
+          let localCount :number = dbInfo.doc_count  ? dbInfo.doc_count  : 0;
+          let remoteCount:number = rdbInfo.doc_count ? rdbInfo.doc_count : 0;
+          // let dbprog:DatabaseStatus = new DatabaseStatus({
+          //   dbnam
+          //   done    : 0,
+          //   total   : 0,
+          //   percent : 0,
+          // });
+          let dbstatus:DatabaseStatus = new DatabaseStatus({
+            dbname     : dbname      ,
+            dbkey      : key         ,
+            localDocs  : localCount  ,
+            remoteDocs : remoteCount ,
+            error      : dberror     ,
+            waiting    : false       ,
+            state      : DatabaseStatusState.DONE ,
+          });
+          if(localCount !== remoteCount) {
+            dbstatus.state = DatabaseStatusState.UNSYNCED;
+          }
+          if(dberror) {
+            dbstatus.state = DatabaseStatusState.ERROR;
+          }
+          
+          progressDoc[key] = dbstatus;
+          progressArray.push(dbstatus);
+          // this.dbProgress = progressDoc;
+          Log.l(`DatabaseStatus.refreshDatabaseInfo(): Final status for '${key}' ('${dbname}') is:`, dbstatus);
+          Log.ge();
+        } else {
+          Log.ge();
+          continue;
+        }
+      }
+      this.progressArray = progressArray;
+      // this.dbProgress = progressDoc;
+      let now:Moment = moment();
+      this.lastUpdated = moment(now);
+      this.lastUpdatedString = now.format(this.lastFormat);
+      this.title = this.titleString + " (last updated " + this.lastUpdatedString + ")";
+      return progressDoc;
+    } catch(err) {
+      Log.l(`DatabaseStatus.refreshDatabaseInfo(): Error of some kind`);
+      Log.e(err);
+      let now:Moment = moment();
+      this.lastUpdated = moment(now);
+      this.lastUpdatedString = now.format(this.lastFormat);
+      this.title = this.titleString + " (error refreshing, please retry)";
       throw err;
     }
   }

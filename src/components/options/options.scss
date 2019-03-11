@@ -156,6 +156,20 @@ options {
       }
     }
     .body-row {
+      &.example {
+        // padding-bottom: 10px;
+        height:30px;
+        vertical-align: top;
+        color: rgba(128, 128, 128, 0.99);
+        td {
+          &.data {
+            padding-left: 5px;
+            .moment-example {
+              width: 100%;
+            }
+          }
+        }
+      }
       td {
         padding-top: 2px;
         padding-bottom: 2px;
@@ -172,7 +186,12 @@ options {
           width: 95%;
         }
       }
-      .label-text {
+      &.button {
+        .options-button {
+          @include button-like-block;
+        }
+      }
+    .label-text {
         // width: 100%;
       }
     }
@@ -218,15 +237,16 @@ options {
   }
 
   .options-button {
-    cursor:pointer;
-    font-size:24px;
+    @include button-like-block;
+    // cursor:pointer;
+    // font-size:24px;
     margin-left: 5px;
-    &:hover {
-      color: rgba(0, 0, 255, 1.0);
-    }
-    &:active {
-      color: rgba(230, 0, 128, 1.0);
-    }
+    // &:hover {
+    //   color: rgba(0, 0, 255, 1.0);
+    // }
+    // &:active {
+    //   color: rgba(230, 0, 128, 1.0);
+    // }
 
   }
   .ui-dialog-footer {

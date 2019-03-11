@@ -2,7 +2,7 @@
 
 <find-in-page #findInPageComponent (close)="toggleFindInPage(false)" *ngIf="findVisible"></find-in-page>
 
-<p-toast [position]="toastPosition" [style]="toastStyle"></p-toast>
+<p-toast [position]="toastPosition" [style]="toastStyle" *ngIf="toastEnabled"></p-toast>
 
 <!-- <p-dialog #loginDialog [class.login-dialog-box]="true" header="Login" [(visible)]="requireLogin" [draggable]="true" [resizable]="true" [closable]="false" [modal]="false" [appendTo]="loginTarget"> -->
 <login #loginComponent *ngIf="requireLogin && !globalOptionsVisible" (loginAttempt)="receiveLoginAttempt($event)"></login>

@@ -154,7 +154,7 @@ export class OSData {
   public set schedules(value:Schedules) { this.dbdata.schedules = value; };
   public set oldreports(value:Report[]) { this.dbdata.oldreports = value; };
 
-  public status   : any                  = { role: "usr", ready: false, loading: false, fetchWorkReports: false, loggedIn: false, persistTechChanges: false, showAllSites: true, showOffice: false, allDatesAvailable: false, ready2: false, showColors:true, showShiftLength:true } ;
+  public status   : any                  = { role: "usr", ready: false, loading: false, fetchWorkReports: false, loggedIn: false, persistTechChanges: false, showAllSites: true, showOffice: false, allDatesAvailable: false, ready2: false, showColors:true, showShiftLength:true, showLastUpdated: true } ;
   public dps:DPS = new DPS();
   public  user         : Employee                                ;
   private userInfo     : any                                     ;
@@ -163,6 +163,23 @@ export class OSData {
   public pouchChanges         : any                  = {}               ;
   public count           : number = 0                ;
   public isDeveloper     : boolean = false           ;
+  public calendarFormats12   : any = {
+    lastDay : '[Yesterday at] LT',
+    sameDay : '[Today at] LT',
+    nextDay : '[Tomorrow at] LT',
+    lastWeek : '[last] dddd [at] LT',
+    nextWeek : 'dddd [at] LT',
+    sameElse : 'L'
+  };
+  public calendarFormats24   : any = {
+    lastDay : '[Yesterday at] HH:mm',
+    sameDay : '[Today at] HH:mm',
+    nextDay : '[Tomorrow at] HH:mm',
+    lastWeek : '[last] dddd [at] HH:mm',
+    nextWeek : 'dddd [at] HH:mm',
+    sameElse : 'L [at] HH:mm'
+  };
+  public calendarFormats   : any = this.calendarFormats12;
   constructor(
     public prefs    : Preferences      ,
     public storage  : StorageService   ,

@@ -1,21 +1,26 @@
 /**
  * Name: DatabaseStatus domain class
- * Vers: 1.0.2
- * Date: 2019-03-06
+ * Vers: 1.1.1
+ * Date: 2019-03-11
  * Auth: David Sargeant
+ * Logs: 1.1.1 2019-03-11: Added error property
  * Logs: 1.0.2 2019-03-06: Fixed bug where getFraction() with 0-length remote led to 0 instead of 1
  * Logs: 1.0.1 2019-02-21: Initial creation (added IDatabaseStatus to config.types.ts)
  */
 
-import { sprintf           } from 'sprintf-js'                 ;
-import { IDatabaseStatus   } from '../config/config.types'     ;
-import { roundMaxDecimals  } from '../config/config.functions' ;
+import { sprintf             } from 'sprintf-js'                 ;
+import { IDatabaseStatus     } from '../config/config.types'     ;
+import { DatabaseStatusState } from '../config/config.types'     ;
+import { roundMaxDecimals    } from '../config/config.functions' ;
 
 export class DatabaseStatus implements IDatabaseStatus {
-  public dbname     ?: string = "";
-  public dbkey      ?: string = "";
-  public localDocs  ?: number = 0 ;
-  public remoteDocs ?: number = 0 ;
+  public dbname     ?: string  = ""    ;
+  public dbkey      ?: string  = ""    ;
+  public localDocs  ?: number  = 0     ;
+  public remoteDocs ?: number  = 0     ;
+  public error      ?: boolean = false ;
+  public waiting    ?: boolean = false ;
+  public state      ?: DatabaseStatusState = DatabaseStatusState.NORMAL ;
   // public done     : number = 0 ;
   // public total    : number = 0 ;
   // public percent  : number = 0 ;
@@ -26,6 +31,9 @@ export class DatabaseStatus implements IDatabaseStatus {
       this.dbkey      = doc.dbkey      != undefined ? doc.dbkey      : this.dbkey      ;
       this.localDocs  = doc.localDocs  != undefined ? doc.localDocs  : this.localDocs  ;
       this.remoteDocs = doc.remoteDocs != undefined ? doc.remoteDocs : this.remoteDocs ;
+      this.error      = doc.error      != undefined ? doc.error      : this.error      ;
+      this.waiting    = doc.waiting    != undefined ? doc.waiting    : this.waiting    ;
+      this.state      = doc.state      != undefined ? doc.state      : this.state      ;
     }
   }
 

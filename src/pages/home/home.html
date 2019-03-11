@@ -36,7 +36,12 @@
     <p-header>
       <span class="panel-main-header">OnSiteX Information</span>
       <!-- <span class="panel-main-subheader">{{mainPanelSubheader}}</span> -->
-      <span class="panel-main-subheader">(last updated: {{ updateTime | amTimeAgo }})</span>
+      <!-- <span class="panel-main-subheader">(last updated: {{ updateTime | amTimeAgo }})</span> -->
+      <span class="panel-main-subheader">
+        <!-- <span *ngIf="showLastUpdated">(last updated: {{ updateTime | amCalendar }})</span> -->
+        <span *ngIf="data && data.status && data.status.showLastUpdated">(last updated: {{ updateTime | amCalendar:data.calendarFormats }})</span>
+        <span *ngIf="!(data && data.status && data.status.showLastUpdated)"> </span>
+      </span>
     </p-header>
     <p-panel [class.onsiteconsolex-home-subpanel-first]="true" header="Employees" [toggleable]="true">
       <table class="console-home-list-table">

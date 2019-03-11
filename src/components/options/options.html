@@ -42,6 +42,10 @@
               <span class="options-label">Startup Old Reports</span>
               <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.global.loadOldReports" binary="true"></p-checkbox>
             </span>
+            <span class="options-item-wrapper" title="Show time in 24-hour format (still in beta testing, does not work everywhere)">
+              <span class="options-label">24 Hour Clock</span>
+              <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.global.timeFormat24" binary="true"></p-checkbox>
+            </span>
             <span class="options-item-wrapper" title="How many payroll periods to load">
               <span class="options-label">Payroll Periods</span>
               <p-dropdown [class.options-periods-dropdown]="true" [options]="payPeriodsSelect" [(ngModel)]="prefs.CONSOLE.global.payroll_periods" (onChange)="changePayrollPeriods($event)"></p-dropdown>
@@ -98,6 +102,79 @@
       </p-tabPanel>
       <p-tabPanel header="Advanced">
         <div class="options-main">
+          <span class="options-sectiontitle">Date/Time</span>
+          <span class="options-section">
+            <table class="db-table">
+              <thead>
+                <tr class="header-row">
+                  <th class="label"><span class="label-text">Type</span></th>
+                  <th class="data"><span class="label-text">Format</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="body-row">
+                  <td class="label">Date (Long)</td>
+                  <td class="data">
+                    <input class="advanced-input" type="text" [(ngModel)]="prefs.CONSOLE.global.dateFormatLong" />
+                  </td>
+                  <td class="button"><span class="options-button date" title="Reset to original format" (click)="resetDateFormat('long', $event)"><i class="fal fa-undo"></i></span></td>
+                </tr>
+                <tr class="body-row example">
+                  <td class="label">Example</td>
+                  <td class="data"><span class="moment-example">{{exampleDate.format(prefs.CONSOLE.global.dateFormatLong)}}</span></td>
+                </tr>
+
+                <tr class="body-row">
+                  <td class="label">Date (Med)</td>
+                  <td class="data">
+                    <input class="advanced-input" type="text" [(ngModel)]="prefs.CONSOLE.global.dateFormatMed" />
+                  </td>
+                  <td class="button"><span class="options-button date" title="Reset to original format" (click)="resetDateFormat('med', $event)"><i class="fal fa-undo"></i></span></td>
+                </tr>
+                <tr class="body-row example">
+                  <td class="label">Example</td>
+                  <td class="data"><span class="moment-example">{{exampleDate.format(prefs.CONSOLE.global.dateFormatMed)}}</span></td>
+                </tr>
+  
+                <tr class="body-row">
+                  <td class="label">Date (Short)</td>
+                  <td class="data">
+                    <input class="advanced-input" type="text" [(ngModel)]="prefs.CONSOLE.global.dateFormatShort" />
+                  </td>
+                  <td class="button"><span class="options-button date" title="Reset to original format" (click)="resetDateFormat('short', $event)"><i class="fal fa-undo"></i></span></td>
+                </tr>
+                <tr class="body-row example">
+                  <td class="label">Example</td>
+                  <td class="data"><span class="moment-example">{{exampleDate.format(prefs.CONSOLE.global.dateFormatShort)}}</span></td>
+                </tr>
+  
+                <tr class="body-row">
+                  <td class="label">Time</td>
+                  <td class="data">
+                    <input class="advanced-input" type="text" [(ngModel)]="prefs.CONSOLE.global.timeFormat" />
+                  </td>
+                  <td class="button"><span class="options-button date" title="Reset to original format" (click)="resetTimeFormat($event)"><i class="fal fa-undo"></i></span></td>
+                </tr>
+                <tr class="body-row example">
+                  <td class="label">Example</td>
+                  <td class="data"><span class="moment-example">{{exampleDate.format(prefs.CONSOLE.global.timeFormat)}}</span></td>
+                </tr>
+
+                <tr class="body-row">
+                  <td class="label">DateTime</td>
+                  <td class="data">
+                    <input class="advanced-input" type="text" [(ngModel)]="prefs.CONSOLE.global.dateTimeFormat" />
+                  </td>
+                  <td class="button"><span class="options-button date" title="Reset to original format" (click)="resetDateTimeFormat($event)"><i class="fal fa-undo"></i></span></td>
+                </tr>
+                <tr class="body-row example">
+                  <td class="label">Example</td>
+                  <td class="data"><span class="moment-example">{{exampleDate.format(prefs.CONSOLE.global.dateTimeFormat)}}</span></td>
+                </tr>
+  
+              </tbody>
+            </table>
+          </span>
           <span class="options-sectiontitle">Server</span>
           <span class="options-section">
             <table class="db-table">

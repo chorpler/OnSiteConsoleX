@@ -1,10 +1,12 @@
 database-status {
-  $min-width-table : 700px ;
+  $min-width-table : 725px ;
+  $min-width-col00 :  22px ;
   $min-width-col01 : 160px ;
   $min-width-col02 :  90px ;
   $min-width-col03 :  90px ;
   $min-width-col04 :  90px ;
   $min-width-col05 : 250px ;
+  $width-col00     : 22px  ;
   $width-col01     : 25%   ;
   $width-col02     : 15%   ;
   $width-col03     : 15%   ;
@@ -97,13 +99,14 @@ database-status {
     font-family: "RobotoMono";
   }
   .status-sectiontitle {
+    display: block;
     text-align: center;
-    font-size: 32px;
-    font-weight: bold;
-    border-top: 1px solid lightgrey;
-    border-bottom: 1px solid lightgrey;
+    font-size: 24px;
+    font-weight: normal;
+    // border-top: 1px solid lightgrey;
+    // border-bottom: 1px solid lightgrey;
     width: 100%;
-    background-color: rgb(230, 225, 225);
+    // background-color: rgb(230, 225, 225);
     margin-top: 30px;
     margin-bottom: 15px;
     &:first-of-type {
@@ -138,6 +141,10 @@ database-status {
       .cell {
         // border: 1px dotted lightgrey;
       }
+    }
+    .col-00 {
+      min-width: $min-width-col00;
+      width: $width-col00;
     }
     .col-01 {
       min-width: $min-width-col01;
@@ -182,6 +189,10 @@ database-status {
           display: table-cell;
           text-align: center;
           border-bottom: 2px solid lightgrey;
+          &.col-00 {
+            font-weight: normal;
+            height: 19px;
+          }
           &.col-01 {
             // min-width: $min-width-col01;
             // width: $width-col01;
@@ -228,9 +239,37 @@ database-status {
         margin-top: 2px;
         margin-bottom: 2px;
         border: 1px dotted lightgrey;
+        &.row-error {
+          background-color: rgba(255, 0, 0, 0.2);
+        }
+        &.row-waiting {
+          background-color: rgba(255, 255, 0, 0.2);
+        }
         .cell {
           padding-top: 4px;
           padding-bottom: 4px;
+          &.col-00 {
+            font-weight: normal;
+            text-align: center;
+            font-size: 16px;
+            .status-icon {
+              &.error {
+                color: red;
+              }
+              &.wait {
+                color: blue;
+              }
+              &.done {
+                color: green;
+              }
+              &.pause {
+                color: rgba(0, 204, 211, 0.99);
+              }
+              &.weird {
+                color: rgba(95, 54, 0, 0.99);
+              }
+            }
+          }
           &.col-01 {
             font-weight: bold;
             text-align: left;

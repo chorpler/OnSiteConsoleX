@@ -131,6 +131,13 @@ export class Preferences {
       reportsToLoad: 20000,
       goToLastPage: true,
       lastPage: '',
+      timeFormat24: false,
+      timeFormat: "hh:mm A",
+      dateFormatShort: "MMM DD",
+      dateFormatMed: "DD MMM YYYY",
+      dateFormatLong: "ddd DD MMM YYYY",
+      dateFormatSort: "YYYY-MM-DD",
+      dateTimeFormat: "YYYY-MM-DD HH:mm",
     },
     employeeView: {
       showAllSites: false,
@@ -881,6 +888,70 @@ export class Preferences {
     }
     return false;
   }
+  
+  public static is24Hour():boolean {
+    if(Preferences && Preferences.CONSOLE && Preferences.CONSOLE.global && Preferences.CONSOLE.global.timeFormat24) {
+      return true;
+    }
+    return false;
+  }
+
+  public is24Hour():boolean {
+    return Preferences.is24Hour();
+  }
+
+  public getDateFormat(type?:string):string {
+    let format:string = Preferences.CONSOLE.global.dateFormatShort || "MMM DD";
+    if(Preferences && Preferences.CONSOLE && Preferences.CONSOLE.global && Preferences.CONSOLE.global) {
+      if(type === 'sort') {
+        format = "YYYY-MM-DD";
+      } else if(type === 'med') {
+        format = Preferences.CONSOLE.global.dateFormatMed || "DD MM YYYY";
+      } else if(type === 'long' || type === 'verylong') {
+        format = Preferences.CONSOLE.global.dateFormatLong || "ddd DD MM YYYY";
+      }
+    }
+    return format;
+  }
+
+  public getDateFormatShort():string {
+    return this.getDateFormat('short');
+  }
+
+  public getDateFormatMed():string {
+    return this.getDateFormat('med');
+  }
+
+  public getDateFormatLong():string {
+    return this.getDateFormat('long');
+  }
+
+  public getDateFormatSort():string {
+    return this.getDateFormat('sort');
+  }
+
+  public getTimeFormat(type?:string):string {
+    let format:string = Preferences.CONSOLE.global.timeFormat || "hh:mm A";
+    if(type === 'long' || type === 'sort') {
+      format = "hh:mm:ss A";
+    } else if(type === 'verylong') {
+      format = "hh:mm:ss.SSS A";
+    }
+    if(Preferences && Preferences.CONSOLE && Preferences.CONSOLE.global && Preferences.CONSOLE.global) {
+      if(Preferences.is24Hour() || type === 'sort') {
+        format = format.replace("hh", "HH").replace(" A", "");
+      }
+    }
+    return format;
+  }
+
+  public getDateTimeFormat(type?:string):string {
+    let dateFormat:string = this.getDateFormat(type);
+    let timeFormat:string = this.getTimeFormat(type);
+    let format:string = dateFormat + " " + timeFormat;
+    return format;
+  }
+
 
   public reinitializePrefs():any {
     Preferences.DB = {
@@ -968,6 +1039,13 @@ export class Preferences {
         reportsToLoad: 20000,
         goToLastPage: true,
         lastPage: '',
+        timeFormat24: false,
+        timeFormat: "hh:mm A",
+        dateFormatShort: "MMM DD",
+        dateFormatMed: "DD MMM YYYY",
+        dateFormatLong: "ddd DD MMM YYYY",
+        dateFormatSort: "YYYY-MM-DD",
+        dateTimeFormat: "YYYY-MM-DD HH:mm",
       },
       employeeView: {
         showAllSites: false,
