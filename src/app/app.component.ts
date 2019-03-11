@@ -860,6 +860,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
       // let res:any = await someFunctionThatReturnsAPromise();
       Log.l("checkAndUpdatePreferences(): About to check preferences ...");
       let res:any = await this.checkPreferences();
+      this.updateDateTimeFormats();
       return res;
     } catch(err) {
       Log.l(`checkAndUpdatePreferences(): Error checking and/or updating Preferences!`);
