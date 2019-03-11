@@ -144,6 +144,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
   public timePM                    : string        = ""        ;
   public onkeyup                   : any                       ;
   public onkeydown                 : any                       ;
+  public debugKeys                 : boolean = false           ;
 
   // public addClient   : SESAClient   = new SESAClient(  { name: "__", fullName: "Add new client"      , code: "__", value: "Add new client"      , capsName: "ADD NEW CLIENT"      , scheduleName: "Add new client"      ,});
   // public addLocation : SESALocation = new SESALocation({ name: "__", fullName: "Add new location"    , code: "__", value: "Add new location"    , capsName: "ADD NEW LOCATION"    , scheduleName: "Add new location"    ,});
@@ -425,7 +426,9 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
     let key = evt.key;
     // let code = evt.code;
     // let isModifierKey:boolean = true;
-    Log.l(`KeyDown: '${key}':`, evt);
+    if(this.debugKeys) {
+      Log.l(`KeyDown: '${key}':`, evt);
+    }
     // Log.l(`KeyDown: 'this' points to:`, this);
     switch(key) {
       case 'Alt':
@@ -1479,6 +1482,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
       // }
       // if(this.keys) {
       if(this.keys.shift || this.keys.cmdctrl) {
+        Log.l(`handleMapSingleClick(): Modifier key pressed during click, handing off to right/double click handler …`);
         return this.handleMapRightClick(evt);
       }
       // }
