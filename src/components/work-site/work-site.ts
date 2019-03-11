@@ -132,6 +132,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
   // public mapUpdateDelay : number         = 750                 ;
   public mapUpdateDelay : number         = 400                 ;
   public googleMapVisible          : boolean       = false     ;
+  public map:GoogleMap;
 
   public shiftStartTimes           : any                       ;
   public startOptions              : string[] = []        ;
@@ -151,6 +152,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
   public modalMode: boolean = false;
   public dataReady: boolean = false;
   public prevComp : any;
+  public keyListeningElement:Element|Window;
   public contentStyle:any = {
     "min-height": "500px",
   };
@@ -336,58 +338,81 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
   }
 
   public cancelSubscriptions() {
+    // let el = window;
+    Log.l(`WorkSite.cancelSubscriptions(): Now unsubscribing to keys, clicks, and hotkeys …`);
     if(this.keySubscription && this.keySubscription.unsubscribe) {
       this.keySubscription.unsubscribe();
     }
-    let el = window;
-    let item:EventListenerOrEventListenerObject;
-    el.removeEventListener('keydown', this.keydown);
-    el.removeEventListener('keyup', this.keyup);
-    let map:GoogleMap = this.googleMapComponent.getMap();
+    this.cancelMapListeners();
+    this.cancelKeyListeners();
+  }
+
+  public setPageLoaded() {
+    Log.l(`WorkSite.setPageLoaded(): Page is now loaded!`);
+    this.data.currentlyOpeningPage = false;
+  }
+
+  public cancelKeyListeners() {
+    let el = this.keyListeningElement ? this.keyListeningElement : window;
+    // if(el && typeof (el as any).eventListeners === 'function') {
+    if(el) {
+      // let listeners = (el as any).eventListeners();
+      el.removeEventListener('keydown' , this.onkeydown);
+      el.removeEventListener('keyup'   , this.onkeyup);
+      this.keyListeningElement = null;
+    } else {
+      Log.w(`cancelKeyListeners(): Could not find element to remove listeners from:`, this.keyListeningElement);
+    }
+  }
+
+  public cancelMapListeners() {
+    let map:GoogleMap = this.map ? this.map : this.googleMapComponent.getMap();
     if(map && google && google.maps && google.maps.event) {
       google.maps.event.clearListeners(map, 'click');
       google.maps.event.clearListeners(map, 'dblclick');
       google.maps.event.clearListeners(map, 'rightclick');
+    } else {
+      Log.w(`cancelMapListeners(): Could not find Google Map object to remove listeners from`);
     }
   }
 
-  public setPageLoaded() {
-    Log.l(`setPageLoaded(): Now setting page loaded ...`);
-    this.data.currentlyOpeningPage = false;
-  }
-
-  public initializeKeyListeners() {
+  public initializeKeyListeners(element?:Element) {
     Log.l(`initializeKeyListeners(): Started …`);
     if(this.workSiteDialog && this.workSiteDialog.el && this.workSiteDialog.el.nativeElement) {
       // let dlg:HTMLElement = this.workSiteDialog.el.nativeElement;
-      let el = window;
-      let opts:AddEventListenerOptions = {
-        capture: undefined,
-        once: false,
-        passive: undefined,
-      };
-      opts = null;
-      const keydown = (evt:KeyboardEvent) => {
-        // let key = evt.key;
-        // Log.l(`KeyDown: '${key}'`);
+      // let el = window;
+      let bodyElement:Element = document.querySelector('.onsiteconsolex-index-body');
+      let el = element && element instanceof Element ? element : bodyElement && bodyElement instanceof Element ? bodyElement : window;
+      // let opts:AddEventListenerOptions = {
+      //   capture: undefined,
+      //   once: false,
+      //   passive: undefined,
+      // };
+      // opts = null;
+      // const keydown = (evt:KeyboardEvent) => {
+      //   // let key = evt.key;
+      //   // Log.l(`KeyDown: '${key}'`);
 
-        return this.keydown(evt);
-      };
-      const keyup = (evt:KeyboardEvent) => {
-        // let key = evt.key;
-        // Log.l(`KeyUp: '${key}'`);
-        return this.keyup(evt);
-      };
-      this.onkeydown = keydown;
-      this.onkeyup = keyup;
+      //   return this.keydown(evt);
+      // };
+      // const keyup = (evt:KeyboardEvent) => {
+      //   // let key = evt.key;
+      //   // Log.l(`KeyUp: '${key}'`);
+      //   return this.keyup(evt);
+      // };
+      this.keyListeningElement = el;
+      this.onkeydown = this.keydown.bind(this);
+      this.onkeyup = this.keyup.bind(this);
       // el.addEventListener('keydown', keydown, opts);
       // el.addEventListener('keyup', keyup, opts);
       // el.addEventListener('keydown', this.keydown.bind(this) , opts);
       // el.addEventListener('keyup'  , this.keyup.bind(this)   , opts);
-      el.addEventListener('keydown', this.keydown.bind(this) , opts);
-      el.addEventListener('keyup'  , this.keyup.bind(this)   , opts);
+      // el.addEventListener('keydown', this.keydown.bind(this) , opts);
+      // el.addEventListener('keyup'  , this.keyup.bind(this)   , opts);
       // dlg.addEventListener('onkeydown', keydown, opts);
       // dlg.addEventListener('onkeyup', keyup, opts);
+      el.addEventListener('keydown', this.onkeydown );
+      el.addEventListener('keyup'  , this.onkeyup   );
     } else {
       Log.w(`initializeKeyListeners(): Could not find dialog to attach key listener to`);
     }
