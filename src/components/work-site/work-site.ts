@@ -56,8 +56,8 @@ export class ModKeys {
   public context:boolean = false;
   public left   :boolean = false;
   public right  :boolean = false;
-  public get cmdctrl():boolean { return (this.command || this.control); };
-  public get commandcontrol():boolean { return (this.command || this.control); };
+  public get cmdctrl():boolean { return (this.command || this.control || this.meta); };
+  public get commandcontrol():boolean { return (this.command || this.control || this.meta); };
   constructor() {
 
   }
@@ -405,22 +405,25 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
     switch(key) {
       case 'Alt':
         this.keys.alt     = true;
+        this.keys.option  = true;
         break;
       case 'Command':
         this.keys.command = true;
         break;
-      case 'ContextMenu':
+        case 'ContextMenu':
         this.keys.context = true;
         break;
-      case 'Control':
+        case 'Control':
         this.keys.control = true;
         break;
-      case 'Meta':
+        case 'Meta':
         this.keys.meta    = true;
         this.keys.windows = true;
+        this.keys.command = true;
         break;
       case 'Option':
         this.keys.option  = true;
+        this.keys.alt     = true;
         break;
       case 'Shift':
         this.keys.shift   = true;
