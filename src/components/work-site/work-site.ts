@@ -145,6 +145,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
   public onkeyup                   : any                       ;
   public onkeydown                 : any                       ;
   public debugKeys                 : boolean = false           ;
+  public debugClicks               : boolean = false           ;
 
   // public addClient   : SESAClient   = new SESAClient(  { name: "__", fullName: "Add new client"      , code: "__", value: "Add new client"      , capsName: "ADD NEW CLIENT"      , scheduleName: "Add new client"      ,});
   // public addLocation : SESALocation = new SESALocation({ name: "__", fullName: "Add new location"    , code: "__", value: "Add new location"    , capsName: "ADD NEW LOCATION"    , scheduleName: "Add new location"    ,});
@@ -1397,12 +1398,9 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
 
   public async handleMapRightClick(evt?:MapMouseEvent, thisObject?:any) {
     try {
-      Log.l(`handleMapRightClick(): Map clicked, event is:`, evt);
-      let self = this;
-      if(thisObject) {
-        self = thisObject;
+      if(this.debugClicks) {
+        Log.l(`handleMapRightClick(): Map clicked, event is:`, evt);
       }
-      Log.l(`handleMapRightClick(): Self is:`, self);
       // let keys = Object.keys(evt);
       // let event:MouseEvent;
       // for(let key of keys) {
@@ -1461,6 +1459,9 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
 
   public async handleMapSingleClick(evt?:MapMouseEvent) {
     try {
+      if(this.debugClicks) {
+        Log.l(`handleMapSingleClick(): Map clicked, event:`, evt);
+      }
       // Log.l(`handleMapSingleClick(): Map clicked, event and this:`, evt, this);
       // let keys = Object.keys(evt);
       // let event:MouseEvent;
