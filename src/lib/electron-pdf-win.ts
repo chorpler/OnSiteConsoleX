@@ -1,5 +1,5 @@
 import { Log } from 'domain/onsitexdomain';
-import { isRenderer } from 'is-electron-renderer';
+// import { isRenderer } from 'is-electron-renderer';
 // import * as WHATWG from 'whatwg-url';
 import * as electron from 'electron';
 import * as path from 'path';
@@ -9,13 +9,13 @@ import fileType from 'file-type';
 import * as extend from 'deep-extend';
 import got from 'got';
 import { remote as electronRemote, BrowserWindow as electronBrowserWindow } from 'electron';
-const BrowserWindow:any = electronRemote.BrowserWindow;
+// const BrowserWindow:any = electronRemote.BrowserWindow;
 
 type ElectronEvent = electron.Event;
 
 export class PDFWindow extends electronRemote.BrowserWindow {
   constructor(opts?:any) {
-    Log.l(`PDFWindow(): constructor called with arguments:\n`, opts);
+    Log.l(`PDFWindow(): constructor called with arguments:`, opts);
     super(extend({}, opts, {
       webPreferences: { nodeIntegration: false }
     }));
@@ -33,8 +33,9 @@ export class PDFWindow extends electronRemote.BrowserWindow {
     });
   }
 
-  public loadURL(url:string, options?:any) {
-    PDFWindow.isPDF(url).then(isit => {
+  public async loadURL(url:string, options?:electron.LoadURLOptions):Promise<void> {
+    try {
+      let isit:boolean = await PDFWindow.isPDF(url);
       if(isit) {
         // let fileURL:string = `file://${path.join(__dirname, 'pdfjs', 'web', 'viewer.html')}?file=${decodeURIComponent(url)}`;
         let fileURL:string = PDFWindow.getFullURL(decodeURIComponent(url));
@@ -44,30 +45,33 @@ export class PDFWindow extends electronRemote.BrowserWindow {
         Log.l(`PDFWindow.loadURL(): isPDF() returned false, trying to load '${url}'...`);
         super.loadURL(url, options);
       }
-    }).catch((err) => {
-      Log.l(`PDFWindow.loadURL(): Error loading url!`);
-      Log.e(err);
+    } catch(err) {
+      Log.l(`PDFWindow.loadURL(): Error loading url:`, url);
+      Log.w(err);
       super.loadURL(url, options);
-    });
+      // throw err;
+    }
   }
 
-  public static addSupport(browserWindow:Electron.BrowserWindow) {
+  public static async addSupport(browserWindow:Electron.BrowserWindow):Promise<void> {
     Log.l(`PDFWindow.addSupport() called.`)
-    browserWindow.webContents.on('will-navigate', (event:ElectronEvent, url:string) => {
-      event.preventDefault();
-      browserWindow.loadURL(url);
-    });
+    try {
+      browserWindow.webContents.on('will-navigate', (event:ElectronEvent, url:string) => {
+        event.preventDefault();
+        browserWindow.loadURL(url);
+      });
+  
+      browserWindow.webContents.on('new-window', (event:ElectronEvent, url:string) => {
+        event.preventDefault();
+  
+        (event as any).newGuest = new PDFWindow();
+        (event as any).newGuest.loadURL(url);
+      });
+  
+      const load = browserWindow.loadURL;
 
-    browserWindow.webContents.on('new-window', (event:ElectronEvent, url:string) => {
-      event.preventDefault();
-
-      (event as any).newGuest = new PDFWindow();
-      (event as any).newGuest.loadURL(url);
-    });
-
-    const load = browserWindow.loadURL;
-    browserWindow.loadURL = function(url:string, options:any) {
-      PDFWindow.isPDF(url).then(isit => {
+      const pdfLoadURL = async function(url:string, options?:electron.LoadURLOptions):Promise<void> {
+        let isit:boolean = await PDFWindow.isPDF(url);
         if(isit) {
           // let fileURL:string = `file://${PDF_JS_PATH}?file=${decodeURIComponent(url)}`;
           let fileURL:string = PDFWindow.getFullURL(decodeURIComponent(url));
@@ -77,8 +81,14 @@ export class PDFWindow extends electronRemote.BrowserWindow {
           Log.l(`PDFWindow.addSupport.loadURL(): isPDF() false, Trying to load file url '${url}' ...`);
           load.call(browserWindow, url, options);
         }
-      });
-    };
+      };
+      browserWindow.loadURL = pdfLoadURL;
+
+    } catch(err) {
+      Log.l(`PDFWindow.addSupport() (static): Error adding PDF support to existing BrowserWindow:`, browserWindow);
+      Log.w(err);
+      throw err;
+    }
   }
 
   public static isAlreadyLoadedWithPdfJs(url:string):boolean {
@@ -128,7 +138,7 @@ export class PDFWindow extends electronRemote.BrowserWindow {
       }
     } catch(err) {
       Log.l(`PDFWindow.isPDF(): Error checking for PDF status of url '${url}'`);
-      Log.e(err);
+      Log.w(err);
       throw err;
     }
   }
@@ -136,10 +146,11 @@ export class PDFWindow extends electronRemote.BrowserWindow {
   public static getBaseURL():string {
     let filePath:string = "";
     // if(isRenderer) {
-      filePath = electronRemote.app.getAppPath();
-    // } else {
-      // filePath = electron.app.getAppPath();
-    // }
+      // filePath = electronRemote.app.getAppPath();
+      // } else {
+        // filePath = electron.app.getAppPath();
+        // }
+    filePath = electronRemote.app.getAppPath();
     return filePath;
   }
 

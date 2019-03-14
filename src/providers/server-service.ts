@@ -1175,10 +1175,10 @@ export class ServerService {
         return doc;
       });
       if(!res.ok && !res.updated) {
-        Log.l(`Server.saveSchedule(): Upsert error saving schedule ${scheduleDoc._id}.\n`, res);
+        Log.l(`Server.saveSchedule(): Upsert error saving schedule ${scheduleDoc._id}:`, res);
         throw res;
       } else {
-        Log.l(`Server.saveSchedule(): Successfully saved schedule ${scheduleDoc._id}.\n`, res);
+        Log.l(`Server.saveSchedule(): Successfully saved schedule ${scheduleDoc._id}:`, res);
         return res;
       }
     } catch(err) {

@@ -499,7 +499,7 @@ export class SchedulingPage implements OnInit,OnDestroy {
     let spinnerID:string;
     try {
       Log.l("Persisting schedule to CouchDB server...");
-      spinnerID = this.alert.showSpinner('Saving...');
+      spinnerID = await this.alert.showSpinnerPromise('Saving...');
       let doc:any = {}, key = "current";
       if (typeof startDate === 'string') {
         // key = startDate + "_" + endDate;
@@ -550,47 +550,28 @@ export class SchedulingPage implements OnInit,OnDestroy {
     // let scheduleDoc =
   }
 
-  public saveScheduleToDatabase(doc:any, overwrite?:boolean) {
-    return new Promise((resolve, reject) => {
+  public async saveScheduleToDatabase(doc:any, overwrite?:boolean):Promise<any> {
+    try {
       let schedule:Schedule = this.schedule;
       if(!(Array.isArray(schedule.sites) && schedule.sites.length > 0)) {
         schedule.loadSites(this.sites);
       }
       // if(!(Array.isArray(schedule.scheduleList) && schedule.scheduleList.length > 0)) {
-        schedule.createScheduleList();
+      schedule.createScheduleList();
       // }
       let newdoc = schedule.serialize();
       Log.l("saveScheduleToDatabase(): Schedule to be persisted:\n", newdoc);
       // doc['schedule'] = this.shiftsData;
       // doc['schedule'] =
       // if(overwrite) {
-        this.server.saveSchedule(newdoc, true).then((res) => {
-          Log.l("saveScheduleToDatabase(): Shift data persisted.\n", res);
-          resolve(true);
-        }).catch((err) => {
-          Log.l("saveScheduleToDatabase(): Error persisting shift data!");
-          Log.e(err);
-          reject(err);
-        });
-      // } else {
-      //   this.server.saveSchedule(doc).then((res) => {
-      //     Log.l("Shift data persisted.\n", res);
-      //     resolve(true);
-      //   //   return this.server.getSchedule();
-      //   // }).then((doc) => {
-      //   //   if (doc && doc['schedule']) {
-      //   //     Log.l("Shift data retrieved, mostly for new _rev value.");
-      //   //     this.doc = doc;
-      //   //     resolve(doc);
-      //   //   }
-      //   }).catch((err) => {
-      //     Log.l("Error persisting shift data!");
-      //     Log.e(err);
-      //     reject(err);
-      //   });
-      // }
-
-    });
+      let res = await this.server.saveSchedule(newdoc, true);
+      Log.l("saveScheduleToDatabase(): Shift data persisted:", res);
+      return true;
+    } catch(err) {
+      Log.l(`saveScheduleToDatabase(): Error saving schedule to database`);
+      Log.e(err);
+      throw err;
+    }
   }
 
   public incrementSchedule(scheduleObject?:any) {
