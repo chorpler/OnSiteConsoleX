@@ -14,8 +14,15 @@ import { DBService                                                   } from 'pro
 import { ServerService                                               } from 'providers/server-service'      ;
 import { AlertService                                                } from 'providers/alert-service'       ;
 import { ScriptService, ScriptLoadResult,                            } from 'providers/script-service'      ;
-import { Street, Address, Jobsite,                                   } from 'domain/onsitexdomain'          ;
-import { OnSiteGeolocation, ILatLng, LatLng,                         } from 'domain/onsitexdomain'          ;
+import { Street            } from 'domain/onsitexdomain' ;
+import { Address           } from 'domain/onsitexdomain' ;
+import { Jobsite           } from 'domain/onsitexdomain' ;
+import { CLLType           } from 'domain/onsitexdomain' ;
+import { SiteKeyValue      } from 'domain/onsitexdomain' ;
+import { OnSiteGeolocation } from 'domain/onsitexdomain' ;
+import { ILatLng           } from 'domain/onsitexdomain' ;
+import { LatLng            } from 'domain/onsitexdomain' ;
+
 import { Command, KeyCommandService                                  } from 'providers/key-command-service' ;
 import { NotifyService                                               } from 'providers/notify-service'      ;
 // import { OverlayPanel                                                } from 'primeng/overlaypanel'          ;
@@ -85,7 +92,8 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
   public showWorkSite     : boolean        = true              ;
   public workSiteModal    : boolean        = false             ;
   public workSiteClosable : boolean        = false             ;
-  public workSiteESCable  : boolean        = true              ;
+  public workSiteESCable  : boolean        = false             ;
+  // public workSiteESCable  : boolean        = true              ;
   public title            : string         = "Work Site"       ;
   // public static    PREFS: any            = new Preferences()   ;
   public keySubscription: Subscription                         ;
@@ -146,6 +154,10 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
   public onkeydown                 : any                       ;
   public debugKeys                 : boolean = false           ;
   public debugClicks               : boolean = false           ;
+  public siteKeyCollision          : boolean = false           ;
+  public scheduleNameCollision     : boolean = false           ;
+  public siteNumberCollision       : boolean = false           ;
+  public sortNumberReadOnly        : boolean = true            ;
 
   // public addClient   : SESAClient   = new SESAClient(  { name: "__", fullName: "Add new client"      , code: "__", value: "Add new client"      , capsName: "ADD NEW CLIENT"      , scheduleName: "Add new client"      ,});
   // public addLocation : SESALocation = new SESALocation({ name: "__", fullName: "Add new location"    , code: "__", value: "Add new location"    , capsName: "ADD NEW LOCATION"    , scheduleName: "Add new location"    ,});
@@ -155,12 +167,11 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
   public dataReady: boolean = false;
   public prevComp : any;
   public keyListeningElement:Element|Window;
+  public siteError:boolean = false;
+  public workSiteDialogClasses:string = "work-site-dialog";
   public contentStyle:any = {
     "min-height": "500px",
   };
-
-
-  // public get prefs(): any { return WorkSiteComponent.PREFS; };
 
   constructor(
     // public navCtrl    : NavController        ,
@@ -289,7 +300,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
       //     this.jobsite.shiftRotations = this.rotations;
       //   }
       //   return this.server.getTechShifts();
-
+      this.setDialogTitle();
       let res:any = await this.getConfigData();
       Log.l("WorkSiteComponent: got tech shift data:\n", res);
       this.techShifts = res;
@@ -526,6 +537,19 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
     this.onCancel.emit(true);
   }
 
+  public setDialogTitle():string {
+    let site  = this.jobsite;
+    let sites = this.sites;
+    let idx   = sites.indexOf(site);
+    let count = sites.length;
+    let mode  = this.mode || "Edit";
+    this.siteIndex = idx + 1;
+    this.siteCount = count;
+    this.title =  `${mode} Job Site (${this.siteIndex} / ${this.siteCount})`
+    this.workSiteHeader =  this.title;
+    return this.workSiteHeader;
+  }
+
   public initializeDropdownOptions() {
     Log.l("initializeDropdownOptions(): Now running...");
     // let sites = this.sites;
@@ -697,7 +721,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
     }
   }
 
-  public async cloneJobSite(evt?:any) {
+  public async cloneJobSite(evt?:MouseEvent):Promise<any> {
     try {
       this.dataReady = false;
       this.mode = 'Add';
@@ -758,6 +782,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
 
   public updateDisplay() {
     // let f = this.jobSiteForm;
+    this.setDialogTitle();
     let a = this.jobsite.address;
     let b = this.jobsite.billing_address;
     let a_s = a.street;
@@ -779,6 +804,25 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
     this.locID    = locID    ;
     this.updateLatLon();
     // this.refreshMap();
+  }
+
+  public updateSiteKey(type:CLLType, value:SiteKeyValue) {
+    let site:Jobsite = this.jobsite;
+    if(type === 'client') {
+      site.client = value;
+    } else if(type === 'location') {
+      site.location = value;
+    } else if(type === 'locID') {
+      site.locID = (value as SESALocID);
+    } else if(type === 'aux') {
+      site.aux = value;
+    } else {
+      Log.w(`WorkSite.updateSiteKey(): Could not find site key type:`, type);
+      return;
+    }
+    site.generateSiteID();
+    this.checkForDuplication();
+    this.checkForScheduleNameCollision();
   }
 
   public updateClient(client:any) {
@@ -991,7 +1035,8 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
       let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       this.notify.addSuccess("SAVED", "Saved jobsite successfully.", 3000);
       this.cancelEdit = false;
-      this.leavePage();
+      // this.leavePage();
+      this.onSave.emit(true);
       return res;
     } catch(err) {
       Log.l("onSubmit(): Error saving site.");
@@ -1011,7 +1056,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
       this.cancel();
     } else {
       // this.navCtrl.setRoot("Work Sites");
-      this.exitPage();
+      this.exitPage(false);
     }
   }
 
@@ -1025,7 +1070,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
       this.notify.addSuccess("SUCCESS", "Saved jobsite successfully");
       this.cancelEdit = false;
       // this.leavePage();
-      this.onSave.emit(true);
+      // this.onSave.emit(true);
       return res;
     } catch(err) {
       Log.l("saveNoExit(): Error saving site.");
@@ -1528,5 +1573,107 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
     }
   }
 
+  public setSiteError():string {
+    this.siteError = true;
+    this.workSiteDialogClasses = "work-site-dialog site-error";
+    return this.workSiteDialogClasses;
+  }
+
+  public clearSiteError():string {
+    this.siteError = false;
+    this.workSiteDialogClasses = "work-site-dialog";
+    return this.workSiteDialogClasses;
+  }
+
+  public toggleSiteError():string {
+    let base:string = "work-site-dialog";
+    let out:string = base;
+    this.siteError = !this.siteError;
+    if(this.siteError) {
+      out = base + " site-error";
+    }
+    this.workSiteDialogClasses = out;
+    return out;
+  }
+
+  public isSiteDuplicate():boolean {
+    let site:Jobsite    = this.jobsite;
+    let sites:Jobsite[] = this.sites  ;
+    let isDuplicate:boolean = false   ;
+    for(let js of sites) {
+      if(js.isDuplicateOf(site)) {
+        isDuplicate = true;
+        break;
+      }
+    }
+    return isDuplicate;
+  }
+
+  public getDuplicateSiteIndex():number {
+    let site:Jobsite = this.jobsite;
+    let i:number = this.sites.indexOf(site);
+    let dupeIndex:number = -1;
+    let dupeSites:Jobsite[] = this.sites.filter((a:Jobsite) => {
+      return a.isDuplicateOf(site);
+    });
+    for(let js of dupeSites) {
+      let idx:number = this.sites.indexOf(js);
+      if(idx !== i) {
+        dupeIndex = idx;
+      }
+    }
+    return dupeIndex;
+  }
+
+  public checkForDuplication() {
+    let idx:number = this.getDuplicateSiteIndex();
+    if(idx > -1) {
+      this.workSiteHeader = this.title + " (COLLISION WITH SITE " + idx + ")";
+      this.siteKeyCollision = true;
+    } else {
+      this.workSiteHeader = this.title;
+      this.siteKeyCollision = false;
+    }
+  }
+
+  public checkForScheduleNameCollision() {
+    let site:Jobsite = this.jobsite;
+    let sname:string = site.getScheduleName().toUpperCase();
+    let idx:number = -1;
+    for(let js of this.sites) {
+      let siteSN:string = js.getScheduleName().toUpperCase();
+      if(siteSN === sname && site !== js) {
+        idx = this.sites.indexOf(js);
+        break;
+      }
+    }
+    if(idx > -1) {
+      this.workSiteHeader = this.title + " (SCHEDULE NAME COLLISION WITH SITE " + idx + ")";
+      this.scheduleNameCollision = true;
+    } else {
+      this.workSiteHeader = this.title;
+      this.scheduleNameCollision = false;
+    }
+  }
+
+  public checkForSiteNumberCollision() {
+    let site:Jobsite = this.jobsite;
+    let mynumber:number = site.getSiteNumber();
+    let idx:number = -1;
+    for(let js of this.sites) {
+      let jsnum:number = js.getSiteNumber();
+      if(mynumber === jsnum && site !== js) {
+        idx = this.sites.indexOf(js);
+        break;
+      }
+    }
+    if(idx > -1) {
+      this.workSiteHeader = this.title + " (SITE NUMBER COLLISION WITH SITE " + idx + ")";
+      this.siteNumberCollision = true;
+    } else {
+      this.workSiteHeader = this.title;
+      this.siteNumberCollision = false;
+    }
+  }
 
 }

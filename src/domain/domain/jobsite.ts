@@ -1,8 +1,9 @@
 /**
  * Name: Jobsite domain class
- * Vers: 7.1.2
- * Date: 2018-12-13
+ * Vers: 7.2.1
+ * Date: 2019-03-15
  * Auth: David Sargeant
+ * Logs: 7.2.1 2019-03-15: Added getClient(), getLocation(), getLocID() methods
  * Logs: 7.1.2 2018-12-13: Added getKeys() and isOnSite() methods; refactored imports
  * Logs: 7.1.1 2018-10-11: Added getSiteReportName() method
  * Logs: 7.0.1 2018-09-11: Added is_office property, changed constructor to single argument
@@ -35,12 +36,15 @@ import { SESAAux      } from '../config/config.types'  ;
 import { Street       } from './street'                ;
 import { Address      } from './address'               ;
 
+export type CLLType      = 'client' | 'location' | 'locID' | 'aux';
+export type SiteKeyValue = SESAClient | SESALocation | SESALocID | SESAAux;
+
 const matchesCI = function(str1:string, str2:string):boolean {
   let lc1:string = typeof str1 === 'string' ? str1.toLowerCase() : "";
   let lc2:string = typeof str2 === 'string' ? str2.toLowerCase() : "";
   let out:boolean = false;
   if(lc1 == lc2) {
-    out = true;;
+    out = true;
   }
   return out;
 }
@@ -227,6 +231,49 @@ export class Jobsite {
     let siteDoc:any  = this.serialize();
     let newSite:Jobsite = Jobsite.deserialize(siteDoc);
     return newSite;
+  }
+
+  public getSiteKey(type:CLLType):SiteKeyValue {
+    let out:SiteKeyValue;
+    if(type === 'client') {
+      out = this.client;
+    } else if(type === 'location') {
+      out = this.location;
+    } else if(type === 'locID') {
+      out = this.locID;
+    } else if(type === 'aux') {
+      out = this.aux;
+    } else {
+      Log.w(`Jobsite.getSiteKey(): Key type must be 'client', 'location', etc. Unable to find site key of type:`, type);
+    }
+    return out;
+  }
+
+  public getSiteKeyAsString(type:CLLType):string {
+    let out:string = "";
+    let res:SiteKeyValue = this.getSiteKey(type);
+    if(res) {
+      out = res.code;
+    } else {
+      Log.w(`Jobsite.getSiteKeyAsString(): No site key of this type found:`, type);
+    }
+    return out;
+  }
+
+  public getClient():string {
+    return this.getSiteKeyAsString('client');
+  }
+
+  public getLocation():string {
+    return this.getSiteKeyAsString('location');
+  }
+
+  public getLocID():string {
+    return this.getSiteKeyAsString('locID');
+  }
+
+  public getAux():string {
+    return this.getSiteKeyAsString('aux');
   }
 
   public initializeShiftRotations():Array<any> {
@@ -544,6 +591,48 @@ export class Jobsite {
       out = cli + " " + loc;
     }
     return out;
+  }
+
+  public getUniqueSiteKey():string {
+    let cli = this.getClient();
+    let loc = this.getLocation();
+    let lid = this.getLocID();
+    let aux = this.getAux();
+    cli = cli.toUpperCase();
+    loc = loc.toUpperCase();
+    lid = lid.toUpperCase();
+    aux = aux.toUpperCase();
+    // let out = cli + " " + loc + " " + lid;
+    let out = cli + " " + loc + " " + lid + " " + aux;
+    return out;
+  }
+
+  public static isSameSite(site1:Jobsite, site2:Jobsite):boolean {
+    return site1 === site2;
+  }
+
+  public isSameSite(site:Jobsite):boolean {
+    return Jobsite.isSameSite(this, site);
+  }
+
+  public static isDuplicateOf(site1:Jobsite, site2:Jobsite):boolean {
+    let duplicated:boolean = false;
+    if(site1 === site2) {
+      duplicated = false;
+    } else if(site1._id === site2._id) {
+      duplicated = true;
+    } else {
+      let site1ID = site1.getUniqueSiteKey();
+      let site2ID = site2.getUniqueSiteKey();
+      if(site1ID === site2ID) {
+        duplicated = true;
+      }
+    }
+    return duplicated;
+  }
+
+  public isDuplicateOf(site:Jobsite):boolean {
+    return Jobsite.isDuplicateOf(this, site);
   }
 
   public toJSON():any {

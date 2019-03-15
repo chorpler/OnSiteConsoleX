@@ -8,6 +8,16 @@ work-site-view {
     min-height: $min-height !important;
     box-shadow: 3px 3px 7px 0px rgba(128,128,128,0.99);
     // overflow-y: auto;
+    &.site-error {
+      .ui-dialog.ui-widget {
+        box-shadow: 1px 1px 8px 8px rgba(255, 40, 40, 0.99);
+        .ui-dialog-titlebar {
+          // background: rgba(255, 0, 0, 0.99);
+          // background-color: rgba(236, 40, 40, 0.29);
+          background: rgba(236, 40, 40, 0.29);
+        }
+      }
+    }
     &.ui-dialog {
       &.ui-widget {
         .ui-dialog-titlebar {
@@ -40,7 +50,7 @@ work-site-view {
       .header-title {
         flex: 0 1 50%;
         font-weight: bold;
-        text-align: center;
+        text-align: left;
       }
       .header-buttons {
         flex: 0 1 50%;
@@ -561,6 +571,14 @@ work-site-view {
     }
 
   }
+  .data-error, .site-key-error {
+    background: rgba(255, 192, 192, 0.99);
+    input {
+      // background: rgba(255, 192, 192, 0.99);
+      background: transparent;
+
+    }
+  }
 
   .worksite-location-info-table {
     border-collapse: collapse;
@@ -646,6 +664,10 @@ work-site-view {
         }
         .worksite-dropdown {
           margin-left: 4px;
+        }
+        &.read-only {
+          color: rgba(128, 128, 128, 0.99);
+          cursor: default;
         }
       }
     }

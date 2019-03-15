@@ -1,5 +1,6 @@
 <!-- <p-dialog #workSiteDialog [styleClass]="'work-site-dialog'" [header]="workSiteHeader" [(visible)]="showWorkSite" [draggable]="true" [resizable]="true" [responsive]="true" [modal]="workSiteModal" [closable]="workSiteClosable" [closeOnEscape]="workSiteESCable" (onHide)="close($event)" [appendTo]="dialogTarget"> -->
-<p-dialog #workSiteDialog [styleClass]="'work-site-dialog'" [contentStyle]="contentStyle" [(visible)]="showWorkSite" [draggable]="true" [resizable]="true" [responsive]="true" [modal]="workSiteModal" [closable]="workSiteClosable" [closeOnEscape]="workSiteESCable" (onHide)="close($event)" [appendTo]="dialogTarget">
+<!-- <p-dialog #workSiteDialog [styleClass]="workSiteDialogClasses" [class.site-error]="siteKeyCollision || scheduleNameCollision || siteNumberCollision" [contentStyle]="contentStyle" [(visible)]="showWorkSite" [draggable]="true" [resizable]="true" [responsive]="true" [modal]="workSiteModal" [closable]="workSiteClosable" [closeOnEscape]="workSiteESCable" (onHide)="close($event)" [appendTo]="dialogTarget"> -->
+<p-dialog #workSiteDialog [class.work-site-dialog]="true" [class.site-error]="siteKeyCollision || scheduleNameCollision || siteNumberCollision" [contentStyle]="contentStyle" [(visible)]="showWorkSite" [draggable]="true" [resizable]="true" [responsive]="true" [modal]="workSiteModal" [closable]="workSiteClosable" [closeOnEscape]="workSiteESCable" (onHide)="close($event)" [appendTo]="dialogTarget">
   <p-header>
     <div class="header-row">
       <div class="header-title">{{workSiteHeader}}</div>
@@ -27,12 +28,13 @@
         <!-- WorkSite DB Location Keys -->
         <div class="main-content-list-item">
           <table class="worksite-location-info-table">
-            <tr class="worksite-location-info-row row-01">
+            <tr class="worksite-location-info-row row-01" [class.site-key-error]="siteKeyCollision">
               <td class="col-01 label">Client</td>
               <td class="col-02 data">
                 <span class="dropdown-and-button-wrapper">
                   <span class="dropdown-wrapper">
-                    <p-dropdown id="client-select" [class.worksite-dropdown]="true" [class.data]="true" [scrollHeight]="dropdownHeight" [options]="clientMenu" [(ngModel)]="client" (onChange)="updateClient(client)"></p-dropdown>
+                    <!-- <p-dropdown id="client-select" [class.worksite-dropdown]="true" [class.data]="true" [scrollHeight]="dropdownHeight" [options]="clientMenu" [(ngModel)]="client" (onChange)="updateClient(client)"></p-dropdown> -->
+                    <p-dropdown id="client-select" [class.worksite-dropdown]="true" [class.data]="true" [scrollHeight]="dropdownHeight" [options]="clientMenu" [(ngModel)]="client" (onChange)="updateSiteKey('client', client)"></p-dropdown>
                   </span>
                   <span class="dropdown-button" (click)="addNewClient($event)"><i class="fal fa-plus-square"></i></span>
                 </span>
@@ -41,7 +43,8 @@
               <td class="col-04 data">
                 <span class="dropdown-and-button-wrapper">
                   <span class="dropdown-wrapper">
-                    <p-dropdown id="loc-select" [class.worksite-dropdown]="true" [class.data]="true" [scrollHeight]="dropdownHeight" [options]="locationMenu" [(ngModel)]="location" (onChange)="updateLocation(location)"></p-dropdown>
+                    <!-- <p-dropdown id="loc-select" [class.worksite-dropdown]="true" [class.data]="true" [scrollHeight]="dropdownHeight" [options]="locationMenu" [(ngModel)]="location" (onChange)="updateLocation(location)"></p-dropdown> -->
+                    <p-dropdown id="loc-select" [class.worksite-dropdown]="true" [class.data]="true" [scrollHeight]="dropdownHeight" [options]="locationMenu" [(ngModel)]="location" (onChange)="updateSiteKey('location', location)"></p-dropdown>
                   </span>
                   <span class="dropdown-button" (click)="addNewLocation($event)"><i class="fal fa-plus-square"></i></span>
                 </span>
@@ -50,41 +53,25 @@
               <td class="col-06 data">
                 <span class="dropdown-and-button-wrapper">
                   <span class="dropdown-wrapper">
-                    <p-dropdown id="loc-id-select" [class.worksite-dropdown]="true" [class.data]="true" [scrollHeight]="dropdownHeight" [options]="locIDMenu" [(ngModel)]="locID" (onChange)="updateLocID(locID)"></p-dropdown>
+                    <!-- <p-dropdown id="loc-id-select" [class.worksite-dropdown]="true" [class.data]="true" [scrollHeight]="dropdownHeight" [options]="locIDMenu" [(ngModel)]="locID" (onChange)="updateLocID(locID)"></p-dropdown> -->
+                    <p-dropdown id="loc-id-select" [class.worksite-dropdown]="true" [class.data]="true" [scrollHeight]="dropdownHeight" [options]="locIDMenu" [(ngModel)]="locID" (onChange)="updateSiteKey('locID', locID)"></p-dropdown>
                   </span>
                   <span class="dropdown-button" (click)="addNewLocID($event)"><i class="fal fa-plus-square"></i></span>
                 </span>
               </td>
             </tr>
-            <!-- <tr class="worksite-location-info-row row-01">
-              <td class="col-01 col-client">
-                <span class="label">Client</span>
-                <span class="data"><p-dropdown id="client-select" [class.worksite-dropdown]="true" [class.data]="true" [scrollHeight]="dropdownHeight" [options]="clientMenu" [(ngModel)]="client" (onChange)="updateClient(client, $event)"></p-dropdown></span>
-                <span class="button button-like-block"(click)="addNewClient($event)"><i class="fa fa-plus"></i></span>
-              </td>
-              <td class="col-02 col-location">
-                <span class="label">Location</span>
-                <span class="data"><p-dropdown id="location-select" [class.worksite-dropdown]="true" [class.data]="true" [scrollHeight]="dropdownHeight" [options]="locationMenu" [(ngModel)]="location" (onChange)="updateLocation(location, $event)"></p-dropdown></span>
-                <span class="button button-like-block"(click)="addNewLocation($event)"><i class="fa fa-plus"></i></span>
-              </td>
-              <td class="col-03 col-locid">
-                <span class="label">Tech Class ID</span>
-                <span class="data"><p-dropdown id="locid-select" [class.worksite-dropdown]="true" [class.data]="true" [scrollHeight]="dropdownHeight" [options]="locIDMenu" [(ngModel)]="locID" (onChange)="updateLocID(locID, $event)"></p-dropdown></span>
-                <span class="button button-like-block"(click)="addNewLocID($event)"><i class="fa fa-plus"></i></span>
-              </td>
-            </tr> -->
             <tr class="worksite-location-info-row row-02">
-              <td class="col-01 label">Schedule Name</td>
-              <td class="col-01 data">
-                <input class="data" id="input-name" [(ngModel)]="jobsite.schedule_name" />
+              <td class="col-01 label" [class.data-error]="scheduleNameCollision">Schedule Name</td>
+              <td class="col-01 data" [class.data-error]="scheduleNameCollision">
+                <input class="data" id="input-name" [(ngModel)]="jobsite.schedule_name" (ngModelChange)="checkForScheduleNameCollision()" />
               </td>
-              <td class="col-02 label" title="Permanent site number. Changing this in an existing job site will likely cause huge problems.">Site ID #</td>
-              <td class="col-02 data"  title="Permanent site number. Changing this in an existing job site will likely cause huge problems.">
-                <input class="input-site-number" id="input-number" type="number" step="1" min="1001" [(ngModel)]="jobsite.site_number" />
+              <td class="col-02 label" [class.data-error]="siteNumberCollision" title="Permanent site number. Changing this in an existing job site will likely cause huge problems.">Site ID #</td>
+              <td class="col-02 data"  [class.data-error]="siteNumberCollision" title="Permanent site number. Changing this in an existing job site will likely cause huge problems.">
+                <input class="input-site-number" id="input-number" type="number" step="1" min="1001" [(ngModel)]="jobsite.site_number" (ngModelChange)="checkForSiteNumberCollision()" />
               </td>
               <td class="col-03 label">Sort Number</td>
               <td class="col-03 data">
-                <input class="data" id="input-sort" type="number" step="1" min="0" [(ngModel)]="jobsite.sort_number" />
+                <input class="data" [class.read-only]="sortNumberReadOnly" id="input-sort" type="number" step="1" min="0" [readonly]="sortNumberReadOnly" [(ngModel)]="jobsite.sort_number" />
               </td>
             </tr>
           </table>

@@ -37,6 +37,7 @@ export class WorkSitesPage implements OnInit,OnDestroy {
   public prefsSub       : Subscription                  ;
   public site           : Jobsite                       ;
   public jobsites       : Jobsite[] = []                ;
+  public orgSites       : Jobsite[] = []                ;
   public selectedJobsite: any                           ;
   public selectedClient : any                           ;
   public clientList     : any                           ;
@@ -425,6 +426,7 @@ export class WorkSitesPage implements OnInit,OnDestroy {
   public showViewWorkSite(site:Jobsite, evt?:Event) {
     Log.l(`showViewWorkSite(): Event is:`, evt);
     this.site = site;
+    this.orgSites = this.jobsites.slice(0);
     this.viewWorkSiteVisible = true;
   }
   public cancelViewWorkSite(evt?:Event) {
@@ -432,6 +434,7 @@ export class WorkSitesPage implements OnInit,OnDestroy {
     window['p'] = this;
     this.viewWorkSiteVisible = false;
     this.deselectAll();
+    this.jobsites = this.orgSites;
     let site:Jobsite = this.site;
     if(this.siteEditMode === 'Add') {
       this.jobsites = this.jobsites.filter((a:Jobsite) => {
