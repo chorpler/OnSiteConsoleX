@@ -96,7 +96,8 @@ export class ElectronService {
   public remote:Remote = remote;
   public browserView:any = browserview;
   public browserWindow:any = browserwindow;
-  public printPreviewWindow:Electron.BrowserWindow;
+  public printPreviewWindow:PDFWindow;
+  // public printPreviewWindow:Electron.BrowserWindow;
   // public elog = electronlog;
   // public autoUpdater = electronAutoUpdater;
   // public autoUpdater:any;
@@ -844,10 +845,11 @@ export class ElectronService {
       let outfile:string = await this.printToPDF({loadDevTools:loadDevTools, marginsType:marginsType, printBackground:printBackground, pageSize:pageSize, printSelectionOnly:printSelectionOnly, landscape: landscape});
       let pdfWin:PDFWindow = await this.createPDFWindow(outfile, loadDevTools);
       window['onsitenewpdfwindow'] = pdfWin;
+      this.printPreviewWindow = pdfWin;
       this.pdfWindow = pdfWin;
 
       // Emitted when the window is closed.
-      pdfWin.on('closed', () => {
+      pdfWin.on('closed', async () => {
         // Dereference the window object, usually you would store windows
         // in an array if your app supports multi windows, this is the time
         // when you should delete the corresponding element.
@@ -855,14 +857,26 @@ export class ElectronService {
         Log.l(`createPDFWindow(): PDF window closed.`);
         pdfWin = null;
         this.pdfWindow = null;
-        fs.unlink(outfile, (err) => {
-          if(err) {
-            Log.l(`showPrintPreview(): Error deleting print preview PDF '${outfile}'!`);
-            Log.e(err);
-          } else {
-            Log.l(`showPrintPreview(): Successfully deleted print preview PDF '${outfile}'!`)
-          }
-        });
+        this.printPreviewWindow = null;
+        try {
+          await fsp.unlink(outfile);
+          Log.l(`showPrintPreview(): Successfully deleted print preview PDF '${outfile}'!`)
+          // return res;
+        } catch(err) {
+          Log.l(`showPrintPreview(): Error deleting print preview PDF '${outfile}'`);
+          Log.e(err);
+          // throw err;
+        }
+        Log.l(`showPrintPreview(): print preview finished successfully`)
+      //   fs.unlink(outfile, (err) => {
+      //     if(err) {
+      //       Log.l(`showPrintPreview(): Error deleting print preview PDF '${outfile}'!`);
+      //       Log.e(err);
+      //     } else {
+      //       Log.l(`showPrintPreview(): Successfully deleted print preview PDF '${outfile}'!`)
+      //     }
+      //   });
+      // });
       });
 
 
@@ -952,6 +966,20 @@ export class ElectronService {
     }
   }
 
+  public async closePrintPreview():Promise<any> {
+    try {
+      let pdfWin:PDFWindow = this.pdfWindow || this.printPreviewWindow;
+      if(pdfWin && typeof pdfWin.isClosable === 'function' && pdfWin.isClosable()) {
+        pdfWin.close();
+      }
+      // return res;
+    } catch(err) {
+      Log.l(`closePrintPreview(): Error closing print preview`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
   // public createPDFWindow(pdfFile:string, loadDevTools:boolean):BrowserWindow {
   public async createPDFWindow(pdfFile:string, loadDevTools:boolean):Promise<PDFWindow> {
     let pdfWin:BrowserWindow;
@@ -963,10 +991,13 @@ export class ElectronService {
         Log.w(`createPDFWindow() has no parent window! Can't create it.`);
         return null;
       } else {
+        let parentPosition = win.getPosition();
         let winWidth:number = win.getBounds().width;
         let winHeight:number = win.getBounds().height;
         let width:number = winWidth >= 1124 ? winWidth - 100 : 1024;
         let height:number = winHeight >= 868 ? winHeight - 100 : 768;
+        let x:number = winWidth >= 1124  ? parentPosition[0] + 50 : parentPosition[0] + 5;
+        let y:number = winHeight >= 868  ? parentPosition[1] + 50 : parentPosition[1] + 5;
         // let pdfWindowOptions = {
         //   'x': mainWindowState.x,
         //   'y': mainWindowState.y,
@@ -980,6 +1011,8 @@ export class ElectronService {
         let pdfWindowOptions:Electron.BrowserWindowConstructorOptions = {
           // 'x': mainWindowState.x,or
           // 'y': mainWindowState.y,
+          x: x,
+          y: y,
           width: width,
           height: height,
           modal: true,
@@ -995,7 +1028,8 @@ export class ElectronService {
         }
   
         pdfWin = new this.remote.BrowserWindow(pdfWindowOptions);
-        this.printPreviewWindow = pdfWin;
+        this.printPreviewWindow = (pdfWin as PDFWindow);
+
         // pdfWin = new PDFWindow(pdfWindowOptions);
   
         // let parsedURL = WHATWG.parseURL(pdfFile);
@@ -1004,7 +1038,12 @@ export class ElectronService {
         //   pdfURL = new URL(`file:///${pdfFile}`).href;
         // }
         Log.l(`createPDFWindow(): Now creating for URL: '${pdfFile}'`);
-        let parsedURL = new URL(pdfFile);
+        let parsedURL:URL;
+        // if(!pdfFile.startsWith('file://')) {
+        if(pdfFile.startsWith('/')) {
+          pdfFile = "file://" + pdfFile;
+        }
+        parsedURL = new URL(pdfFile);
         let pdfURL = pdfFile;
         if(!(parsedURL && parsedURL.protocol && parsedURL.protocol === 'file:')) {
           // fileURL = new URL(`file:///${viewerPath}`).href;
@@ -1038,12 +1077,12 @@ export class ElectronService {
     } catch(err) {
       Log.l(`createPDFWindow(): Error during creation`);
       Log.e(err);
+      let out = await this.showError(err, "Print Error", "Error showing print preview window");
       if(this.pdfWindow && typeof this.pdfWindow.isClosable === 'function' && this.pdfWindow.isClosable()) {
         this.pdfWindow.close();
         this.pdfWindow = null;
       }
-      let out = await this.showError(err, "Print Error", "Error showing print preview window");
-      throw err;
+      // throw err;
       // return out;
     }
   }
