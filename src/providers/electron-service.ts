@@ -610,7 +610,7 @@ export class ElectronService {
     });
   }
 
-  public async showElectronDialog(dialogOptions:DialogOptions, timeout?:number):Promise<any> {
+  public showElectronDialog(dialogOptions:DialogOptions, timeout?:number):Promise<any> {
     // try {
       return new Promise(async (resolve,reject) => {
         // this.ipc.send('dialog-show', dialogOptions);
@@ -626,12 +626,12 @@ export class ElectronService {
             let err:Error = new Error(text);
             reject(err);
           }, ms)
-          let out = this.remote.dialog.showMessageBox(dialogOptions, (response:number, checkboxChecked:boolean) => {
+          this.remote.dialog.showMessageBox(dialogOptions, (response:number, checkboxChecked:boolean) => {
             clearTimeout(timeoutHandle);
             Log.l(`showElectronDialog(): Received response: `, response);
             resolve(response);
           });
-          Log.l(`showElectronDialog(): Showing dialog right now, output of function is: `, out);
+          // Log.l(`showElectronDialog(): Showing dialog right now, output of function is: `, out);
         } catch(err) {
           Log.l(`showElectronDialog(): Error showing dialog:`);
           Log.e(err);
@@ -755,7 +755,7 @@ export class ElectronService {
     this.windowState.manage(this.win);
   }
 
-  public async printToPDF(options:PDFPrintOptions):Promise<string> {
+  public printToPDF(options:PDFPrintOptions):Promise<string> {
     return new Promise(async (resolve,reject) => {
       let win = remote.getCurrentWindow();
       let tempDir = remote.app.getPath('temp');
@@ -776,10 +776,11 @@ export class ElectronService {
           try {
             await fsp.writeFile(outfile, data);
           } catch(err) {
-            Log.l(`printToPDF(): Error writing output file`);
+            Log.l(`printToPDF(): Error writing output file '${outfile}'`);
             Log.e(err);
             reject(err);
           }
+          Log.l(`printToPDF(): Successfully saved PDF file to: '${outfile}'`)
           resolve(outfile);
           // let pdfWin:PDFWindow = await this.createPDFWindow(outfile, options.loadDevTools);
           // window['onsitenewpdfwindow'] = pdfWin;
