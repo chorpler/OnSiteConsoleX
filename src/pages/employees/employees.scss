@@ -99,8 +99,8 @@ page-employees {
 
       }
     }
-    .row-inactive {
-      background-color: rgba(255,0,0,0.15);
+    tr.row-inactive {
+      background-color: rgba(255,0,0,0.15) !important;
       background-blend-mode: multiply;
     }
   }
@@ -268,7 +268,8 @@ td {
     }
   }
 
-  .highlighted, .highlight {
+  // .highlighted, .highlight {
+  .highlighted {
     color: white;
     background-color: rgba(0, 0, 255, 0.5);
     background-blend-mode: multiply;

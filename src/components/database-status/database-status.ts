@@ -119,19 +119,47 @@ export class DatabaseStatusComponent implements OnInit,OnDestroy {
   }
 
   public initializeSubscriptions() {
-    this.repTimeSub = this.dispatch.appEventFired().subscribe((data:{channel:AppEvents, event?:any}) => {
-      Log.l(`DatabaseStatus: received AppEvent! Data is:\n`, data);
+    this.repTimeSub = this.dispatch.appEventFired().subscribe(async (data:{channel:AppEvents, event?:any}) => {
+      Log.l(`DatabaseStatus: received AppEvent! Data is:`, data);
       if(data) {
         let channel:AppEvents = data.channel;
         Log.l(`DatabaseStatus: received AppEvent '${channel}'.`);
-        if(channel === 'elapsedtime') {
-          this.updateElapsedTime();
-        } else if(channel === 'starttime') {
-          this.startTime = moment();
-          this.updateElapsedTime();
-        } else if(channel === 'endtime') {
-          this.endTime = moment();
-          this.updateElapsedTime();
+        if(channel === 'dbupdated') {
+          let update = data.event;
+          let dbprog:any = this.dbProgress;
+          let dbname:string = update.db;
+          let count:number = update.change.docs && update.change.docs.length ? update.change.docs.length : 0;
+          let keys = Object.keys(dbprog);
+          let value:DatabaseStatus;
+          for(let key of keys) {
+            let item:DatabaseStatus = dbprog[key];
+            if(item.dbname === dbname) {
+              value = item;
+              break;
+            }
+          }
+          if(value) {
+            value.localDocs += count;
+
+          }
+        } else if(channel === 'replicationcomplete') {
+          let update = data.event;
+          let dbprog:any = this.dbProgress;
+          let dbname:string = update.db;
+          let keys = Object.keys(dbprog);
+          let value:DatabaseStatus;
+          let mykey:string;
+          for(let key of keys) {
+            let item:DatabaseStatus = dbprog[key];
+            if(item.dbname === dbname) {
+              value = item;
+              mykey = key;
+              break;
+            }
+          }
+          if(value) {
+            await this.updateSingleDatabase(mykey, value);
+          }
         }
       }
     });
@@ -360,66 +388,67 @@ export class DatabaseStatusComponent implements OnInit,OnDestroy {
         if(!status) {
           continue;
         }
-        let db1 :Database = this.pouchdb.getDB(dbname);
-        let rdb1:Database = this.pouchdb.getRDB(dbname);
-        if(!(db1 && rdb1)) {
-          continue;
-        }
-        status.error = false;
-        status.waiting = true;
-        status.state = DatabaseStatusState.WAITING;
-        // status.localDocs = 0;
-        // status.remoteDocs = 0;
-        Log.gc(`DatabaseStatus.refreshDatabaseInfo(): Getting status for '${key}' ('${dbname}') …`);
-        if(db1 && rdb1) {
-          let dbInfo, rdbInfo;
-          try {
-            dbInfo  = await db1.info();
-            rdbInfo = await rdb1.info();
-          } catch (error) {
-            Log.l(`DatabaseStatus.refreshDatabaseInfo(): Error getting status for '${key}':`);
-            Log.e(error);
-            rdbInfo = {doc_count: 0};
-            if(!(dbInfo && typeof dbInfo.doc_count === 'number')) {
-              dbInfo = {doc_count: 0};
-            }
-            dberror = true;
-          }
-          let localCount :number = dbInfo.doc_count  ? dbInfo.doc_count  : 0;
-          let remoteCount:number = rdbInfo.doc_count ? rdbInfo.doc_count : 0;
-          // let dbprog:DatabaseStatus = new DatabaseStatus({
-          //   dbnam
-          //   done    : 0,
-          //   total   : 0,
-          //   percent : 0,
-          // });
-          let dbstatus:DatabaseStatus = new DatabaseStatus({
-            dbname     : dbname      ,
-            dbkey      : key         ,
-            localDocs  : localCount  ,
-            remoteDocs : remoteCount ,
-            error      : dberror     ,
-            waiting    : false       ,
-            state      : DatabaseStatusState.DONE ,
-          });
-          if(localCount !== remoteCount) {
-            dbstatus.state = DatabaseStatusState.UNSYNCED;
-          }
-          if(dberror) {
-            dbstatus.state = DatabaseStatusState.ERROR;
-          }
+        let success:boolean = await this.updateSingleDatabase(key, status);
+        // let db1 :Database = this.pouchdb.getDB(dbname);
+        // let rdb1:Database = this.pouchdb.getRDB(dbname);
+        // if(!(db1 && rdb1)) {
+        //   continue;
+        // }
+        // status.error = false;
+        // status.waiting = true;
+        // status.state = DatabaseStatusState.WAITING;
+        // // status.localDocs = 0;
+        // // status.remoteDocs = 0;
+        // Log.gc(`DatabaseStatus.refreshDatabaseInfo(): Getting status for '${key}' ('${dbname}') …`);
+        // if(db1 && rdb1) {
+        //   let dbInfo, rdbInfo;
+        //   try {
+        //     dbInfo  = await db1.info();
+        //     rdbInfo = await rdb1.info();
+        //   } catch (error) {
+        //     Log.l(`DatabaseStatus.refreshDatabaseInfo(): Error getting status for '${key}':`);
+        //     Log.e(error);
+        //     rdbInfo = {doc_count: 0};
+        //     if(!(dbInfo && typeof dbInfo.doc_count === 'number')) {
+        //       dbInfo = {doc_count: 0};
+        //     }
+        //     dberror = true;
+        //   }
+        //   let localCount :number = dbInfo.doc_count  ? dbInfo.doc_count  : 0;
+        //   let remoteCount:number = rdbInfo.doc_count ? rdbInfo.doc_count : 0;
+        //   // let dbprog:DatabaseStatus = new DatabaseStatus({
+        //   //   dbnam
+        //   //   done    : 0,
+        //   //   total   : 0,
+        //   //   percent : 0,
+        //   // });
+        //   let dbstatus:DatabaseStatus = new DatabaseStatus({
+        //     dbname     : dbname      ,
+        //     dbkey      : key         ,
+        //     localDocs  : localCount  ,
+        //     remoteDocs : remoteCount ,
+        //     error      : dberror     ,
+        //     waiting    : false       ,
+        //     state      : DatabaseStatusState.DONE ,
+        //   });
+        //   if(localCount !== remoteCount) {
+        //     dbstatus.state = DatabaseStatusState.UNSYNCED;
+        //   }
+        //   if(dberror) {
+        //     dbstatus.state = DatabaseStatusState.ERROR;
+        //   }
           
-          progressDoc[key] = dbstatus;
-          progressArray.push(dbstatus);
+        //   progressDoc[key] = dbstatus;
+        //   progressArray.push(dbstatus);
           // this.dbProgress = progressDoc;
-          Log.l(`DatabaseStatus.refreshDatabaseInfo(): Final status for '${key}' ('${dbname}') is:`, dbstatus);
-          Log.ge();
-        } else {
-          Log.ge();
-          continue;
-        }
+          // Log.l(`DatabaseStatus.refreshDatabaseInfo(): Final status for '${key}' ('${dbname}') is:`, status);
+          // Log.ge();
+        // } else {
+        //   Log.ge();
+        //   continue;
+        // }
       }
-      this.progressArray = progressArray;
+      // this.progressArray = progressArray;
       // this.dbProgress = progressDoc;
       let now:Moment = moment();
       this.lastUpdated = moment(now);
@@ -436,4 +465,81 @@ export class DatabaseStatusComponent implements OnInit,OnDestroy {
       throw err;
     }
   }
+
+  public async updateSingleDatabase(key:string, status:DatabaseStatus):Promise<boolean> {
+    try {
+      let dbname:string = status.dbname;
+      let dberror:boolean = false;
+      let db1:Database  = this.pouchdb.getDB(dbname);
+      let rdb1:Database = this.pouchdb.getRDB(dbname);
+      if(!(db1 && rdb1)) {
+        return;
+      }
+      status.state = DatabaseStatusState.WAITING;
+      // status.localDocs = 0;
+      // status.remoteDocs = 0;
+      Log.gc(`DatabaseStatus.updateSingleDatabase(): Getting status for '${key}' ('${dbname}') …`);
+      if(db1 && rdb1) {
+        let dbInfo, rdbInfo;
+        try {
+          dbInfo  = await db1.info();
+          rdbInfo = await rdb1.info();
+        } catch (error) {
+          Log.l(`DatabaseStatus.updateSingleDatabase(): Error getting status for '${key}':`);
+          Log.e(error);
+          rdbInfo = {doc_count: 0};
+          if(!(dbInfo && typeof dbInfo.doc_count === 'number')) {
+            dbInfo = {doc_count: 0};
+          }
+          dberror = true;
+        }
+        let localCount :number = dbInfo.doc_count  ? dbInfo.doc_count  : 0;
+        let remoteCount:number = rdbInfo.doc_count ? rdbInfo.doc_count : 0;
+        // let dbprog:DatabaseStatus = new DatabaseStatus({
+        //   dbnam
+        //   done    : 0,
+        //   total   : 0,
+        //   percent : 0,
+        // });
+        let dbstatus:DatabaseStatus = new DatabaseStatus({
+          dbname     : dbname      ,
+          dbkey      : key         ,
+          localDocs  : localCount  ,
+          remoteDocs : remoteCount ,
+          error      : dberror     ,
+          waiting    : false       ,
+          state      : DatabaseStatusState.DONE ,
+        });
+        if(localCount !== remoteCount) {
+          dbstatus.state = DatabaseStatusState.UNSYNCED;
+        }
+        if(dberror) {
+          dbstatus.state = DatabaseStatusState.ERROR;
+        }
+        
+        Log.l(`DatabaseStatus.updateSingleDatabase(): Final status for '${key}' ('${dbname}') is:`, dbstatus);
+        Log.ge();
+        this.dbProgress[key] = dbstatus;
+        this.updateTitleTime();
+        return true;
+      } else {
+        Log.ge();
+        return false;
+      }
+    } catch(err) {
+      Log.l(`DatabaseStatus.updateSingleDatabase(): Error updating '${key}' database status:`, status);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public updateTitleTime():string {
+    let now:Moment = moment();
+    this.lastUpdated = moment(now);
+    this.lastUpdatedString = now.format(this.lastFormat);
+    this.title = this.titleString + " (last updated " + this.lastUpdatedString + ")";
+    return this.title;
+  }
+
+
 }

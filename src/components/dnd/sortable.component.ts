@@ -204,9 +204,9 @@ export class SortableComponent extends AbstractComponent {
   }
 
   _onDropCallback(event: Event) {
-    console.log("_onDropCallback. dropped element with index " + this.index);
+    // console.log("_onDropCallback. dropped element with index " + this.index);
     if (this._sortableDataService.isDragged) {
-      console.log('onDropCallback.onDropSuccessCallback.dragData', this._dragDropService.dragData);
+      // console.log('onDropCallback.onDropSuccessCallback.dragData', this._dragDropService.dragData);
       this.onDropSuccessCallback.emit(this._dragDropService.dragData);
       if (this._dragDropService.onDragSuccessCallback) {
         // console.log('onDropCallback.onDragSuccessCallback.dragData', this._dragDropService.dragData);

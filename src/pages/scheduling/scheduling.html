@@ -172,15 +172,13 @@
           <div ion-row class='wrapper slot_row' [class.hidden]="!site.newsite && ((stats.SITES[site.schedule_name].total < 1 && !prefs.CONSOLE.scheduling.showAllSites) || (site.is_office && !prefs.CONSOLE.scheduling.showOffice) || (site.test_site === true && !prefs.CONSOLE.scheduling.showTestSites) || (!prefs.CONSOLE.scheduling.showNonSESA && site.client.name==='SP'))" *ngFor="let site of scheduleSites; let idx=index;" [attr.id]="'DestRow' + idx">
           <!-- <div ion-col class="sitenames" *ngIf="site.client.name!=='SE'"> -->
             <div ion-col class="sitenames">
-              <button ion-button class="site-button" (click)="editSite(site)">{{site?.schedule_name}} ({{stats?.SITES[site?.schedule_name]?.total}})</button>
+              <!-- <button ion-button class="site-button" (click)="editSite(site)">{{site?.schedule_name}} ({{stats?.SITES[site?.schedule_name]?.total}})</button> -->
+              <button ion-button class="site-button" (click)="showViewWorkSite(site, $event)">{{site?.schedule_name}} ({{stats?.SITES[site?.schedule_name]?.total}})</button>
             </div>
             <!-- <div ion-col class="slot-container" dnd-sortable-container [sortableData]="shiftsData[site.schedule_name][shft.name]" draggable="true" [dropZones]="['container-techs']" *ngFor="let shft of shiftTypes; let idx2=index" [attr.id]="'DestCol' + idx + '_' + idx2" (onDropInto)="techDroppedInto($event)"> -->
             <div ion-col class="slot-container" dnd-sortable-container [sortableData]="schedule.schedule[site.schedule_name][shft.name]" draggable="true" [dropZones]="['container-techs']" *ngFor="let shft of shiftTypes; let idx2=index" [attr.id]="'DestCol' + idx + '_' + idx2" (onDropInto)="techDroppedInto($event)">
-              <!-- <div class="slot" *ngFor="let tech of shiftsData[site.schedule_name][shft.name]; let idx4 = index" dnd-sortable [sortableIndex]="idx4" [dragData]="tech" (onDropSuccess)="techDropped($event)"> -->
-              <div class="slot" *ngFor="let tech of schedule.schedule[site.schedule_name][shft.name]; let idx4 = index" dnd-sortable [sortableIndex]="idx4" [dragData]="tech" (onDropSuccess)="techDropped($event)">
+              <div class="slot" *ngFor="let tech of schedule.schedule[site.schedule_name][shft.name]; let idx4 = index" dnd-sortable [sortableIndex]="idx4" [dragData]="tech" (onDropSuccess)="techDropped($event, schedule.schedule[site.schedule_name][shft.name], idx4)" (onDragStart)="techStartedBeingDragged(schedule.schedule[site.schedule_name][shft.name], $event, idx4)">
                 <span class="tech-button" [class.tech-moved]="tech?.employeeMoved" title="Edit user '{{tech?.username}}' ({{tech?.getFullName()}})" (click)="editTech(tech, $event)">
-                  <!-- <span class="tech-shift-symbol" [class.night]="tech.shift==='PM'" [class.day]="tech.shift==='AM'">{{getShiftSymbol(tech)}}</span>&nbsp; -->
-                  <!-- <span class="tech-shift-symbol" [class.night]="tech?.shift==='PM'" [class.day]="tech?.shift==='AM'" (click)="toggleShift(tech, $event)"> </span>&nbsp; -->
                   <span class="tech-shift-symbol" [class.night]="tech.shift==='PM'" [class.day]="tech.shift==='AM'" (click)="toggleShift(tech, $event)"></span>
                   <span class="button-tech-name">{{tech.getFullName()}}</span>
                 </span>
@@ -205,7 +203,7 @@
             <ion-scroll scrollY="true" class="employeescroller">
               <div class="wrapper">
                 <div class="container" dnd-sortable-container [sortableData]="schedule.unassigned" draggable="true" [dropZones]="['container-techs']" (onDropInto)="techDroppedIntoUnassigned($event)">
-                  <div class="slot" *ngFor="let tech of schedule.unassigned; let y = index" dnd-sortable [dragData]="tech" [sortableIndex]="y" (onDropSuccess)="techDropped($event)">
+                  <div class="slot" *ngFor="let tech of schedule.unassigned; let y = index" dnd-sortable [dragData]="tech" [sortableIndex]="y" (onDropSuccess)="techDropped($event, schedule.unassigned, y)" (onDragStart)="techStartedBeingDragged(schedule.unassigned, $event, y)">
                     <span class="tech-button" [class.tech-moved]="tech?.employeeMoved" (click)="editTech(tech, $event)">
                       <!-- <span class="tech-shift-symbol" [class.night]="tech.shift==='PM'" [class.day]="tech.shift==='AM'">{{getShiftSymbol(tech)}}</span>&nbsp; -->
                       <!-- <span class="tech-shift-symbol" [class.night]="tech.shift==='PM'" [class.day]="tech.shift==='AM'" (click)="toggleShift(tech, $event)">&nbsp;</span>&nbsp; -->

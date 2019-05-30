@@ -417,7 +417,7 @@ export class EmployeesPage implements OnInit,OnDestroy,AfterViewInit {
   }
 
   public employeeUpdated(event:any) {
-    Log.l("employeeUpdated(): Event is:\n", event);
+    Log.l("employeeUpdated(): Event is:", event);
     this.employeeViewVisible = false;
     if(event && event.type && event.employee) {
       if(event.type === 'delete') {
@@ -429,9 +429,14 @@ export class EmployeesPage implements OnInit,OnDestroy,AfterViewInit {
         index = this.editEmployees.indexOf(employee);
         if(index > -1) { this.editEmployees.indexOf(employee); }
       } else if(event.type === 'add') {
-        let employee = event.employee;
-        this.allEmployees.push(employee);
-        this.displayEmployees.push(employee);
+        let employee:Employee = event.employee;
+        let i:number = this.allEmployees.findIndex((a:Employee) => {
+          return a.username === employee.username;
+        });
+        if(i === -1) {
+          this.allEmployees.push(employee);
+          this.displayEmployees.push(employee);
+        }
       }
     }
     // if(this.mode === 'add') {
@@ -451,7 +456,7 @@ export class EmployeesPage implements OnInit,OnDestroy,AfterViewInit {
     // let index = techs.indexOf(employee) + 1;
     // let count = techs.length;
 
-    let tech = employee;
+    // let tech = employee;
     // let name = tech.getFullNameNormal();
     this.employee = employee;
     // this.editEmployees = [employee];
@@ -528,7 +533,7 @@ export class EmployeesPage implements OnInit,OnDestroy,AfterViewInit {
     this.allFields = fields;
     // this.items = this.colOpts;
     // let initialColumns = initialize;
-    let initialColumns = [
+    let initialColumns:string[] = [
       "avatarName",
       "lastName",
       "firstName",

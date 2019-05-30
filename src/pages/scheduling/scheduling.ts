@@ -194,6 +194,10 @@ export class SchedulingPage implements OnInit,OnDestroy {
   public previousComponent    : any                                             ;
   public employeeListHandle   : any                                             ;
   public siteListHandle       : any                                             ;
+  public slotDraggedFrom      : Employee[]  = []                                ;
+  public slotDraggedInto      : Employee[]  = []                                ;
+  public slotIndexDragStart   : number      = -1                                ;
+  public slotIndexDragEnd     : number      = -1                                ;
 
   constructor(
     public navCtrl     : NavController     ,
@@ -531,10 +535,11 @@ export class SchedulingPage implements OnInit,OnDestroy {
       this.updated = false;
       this.unsavedChanges = false;
       this.unsavedReason  = "";
-      let techs:Employee[] = this.techs;
-      for(let tech of techs) {
-        tech.employeeMoved = false;
-      }
+      // let techs:Employee[] = this.techs;
+      // for(let tech of techs) {
+      //   tech.employeeMoved = false;
+      // }
+      this.clearTechMovedHighlights();
       this.notify.addSuccess('SAVED', `Saved schedule '${this.schedule._id}'`, 3000);
       return res;
     } catch(err) {
@@ -543,6 +548,13 @@ export class SchedulingPage implements OnInit,OnDestroy {
       let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       this.notify.addError('ERROR', `Error while saving schedule: '${err.message}'`, 10000);
       // this.alert.showAlert('ERROR', 'Error while saving schedule:<br>\n<br>\n' + err);
+    }
+  }
+
+  public clearTechMovedHighlights() {
+    let techs:Employee[] = this.techs;
+    for(let tech of techs) {
+      tech.employeeMoved = false;
     }
   }
 
@@ -1394,16 +1406,37 @@ export class SchedulingPage implements OnInit,OnDestroy {
     Log.l("modelChanged(): Event was: ", event);
   }
 
+  public techStartedBeingDragged(container:Employee[], tech:Employee, index:number) {
+    Log.l("techStartedBeingDragged(): Tech started dragging:", tech);
+    Log.l(`techStartedBeingDragged(): Tech dragging from index ${index} of:`, container);
+    this.slotDraggedFrom = container;
+    this.slotIndexDragStart = index;
+  }
+
   public techDragged(event:any) {
     Log.l("techDragged(): Tech successfully dragged. Updating count. Event: ", event);
     // this.countTechTotals();
   }
 
-  public techDropped(event:any) {
-    Log.l("techDropped(): Tech successfully dropped. Updating count. Event: ", event);
+  public techDropped(tech:Employee, container:Employee[], index:number) {
+    Log.l(`techDropped(): Tech successfully dropped at index ${index}. Updating count. Event:`, event);
+    this.slotDraggedInto = container;
+    this.slotIndexDragEnd = index;
+    if(this.slotDraggedInto === this.slotDraggedFrom && this.slotIndexDragStart === this.slotIndexDragEnd) {
+      Log.l("techDropped(): Same slot and index, not updating counts.");
+      this.slotDraggedInto = [];
+      this.slotDraggedFrom = [];
+      this.slotIndexDragStart = -1;
+      this.slotIndexDragEnd = -1;
+      return;
+    }
+    this.slotDraggedInto = [];
+    this.slotDraggedFrom = [];
+    this.slotIndexDragStart = -1;
+    this.slotIndexDragEnd = -1;
     this.unsavedChanges = true;
     this.unsavedReason  = "tech moved";
-    let tech = event;
+    // let tech = event;
     let js = null, rotation = "";
     // this.countTechTotals();
     this.updated = true;
@@ -1415,9 +1448,9 @@ export class SchedulingPage implements OnInit,OnDestroy {
     if(this.data.status.role==='dev') {
       devMode = true;
     }
-    if(devMode) {
-      this.notify.addWarn("/DEV/TECH DROPPED", `Item Drop event fired for tech '${tech.getUsername()}'`, 3000);
-    }
+    // if(devMode) {
+    //   this.notify.addWarn("/DEV/TECH DROPPED", `Item Drop event fired for tech '${tech.getUsername()}'`, 3000);
+    // }
     this.getScheduleStats();
     let user:Employee = this.data.getUser();
     // let name:string = user.getUsername();
@@ -1465,10 +1498,25 @@ export class SchedulingPage implements OnInit,OnDestroy {
 
   public techDroppedInto(event:any) {
     Log.l("techDroppedInto(): Tech dropped into container successfully, event is: ", event)
+    let slot:Employee[] = event[0];
+    let tech:Employee = event[1];
+    let index:number = slot.findIndex((a:Employee) => a === tech);
+    this.slotDraggedInto = slot;
+    this.slotIndexDragEnd = index;
+    if(this.slotDraggedInto === this.slotDraggedFrom && this.slotIndexDragStart === this.slotIndexDragEnd) {
+      Log.l("techDroppedInto(): Same slot and index, not updating counts.");
+      this.slotDraggedInto = [];
+      this.slotDraggedFrom = [];
+      this.slotIndexDragStart = -1;
+      this.slotIndexDragEnd = -1;
+      return;
+    }
+    this.slotDraggedInto = [];
+    this.slotDraggedFrom = [];
+    this.slotIndexDragStart = -1;
+    this.slotIndexDragEnd = -1;
     this.unsavedChanges = true;
     this.unsavedReason  = "tech moved";
-    let slot = event[0];
-    let tech = event[1];
     this.updated = true;
     // let unassignedSlot:any[] = this.unassignedTechs;
     let unassignedSlot:any[] = this.schedule.unassigned;
@@ -1511,9 +1559,24 @@ export class SchedulingPage implements OnInit,OnDestroy {
   }
 
   public techDroppedIntoUnassigned(event?:any) {
-    Log.l(`techDroppedIntoUnassigned(): Event is:\n`, event);
-    let slot = event[0];
-    let tech = event[1];
+    Log.l(`techDroppedIntoUnassigned(): Event is:`, event);
+    let slot:Employee[] = event[0];
+    let tech:Employee   = event[1];
+    let index:number = slot.findIndex((a:Employee) => a === tech);
+    this.slotDraggedInto = slot;
+    this.slotIndexDragEnd = index;
+    if(this.slotDraggedInto === this.slotDraggedFrom && this.slotIndexDragStart === this.slotIndexDragEnd) {
+      Log.l("techDroppedIntoUnassigned(): Same slot and index, not updating counts.");
+      this.slotDraggedInto = [];
+      this.slotDraggedFrom = [];
+      this.slotIndexDragStart = -1;
+      this.slotIndexDragEnd = -1;
+      return;
+    }
+    this.slotDraggedInto = [];
+    this.slotDraggedFrom = [];
+    this.slotIndexDragStart = -1;
+    this.slotIndexDragEnd = -1;
     let user = this.data.getUser();
     let name = user.getUsername();
     this.unsavedChanges = true;

@@ -1,4 +1,4 @@
-<ion-header>
+ <ion-header>
   <ion-navbar>
     <ion-buttons left>
       <button ion-button menuToggle *ngIf="!modalMode && !data.currentlyOpeningPage">
@@ -91,8 +91,8 @@
       </ng-template>
 
       <ng-template pTemplate="body" let-rowData let-columns="columns" let-ri="rowIndex">
-        <tr class="employees-body-row" [class.highlight]="employeeHighlight[ri]" [class.row-inactive]="!rowData.active">
-          <td [class.col-button]="true" (click)="editEmployee(rowData, $event)" title="Edit Employee '{{rowData.getTechName()}}'" (mouseenter)="setHighlight(ri, true)" (mouseleave)="setHighlight(ri, false)">
+        <tr class="employees-body-row" [class.highlight]="employeeHighlight[ri]" [class.row-inactive]="!rowData.active" (mouseenter)="setHighlight(ri, true)" (mouseleave)="setHighlight(ri, false)">
+          <td [class.col-button]="true" (click)="editEmployee(rowData, $event)" title="Edit Employee '{{rowData.getTechName()}}'">
             <span class="column-button">
               <span class="row-edit-icon"><i class="fa fa-pencil"></i></span>
               <span class="row-number">{{ri+1}}</span>
@@ -105,7 +105,7 @@
             </span>
           </td>
           <td *ngFor="let col of columns; let i=index" class="body-col" [ngClass]="col.class">
-            <span class="employee-data" [class.row-inactive]="!rowData.active" [class.highlight]="employeeHighlight[ri]">
+            <span class="employee-data" [class.highlight]="employeeHighlight[ri]">
               {{rowData[col.field]}}
             </span>
           </td>
