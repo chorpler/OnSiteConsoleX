@@ -23,8 +23,10 @@ import * as os from 'os';
 
 import windowStateKeeper from 'electron-window-state'      ;
 // import { windowStateKeeper } from 'electron-window-state';
-// import * as PDFWindow         from 'electron-pdf-window'        ;
+// imposrt * as PDFWindow         from 'electron-pdf-window'        ;
 import * as fs from 'graceful-fs';
+// import * as gfs from 'graceful-fs';
+// const fs = gfs.promises;
 import * as path from 'path';
 // import searchInPage, {InPageSearch} from 'electron-in-page-search';
 // import searchInPage, {InPageSearch} from './electron-search-service';
@@ -58,13 +60,20 @@ export type Remote = Electron.Remote;
 export type BrowserWindow = Electron.BrowserWindow;
 export type BrowserView = Electron.BrowserView;
 
-export type DialogOptions = {
-  type    ?: string,
-  buttons ?: string[],
-  title    : string,
-  message  : string,
-  detail  ?: string,
+export type DialogType = "none" | "info" | "error" |"question" | "warning";
+
+export interface DialogOptions {
+  type    ?: DialogType;
+  buttons ?: string[];
+  title    : string;
+  message  : string;
+  detail  ?: string;
+  timeout ?: number;
 };
+
+export interface PDFPrintOptions extends electron.PrintToPDFOptions {
+  loadDevTools ?: boolean;
+}
 
 @Injectable()
 export class ElectronService {
@@ -95,7 +104,8 @@ export class ElectronService {
   public ipc:IPCRenderer = ipcRenderer;
   // public WHATWG    = WHATWG;
   // public URL       = WHATWG.URL;
-  public pdfWindow = PDFWindow;
+  // public pdfWindow = PDFWindow;
+  public pdfWindow:PDFWindow;
   public path = path;
   public fs = fs;
   public fsp = fsp;
@@ -519,66 +529,73 @@ export class ElectronService {
     }
   }
 
-  public async showInfo(title:string, message:string, detail?:string):Promise<any> {
+  public async showInfo(title:string, message:string, detail:string, timeout?:number):Promise<any> {
     try {
-      let res:any = await this.showElectronAlert('info', title, message, detail);
+      let res:any = await this.showElectronAlert('info', title, message, detail, timeout);
       return res;
     } catch(err) {
       Log.l(`showInfo(): Error showing Electron info dialog.`);
       Log.e(err);
       this.notify.addError('DIALOG ERROR', `Error showing info dialog: ${err.message}`, 4000);
-      // throw new Error(err);
+      // throw err;
     }
   }
 
-  public async showWarning(title:string, message:string, detail?:string):Promise<any> {
+  public async showWarning(title:string, message:string, detail:string, timeout?:number):Promise<any> {
     try {
-      let res:any = await this.showElectronAlert('warning', title, message, detail);
+      let res:any = await this.showElectronAlert('warning', title, message, detail, timeout);
       return res;
     } catch(err) {
       Log.l(`showInfo(): Error showing Electron warning dialog.`);
       Log.e(err);
-      this.notify.addError('DIALOG ERROR', `Error showing warning dialog: ${err.message}`, 4000);
-      // throw new Error(err);
+      this.notify.addError('DIALOG ERROR', `IRONIC! Error showing warning dialog: ${err.message}`, 4000);
+      // throw err;
     }
   }
 
   public showWarn = this.showWarning;
 
-  public async showError(title:string, message:string, detail?:string):Promise<any> {
+  public async showError(err:Error, title:string, message:string, timeout?:number):Promise<any> {
     try {
-      let res:any = await this.showElectronAlert('error', title, message, detail);
+      let detail:string = err && typeof err.message === 'string' ? err.message : "unknown error (code -42)";
+      let res:any = await this.showElectronAlert('error', title, message, detail, timeout);
       return res;
-    } catch(err) {
+    } catch(err2) {
       Log.l(`showInfo(): Error showing Electron error dialog.`);
-      Log.e(err);
-      this.notify.addError('DIALOG ERROR', `Error showing error dialog: ${err.message}`, 4000);
-      // throw new Error(err);
+      Log.e(err2);
+      this.notify.addError('DIALOG ERROR', `HIGHLY IRONIC! Error showing error dialog: ${err2.message}`, 4000);
+      // throw err2;
     }
   }
 
-  public async showElectronAlert(type:string, title:string, message:string, detail?:string):Promise<any> {
+  public async showElectronAlert(type:DialogType, title:string, message:string, detail:string, timeout?:number):Promise<any> {
     try {
+      let to:number = 60000;
       let opts:DialogOptions = {
-        type: 'info',
+        type: type && typeof type === 'string' ? type : 'info',
         title: title,
         message: message,
       };
-      if(detail) {
+      if(detail && typeof detail === 'string') {
         opts.detail = detail;
+      } else if(detail && typeof detail === 'number') {
+        to = detail;
       }
-      let response:any = await this.showElectronDialog(opts);
+      if(timeout && typeof timeout === 'number') {
+        to = timeout;
+      }
+      let response:any = await this.showElectronDialog(opts, to);
       return response;
     } catch(err) {
       Log.l(`showElectronAlert(): Error showing alert.`);
       Log.e(err);
-      throw new Error(err);
+      throw err;
     }
   }
 
   public getElectronDialogResponse(timeout?:number):Promise<any> {
     return new Promise((resolve,reject) => {
-      let ms:number = timeout || 30000;
+      let ms:number = timeout || 60000;
       let timeoutHandle = setTimeout(() => {
         Log.l(`getElectronDialogResponse(): Timeout after ${ms}ms and no response from dialog.`);
         reject(new Error("Timeout waiting for dialog response."));
@@ -586,23 +603,48 @@ export class ElectronService {
       Log.l(`getElectronDialogResponse(): waiting ${ms}ms for a response...`);
       this.ipc.on('dialog-response', (event, response) => {
         clearTimeout(timeoutHandle);
-        Log.l(`getEletronDialogResponse(): received a response:\n`, response);
+        Log.l(`getEletronDialogResponse(): received a response:`, response);
         resolve(response);
       });
     });
   }
 
   public async showElectronDialog(dialogOptions:DialogOptions, timeout?:number):Promise<any> {
-    try {
-      this.ipc.send('dialog-show', dialogOptions);
-      let response:any = await this.getElectronDialogResponse(timeout);
-      Log.l(`showElectronDialog(): Got response:\n`, response);
-      return response;
-    } catch(err) {
-      Log.l(`showElectronDialog(): Error showing Electron dialog box!`);
-      Log.e(err);
-      throw new Error(err);
-    }
+    // try {
+      return new Promise(async (resolve,reject) => {
+        // this.ipc.send('dialog-show', dialogOptions);
+        // let response:any = await this.getElectronDialogResponse(timeout);
+        // Log.l(`showElectronDialog(): Got response:`, response);
+  
+        // let win:BrowserWindow = this.remote.getCurrentWindow();
+        try {
+          let ms:number = typeof timeout === 'number' ? timeout : 60000;
+          let timeoutHandle = setTimeout(() => {
+            let text:string = `showElectronDialog(): Timeout after ${ms}ms and no response from dialog.`;
+            Log.l(text);
+            let err:Error = new Error(text);
+            reject(err);
+          }, ms)
+          let out = this.remote.dialog.showMessageBox(dialogOptions, (response:number, checkboxChecked:boolean) => {
+            clearTimeout(timeoutHandle);
+            Log.l(`showElectronDialog(): Received response: `, response);
+            resolve(response);
+          });
+          Log.l(`showElectronDialog(): Showing dialog right now, output of function is: `, out);
+        } catch(err) {
+          Log.l(`showElectronDialog(): Error showing dialog:`);
+          Log.e(err);
+          reject(err);
+        }
+        // Log.l(`showElectronDialog(): Got response:`, response);
+        // return response;
+        // resolve(response)
+      });
+    // } catch(err) {
+    //   Log.l(`showElectronDialog(): Error showing Electron dialog box!`);
+    //   Log.e(err);
+    //   throw err;
+    // }
   }
 
   public reauthenticate() {
@@ -712,157 +754,297 @@ export class ElectronService {
     this.windowState.manage(this.win);
   }
 
-  public showPrintPreview({loadDevTools = false, marginsType = 1, printBackground = true, pageSize = 'Letter', printSelectionOnly = false, landscape = false}) {
-    let win = remote.getCurrentWindow();
-    let tempDir = remote.app.getPath('temp');
-    // let marginType:number = 1, loadDevTools:boolean = false;
-    let now = moment();
-    // let name = `printpreview_${now.format('x')}.pdf`;
-    let timestamp = now.format('x');
-    let name = `printpreview_${timestamp}.pdf`;
-    let outfile = path.join(tempDir, name);
-    win.webContents.printToPDF({marginsType: marginsType, printBackground: printBackground, pageSize: pageSize, printSelectionOnly: printSelectionOnly, landscape: landscape}, (error, data) => {
-      if(error) {
-        Log.l("showPrintPreview(): Error!");
-        Log.e(error);
-        // throw error;
-      } else {
-        window['onsitePDFdata'] = data;
-        fs.writeFile(outfile, data, (err) => {
-          if(err) {
-            Log.l("showPrintPreview(): Error saving PDF!");
+  public async printToPDF(options:PDFPrintOptions):Promise<string> {
+    return new Promise(async (resolve,reject) => {
+      let win = remote.getCurrentWindow();
+      let tempDir = remote.app.getPath('temp');
+      // let marginType:number = 1, loadDevTools:boolean = false;
+      let now:Moment = moment();
+      // let name = `printpreview_${now.format('x')}.pdf`;
+      let timestamp = now.format('x');
+      let name = `printpreview_${timestamp}.pdf`;
+      let outfile = path.join(tempDir, name);
+      win.webContents.printToPDF(options, async (error, data) => {
+        if(error) {
+          Log.l("printToPDF(): Error!");
+          Log.e(error);
+          reject(error);
+          // throw error;
+        } else {
+          window['onsitePDFdata'] = data;
+          try {
+            await fsp.writeFile(outfile, data);
+          } catch(err) {
+            Log.l(`printToPDF(): Error writing output file`);
             Log.e(err);
-          } else {
-            Log.l(`showPrintPreview(): PDF saved successfully as '${outfile}', attempting to load window...`);
-            let pdfOptions:any = {
-              url: outfile,
-              loadDevTools: loadDevTools,
-            };
-            // this.ipc.send('show-pdf', pdfOptions);
-            let pdfWin:BrowserWindow = this.createPDFWindow(outfile, loadDevTools);
-            window['onsitenewpdfwindow'] = pdfWin;
-
-            // Emitted when the window is closed.
-            pdfWin.on('closed', () => {
-              // Dereference the window object, usually you would store windows
-              // in an array if your app supports multi windows, this is the time
-              // when you should delete the corresponding element.
-              // sendEventToWindow('pdf-window-closed');
-              Log.l(`createPDFWindow(): PDF window closed.`);
-              pdfWin = null;
-              fs.unlink(outfile, (err) => {
-                if(err) {
-                  Log.l(`showPrintPreview(): Error deleting print preview PDF '${outfile}'!`);
-                  Log.e(err);
-                } else {
-                  Log.l(`showPrintPreview(): Successfully deleted print preview PDF '${outfile}'!`)
-                }
-              });
-            });
-
-            // this.ipc.on('pdf-window-closed', (event, options) => {
-            //   Log.l(`PDF Window closed.`);
-            //   window['onsitenewpdfwindow'] = null;
-            //   fs.unlink(outfile, (err) => {
-            //     if(err) {
-            //       Log.l(`showPrintPreview(): Error deleting print preview PDF '${outfile}'!`);
-            //       Log.e(err);
-            //     } else {
-            //       Log.l(`showPrintPreview(): Successfully deleted print preview PDF '${outfile}'!`)
-            //     }
-            //   });
-            // });
-                    // let pdfWin = new PDFWindow({width: 1024, height: 768, parent: win});
-            // pdfWin.loadURL(outfile);
+            reject(err);
           }
-        })
-      }
+          resolve(outfile);
+          // let pdfWin:PDFWindow = await this.createPDFWindow(outfile, options.loadDevTools);
+          // window['onsitenewpdfwindow'] = pdfWin;
+          // this.pdfWindow = pdfWin;
+
+          // // Emitted when the window is closed.
+          // pdfWin.on('closed', () => {
+          //   // Dereference the window object, usually you would store windows
+          //   // in an array if your app supports multi windows, this is the time
+          //   // when you should delete the corresponding element.
+          //   // sendEventToWindow('pdf-window-closed');
+          //   Log.l(`createPDFWindow(): PDF window closed.`);
+          //   pdfWin = null;
+          //   this.pdfWindow = null;
+          //   fs.unlink(outfile, (err) => {
+          //     if(err) {
+          //       Log.l(`showPrintPreview(): Error deleting print preview PDF '${outfile}'!`);
+          //       Log.e(err);
+          //     } else {
+          //       Log.l(`showPrintPreview(): Successfully deleted print preview PDF '${outfile}'!`)
+          //     }
+          //   });
+          // });
+
+          // resolve(pdfWin);
+        //   fs.writeFile(outfile, data, (err) => {
+        //     if(err) {
+        //       Log.l("showPrintPreview(): Error saving PDF!");
+        //       Log.e(err);
+        //     } else {
+        //       Log.l(`showPrintPreview(): PDF saved successfully as '${outfile}', attempting to load window...`);
+        //       // let pdfOptions:any = {
+        //       //   url: outfile,
+        //       //   loadDevTools: loadDevTools,
+        //       // };
+        //       // this.ipc.send('show-pdf', pdfOptions);
+        //       // let pdfWin:BrowserWindow = this.createPDFWindow(outfile, loadDevTools);
+        //       // this.ipc.on('pdf-window-closed', (event, options) => {
+        //       //   Log.l(`PDF Window closed.`);
+        //       //   window['onsitenewpdfwindow'] = null;
+        //       //   fs.unlink(outfile, (err) => {
+        //       //     if(err) {
+        //       //       Log.l(`showPrintPreview(): Error deleting print preview PDF '${outfile}'!`);
+        //       //       Log.e(err);
+        //       //     } else {
+        //       //       Log.l(`showPrintPreview(): Successfully deleted print preview PDF '${outfile}'!`)
+        //       //     }
+        //       //   });
+        //       // });
+        //               // let pdfWin = new PDFWindow({width: 1024, height: 768, parent: win});
+        //       // pdfWin.loadURL(outfile);
+        //     }
+        //   })
+        }
+      });
+
     });
-    // let devTools:boolean = typeof evt === 'boolean' ? evt : false;
-    // let pdfWin = new remote.BrowserWindow({width: 1024, height: 768, parent: win});
-
-    // let pdfWin = new PDFWindow({width: 1024, height: 768, parent: win});
-    // pdfWindow.addSupport(pdfWin);
-    // pdfWin.loadURL(outfile);
-
-    // let pdfWin = new remote.BrowserWindow({width: 1024, height: 768, parent: win});
   }
 
-  public createPDFWindow(pdfFile:string, loadDevTools:boolean):BrowserWindow {
-    let win:BrowserWindow = this.remote.getCurrentWindow();
+  // public async showPrintPreview({loadDevTools = false, marginsType = 1, printBackground = true, pageSize = 'Letter', printSelectionOnly = false, landscape = false}):Promise<any> {
+  public async showPrintPreview({loadDevTools = false, marginsType = 1, printBackground = true, pageSize = 'Letter', printSelectionOnly = false, landscape = false}:PDFPrintOptions):Promise<any> {
+    try {
+      let outfile:string = await this.printToPDF({loadDevTools:loadDevTools, marginsType:marginsType, printBackground:printBackground, pageSize:pageSize, printSelectionOnly:printSelectionOnly, landscape: landscape});
+      let pdfWin:PDFWindow = await this.createPDFWindow(outfile, loadDevTools);
+      window['onsitenewpdfwindow'] = pdfWin;
+      this.pdfWindow = pdfWin;
+
+      // Emitted when the window is closed.
+      pdfWin.on('closed', () => {
+        // Dereference the window object, usually you would store windows
+        // in an array if your app supports multi windows, this is the time
+        // when you should delete the corresponding element.
+        // sendEventToWindow('pdf-window-closed');
+        Log.l(`createPDFWindow(): PDF window closed.`);
+        pdfWin = null;
+        this.pdfWindow = null;
+        fs.unlink(outfile, (err) => {
+          if(err) {
+            Log.l(`showPrintPreview(): Error deleting print preview PDF '${outfile}'!`);
+            Log.e(err);
+          } else {
+            Log.l(`showPrintPreview(): Successfully deleted print preview PDF '${outfile}'!`)
+          }
+        });
+      });
+
+
+    //   return new Promise((resolve,reject) => {
+        
+    //     let win = remote.getCurrentWindow();
+    //     let tempDir = remote.app.getPath('temp');
+    //     // let marginType:number = 1, loadDevTools:boolean = false;
+    //     let now:Moment = moment();
+    //     // let name = `printpreview_${now.format('x')}.pdf`;
+    //     let timestamp = now.format('x');
+    //     let name = `printpreview_${timestamp}.pdf`;
+    //     let outfile = path.join(tempDir, name);
+    //     win.webContents.printToPDF({marginsType: marginsType, printBackground: printBackground, pageSize: pageSize, printSelectionOnly: printSelectionOnly, landscape: landscape}, (error, data) => {
+    //       if(error) {
+    //         Log.l("showPrintPreview(): Error!");
+    //         Log.e(error);
+    //         reject(error);
+    //         // throw error;
+    //       } else {
+    //         window['onsitePDFdata'] = data;
+    //         fs.writeFile(outfile, data, (err) => {
+    //           if(err) {
+    //             Log.l("showPrintPreview(): Error saving PDF!");
+    //             Log.e(err);
+    //           } else {
+    //             Log.l(`showPrintPreview(): PDF saved successfully as '${outfile}', attempting to load window...`);
+    //             let pdfOptions:any = {
+    //               url: outfile,
+    //               loadDevTools: loadDevTools,
+    //             };
+    //             // this.ipc.send('show-pdf', pdfOptions);
+    //             // let pdfWin:BrowserWindow = this.createPDFWindow(outfile, loadDevTools);
+    //             let pdfWin:PDFWindow = await this.createPDFWindow(outfile, loadDevTools);
+    //             window['onsitenewpdfwindow'] = pdfWin;
+    //             this.pdfWindow = pdfWin;
+    
+    //             // Emitted when the window is closed.
+    //             pdfWin.on('closed', () => {
+    //               // Dereference the window object, usually you would store windows
+    //               // in an array if your app supports multi windows, this is the time
+    //               // when you should delete the corresponding element.
+    //               // sendEventToWindow('pdf-window-closed');
+    //               Log.l(`createPDFWindow(): PDF window closed.`);
+    //               pdfWin = null;
+    //               fs.unlink(outfile, (err) => {
+    //                 if(err) {
+    //                   Log.l(`showPrintPreview(): Error deleting print preview PDF '${outfile}'!`);
+    //                   Log.e(err);
+    //                 } else {
+    //                   Log.l(`showPrintPreview(): Successfully deleted print preview PDF '${outfile}'!`)
+    //                 }
+    //               });
+    //             });
+    
+    //             // this.ipc.on('pdf-window-closed', (event, options) => {
+    //             //   Log.l(`PDF Window closed.`);
+    //             //   window['onsitenewpdfwindow'] = null;
+    //             //   fs.unlink(outfile, (err) => {
+    //             //     if(err) {
+    //             //       Log.l(`showPrintPreview(): Error deleting print preview PDF '${outfile}'!`);
+    //             //       Log.e(err);
+    //             //     } else {
+    //             //       Log.l(`showPrintPreview(): Successfully deleted print preview PDF '${outfile}'!`)
+    //             //     }
+    //             //   });
+    //             // });
+    //                     // let pdfWin = new PDFWindow({width: 1024, height: 768, parent: win});
+    //             // pdfWin.loadURL(outfile);
+    //           }
+    //         })
+    //       }
+    //     });
+    //     // let devTools:boolean = typeof evt === 'boolean' ? evt : false;
+    //     // let pdfWin = new remote.BrowserWindow({width: 1024, height: 768, parent: win});
+    
+    //     // let pdfWin = new PDFWindow({width: 1024, height: 768, parent: win});
+    //     // pdfWindow.addSupport(pdfWin);
+    //     // pdfWin.loadURL(outfile);
+    
+    //     // let pdfWin = new remote.BrowserWindow({width: 1024, height: 768, parent: win});
+    //   });
+    } catch(err) {
+      Log.l(`showPrintPreview(): Error showing:`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  // public createPDFWindow(pdfFile:string, loadDevTools:boolean):BrowserWindow {
+  public async createPDFWindow(pdfFile:string, loadDevTools:boolean):Promise<PDFWindow> {
     let pdfWin:BrowserWindow;
-    if(!win) {
-      Log.w(`createPDFWindow() has no parent window! Can't create it.`);
-      return pdfWin;
-    } else {
-      let winWidth:number = win.getBounds().width;
-      let winHeight:number = win.getBounds().height;
-      let width:number = winWidth >= 1124 ? winWidth - 100 : 1024;
-      let height:number = winHeight >= 868 ? winHeight - 100 : 768;
-      // let pdfWindowOptions = {
-      //   'x': mainWindowState.x,
-      //   'y': mainWindowState.y,
-      //   'width': mainWindowState.width,
-      //   'height': mainWindowState.height,
-      //   'parent': win,
-      // };
-
-      // let height =
-
-      let pdfWindowOptions:Electron.BrowserWindowConstructorOptions = {
-        // 'x': mainWindowState.x,or
-        // 'y': mainWindowState.y,
-        width: width,
-        height: height,
-        modal: true,
-      };
-      let platform:string = process.platform;
-      Log.l(`createPDFWindow(): Platform is '${platform}'`);
-      if(platform === 'darwin') {
-        pdfWindowOptions.frame = true;
-        pdfWindowOptions.kiosk = false;
-        pdfWindowOptions.modal = false;
+    let myWin:PDFWindow;
+    let win:BrowserWindow;
+    try {
+      win = this.remote.getCurrentWindow();
+      if(!win) {
+        Log.w(`createPDFWindow() has no parent window! Can't create it.`);
+        return null;
       } else {
-        pdfWindowOptions.parent = win;
-      }
-
-      pdfWin = new this.remote.BrowserWindow(pdfWindowOptions);
-      this.printPreviewWindow = pdfWin;
-      // pdfWin = new PDFWindow(pdfWindowOptions);
-
-      // let parsedURL = WHATWG.parseURL(pdfFile);
-      // let pdfURL = pdfFile;
-      // if(!(parsedURL && parsedURL.scheme && parsedURL.scheme === 'file')) {
-      //   pdfURL = new URL(`file:///${pdfFile}`).href;
-      // }
-      let parsedURL = new URL(pdfFile);
-      let pdfURL = pdfFile;
-      if(!(parsedURL && parsedURL.protocol && parsedURL.protocol === 'file:')) {
-        // fileURL = new URL(`file:///${viewerPath}`).href;
-        pdfURL = parsedURL.href;
-      }
+        let winWidth:number = win.getBounds().width;
+        let winHeight:number = win.getBounds().height;
+        let width:number = winWidth >= 1124 ? winWidth - 100 : 1024;
+        let height:number = winHeight >= 868 ? winHeight - 100 : 768;
+        // let pdfWindowOptions = {
+        //   'x': mainWindowState.x,
+        //   'y': mainWindowState.y,
+        //   'width': mainWindowState.width,
+        //   'height': mainWindowState.height,
+        //   'parent': win,
+        // };
   
-      Log.l(`createPDFWin(): Loading URL '${pdfURL}'`);
-
-      PDFWindow.addSupport(pdfWin);
-      // pdfWin.loadURL(pdfURL);
-      pdfWin.loadURL(pdfFile);
-      pdfWin.show();
-      // windowPlus.loadURL(win, url);
-
-      // Open the DevTools.
-      if(loadDevTools) {
-        Log.l("createPDFWindow(): Developer tools loading.");
-        pdfWin.webContents.openDevTools();
+        // let height =
+  
+        let pdfWindowOptions:Electron.BrowserWindowConstructorOptions = {
+          // 'x': mainWindowState.x,or
+          // 'y': mainWindowState.y,
+          width: width,
+          height: height,
+          modal: true,
+        };
+        let platform:string = process.platform;
+        Log.l(`createPDFWindow(): Platform is '${platform}'`);
+        if(platform === 'darwin') {
+          pdfWindowOptions.frame = true;
+          pdfWindowOptions.kiosk = false;
+          pdfWindowOptions.modal = false;
+        } else {
+          pdfWindowOptions.parent = win;
+        }
+  
+        pdfWin = new this.remote.BrowserWindow(pdfWindowOptions);
+        this.printPreviewWindow = pdfWin;
+        // pdfWin = new PDFWindow(pdfWindowOptions);
+  
+        // let parsedURL = WHATWG.parseURL(pdfFile);
+        // let pdfURL = pdfFile;
+        // if(!(parsedURL && parsedURL.scheme && parsedURL.scheme === 'file')) {
+        //   pdfURL = new URL(`file:///${pdfFile}`).href;
+        // }
+        Log.l(`createPDFWindow(): Now creating for URL: '${pdfFile}'`);
+        let parsedURL = new URL(pdfFile);
+        let pdfURL = pdfFile;
+        if(!(parsedURL && parsedURL.protocol && parsedURL.protocol === 'file:')) {
+          // fileURL = new URL(`file:///${viewerPath}`).href;
+          pdfURL = parsedURL.href;
+        }
+    
+        Log.l(`createPDFWin(): Loading URL '${pdfURL}'`);
+  
+        PDFWindow.addSupport(pdfWin);
+        // pdfWin.loadURL(pdfURL);
+        pdfWin.loadURL(pdfFile);
+        pdfWin.show();
+        // windowPlus.loadURL(win, url);
+  
+        // Open the DevTools.
+        if(loadDevTools) {
+          Log.l("createPDFWindow(): Developer tools loading.");
+          pdfWin.webContents.openDevTools();
+        }
+  
+        setTimeout(() => {
+          pdfWin.setMenu(null);
+          pdfWin.setTitle('PRINT PREVIEW (OnSiteX Console)');
+        }, 500)
+  
+        // sendEventToWindow('pdf-window-created', pdfWin);
+        myWin = (pdfWin as PDFWindow);
+        // return pdfWin;
+        return myWin;
       }
-
-      setTimeout(() => {
-        pdfWin.setMenu(null);
-        pdfWin.setTitle('PRINT PREVIEW (OnSiteX Console)');
-      }, 500)
-
-      // sendEventToWindow('pdf-window-created', pdfWin);
-      return pdfWin;
+    } catch(err) {
+      Log.l(`createPDFWindow(): Error during creation`);
+      Log.e(err);
+      if(this.pdfWindow && typeof this.pdfWindow.isClosable === 'function' && this.pdfWindow.isClosable()) {
+        this.pdfWindow.close();
+        this.pdfWindow = null;
+      }
+      let out = await this.showError(err, "Print Error", "Error showing print preview window");
+      throw err;
+      // return out;
     }
   }
 
@@ -1095,7 +1277,7 @@ export class ElectronService {
       Log.l(`(): Error checking for update!`);
       Log.e(err);
       this.notify.addError("ERROR", `Error checking for update: ${err.message}`, 4000);
-      // throw new Error(err);
+      // throw err;
     }
   }
 
@@ -1121,7 +1303,7 @@ export class ElectronService {
     } catch(err) {
       Log.l(`exitApp(): Error exiting app!`);
       Log.e(err);
-      throw new Error(err);
+      throw err;
     }
   }
 
