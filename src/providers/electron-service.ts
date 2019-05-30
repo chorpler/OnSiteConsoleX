@@ -1038,12 +1038,12 @@ export class ElectronService {
         //   pdfURL = new URL(`file:///${pdfFile}`).href;
         // }
         Log.l(`createPDFWindow(): Now creating for URL: '${pdfFile}'`);
-        let parsedURL:URL;
+        // let parsedURL:URL;
         // if(!pdfFile.startsWith('file://')) {
         if(pdfFile.startsWith('/')) {
           pdfFile = "file://" + pdfFile;
         }
-        parsedURL = new URL(pdfFile);
+        let parsedURL:URL = new URL(pdfFile);
         let pdfURL = pdfFile;
         if(!(parsedURL && parsedURL.protocol && parsedURL.protocol === 'file:')) {
           // fileURL = new URL(`file:///${viewerPath}`).href;

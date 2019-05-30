@@ -159,8 +159,11 @@ export class PDFWindow extends electronRemote.BrowserWindow {
     let base:string = PDFWindow.getBaseURL();
     let viewerPath:string = path.join(base, 'www', 'pdfjs', 'web', 'viewer.html')
     // let parsedURL = WHATWG.parseURL(viewerPath);
-    let parsedURL = new URL(viewerPath);
-    let fileURL = viewerPath;
+    if(viewerPath.startsWith('/')) {
+      viewerPath = "file://" + viewerPath;
+    }
+    let parsedURL:URL = new URL(viewerPath);
+    let fileURL:string = viewerPath;
     // if(!(parsedURL && parsedURL.scheme && parsedURL.scheme === 'file')) {
     //   fileURL = new WHATWG.URL(`file:///${viewerPath}`).href;
     // }
