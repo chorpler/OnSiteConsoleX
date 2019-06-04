@@ -39,9 +39,8 @@
     <p-column [style]="styleColEdit">
       <ng-template pTemplate="header">--</ng-template>
       <ng-template let-report="rowData" pTemplate="body">
-        <!-- <button type="button" pButton (click)="showReport(report)" icon="fa-pencil-square-o"></button> -->
         <span class="icon-button-wrapper" title="View work report">
-          <i class="fa fa-pencil-square-o work-reports-button-icon" (click)="showReport(report, $event)"></i>
+          <i class="fal fa-edit work-reports-button-icon" (click)="showReport(report, $event)"></i>
         </span>
       </ng-template>
     </p-column>

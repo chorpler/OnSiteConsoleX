@@ -14,9 +14,6 @@
         <ion-icon *ngIf="showAllEmployees" class="schedule-list-options-button" name="md-eye"></ion-icon>
         <ion-icon *ngIf="!showAllEmployees" class="schedule-list-options-button" name="md-eye-off"></ion-icon>
       </button>
-      <!-- <button class="employees-buttons employees-csv-export" [class.highlighted]="editMode" ion-button icon-only (click)="toggleEditMode($event)" title="Toggle Edit Mode">
-        <i class="fa fa-pencil"></i>
-      </button> -->
       <button class="employees-buttons employees-csv-export" ion-button icon-only (click)="dt.exportCSV($event)" title="Export CSV">
         <i class="fa fa-table"></i>
       </button>
@@ -52,7 +49,7 @@
         <ng-template pTemplate="header">--</ng-template>
         <ng-template let-employee="rowData" let-col let-ri="rowIndex" pTemplate="body">
           <span class="column-button" (click)="editEmployee(employee)" title="Edit Employee '{{employee.getTechName()}}'" (mouseenter)="setHighlight(ri, true)" (mouseleave)="setHighlight(ri, false)">
-            <span class="row-edit-icon"><i class="fa fa-pencil"></i></span>
+            <span class="row-edit-icon"><i class="fal fa-pencil"></i></span>
             <span class="row-number">{{ri+1}}</span>
           </span>
         </ng-template>

@@ -239,8 +239,11 @@ export class ReportLogisticsViewComponent implements OnInit,OnDestroy {
       // let radius:number = this.siteRadius ? Number(this.siteRadius) : 500;
       let strColor:string = this.radiusColor;
       let strokeColor:string = "rgba(255, 0, 0, 0.8)";
-      let overlays:Array<any> = [];
+      let overlays:any[] = [];
       let zoom:number = 15;
+      if(this.location.isEmpty()) {
+        zoom = 1;
+      }
       // if(radius < 20) {
       //   zoom = 21;
       // } else if(radius < 50) {

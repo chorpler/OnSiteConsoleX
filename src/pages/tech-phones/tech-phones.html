@@ -63,7 +63,7 @@
           <tr>
             <td [class.button-col]="true">
               <span class="icon-button-wrapper" title="View work report">
-                <i class="fa fa-pencil-square-o phones-button-icon" (click)="showReport(rowData, $event)"></i>
+                <i class="fal fa-edit phones-button-icon" (click)="showReport(rowData, $event)"></i>
               </span>
             </td>
             <td *ngFor="let col of columns; let i=index" class="body-col" [class]="col.class">

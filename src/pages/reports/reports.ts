@@ -19,6 +19,8 @@ import { Calendar,                                                   } from 'pri
 import { MultiSelect                                                 } from 'primeng/multiselect'                ;
 import { Table                                                       } from 'primeng/table'                      ;
 import { Panel                                                       } from 'primeng/panel'                      ;
+import { MenuItem                                                    } from 'primeng/api'                        ;
+import { ContextMenu                                                 } from 'primeng/contextmenu'                ;
 import { ClipboardService                                            } from 'providers/clipboard-service'        ;
 // import { faDatabase                                                  } from '@fortawesome/pro-light-svg-icons'   ;
 // import { faArrowAltDown                                              } from '@fortawesome/pro-light-svg-icons'   ;
@@ -82,6 +84,10 @@ export class ReportsPage implements OnInit,OnDestroy {
   @ViewChild('dateRangeCalendarLogistics') dateRangeCalendarLogistics:Calendar;
   @ViewChild('dateRangeCalendarTimeCards') dateRangeCalendarTimeCards:Calendar;
   @ViewChild('printArea') printArea:ElementRef;
+  @ViewChild('reportsCM1') reportsCM1:ContextMenu;
+  @ViewChild('reportsCM2') reportsCM2:ContextMenu;
+  @ViewChild('reportsCM3') reportsCM3:ContextMenu;
+  @ViewChild('reportsCM4') reportsCM4:ContextMenu;
   public title         : string    = "Reports"                 ;
   public mode          : string    = 'page'                    ;
   public modalMode     : boolean   = false                     ;
@@ -135,6 +141,10 @@ export class ReportsPage implements OnInit,OnDestroy {
   public others           : ReportOther[]      = []           ;
   public logistics        : ReportLogistics[]  = []           ;
   public timecards        : ReportTimeCard[]   = []           ;
+  public selectedReports          : Report[]           = []   ;
+  public selectedReportsOther     : ReportOther[]      = []   ;
+  public selectedReportsLogistics : ReportLogistics[]  = []   ;
+  public selectedTimeCards        : ReportTimeCard[]   = []   ;
   public allReports       : Report[]           = []           ;
   public allOthers        : ReportOther[]      = []           ;
   public allLogistics     : ReportLogistics[]  = []           ;
@@ -200,6 +210,10 @@ export class ReportsPage implements OnInit,OnDestroy {
   public showButtonCol    : boolean         = true            ;
   public showTableHead    : boolean         = true            ;
   public showTableFoot    : boolean         = true            ;
+  public reportsMenu1     : MenuItem[]      = []              ;
+  public reportsMenu2     : MenuItem[]      = []              ;
+  public reportsMenu3     : MenuItem[]      = []              ;
+  public reportsMenu4     : MenuItem[]      = []              ;
   public reportsMultiSortMeta:any;
   public othersMultiSortMeta:any;
   public logisticsMultiSortMeta:any;
@@ -231,7 +245,7 @@ export class ReportsPage implements OnInit,OnDestroy {
     public clipboard : ClipboardService ,
   ) {
     window['onsitereports']  = this;
-    window['onsitereports2'] = this;
+    // window['onsitereports2'] = this;
     window['p'] = this;
     window['_matchCLL'] = _matchCLL;
     window['_matchSite'] = _matchSite;
@@ -279,6 +293,7 @@ export class ReportsPage implements OnInit,OnDestroy {
       this.techs = techs;
 
       this.updatePageSizes();
+      this.createContextMenus();
 
       if(!reports.length) {
         // Log.l(`Reports: no reports found. Retrieving reports from database...`);
@@ -387,6 +402,32 @@ export class ReportsPage implements OnInit,OnDestroy {
       Log.l(`scrollToTargetPanel(): Error scrolling to target panel:\n`, this.scrollTo);
       Log.e(err);
       throw err;
+    }
+  }
+
+  public createContextMenus() {
+    this.reportsMenu1 = [
+      { label: 'Update Work Reports …', icon: 'fal fa-edit', command: (event) => { this.updateReports(1, event); } },
+    ];
+    this.reportsMenu2 = [
+      { label: 'Update Misc Reports …', icon: 'fal fa-edit', command: (event) => { this.updateReports(2, event); } },
+    ];
+    this.reportsMenu3 = [
+      { label: 'Update Logistics Reports …', icon: 'fal fa-edit', command: (event) => { this.updateReports(3, event); } },
+    ];
+    this.reportsMenu4 = [
+      { label: 'Update TimeCards …', icon: 'fal fa-edit', command: (event) => { this.updateReports(4, event); } },
+    ];
+  }
+
+  public async updateReports(val:number, event?:any):Promise<any> {
+    try {
+      Log.l(`updateReports(${val}): Event is:`, event);
+      // return res;
+    } catch(err) {
+      Log.l(`updateReports(${val}): Error updating reports`);
+      Log.e(err);
+      // throw err;
     }
   }
 

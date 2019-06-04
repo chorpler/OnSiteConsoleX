@@ -104,7 +104,7 @@
                 <tbody class="edit-table-body">
                   <tr class="edit-table-row" *ngFor="let row of editTables[k] ; let j=index" title="View Report {{j+1}} ({{dayReports[k][j]._id}})">
                     <td class="edit-cell block-button-like" (click)="editReport(k, j, $event)">
-                      <i class="fa fa-pencil-square-o icon-button-like" (mouseenter)="highlight[k][j]=true" (mouseleave)="highlight[k][j]=false"></i>
+                      <i class="fal fa-edit icon-button-like" (mouseenter)="highlight[k][j]=true" (mouseleave)="highlight[k][j]=false"></i>
                     </td>
                   </tr>
                 </tbody>

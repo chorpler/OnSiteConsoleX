@@ -1,8 +1,9 @@
 /**
  * Name: Geolocation domain class and related interfaces/classes
- * Vers: 5.1.1
- * Date: 2018-11-14
+ * Vers: 5.2.1
+ * Date: 2019-06-04
  * Auth: David Sargeant
+ * Logs: 5.2.1 2019-06-04: Added isEmpty() method for OnSiteGeoposition/OnSiteLocation
  * Logs: 5.1.1 2018-11-14: Added getCoordinatesAsString() method; imported isNumeric() function; added isOnSite() to OnSiteGeoposition class
  * Logs: 5.0.1 2018-09-26: Added toJSON(), isOnSite() methods; added oo (JSON8) import for serializing via toJSON()
  * Logs: 4.1.1 2018-08-08: ILatLng interface can be imported from @ionic-native/google-maps or defined locally
@@ -115,12 +116,12 @@ class LatLng {
   public toUrlValue(precision?: number):string {
     let out:string = "";
     let places:number = precision != undefined ? precision : 6;
-    let literal = {lat:this.lat().toFixed(places), lng: this.lng().toFixed(places)};
+    let literal:{lat:string,lng:string} = {lat:this.lat().toFixed(places), lng: this.lng().toFixed(places)};
     out = JSON.stringify(literal);
     return out;
   };
   public toJSON():LatLonLiteral {
-    let out = {
+    let out:LatLonLiteral = {
       lat: this.lat(),
       lng: this.lng(),
     };
@@ -220,6 +221,13 @@ class OnSiteGeoposition implements IPosition {
     this.coords.latitude = lat;
     this.coords.longitude = lng;
     return this;
+  }
+
+  public isEmpty():boolean {
+    if(this.coords && (this.coords.latitude != 0 && this.coords.longitude != 0)) {
+      return false;
+    }
+    return true;
   }
 
   public toString():string {

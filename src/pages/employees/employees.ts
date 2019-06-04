@@ -333,11 +333,7 @@ export class EmployeesPage implements OnInit,OnDestroy,AfterViewInit {
     //   }
     // });
     this.displayEmployees = this.allEmployees.filter((a: Employee) => {
-      if(!this.showAllEmployees) {
-        return a.active && a.username !== 'mike';
-      } else {
-        return true;
-      }
+      return !this.showAllEmployees ? a.active : true;
     });
     this.employees = this.displayEmployees.slice(0);
     for(let tech of this.displayEmployees) {
@@ -435,23 +431,35 @@ export class EmployeesPage implements OnInit,OnDestroy,AfterViewInit {
         });
         if(i === -1) {
           this.allEmployees.push(employee);
-          this.displayEmployees.push(employee);
+          // this.displayEmployees.push(employee);
         }
       }
     }
-    // if(this.mode === 'add') {
+    this.displayEmployees = this.allEmployees.filter((a: Employee) => {
+      return !this.showAllEmployees ? a.active : true;
+    });
+  // if(this.mode === 'add') {
     // }
   }
 
   public employeeCanceled(event:any) {
-    Log.l("employeeCanceled(): Event is:\n", event);
+    Log.l("employeeCanceled(): Event is:", event);
     this.employeeViewVisible = false;
+    let i:number = this.allEmployees.findIndex((a:Employee) => {
+      return a === this.employee;
+    });
+    if(i > -1) {
+      this.allEmployees.splice(i, 1);
+    }
+    this.displayEmployees = this.allEmployees.filter((a: Employee) => {
+      return !this.showAllEmployees ? a.active : true;
+    });
   }
 
   public addEmployee(event?:any) {
-    let techs = this.displayEmployees;
-    let employee = new Employee();
-    let index = 0;
+    // let techs:Employee[] = this.displayEmployees;
+    let employee:Employee = new Employee();
+    // let index = 0;
     // techs.push(employee);
     // let index = techs.indexOf(employee) + 1;
     // let count = techs.length;
@@ -460,10 +468,15 @@ export class EmployeesPage implements OnInit,OnDestroy,AfterViewInit {
     // let name = tech.getFullNameNormal();
     this.employee = employee;
     // this.editEmployees = [employee];
-    this.editEmployees = this.displayEmployees;
     // this.employeeHeader = `Adding New Employee`;
     this.mode = 'add';
+    
+    this.allEmployees.push(employee);
+    this.displayEmployees = this.allEmployees.filter((a: Employee) => {
+      return !this.showAllEmployees ? a.active : true;
+    });
     // if(event && event.shiftKey) {
+    this.editEmployees = this.displayEmployees;
     this.employeeViewVisible = true;
     // } else {
     //   let employees = this.employees.map((a: Employee) => a.username);

@@ -82,7 +82,8 @@
     <div #printArea class="table-wrapper" id="print-area">
 
       <!-- Begin Reports table -->
-      <p-table #dt [styleClass]="'reports-table'" [columns]="selectedColumns" [value]="reports" [resizableColumns]="true" [reorderableColumns]="colsReorder" [autoLayout]="autoLayout" [rows]="rowCount" [paginator]="showTableFoot" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" selectionMode="single" (onRowSelect)="onRowSelect($event)" sortMode="multiple" [multiSortMeta]="reportsMultiSortMeta">
+      <!-- <p-table #dt [styleClass]="'reports-table'" [columns]="selectedColumns" [value]="reports" [resizableColumns]="true" [reorderableColumns]="colsReorder" [autoLayout]="autoLayout" [rows]="rowCount" [paginator]="showTableFoot" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" selectionMode="single" (onRowSelect)="onRowSelect($event)" sortMode="multiple" [multiSortMeta]="reportsMultiSortMeta"> -->
+      <p-table #dt [styleClass]="'reports-table'" [columns]="selectedColumns" [value]="reports" [resizableColumns]="true" [reorderableColumns]="colsReorder" [autoLayout]="autoLayout" [rows]="rowCount" [paginator]="showTableFoot" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" selectionMode="multiple" [(selection)]="selectedReports" sortMode="multiple" [multiSortMeta]="reportsMultiSortMeta" [(contextMenuSelection)]="selectedReports" [contextMenu]="reportsCM1">
 
         <!-- Caption area (column multiselect, date range filter, global search input) -->
         <ng-template pTemplate="caption">
@@ -123,11 +124,11 @@
         </ng-template>
 
         <!-- Report table body rows and columns (actual data) -->
-        <ng-template pTemplate="body" let-rowData let-columns="columns">
-          <tr>
+        <ng-template pTemplate="body" let-rowData let-columns="columns" let-rowIndex="rowIndex">
+          <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex">
             <td [class.button-col]="true" title="View work report" (click)="showReport(rowData, $event)" *ngIf="showButtonCol">
               <span class="icon-button-wrapper">
-                <i class="fa fa-pencil-square-o work-reports-button-icon"></i>
+                <i class="fal fa-edit work-reports-button-icon"></i>
               </span>
             </td>
             <td *ngFor="let col of columns; let i=index" [class.body-col]="true" [ngClass]="col?.class" [ngStyle]="col?.style">
@@ -166,7 +167,8 @@
     <div #printAreaOthers class="table-wrapper" id="print-area-others">
 
       <!-- Begin Misc Reports table -->
-      <p-table #othersTable [styleClass]="'others-table'" [columns]="selectedColumnsOthers" [value]="others" [resizableColumns]="true" [reorderableColumns]="colsReorder" [autoLayout]="autoLayout" [rows]="rowCount" [paginator]="showTableFoot" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" selectionMode="single" (onRowSelect)="onRowSelectOther($event)" sortMode="multiple" [multiSortMeta]="othersMultiSortMeta">
+      <!-- <p-table #othersTable [styleClass]="'others-table'" [columns]="selectedColumnsOthers" [value]="others" [resizableColumns]="true" [reorderableColumns]="colsReorder" [autoLayout]="autoLayout" [rows]="rowCount" [paginator]="showTableFoot" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" selectionMode="single" (onRowSelect)="onRowSelectOther($event)" sortMode="multiple" [multiSortMeta]="othersMultiSortMeta"> -->
+      <p-table #othersTable [styleClass]="'others-table'" [columns]="selectedColumnsOthers" [value]="others" [resizableColumns]="true" [reorderableColumns]="colsReorder" [autoLayout]="autoLayout" [rows]="rowCount" [paginator]="showTableFoot" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" selectionMode="multiple" [(selection)]="selectedReportsOther"  sortMode="multiple" [multiSortMeta]="othersMultiSortMeta" [(contextMenuSelection)]="selectedReportsOther" [contextMenu]="reportsCM2">
 
         <!-- Caption area (column multiselect, date range filter, global search input) -->
         <ng-template pTemplate="caption">
@@ -207,11 +209,11 @@
         </ng-template>
 
         <!-- Others table body rows and columns (actual data) -->
-        <ng-template pTemplate="body" let-rowData let-columns="columns">
-          <tr>
+        <ng-template pTemplate="body" let-rowData let-columns="columns" let-rowIndex="rowIndex">
+          <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex">
             <td [class.button-col]="true" title="View misc report" (click)="showReportOther(rowData, $event)" *ngIf="showButtonCol">
               <span class="icon-button-wrapper">
-                <i class="fa fa-pencil-square-o work-reports-button-icon"></i>
+                <i class="fal fa-edit work-reports-button-icon"></i>
               </span>
             </td>
             <td *ngFor="let col of columns; let i=index" [class.body-col]="true" [ngClass]="col?.class" [ngStyle]="col?.style">
@@ -256,7 +258,8 @@
     <div #printAreaLogistics class="table-wrapper" id="print-area-logistics">
 
       <!-- Begin Logistics Reports table -->
-      <p-table #logisticsTable [styleClass]="'logistics-table'" [columns]="selectedColumnsLogistics" [value]="logistics" [resizableColumns]="true" [reorderableColumns]="colsReorder" [autoLayout]="autoLayout" [rows]="rowCount" [paginator]="showTableFoot" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" selectionMode="single" (onRowSelect)="onRowSelectLogistics($event)" sortMode="multiple" [multiSortMeta]="logisticsMultiSortMeta">
+      <!-- <p-table #logisticsTable [styleClass]="'logistics-table'" [columns]="selectedColumnsLogistics" [value]="logistics" [resizableColumns]="true" [reorderableColumns]="colsReorder" [autoLayout]="autoLayout" [rows]="rowCount" [paginator]="showTableFoot" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" selectionMode="single" (onRowSelect)="onRowSelectLogistics($event)" sortMode="multiple" [multiSortMeta]="logisticsMultiSortMeta"> -->
+      <p-table #logisticsTable [styleClass]="'logistics-table'" [columns]="selectedColumnsLogistics" [value]="logistics" [resizableColumns]="true" [reorderableColumns]="colsReorder" [autoLayout]="autoLayout" [rows]="rowCount" [paginator]="showTableFoot" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" selectionMode="multiple" [(selection)]="selectedReportsLogistics"  sortMode="multiple" [multiSortMeta]="logisticsMultiSortMeta" [(contextMenuSelection)]="selectedReportsLogistics" [contextMenu]="reportsCM3">
 
         <!-- Caption area (column multiselect, date range filter, global search input) -->
         <ng-template pTemplate="caption">
@@ -303,11 +306,11 @@
         </ng-template>
 
         <!-- Logistics Reports table body rows and columns (actual data) -->
-        <ng-template pTemplate="body" let-rowData let-columns="columns">
-          <tr>
+        <ng-template pTemplate="body" let-rowData let-columns="columns" let-rowIndex="rowIndex">
+          <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex">
             <td [class.button-col]="true" title="View Logistics Report" (click)="showReportLogistics(rowData, $event)" *ngIf="showButtonCol">
               <span class="icon-button-wrapper">
-                <i class="fa fa-pencil-square-o work-reports-button-icon"></i>
+                <i class="fal fa-edit work-reports-button-icon"></i>
               </span>
             </td>
             <td *ngFor="let col of columns; let i=index" [class.body-col]="true" [ngClass]="col?.class" [ngStyle]="col?.style">
@@ -351,7 +354,7 @@
     <div #printAreaTimeCards class="table-wrapper" id="print-area-timecards">
 
       <!-- Begin TimeCard Reports table -->
-      <p-table #timecardsTable [styleClass]="'timecards-table'" [columns]="selectedColumnsTimeCards" [value]="timecards" [resizableColumns]="true" [reorderableColumns]="colsReorder" [autoLayout]="autoLayout" [rows]="rowCount" [paginator]="showTableFoot" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" selectionMode="single" (onRowSelect)="onRowSelectTimeCards($event)" sortMode="multiple" [multiSortMeta]="timeCardsMultiSortMeta">
+      <p-table #timecardsTable [styleClass]="'timecards-table'" [columns]="selectedColumnsTimeCards" [value]="timecards" [resizableColumns]="true" [reorderableColumns]="colsReorder" [autoLayout]="autoLayout" [rows]="rowCount" [paginator]="showTableFoot" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" selectionMode="multiple" [(selection)]="selectedTimeCards"  sortMode="multiple" [multiSortMeta]="timeCardsMultiSortMeta" [(contextMenuSelection)]="selectedTimeCards" [contextMenu]="reportsCM4">
 
         <!-- Caption area (column multiselect, date range filter, global search input) -->
         <ng-template pTemplate="caption">
@@ -392,11 +395,11 @@
         </ng-template>
 
         <!-- TimeCard table body rows and columns (actual data) -->
-        <ng-template pTemplate="body" let-rowData let-columns="columns">
-          <tr>
+        <ng-template pTemplate="body" let-rowData let-columns="columns" let-rowIndex="rowIndex">
+          <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex">
             <td [class.button-col]="true" title="View time card" (click)="showReportTimeCard(rowData, $event)" *ngIf="showButtonCol">
               <span class="icon-button-wrapper">
-                <i class="fa fa-pencil-square-o work-reports-button-icon"></i>
+                <i class="fal fa-edit work-reports-button-icon"></i>
               </span>
             </td>
             <td *ngFor="let col of columns; let i=index" [class.body-col]="true" [ngClass]="col?.class" [ngStyle]="col?.style">
@@ -424,3 +427,8 @@
 <report-other-view #otherView *ngIf="reportOtherViewVisible" [class.report-view-component]="true" [other]="other" [others]="editOthers" [tech]="tech" [site]="site" [sites]="sites" (save)="otherViewSave($event)" (cancel)="otherViewCancel($event)"></report-other-view>
 <report-logistics-view #logisticsView *ngIf="reportLogisticsViewVisible" [class.report-view-component]="true" [report]="logistic" [reports]="editLogistics" [tech]="tech" [site]="site" [sites]="sites" (save)="logisticsViewSave($event)" (cancel)="logisticsViewCancel($event)"></report-logistics-view>
 <report-timecard-view #timecardView *ngIf="reportTimeCardViewVisible" [class.report-view-component]="true" [report]="timecard" [reports]="editTimeCards" [tech]="tech" [site]="site" [sites]="sites" (save)="timeCardViewSave($event)" (cancel)="timeCardViewCancel($event)"></report-timecard-view>
+
+<p-contextMenu #reportsCM1 [model]="reportsMenu1"></p-contextMenu>
+<p-contextMenu #reportsCM2 [model]="reportsMenu2"></p-contextMenu>
+<p-contextMenu #reportsCM3 [model]="reportsMenu3"></p-contextMenu>
+<p-contextMenu #reportsCM4 [model]="reportsMenu4"></p-contextMenu>
