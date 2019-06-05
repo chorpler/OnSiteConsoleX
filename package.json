@@ -80,7 +80,7 @@
     "type": "git",
     "url": "git+https://github.com/chorpler/OnSiteConsoleX.git"
   },
-  "main": "electron/electron.js",
+  "main": "electron/electronLoad.js",
   "config": {
     "ionic_bundler": "webpack",
     "ionic_webpack": "./config/webpack.config.js",
@@ -88,6 +88,7 @@
     "ionic_sass": "./config/sass.config.js"
   },
   "scripts": {
+    "electron:buildstartup": "tsc -p electron/tsconfig.json",
     "electron:rebuild": "electron-rebuild -f -p -t \"prod,dev,optional\"",
     "electron:clean": "rimraf www/*",
     "eclean": "npm run electron:clean",
@@ -96,8 +97,8 @@
     "devForeman": "npm run clrscr && nf start",
     "electron:dist": "electron .",
     "ebuild": "run-script-os",
-    "ebuild:win32": "npm run ionic:build && build --win --x64",
-    "ebuild:darwin": "npm run ionic:build && build --mac --x64",
+    "ebuild:win32": "npm run electron:buildstartup && npm run ionic:build && build --win --x64",
+    "ebuild:darwin": "npm run electron:buildstartup && npm run ionic:build && build --mac --x64",
     "wbuild": "npm run ebuild",
     "mbuild": "npm run ebuild",
     "package": "run-script-os",
@@ -125,7 +126,10 @@
     "ionic:buildprod": "ionic-app-scripts build --prod --verbose",
     "ionic:clean": "ionic-app-scripts clean",
     "ionic:serve": "npm run start",
-    "ionic:debug": "npm run start --debug"
+    "ionic:debug": "npm run start --debug",
+    "fixts": "run-script-os",
+    "fixts:win32": "cd node_modules\\@ionic\\app-scripts && npm i typescript@2.7.2 && cd ..\\..\\..",
+    "fixts:darwin": "cd 'node_modules/@ionic/app-scripts' && npm i typescript@2.7.2 && cd ../../.."
   },
   "scriptsComments": {
     "mbuild": "Use this to build for Mac OS",
@@ -193,7 +197,7 @@
       "resources/electron*",
       "config/*",
       "www/**/*",
-      "electron/electron.js",
+      "electron/electronLoad.js",
       "electron/icon.*"
     ]
   },
@@ -386,7 +390,7 @@
     "source-map-loader": "^0.2.4",
     "ts-node": "^8.0.3",
     "tslint-eslint-rules": "^5.4.0",
-    "typescript": "^2.9.2",
+    "typescript": "^3.5.1",
     "webpack": "^3.11.0"
   },
   "dependenciesComments": {

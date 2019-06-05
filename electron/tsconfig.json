@@ -1,0 +1,45 @@
+{
+  "compilerOptions": {
+    "allowJs": false,
+    "allowSyntheticDefaultImports": true,
+    "declaration": false,
+    "downlevelIteration": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "lib": [
+      "dom"
+      ,"es2015"
+      ,"es2017"
+    ],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "target": "es2015",
+    "noImplicitAny": false,
+    "noImplicitThis": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "electronLoad.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "Docs",
+    "**/*.spec.ts",
+    "lib",
+    "dist",
+    "www"
+  ],
+  "compileOnSave": false,
+  "angularCompilerOptions": {
+    "fullTemplateTypeCheck": false,
+    "preserveWhiteSpaces": false,
+    "preserveSymlinks": true,
+    "trace": true
+  },
+ "atom": {
+    "rewriteTsconfig": false
+  }
+}

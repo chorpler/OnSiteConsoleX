@@ -44,7 +44,8 @@ import { OSData              } from './data-service'             ;
 import { NotifyService       } from './notify-service'           ;
 import { DispatchService     } from './dispatch-service'         ;
 import isElectron from 'is-electron';
-import { MenuItemContent } from 'primeng/primeng';
+import { MenuItemContent } from 'primeng/menu';
+import * as contextMenu from 'electron-context-menu';
 
 declare const window:any;
 const fsp = fs.promises;
@@ -91,8 +92,8 @@ export class ElectronService {
   public menu:any;
   public app:any;
   public electronapp:any = electronApp;
-  public win:any;
-  public windowState:any;
+  public win:BrowserWindow;
+  public windowState:windowStateKeeper.State;
   public remote:Remote = remote;
   public browserView:any = browserview;
   public browserWindow:any = browserwindow;

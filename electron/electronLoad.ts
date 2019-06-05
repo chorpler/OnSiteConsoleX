@@ -1,8 +1,12 @@
 let HARDCLOSE:boolean = true;
+let SPLASH_WINDOW_MINIMUM_TIMEOUT:number = 1000;
 // import { sprintf } from 'sprintf-js';
 const sprintf:(...args) => string = require('sprintf-js').sprintf;
-import { app, remote, BrowserWindow, dialog, ipcMain, nativeImage, globalShortcut, BrowserWindowConstructorOptions, MessageBoxOptions } from 'electron';
-import windowStateKeeper from 'electron-window-state';
+import { app, remote, BrowserWindow, dialog, ipcMain, nativeImage, globalShortcut, } from 'electron';
+import { BrowserWindowConstructorOptions, } from 'electron';
+import { MessageBoxOptions,               } from 'electron';
+import { ContextMenuParams,               } from 'electron';
+import * as windowStateKeeper from 'electron-window-state';
 import * as moment from 'moment';
 import { autoUpdater } from 'electron-updater';
 import { UpdateCheckResult } from 'electron-updater';
@@ -10,6 +14,7 @@ import { UpdateDownloadedEvent } from 'electron-updater';
 // import { CancellationToken, PackageFileInfo, ProgressInfo, UpdateFileInfo, UpdateInfo } from "builder-util-runtime";
 import { ProgressInfo } from "builder-util-runtime";
 import { ReleaseNoteInfo } from "builder-util-runtime";
+import * as contextMenu from 'electron-context-menu';
 import * as path from 'path';
 import * as fs from 'graceful-fs';
 import * as process from 'process';
@@ -575,13 +580,31 @@ function closeAllRandomWindows() {
   }
 }
 
+contextMenu({
+  prepend: (defaultActions:contextMenu.Actions, params:ContextMenuParams, browserWindow:BrowserWindow) => {
+    let items:Electron.MenuItem[] = [
+      {
+        label: 'Rainbow',
+        // Only show it when right-clicking images
+        visible: params.mediaType === 'image',
+        checked: false,
+        click: (evt:any) => {
+          log.info("ContextMenu: Item clicked:", evt);
+        },
+        enabled: true,
+      }
+    ];
+    return items;
+  },
+});
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
   log.info("Electron: got app ready event!");
   createSplashWindow();
-  setTimeout(createWindow, 1000);
+  setTimeout(createWindow, SPLASH_WINDOW_MINIMUM_TIMEOUT);
   // globalShortcut.register('CmdOrCtrl+F', () => {
   //   if(win && win.webContents && win.isFocused()) {
   //     win.webContents.send('shortcut-search', null);
