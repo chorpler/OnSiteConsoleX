@@ -500,6 +500,27 @@ export class ReportsPage implements OnInit,OnDestroy {
     this.getTimeCardsFields();
   }
 
+  public resetTableSorted(tableNumber:number, dt:Table) {
+    let sortMeta = [
+      { field: 'report_date', order: -1 },
+      { field: '_id', order: -1 },
+    ];
+    if(tableNumber === 1) {
+      this.reportsMultiSortMeta = sortMeta.slice(0);
+    } else if(tableNumber === 2) {
+      this.othersMultiSortMeta = sortMeta.slice(0);
+    } else if(tableNumber === 3) {
+      this.logisticsMultiSortMeta = sortMeta.slice(0);
+    } else if(tableNumber === 4) {
+      this.timeCardsMultiSortMeta = sortMeta.slice(0);
+    } else {
+      let text:string = `resetTableSorted(): Could not find table at index '${tableNumber}' to reset it with sorting`;
+      Log.w(text);
+      this.notify.addWarning("TABLE RESET ERROR", text, 5000);
+      return;
+    }
+  }
+
   public getReportsFields():any[] {
     let fields:any[] = [
       { field: '_id'              , header: 'ID'          , filter: true, filterPlaceholder: "ID"          , order:  1 , style: "", class: "col-nowrap col-00 col-id"        , format: ""      , tooltip: "ID"          , },
@@ -1944,35 +1965,39 @@ export class ReportsPage implements OnInit,OnDestroy {
       this.timecardsTable,
     ];
     for(let dt of tables) {
-      if(dt && dt instanceof Table) {
-        dt.reset();
-        dt.selection = null;
-      }
+      let tableNumber:number = tables.indexOf(dt) + 1;
+      this.resetTable(tableNumber);
     }
-    let filterInputElements:any = document.getElementsByClassName('reports-col-filter');
-    Log.l(`resetAllTables(): filter input elements are:`, filterInputElements);
-    if(filterInputElements && filterInputElements.length) {
-      let count = filterInputElements.length;
-      for(let i = 0; i < count; i++) {
-        let inputElement = filterInputElements[i];
-        if(inputElement instanceof HTMLInputElement) {
-          inputElement.value = "";
-        }
-      }
-    }
-    let inputs:ElementRef[] = [
-      this.globalFilterInput,
-      this.globalFilterInputOthers,
-      this.globalFilterInputLogistics,
-      this.globalFilterInputTimeCards,
-    ];
-    for(let el of inputs) {
-      if(el && el instanceof ElementRef) {
-        let input:HTMLInputElement = el.nativeElement;
-        input.value = "";
-      }
-    }
-    this.clearAllDates(evt);
+    // for(let dt of tables) {
+    //   if(dt && dt instanceof Table) {
+    //     dt.reset();
+    //     dt.selection = null;
+    //   }
+    // }
+    // let filterInputElements:any = document.getElementsByClassName('reports-col-filter');
+    // Log.l(`resetAllTables(): filter input elements are:`, filterInputElements);
+    // if(filterInputElements && filterInputElements.length) {
+    //   let count = filterInputElements.length;
+    //   for(let i = 0; i < count; i++) {
+    //     let inputElement = filterInputElements[i];
+    //     if(inputElement instanceof HTMLInputElement) {
+    //       inputElement.value = "";
+    //     }
+    //   }
+    // }
+    // let inputs:ElementRef[] = [
+    //   this.globalFilterInput,
+    //   this.globalFilterInputOthers,
+    //   this.globalFilterInputLogistics,
+    //   this.globalFilterInputTimeCards,
+    // ];
+    // for(let el of inputs) {
+    //   if(el && el instanceof ElementRef) {
+    //     let input:HTMLInputElement = el.nativeElement;
+    //     input.value = "";
+    //   }
+    // }
+    // this.clearAllDates(evt);
   }
 
   public resetTable(tableNumber:number, evt?:Event) {
@@ -1995,6 +2020,7 @@ export class ReportsPage implements OnInit,OnDestroy {
     this.clearTableSelection(dt);
     this.clearTableFilters(dt);
     this.clearTableDates(tableNumber, dt);
+    this.resetTableSorted(tableNumber, dt);
     // this.clearDates(tableNumber, dt);
   }
 
