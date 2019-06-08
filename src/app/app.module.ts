@@ -34,7 +34,7 @@ import { SpinnerComponent,                        } from 'components/spinner/spi
 import { SpinnerService                           } from 'providers/spinner-service'                             ;
 import { PreauthOpenComponentModule               } from 'components/preauth-open/preauth-open.module'           ;
 import { PreauthOpenComponent,                    } from 'components/preauth-open/preauth-open'                  ;
-import { DatabaseProgressComponentModule          } from 'components/database-progress'                          ;
+// import { DatabaseProgressComponentModule          } from 'components/database-progress'                          ;
 import { DatabaseStatusComponentModule            } from 'components/database-status'                            ;
 // import { EditorJsonComponentModule                } from 'components/editor-json'                                ;
 import { DomHandler                               } from 'providers/dom-handler'                                 ;
@@ -127,7 +127,7 @@ const CustomCurrencyMaskConfig:CurrencyMaskConfig = {
     DialogModule,
     ProgressBarModule,
     ToastModule,
-    DatabaseProgressComponentModule,
+    // DatabaseProgressComponentModule,
     DatabaseStatusComponentModule,
     // EditorJsonComponentModule,
     // DataTableModule,

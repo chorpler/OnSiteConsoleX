@@ -240,7 +240,9 @@ export class DatabaseStatusComponent implements OnInit,OnDestroy {
 
   public async reinitializeDatabases(evt?:Event):Promise<any> {
     try {
-      let confirm:boolean = await this.alert.showConfirmYesNo("RESTART DATABASES", "This will erase the existing databases on your computer and re-download them from the server. Continue?");
+      let title:string = "RESTART DATABASES";
+      let text:string = "This will erase the existing databases on your computer and re-download them from the server. This is like running the app for the firs ttime, and should not be done unless there is a good reason, like a sync problem that lasts for a long time. Continue?";
+      let confirm:boolean = await this.alert.showConfirmYesNo(title, text);
       if(confirm) {
         setTimeout(() => {
           this.dispatch.triggerAppEvent('reinitializedb');

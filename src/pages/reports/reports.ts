@@ -158,6 +158,9 @@ export class ReportsPage implements OnInit,OnDestroy {
   public fromDate         : Date                              ;
   public toDate           : Date                              ;
   public dateRange        : Date[]             = null         ;
+  public fromDates        : Date[]             = []           ;
+  public toDates          : Date[]             = []           ;
+  public dateRanges       : Date[][]           = [null,null,null,null];
   public fromDateOthers   : Date                              ;
   public toDateOthers     : Date                              ;
   public dateRangeOthers  : Date[]             = null         ;
@@ -872,7 +875,8 @@ export class ReportsPage implements OnInit,OnDestroy {
       // let res:Report[] = await this.db.getAllReportsPlusNew();
       spinnerID = await this.alert.showSpinnerPromise('Retrieving work reports from database...');
       // this.dataReady = false;
-      this.resetReportsTable();
+      // this.resetReportsTable();
+      this.resetTable(1);
       let res:Report[] = await this.data.getReports(1000000, spinnerID);
       Log.l("getReports(): Got reports:\n", res);
       this.allReports = res;
@@ -893,7 +897,8 @@ export class ReportsPage implements OnInit,OnDestroy {
     let spinnerID;
     try {
       // let res:Report[] = await this.db.getAllReportsPlusNew();
-      this.resetReportsTable();
+      // this.resetReportsTable();
+      this.resetTable(2);
       // this.dataReady = false;
       spinnerID = await this.alert.showSpinnerPromise('Retrieving misc reports from database...');
       let res:ReportOther[] = await this.data.getReportOthers(true);
@@ -916,7 +921,8 @@ export class ReportsPage implements OnInit,OnDestroy {
     let spinnerID;
     try {
       // let res:Report[] = await this.db.getAllReportsPlusNew();
-      this.resetReportsTable();
+      // this.resetReportsTable();
+      this.resetTable(3);
       // this.dataReady = false;
       spinnerID = await this.alert.showSpinnerPromise('Retrieving logistics reports from database...');
       let res:ReportLogistics[] = await this.data.getReportLogistics(true);
@@ -939,7 +945,8 @@ export class ReportsPage implements OnInit,OnDestroy {
     let spinnerID;
     try {
       // let res:Report[] = await this.db.getAllReportsPlusNew();
-      this.resetReportsTable();
+      // this.resetReportsTable();
+      this.resetTable(4);
       // this.dataReady = false;
       spinnerID = await this.alert.showSpinnerPromise('Retrieving time cards from database...');
       let res:ReportTimeCard[] = await this.data.getTimeCards(true);
@@ -1056,143 +1063,160 @@ export class ReportsPage implements OnInit,OnDestroy {
     return moments;
   }
 
-  public updateFromDate(event:any, dt:Table) {
-    Log.l("updateFromDate(): Event passed is:\n", event);
-    let now:Moment  = moment().startOf('day').add(1, 'day');
-    if(!this.fromDate) {
-      this.fromDate = moment(this.minDateString, "YYYY-MM-DD").toDate();
+  // public updateFromDate(event:any, dt:Table) {
+  //   Log.l("updateFromDate(): Event passed is:\n", event);
+  //   let now:Moment  = moment().startOf('day').add(1, 'day');
+  //   if(!this.fromDate) {
+  //     this.fromDate = moment(this.minDateString, "YYYY-MM-DD").toDate();
+  //   }
+  //   let from:Moment = moment(this.fromDate);
+  //   let to:Moment   = this.toDate   ? moment(this.toDate)   : moment(now);
+  //   let fromDate:string = from.format("YYYY-MM-DD");
+  //   let toDate:string   = to.format("YYYY-MM-DD");
+  //   Log.l(`updateFromDate(): Now filtering from ${fromDate} - ${toDate}...`);
+  //   // let reports:Report[] = this.allReports.filter((a:Report) => {
+  //   //   return a.report_date >= fromDate && a.report_date <= toDate;
+  //   // });
+  //   let dateRange:string[] = this.getDateRangeStrings(from, to);
+  //   this.minDate = from.toDate();
+  //   this.maxDate = to.toDate();
+
+  //   if(this.dateTimeout) {
+  //     clearTimeout(this.dateTimeout);
+  //   }
+  //   this.dateTimeout = setTimeout(() => {
+  //     dt.filter(dateRange, 'report_date', 'in');
+  //   }, 250);
+  // }
+
+  // public updateToDate(event:any, dt:Table) {
+  //   let now:Moment = moment().startOf('day').add(1, 'day');
+  //   if(!this.toDate) {
+  //     this.toDate = now.toDate();
+  //   }
+  //   let from:Moment = this.fromDate ? moment(this.fromDate) : moment(this.minDateString, "YYYY-MM-DD");
+  //   let to:Moment   = moment(this.toDate);
+  //   let fromDate:string = from.format("YYYY-MM-DD");
+  //   let toDate:string   = to.format("YYYY-MM-DD");
+  //   Log.l(`updateToDate(): Now filtering from ${fromDate} - ${toDate}...`);
+  //   // let reports:Report[] = this.allReports.filter((a:Report) => {
+  //   //   return a.report_date >= fromDate && a.report_date <= toDate;
+  //   // });
+  //   this.minDate = from.toDate();
+  //   this.maxDate = to.toDate();
+  //   let dateRange:string[] = this.getDateRangeStrings(from, to);
+  //   // let ltDate = moment(to).add(1, 'day').format("YYYY-MM-DD");
+  //   // this.reports = reports;
+  //   if(this.dateTimeout) {
+  //     clearTimeout(this.dateTimeout);
+  //   }
+  //   this.dateTimeout = setTimeout(() => {
+  //     dt.filter(dateRange, 'report_date', 'in');
+  //   }, 250);
+  //   // this.reports = reports;
+  // }
+
+
+  public checkDateRange(tableNumber:number, cal:Calendar, evt?:Event) {
+    let dt:Table;
+    let dateRange:Date[];
+    if(tableNumber === 1) {
+      dt = this.dt;
+      dateRange = this.dateRanges[0];
+    } else if(tableNumber === 2) {
+      dt = this.othersTable;
+      dateRange = this.dateRanges[1];
+    } else if(tableNumber === 3) {
+      dt = this.logisticsTable;
+      dateRange = this.dateRanges[2];
+    } else if(tableNumber === 4) {
+      dt = this.timecardsTable;
+      dateRange = this.dateRanges[3];
+    } else {
+      let text:string = `checkDateRange(): Could not find table at index '${tableNumber}' to reset it`;
+      Log.w(text);
+      // this.notify.addWarning("TABLE RESET ERROR", text, 5000);
+      return;
     }
-    let from:Moment = moment(this.fromDate);
-    let to:Moment   = this.toDate   ? moment(this.toDate)   : moment(now);
-    let fromDate:string = from.format("YYYY-MM-DD");
-    let toDate:string   = to.format("YYYY-MM-DD");
-    Log.l(`updateFromDate(): Now filtering from ${fromDate} - ${toDate}...`);
-    // let reports:Report[] = this.allReports.filter((a:Report) => {
-    //   return a.report_date >= fromDate && a.report_date <= toDate;
-    // });
-    let dateRange:string[] = this.getDateRangeStrings(from, to);
-    this.minDate = from.toDate();
-    this.maxDate = to.toDate();
-
-    if(this.dateTimeout) {
-      clearTimeout(this.dateTimeout);
-    }
-    this.dateTimeout = setTimeout(() => {
-      dt.filter(dateRange, 'report_date', 'in');
-    }, 250);
-  }
-
-  public updateToDate(event:any, dt:Table) {
-    let now:Moment = moment().startOf('day').add(1, 'day');
-    if(!this.toDate) {
-      this.toDate = now.toDate();
-    }
-    let from:Moment = this.fromDate ? moment(this.fromDate) : moment(this.minDateString, "YYYY-MM-DD");
-    let to:Moment   = moment(this.toDate);
-    let fromDate:string = from.format("YYYY-MM-DD");
-    let toDate:string   = to.format("YYYY-MM-DD");
-    Log.l(`updateToDate(): Now filtering from ${fromDate} - ${toDate}...`);
-    // let reports:Report[] = this.allReports.filter((a:Report) => {
-    //   return a.report_date >= fromDate && a.report_date <= toDate;
-    // });
-    this.minDate = from.toDate();
-    this.maxDate = to.toDate();
-    let dateRange:string[] = this.getDateRangeStrings(from, to);
-    // let ltDate = moment(to).add(1, 'day').format("YYYY-MM-DD");
-    // this.reports = reports;
-    if(this.dateTimeout) {
-      clearTimeout(this.dateTimeout);
-    }
-    this.dateTimeout = setTimeout(() => {
-      dt.filter(dateRange, 'report_date', 'in');
-    }, 250);
-    // this.reports = reports;
-  }
-
-
-  public clearAllDates(event?:Event) {
-    let tables:Table[] = [
-      this.dt,
-      this.othersTable,
-      this.logisticsTable,
-      this.timecardsTable,
-    ];
-    for(let table of tables) {
-      if(table && table instanceof Table) {
-        this.clearDates(table, event);
-      }
-    }
-  }
-
-  public clearDates(dt:Table, evt?:Event) {
-    Log.l(`clearDates(): Clearing from and to search fields.`);
-    this.fromDate = null;
-    this.toDate = null;
-    this.dateRange = null;
-    dt.filter(null, 'report_date', 'startsWith');
-  }
-
-  public checkDateRange(evt?:Event) {
-    Log.l(`checkDateRange(): dateRange is now:\n`, this.dateRange);
-    let cal:Calendar = this.dateRangeCalendar;
-    let dates:Date[] = this.dateRange;
+    Log.l(`checkDateRange(): dateRange[${tableNumber}] is now:`, dateRange);
+    // let cal:Calendar = this.dateRangeCalendar;
+    let dates:Date[] = dateRange;
     if(dates && Array.isArray(dates) && dates.length === 2) {
       let dStart:Date = dates[0];
       let dEnd:Date   = dates[1];
       if(dStart && dEnd) {
         cal.overlayVisible = false;
         setTimeout(() => {
-          this.updateDateRange(dStart, this.dt);
+          this.updateDateRange(tableNumber, dates, cal, dt);
         }, 400);
       }
     }
   }
 
-  public checkDateRangeOnClose(evt?:Event) {
-    Log.l(`checkDateRange(): dateRange is now:\n`, this.dateRange);
-    let cal:Calendar = this.dateRangeCalendar;
-    let dates:Date[] = this.dateRange;
+  public checkDateRangeOnClose(tableNumber:number, cal:Calendar, table:Table, evt?:Event) {
+    let dt:Table;
+    let dateRange:Date[];
+    if(tableNumber === 1) {
+      dt = this.dt;
+      dateRange = this.dateRanges[0];
+    } else if(tableNumber === 2) {
+      dt = this.othersTable;
+      dateRange = this.dateRanges[1];
+    } else if(tableNumber === 3) {
+      dt = this.logisticsTable;
+      dateRange = this.dateRanges[2];
+    } else if(tableNumber === 4) {
+      dt = this.timecardsTable;
+      dateRange = this.dateRanges[3];
+    } else {
+      let text:string = `checkDateRangeOnClose(): Could not find table at index '${tableNumber}' to check dates`;
+      Log.w(text);
+      // this.notify.addWarning("TABLE RESET ERROR", text, 5000);
+      return;
+    }
+    Log.l(`checkDateRangeOnClose(): dateRange[${tableNumber}] is now:`, dateRange);
+    // let cal:Calendar = this.dateRangeCalendar;
+    // let dates:Date[] = this.dateRange;
+    let dates:Date[] = dateRange;
     if(dates && Array.isArray(dates) && dates.length === 2) {
       let dStart:Date = dates[0];
       let dEnd:Date   = dates[1];
       if(dStart && dEnd) {
         cal.overlayVisible = false;
         setTimeout(() => {
-          this.updateDateRange(dStart, this.dt);
+          // this.updateDateRange(dStart, cal, this.dt);
+          this.updateDateRange(tableNumber, dates, cal, dt);
         }, 400);
       } else if(dStart || dEnd) {
-        this.dateRange = null;
+        // dateRange = null;
+        dateRange = null;
+        let i:number = tableNumber - 1;
+        if(i >= 0 && i < this.dateRanges.length) {
+          this.dateRanges[i] = null;
+        }
       } else {
 
       }
     }
   }
 
-  public updateDateRange(value:Date, table:Table) {
+  public updateDateRange(tableNumber:number, dateRange:Date[], cal:Calendar, table:Table, evt?:Event) {
     // Log.l(`updateDateRange(): Arguments are:\n`, arguments);
-    Log.l(`updateDateRange(): dateRange is now:\n`, this.dateRange);
-    let dt:Table  = table && table instanceof Table ? table : this.dt;
-    let dt2:Table = this.othersTable    ;
-    let dt3:Table = this.logisticsTable ;
-    let dt4:Table = this.timecardsTable ;
-    let dStart:Date = this.dateRange[0];
-    let dEnd:Date   = this.dateRange[1];
-    let c1:Calendar = this.dateRangeCalendar;
-    let c2:Calendar = this.dateRangeCalendarOthers;
-    let c3:Calendar = this.dateRangeCalendarLogistics;
-    let c4:Calendar = this.dateRangeCalendarTimeCards;
-    if(c1) {
-      c1.overlayVisible = false;
+    Log.l(`updateDateRange(): provided date range is:`, dateRange);
+    if(!(cal && cal instanceof Calendar)) {
+      let text:string = `updateDateRange(): Provided calendar is invalid`;
+      Log.w(text, cal);
+      return;
     }
-    if(c2) {
-      c2.overlayVisible = false;
+    if(!(table && table instanceof Table)) {
+      let text:string = `updateDateRange(): Provided Table is invalid`;
+      Log.w(text, table);
+      return;
     }
-    if(c3) {
-      c3.overlayVisible = false;
-    }
-    if(c4) {
-      c4.overlayVisible = false;
-    }
+    let dt:Table  = table;
+    let dStart:Date = dateRange[0];
+    let dEnd:Date   = dateRange[1];
+    cal.overlayVisible = false;
     if(dStart && dEnd) {
       let from:Moment = moment(dStart);
       let to:Moment = moment(dEnd);
@@ -1208,12 +1232,13 @@ export class ReportsPage implements OnInit,OnDestroy {
       }
       this.dateTimeout = setTimeout(() => {
         dt.filter(dateRange, 'report_date', 'in');
-        dt2.filter(dateRange, 'report_date', 'in');
-        dt3.filter(dateRange, 'report_date', 'in');
-        dt4.filter(dateRange, 'report_date', 'in');
       }, 250);
     } else {
-      this.dateRange = null;
+      dateRange = null;
+      let i:number = tableNumber - 1;
+      if(i >= 0 && i < this.dateRanges.length) {
+        this.dateRanges[i] = null;
+      }
     }
   }
 
@@ -1232,134 +1257,187 @@ export class ReportsPage implements OnInit,OnDestroy {
     this.showReportTimeCard(event.data);
   }
 
-  public updateFromDateOthers(event:any, dt:Table) {
-    Log.l("updateFromDateOthers(): Event passed is:\n", event);
-    let now:Moment  = moment().startOf('day').add(1, 'day');
-    if(!this.fromDate) {
-      this.fromDate = moment(this.minDateOthersString, "YYYY-MM-DD").toDate();
-    }
-    let from:Moment = moment(this.fromDateOthers);
-    let to:Moment   = this.toDateOthers   ? moment(this.toDateOthers)   : moment(now);
-    let fromDate:string = from.format("YYYY-MM-DD");
-    let toDate:string   = to.format("YYYY-MM-DD");
-    Log.l(`updateFromDateOthers(): Now filtering from ${fromDate} - ${toDate}...`);
-    // let reports:Report[] = this.allReports.filter((a:Report) => {
-    //   return a.report_date >= fromDate && a.report_date <= toDate;
-    // });
-    let dateRange:string[] = this.getDateRangeStrings(from, to);
-    this.minDateOthers = from.toDate();
-    this.maxDateOthers = to.toDate();
+  // public updateFromDateOthers(event:any, dt:Table) {
+  //   Log.l("updateFromDateOthers(): Event passed is:\n", event);
+  //   let now:Moment  = moment().startOf('day').add(1, 'day');
+  //   if(!this.fromDate) {
+  //     this.fromDate = moment(this.minDateOthersString, "YYYY-MM-DD").toDate();
+  //   }
+  //   let from:Moment = moment(this.fromDateOthers);
+  //   let to:Moment   = this.toDateOthers   ? moment(this.toDateOthers)   : moment(now);
+  //   let fromDate:string = from.format("YYYY-MM-DD");
+  //   let toDate:string   = to.format("YYYY-MM-DD");
+  //   Log.l(`updateFromDateOthers(): Now filtering from ${fromDate} - ${toDate}...`);
+  //   // let reports:Report[] = this.allReports.filter((a:Report) => {
+  //   //   return a.report_date >= fromDate && a.report_date <= toDate;
+  //   // });
+  //   let dateRange:string[] = this.getDateRangeStrings(from, to);
+  //   this.minDateOthers = from.toDate();
+  //   this.maxDateOthers = to.toDate();
 
-    if(this.dateTimeout) {
-      clearTimeout(this.dateTimeout);
-    }
-    this.dateTimeout = setTimeout(() => {
-      dt.filter(dateRange, 'report_date', 'in');
-    }, 250);
-  }
+  //   if(this.dateTimeout) {
+  //     clearTimeout(this.dateTimeout);
+  //   }
+  //   this.dateTimeout = setTimeout(() => {
+  //     dt.filter(dateRange, 'report_date', 'in');
+  //   }, 250);
+  // }
 
-  public updateToDateOthers(event:any, dt:Table) {
-    let now:Moment  = moment().startOf('day').add(1, 'day');
-    if(!this.toDate) {
-      this.toDate = now.toDate();
-    }
-    let from:Moment = this.fromDateOthers ? moment(this.fromDateOthers) : moment(this.minDateOthersString, "YYYY-MM-DD");
-    let to:Moment   = moment(this.toDateOthers);
-    let fromDate:string = from.format("YYYY-MM-DD");
-    let toDate:string   = to.format("YYYY-MM-DD");
-    Log.l(`updateToDateOthers(): Now filtering from ${fromDate} - ${toDate}...`);
-    // let reports:Report[] = this.allReports.filter((a:Report) => {
-    //   return a.report_date >= fromDate && a.report_date <= toDate;
-    // });
-    this.minDateOthers = from.toDate();
-    this.maxDateOthers = to.toDate();
-    let dateRangeOthers:string[] = this.getDateRangeStrings(from, to);
-    // let ltDate = moment(to).add(1, 'day').format("YYYY-MM-DD");
-    // this.reports = reports;
-    if(this.dateTimeout) {
-      clearTimeout(this.dateTimeout);
-    }
-    this.dateTimeout = setTimeout(() => {
-      dt.filter(dateRangeOthers, 'report_date', 'in');
-    }, 250);
-    // this.reports = reports;
-  }
+  // public updateToDateOthers(event:any, dt:Table) {
+  //   let now:Moment  = moment().startOf('day').add(1, 'day');
+  //   if(!this.toDate) {
+  //     this.toDate = now.toDate();
+  //   }
+  //   let from:Moment = this.fromDateOthers ? moment(this.fromDateOthers) : moment(this.minDateOthersString, "YYYY-MM-DD");
+  //   let to:Moment   = moment(this.toDateOthers);
+  //   let fromDate:string = from.format("YYYY-MM-DD");
+  //   let toDate:string   = to.format("YYYY-MM-DD");
+  //   Log.l(`updateToDateOthers(): Now filtering from ${fromDate} - ${toDate}...`);
+  //   // let reports:Report[] = this.allReports.filter((a:Report) => {
+  //   //   return a.report_date >= fromDate && a.report_date <= toDate;
+  //   // });
+  //   this.minDateOthers = from.toDate();
+  //   this.maxDateOthers = to.toDate();
+  //   let dateRangeOthers:string[] = this.getDateRangeStrings(from, to);
+  //   // let ltDate = moment(to).add(1, 'day').format("YYYY-MM-DD");
+  //   // this.reports = reports;
+  //   if(this.dateTimeout) {
+  //     clearTimeout(this.dateTimeout);
+  //   }
+  //   this.dateTimeout = setTimeout(() => {
+  //     dt.filter(dateRangeOthers, 'report_date', 'in');
+  //   }, 250);
+  //   // this.reports = reports;
+  // }
 
-  public clearDatesOthers(event:any, othersTable:Table) {
-    Log.l(`clearDatesOthers(): Clearing from and to search fields.`);
-    this.fromDateOthers = null;
-    this.toDateOthers = null;
-    this.dateRangeOthers = null;
-    othersTable.filter(null, 'report_date', 'startsWith');
-  }
+  // public clearDatesOthers(event:any, othersTable:Table) {
+  //   Log.l(`clearDatesOthers(): Clearing from and to search fields.`);
+  //   this.fromDateOthers = null;
+  //   this.toDateOthers = null;
+  //   this.dateRangeOthers = null;
+  //   othersTable.filter(null, 'report_date', 'startsWith');
+  // }
 
-  public checkDateRangeOthers(evt?:Event) {
-    Log.l(`checkDateRangeOthers(): dateRange is now:\n`, this.dateRangeOthers);
-    let cal:Calendar = this.dateRangeCalendarOthers;
-    let dates:Date[] = this.dateRangeOthers;
-    if(dates && Array.isArray(dates) && dates.length === 2) {
-      let dStart:Date = dates[0];
-      let dEnd:Date   = dates[1];
-      if(dStart && dEnd) {
-        cal.overlayVisible = false;
-        setTimeout(() => {
-          this.updateDateRangeOthers(dStart, this.othersTable);
-        }, 400);
+  // public checkDateRangeOthers(evt?:Event) {
+  //   Log.l(`checkDateRangeOthers(): dateRange is now:\n`, this.dateRangeOthers);
+  //   let cal:Calendar = this.dateRangeCalendarOthers;
+  //   let dates:Date[] = this.dateRangeOthers;
+  //   if(dates && Array.isArray(dates) && dates.length === 2) {
+  //     let dStart:Date = dates[0];
+  //     let dEnd:Date   = dates[1];
+  //     if(dStart && dEnd) {
+  //       cal.overlayVisible = false;
+  //       setTimeout(() => {
+  //         this.updateDateRangeOthers(dStart, this.othersTable);
+  //       }, 400);
+  //     }
+  //   }
+  // }
+
+  // public checkDateRangeOnCloseOthers(evt?:Event) {
+  //   Log.l(`checkDateRangeOnCloseOthers(): dateRange is now:\n`, this.dateRangeOthers);
+  //   let cal:Calendar = this.dateRangeCalendarOthers;
+  //   let dates:Date[] = this.dateRangeOthers;
+  //   if(dates && Array.isArray(dates) && dates.length === 2) {
+  //     let dStart:Date = dates[0];
+  //     let dEnd:Date   = dates[1];
+  //     if(dStart && dEnd) {
+  //       cal.overlayVisible = false;
+  //       setTimeout(() => {
+  //         this.updateDateRangeOthers(dStart, this.othersTable);
+  //       }, 400);
+  //     } else if(dStart || dEnd) {
+  //       this.dateRange = null;
+  //     } else {
+
+  //     }
+  //   }
+  // }
+
+  // public updateDateRangeOthers(value:Date, table:Table) {
+  //   // Log.l(`updateDateRangeOthers(): Arguments are:\n`, arguments);
+  //   Log.l(`updateDateRangeOthers(): dateRange is now:\n`, this.dateRangeOthers);
+  //   let dt:Table = table && table instanceof Table ? table : this.othersTable;
+  //   let dStart:Date = this.dateRangeOthers[0];
+  //   let dEnd:Date   = this.dateRangeOthers[1];
+  //   if(dStart && dEnd) {
+  //     let from:Moment = moment(dStart);
+  //     let to:Moment = moment(dEnd);
+  //     let fromDate:string = from.format("YYYY-MM-DD");
+  //     let toDate:string   = to.format("YYYY-MM-DD");
+  //     Log.l(`updateDateRangeOthers(): Now filtering from ${fromDate} - ${toDate}...`);
+  //     let dateRangeOthers:string[] = this.getDateRangeStrings(from, to);
+  //     // this.minDate = from.toDate();
+  //     // this.maxDate = to.toDate();
+
+  //     if(this.dateTimeout) {
+  //       clearTimeout(this.dateTimeout);
+  //     }
+  //     this.dateTimeout = setTimeout(() => {
+  //       dt.filter(dateRangeOthers, 'report_date', 'in');
+  //     }, 250);
+  //   } else {
+  //     this.dateRange = null;
+  //   }
+  // }
+
+  public async bulkEdit(type:number, event?:Event):Promise<any> {
+    try {
+      let docs:Array<Report|ReportOther|ReportLogistics|ReportTimeCard>;
+      let description:string;
+      if(type === 1) {
+        docs = this.selectedReports;
+        description = "work reports";
+      } else if(type === 2) {
+        docs = this.selectedReportsOther;
+        description = "misc. reports";
+      } else if(type === 3) {
+        docs = this.selectedReportsLogistics;
+        description = "logistics reports";
+      } else if(type === 4) {
+        docs = this.selectedTimeCards;
+        description = "time card reports";
       }
+      if(!docs) {
+        let text:string = `bulkEdit(): Could not determine what type of reports to edit`;
+        Log.w(text);
+        this.notify.addWarning("BULK EDIT ERROR", text, 6000);
+        return;
+      }
+      if(!docs.length) {
+        let text:string = `bulkEdit(): No reports are selected to be edited`;
+        Log.w(text);
+        this.notify.addWarning("NO REPORTS SELECTED", text, 3000);
+        return;
+      }
+      let count:number = docs.length;
+      let go:boolean = await this.alert.showConfirmYesNo("BULK EDIT", `Edit ${count} ${description}?`);
+      if(!go) {
+        Log.l(`bulkEdit(): User canceled edit.`);
+        return;
+      }
+
+      let allkeys:string[] = this.findUsedKeys(docs);
+      Log.l(`bulkEdit(): Keys used are:`, allkeys);
+
+    } catch(err) {
+      Log.l(`bulkEdit(): Error starting up bulk editor`);
+      Log.e(err);
+      throw err;
     }
   }
 
-  public checkDateRangeOnCloseOthers(evt?:Event) {
-    Log.l(`checkDateRangeOnCloseOthers(): dateRange is now:\n`, this.dateRangeOthers);
-    let cal:Calendar = this.dateRangeCalendarOthers;
-    let dates:Date[] = this.dateRangeOthers;
-    if(dates && Array.isArray(dates) && dates.length === 2) {
-      let dStart:Date = dates[0];
-      let dEnd:Date   = dates[1];
-      if(dStart && dEnd) {
-        cal.overlayVisible = false;
-        setTimeout(() => {
-          this.updateDateRangeOthers(dStart, this.othersTable);
-        }, 400);
-      } else if(dStart || dEnd) {
-        this.dateRange = null;
-      } else {
-
-      }
-    }
-  }
-
-  public updateDateRangeOthers(value:Date, table:Table) {
-    // Log.l(`updateDateRangeOthers(): Arguments are:\n`, arguments);
-    Log.l(`updateDateRangeOthers(): dateRange is now:\n`, this.dateRangeOthers);
-    let dt:Table = table && table instanceof Table ? table : this.othersTable;
-    let dStart:Date = this.dateRangeOthers[0];
-    let dEnd:Date   = this.dateRangeOthers[1];
-    if(dStart && dEnd) {
-      let from:Moment = moment(dStart);
-      let to:Moment = moment(dEnd);
-      let fromDate:string = from.format("YYYY-MM-DD");
-      let toDate:string   = to.format("YYYY-MM-DD");
-      Log.l(`updateDateRangeOthers(): Now filtering from ${fromDate} - ${toDate}...`);
-      let dateRangeOthers:string[] = this.getDateRangeStrings(from, to);
-      // this.minDate = from.toDate();
-      // this.maxDate = to.toDate();
-
-      if(this.dateTimeout) {
-        clearTimeout(this.dateTimeout);
-      }
-      this.dateTimeout = setTimeout(() => {
-        dt.filter(dateRangeOthers, 'report_date', 'in');
-      }, 250);
-    } else {
-      this.dateRange = null;
-    }
+  public findUsedKeys(docs:Array<Report|ReportOther|ReportLogistics|ReportTimeCard>):string[] {
+    let allkeys:Set<string> = new Set();
+    docs.forEach(a => a.getKeys().forEach((b:string) => allkeys.add(b)));
+    let out:string[] = Array.from(allkeys);
+    return out;
   }
 
   public showReport(report:Report, event?:Event) {
     Log.l(`showReport(): Called with report:\n`, report);
     let reportList = this.dt.hasFilter() ? this.dt.filteredValue : this.dt.value;
-    let site = this.sites.find((a:Jobsite) => {
+    let site:Jobsite = this.sites.find((a:Jobsite) => {
       // return _matchReportSite(report, a);
       if(a instanceof Jobsite) {
         return report.matchesSite(a);
@@ -1374,8 +1452,10 @@ export class ReportsPage implements OnInit,OnDestroy {
       // });
       // reportPage.present();
     } else {
-      let tech = this.techs.find((a:Employee) => {
-        return _matchSite(a, site);
+      let username:string = report.username;
+      let tech:Employee = this.techs.find((a:Employee) => {
+        return a.username === username;
+        // return _matchSite(a, site);
       });
       if(!tech) {
         this.notify.addWarn("TECH ERROR", "Could not determine what tech created this report!", 6000);
@@ -1390,7 +1470,8 @@ export class ReportsPage implements OnInit,OnDestroy {
   }
 
   public showReportOther(other:ReportOther, event?:Event) {
-    Log.l(`showReportOther(): Called with report:\n`, other);
+    Log.l(`showReportOther(): Called with report:pwd
+    `, other);
     let reportList:ReportOther[] = this.othersTable.hasFilter() ? this.othersTable.filteredValue : this.othersTable.value;
     // let site = this.sites.find((a:Jobsite) => {
     //   // return _matchReportSite(report, a);
@@ -1850,11 +1931,10 @@ export class ReportsPage implements OnInit,OnDestroy {
         document.body.removeChild(link);
       }
     }
-
   }
 
-  public resetReportsTable(evt?:Event) {
-    Log.l(`resetReportsTable(): Event is:\n`, evt);
+  public resetAllTables(evt?:Event) {
+    Log.l(`resetAllTables(): Event is:`, evt);
     // let dt:DataTable;
     // let dt:Table;
     let tables:Table[] = [
@@ -1866,10 +1946,11 @@ export class ReportsPage implements OnInit,OnDestroy {
     for(let dt of tables) {
       if(dt && dt instanceof Table) {
         dt.reset();
+        dt.selection = null;
       }
     }
     let filterInputElements:any = document.getElementsByClassName('reports-col-filter');
-    Log.l(`resetReportsTable(): filter input elements are:\n`, filterInputElements);
+    Log.l(`resetAllTables(): filter input elements are:`, filterInputElements);
     if(filterInputElements && filterInputElements.length) {
       let count = filterInputElements.length;
       for(let i = 0; i < count; i++) {
@@ -1894,30 +1975,135 @@ export class ReportsPage implements OnInit,OnDestroy {
     this.clearAllDates(evt);
   }
 
-  public resetOthersTable(evt?:Event) {
-    Log.l(`resetOthersTable(): Event is:\n`, evt);
-    // let dt:DataTable;
+  public resetTable(tableNumber:number, evt?:Event) {
     let dt:Table;
-    if(this.dt && this.dt instanceof Table) {
+    if(tableNumber === 1) {
       dt = this.dt;
-      dt.reset();
-      let filterInputElements:any = document.getElementsByClassName('reports-col-filter');
-      Log.l(`resetOthersTable(): filter input elements are:\n`, filterInputElements);
-      if(filterInputElements && filterInputElements.length) {
-        let count = filterInputElements.length;
-        for(let i = 0; i < count; i++) {
-          let inputElement = filterInputElements[i];
-          if(inputElement instanceof HTMLInputElement) {
-            inputElement.value = "";
-          }
+    } else if(tableNumber === 2) {
+      dt = this.othersTable;
+    } else if(tableNumber === 3) {
+      dt = this.logisticsTable;
+    } else if(tableNumber === 4) {
+      dt = this.timecardsTable;
+    } else {
+      let text:string = `resetTable(): Could not find table at index '${tableNumber}' to reset it`;
+      Log.w(text);
+      this.notify.addWarning("TABLE RESET ERROR", text, 5000);
+      return;
+    }
+    dt.reset();
+    this.clearTableSelection(dt);
+    this.clearTableFilters(dt);
+    this.clearTableDates(tableNumber, dt);
+    // this.clearDates(tableNumber, dt);
+  }
+
+  // public clearTableSelection(tableNumber:number, evt?:Event) {
+  public clearTableSelection(dt:Table, evt?:Event) {
+    Log.l(`clearTableSelection(): Clearing selected rows for table:`, dt);
+    // let dt:Table;
+    // if(tableNumber === 1) {
+    //   dt = this.dt;
+    // } else if(tableNumber === 2) {
+    //   dt = this.othersTable;
+    // } else if(tableNumber === 3) {
+    //   dt = this.logisticsTable;
+    // } else if(tableNumber === 4) {
+    //   dt = this.timecardsTable;
+    // } else {
+    //   let text:string = `clearTableSelection(): Could not find table at index '${tableNumber}' to reset it`;
+    //   Log.w(text);
+    //   this.notify.addWarning("CLEAR SELECTIONS ERROR", text, 5000);
+    //   return;
+    // }
+    if(!(dt && dt instanceof Table)) {
+      let text:string = `clearTableSelection(): Must provide a Table to clear selection of. Provided parameter was not a table`;
+      Log.w(text, dt);
+      this.notify.addWarning("CLEAR SELECTIONS ERROR", text, 5000);
+      return;
+    }
+    dt.selection = null;
+    return dt;
+  }
+
+  public clearTableFilters(dt:Table, evt?:Event) {
+    Log.l(`clearTableFilters(): Clearing filters for table:`, dt);
+    if(!(dt && dt instanceof Table)) {
+      let text:string = `clearTableFilters(): Must provide a Table to clear filters of. Provided parameter was not a table`;
+      Log.w(text, dt);
+      this.notify.addWarning("CLEAR FILTERS ERROR", text, 5000);
+      return;
+    }
+    let elRef:ElementRef = dt.el;
+    if(!(elRef && elRef.nativeElement)) {
+      let text:string = `clearTableFilters(): Must provide a Table to clear filters of. Provided parameter was not a table`;
+      Log.w(text, dt);
+      this.notify.addWarning("CLEAR FILTERS ERROR", text, 5000);
+      return;
+    }
+    let el:HTMLElement = elRef.nativeElement;
+    // let filterInputElements:HTMLCollectionOf<Element> = el.getElementsByClassName('reports-col-filter');
+    // let filterInputElements:HTMLCollectionOf<HTMLInputElement> = el.getElementsByTagName('input');
+    let filterElements = el.querySelectorAll('input.reports-col-filter');
+    let filterInputElements:NodeListOf<HTMLInputElement> = (filterElements as NodeListOf<HTMLInputElement>);
+    Log.l(`clearTableFilters(): filter input elements are:`, filterInputElements);
+    if(filterInputElements && filterInputElements.length) {
+      let count = filterInputElements.length;
+      for(let i = 0; i < count; i++) {
+        let inputElement:HTMLInputElement = filterInputElements[i];
+        if(inputElement instanceof HTMLInputElement) {
+          inputElement.value = "";
         }
       }
-      if(this.globalFilterInput && this.globalFilterInput instanceof ElementRef) {
-        let gfInput:HTMLInputElement = this.globalFilterInput.nativeElement;
-        gfInput.value = "";
-      }
-      this.dateRange = null;
     }
+    // let globalFilterInput:HTMLInputElement = (el.querySelector('input.global-filter-input') as HTMLInputElement);
+    let globalFilterInput:HTMLInputElement = el.querySelector('input.global-filter-input');
+    globalFilterInput.value = "";
+    return dt;
+  }
+
+  public clearTableDates(tableNumber:number, dt:Table, evt?:Event) {
+    Log.l(`clearTableDates(): Clearing date filters for table '${tableNumber}':`, dt);
+    if(!(dt && dt instanceof Table)) {
+      let text:string = `clearTableDates(): Must provide a Table to clear dates of. Provided parameter was not a table`;
+      Log.w(text, dt);
+      this.notify.addWarning("CLEAR DATES ERROR", text, 5000);
+      return;
+    }
+    let elRef:ElementRef = dt.el;
+    if(!(elRef && elRef.nativeElement)) {
+      let text:string = `clearTableDates(): Must provide a Table to clear dates of. Provided parameter was not a table`;
+      Log.w(text, dt);
+      this.notify.addWarning("CLEAR DATES ERROR", text, 5000);
+      return;
+    }
+    let el:HTMLElement = elRef.nativeElement;
+    this.clearDates(tableNumber, dt, evt);
+    return dt;
+  }
+
+  public clearAllDates(event?:Event) {
+    let tables:Table[] = [
+      this.dt,
+      this.othersTable,
+      this.logisticsTable,
+      this.timecardsTable,
+    ];
+    for(let table of tables) {
+      let i:number = tables.indexOf(table) + 1;
+      if(table && table instanceof Table) {
+        this.clearDates(i, table, event);
+      }
+    }
+  }
+
+  public clearDates(tableNumber:number, dt:Table, evt?:Event) {
+    Log.l(`clearDates(): Clearing from and to search fields.`);
+    let i:number = tableNumber - 1;
+    if(i >= 0 && i < this.dateRanges.length) {
+      this.dateRanges[i] = null;
+    }
+    dt.filter(null, 'report_date', 'startsWith');
   }
 
   public cancelAndExitModal(event?:Event) {

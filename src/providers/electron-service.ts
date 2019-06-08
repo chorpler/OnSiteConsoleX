@@ -9,6 +9,10 @@ import { ipcRenderer                    } from 'electron' ;
 
 import { globalShortcut  } from 'electron';
 import * as electron from 'electron';
+import { Remote } from 'electron';
+// import { Menu } from 'electron';
+import { Menu as MenuType } from 'electron';
+
 // import * as WHATWG from 'whatwg-url';
 import { isRenderer } from 'is-electron-renderer';
 // import * as Mousetrap from 'mousetrap';
@@ -50,7 +54,7 @@ import * as contextMenu from 'electron-context-menu';
 declare const window:any;
 const fsp = fs.promises;
 
-export type Menu = Electron.Menu;
+// export type Menu = Electron.Menu;
 export type MenuItemConstructorOptions = Electron.MenuItemConstructorOptions;
 export type MenuItem = Electron.MenuItem;
 export type WebContents = Electron.WebContents;
@@ -62,6 +66,8 @@ export type BrowserWindow = Electron.BrowserWindow;
 export type BrowserView = Electron.BrowserView;
 
 export type DialogType = "none" | "info" | "error" |"question" | "warning";
+
+const Menu = remote.Menu;
 
 export interface DialogOptions {
   type    ?: DialogType;
@@ -89,7 +95,7 @@ export class ElectronService {
   public searchEvent:Observable<any>;
   public currentZoom:number = 0;
   // public menu:electron.Menu;
-  public menu:any;
+  public menu:MenuType;
   public app:any;
   public electronapp:any = electronApp;
   public win:BrowserWindow;
@@ -371,6 +377,21 @@ export class ElectronService {
       { type: 'separator' },
       { role: 'togglefullscreen' },
     ];
+    // let viewSub1:MenuItemConstructorOptions[] = [
+    //   { label: 'Developer Tools', accelerator: 'F12', click: () => { this.showDeveloperTools(); }},
+    //   { role: 'toggledevtools' },
+    // ];
+    // let viewSub2:MenuItemConstructorOptions[] = [
+    //   { type: 'separator' },
+    //   { role: 'resetzoom' },
+    //   { role: 'zoomin' },
+    //   { role: 'zoomout' },
+    //   { type: 'separator' },
+    //   { role: 'togglefullscreen' },
+    // ];
+    // let viewSubDev:MenuItemConstructorOptions[] = [
+    //   { label: 'Toggle Dev Mode', accelerator: 'CommandOrControl+F12', click: () => { this.toggleDeveloperMode(); } },
+    // ];
     if(!this.data.isDeveloper) {
       viewSubmenu = viewSubmenu.filter((a:MenuItemConstructorOptions) => {
         return a.label !== 'Toggle Dev Mode';
@@ -390,10 +411,21 @@ export class ElectronService {
       {
         label: 'Edit',
         submenu: [
-          {role: 'copy'},
-          {role: 'paste'},
-          {role: 'pasteandmatchstyle'},
-          {role: 'selectall'},
+          // { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
+          // { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
+          // { type: "separator" },
+          // { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
+          //   {role: 'copy'},
+          // {role: 'paste'},
+          // {role: 'pasteandmatchstyle'},
+          // {role: 'selectall'},
+          { label: "Undo", accelerator: "CmdOrCtrl+Z", role: "undo:" },
+          { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", role: "redo:" },
+          { type: "separator" },
+          { label: "Cut", accelerator: "CmdOrCtrl+X", role: "cut:" },
+          { label: "Copy", accelerator: "CmdOrCtrl+C", role: "copy:" },
+          { label: "Paste", accelerator: "CmdOrCtrl+V", role: "paste:" },
+          { label: "Select All", accelerator: "CmdOrCtrl+A", role: "selectAll:" },
           { type: 'separator' },
           // { label: 'Find…', accelerator: 'CommandOrControl+G', click: () => { this.pageSearch(); } },
           { label: 'Find…', accelerator: 'CommandOrControl+G', click: () => { this.dispatch.triggerAppEvent('find-in-page'); } },
@@ -454,11 +486,13 @@ export class ElectronService {
         ]
       });
     }
-    Log.l("createMenu(): Resulting template is:\n", template);
-    this.menu = remote.Menu.buildFromTemplate(template);
-    Log.l("createMenu(): Resulting menu is:\n", this.menu);
-    remote.Menu.setApplicationMenu(this.menu);
-    // electron.Menu.setApplicationMenu(this.menu);
+    Log.l("createMenu(): Resulting template is:", template);
+    let menu:MenuType = remote.Menu.buildFromTemplate(template);
+
+    Log.l("createMenu(): Resulting menu is:", menu);
+    remote.Menu.setApplicationMenu(menu);
+    this.menu = menu;
+    return menu;
   }
 
   public createStartupMenus() {
@@ -513,11 +547,12 @@ export class ElectronService {
         ]
       });
     }
-    Log.l("createStartupMenus(): Resulting template is:\n", template);
-    this.menu = remote.Menu.buildFromTemplate(template);
-    Log.l("createStartupMenus(): Resulting menu is:\n", this.menu);
-    remote.Menu.setApplicationMenu(this.menu);
-    // electron.Menu.setApplicationMenu(this.menu);
+    Log.l("createStartupMenus(): Resulting template is:", template);
+    let menu:MenuType = remote.Menu.buildFromTemplate(template);
+    Log.l("createStartupMenus(): Resulting menu is:", menu);
+    remote.Menu.setApplicationMenu(menu);
+    this.menu = menu;
+    return menu;
   }
 
 
@@ -714,6 +749,8 @@ export class ElectronService {
       }
       win.setTitle(title);
     }
+    // this.app.tick();
+    this.dispatch.triggerAppEvent('changedetection');
     return title;
   }
 

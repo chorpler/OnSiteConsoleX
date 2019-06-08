@@ -3,8 +3,8 @@
     <div class="header-row">
       <div class="header-title">{{title}}</div>
       <div class="header-buttons">
-        <span class="header-button" (click)="refreshDatabaseInfo($event)"><i class="fal fa-sync"></i></span>
-        <span class="header-button" (click)="reinitializeDatabases($event)"><i class="fal fa-database"></i></span>
+        <span class="header-button" (click)="refreshDatabaseInfo($event)" title="Refresh database information manually (usually not necessary, it should update automatically)"><i class="fal fa-sync"></i></span>
+        <span class="header-button" (click)="reinitializeDatabases($event)" title="Erase local databases and re-download everything from server"><i class="fal fa-database"></i></span>
       </div>
       <div class="header-close">
         <span class="header-close-button" (click)="cancel($event)"><i class="fa fa-times"></i></span>

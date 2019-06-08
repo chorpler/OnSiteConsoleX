@@ -73,7 +73,8 @@ import { SpinnerComponent                                                  } fro
 import { SpinnerService                                                    } from 'providers/spinner-service'     ;
 import { LoaderService                                                     } from 'providers/loader-service'      ;
 import { MenuService                                                       } from 'providers/menu-service'        ;
-import { DatabaseProgressComponent                                         } from 'components/database-progress'  ;
+// import { DatabaseProgressComponent                                         } from 'components/database-progress'  ;
+import { DatabaseStatusComponent                                           } from 'components/database-status'  ;
 import { ElectronService                                                   } from 'providers/electron-service'    ;
 import { DomainService                                                     } from 'providers/domain-service'      ;
 import { MessageService as ToastService                                    } from 'primeng/api'                   ;
@@ -169,7 +170,8 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
   @ViewChild('loginTarget') loginTarget:ElementRef;
   // @ViewChild('globalOptionsDialog') globalOptionsDialog:Dialog;
   @ViewChild('globalOptionsComponent') globalOptionsComponent:OptionsComponent;
-  @ViewChild('databaseProgressComponent') databaseProgressComponent:DatabaseProgressComponent;
+  // @ViewChild('databaseProgressComponent') databaseProgressComponent:DatabaseProgressComponent;
+  @ViewChild('databaseStatusComponent') databaseStatusComponent:DatabaseStatusComponent;
   @ViewChild('findInPageComponent') findInPageComponent:FindInPageComponent;
   // @ViewChild('jsonEditorComponent') jsonEditorComponent:JsonEditorComponent;
   public rootPage           : any                                ;
@@ -499,8 +501,11 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
         } else if(channel === 'find-in-page') {
           Log.l(`AppComponent: Received event 'find-in-page' ...`);
           this.toggleFindInPage(true);
+        } else if(channel === 'changedetection') {
+          Log.l(`AppComponent: Received event 'changedetection' ...`);
+          this.fireAppTick();
         } else if(channel === 'toggledevmode') {
-          Log.l(`AppComponent: Received event 'find-in-page' ...`);
+          Log.l(`AppComponent: Received event 'toggledevmode' ...`);
           this.toggleDeveloperMode();
         } else if(channel === 'showdbstatus') {
           Log.l(`AppComponent: Received event 'showdbstatus' ...`);
@@ -1800,6 +1805,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
         this.globalOptionsType = 'global';
       }
       this.globalOptionsVisible = true;
+      this.app.tick();
     } catch(err) {
       Log.l(`showOptions(): Error showing options, type '${event}'!`);
       Log.e(err);
@@ -1810,18 +1816,21 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
   public hideOptions() {
     this.globalOptionsVisible = false;
     this.updateDateTimeFormats();
+    this.app.tick();
   }
   
   public optionsClosed(event:any) {
     Log.l("optionsClosed(): Event is:", event);
     this.globalOptionsVisible = false;
     this.updateDateTimeFormats();
+    this.app.tick();
   }
   
   public optionsSaved(event:any) {
     this.globalOptionsVisible = false;
     this.updateDateTimeFormats();
     Log.l("optionsSaved(): Event is:\n", event);
+    this.app.tick();
     let prefs = this.prefs.getPrefs();
     this.savePreferences(prefs).then(res => {
       this.dispatch.updatePrefs();
@@ -1859,7 +1868,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
   //     this.searchVisible = true;
   //     this.electron.listenForSearch();
   //   }
-  // }
+  // }hack
 
   public isArray(value:any):boolean {
     if(Array.isArray(value)) {
@@ -1871,7 +1880,12 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
 
   public toggleMenu():boolean {
     this.menuEnabled = !this.menuEnabled;
+    this.app.tick();
     return this.menuEnabled;
+  }
+
+  public fireAppTick() {
+    this.app.tick();
   }
 
   public toggleDeveloperMode(event?:Event) {
@@ -1888,6 +1902,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
     }
     this.electron.createMenus();
     this.electron.toggleDevModeTitle();
+    this.app.tick();
   }
 
   public async showDBStatus(evt?:Event) {

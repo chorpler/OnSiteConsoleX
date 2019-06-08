@@ -1,7 +1,7 @@
 <p-dialog #globalOptionsDialog [class.options-dialog-box]="true" header="Options" [(visible)]="isVisible" [draggable]="true" [resizable]="true" [closable]="false" [modal]="false" [contentStyle]="{'overflow':'visible'}">
   <div class="options-wrapper">
     <input class="dummyInputForPrimeNGFivePointTwo" />
-    <p-tabView [styleClass]="'options-tabview'" [activeIndex]="tabIndex">
+    <p-tabView [styleClass]="'options-tabview'" [activeIndex]="tabIndex" (onChange)="tabChanged($event)">
       <p-tabPanel [header]="currentPage" *ngIf="showCurrentPage"></p-tabPanel>
       <p-tabPanel header="Global">
         <div class="options-main">

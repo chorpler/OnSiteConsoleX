@@ -102,17 +102,26 @@ export class OptionsComponent implements OnInit,OnDestroy {
       this.spinner1On = true;
       this.spinner2On = true;
       this.createMenus();
-      let now = moment();
+      let now:Moment = moment();
       // let payPeriods =
       let currentPPStart:Moment = this.data.getPayrollPeriodStartDate(now);
       this.createDropdowns();
       let PPToShow:number = this.prefs.CONSOLE.global.payroll_periods;
       this.firstPeriodDate = this.data.getStartDateForPayrollPeriodCount(PPToShow);
       Log.l(`Options: pay period goes back to date '${this.firstPeriodDate.format("YYYY-MM-DD")}'`);
+      let res:any;
       if(this.optionType === 'global') {
-        let res:any = await this.getKeaneInvoiceNumber();
+        try {
+          res = await this.getKeaneInvoiceNumber();
+        } catch (error) {
+          Log.l(`Options: error while getting Keane invoice number. Continuing without setting Keane invoice number.`);
+        }
         this.spinner2On = false;
-        res = await this.getHalliburtonInvoiceNumber();
+        try {
+          res = await this.getHalliburtonInvoiceNumber();
+        } catch (error) {
+          Log.l(`Options: error while getting HB invoice number. Continuing without setting HB invoice number.`);
+        }
         this.spinner1On = false;
         return res;
       } else {
@@ -125,6 +134,29 @@ export class OptionsComponent implements OnInit,OnDestroy {
       Log.e(err);
       this.notify.addError("ERROR", `Error showing options: ${err.message}`, 5000);
       // throw err;
+    }
+  }
+
+  public async fetchInvoiceNumbers():Promise<any> {
+    let res:any;
+    try {
+      try {
+        res = await this.getKeaneInvoiceNumber();
+      } catch (error) {
+        Log.l(`Options: error while getting Keane invoice number. Continuing without setting Keane invoice number.`);
+      }
+      this.spinner2On = false;
+      try {
+        res = await this.getHalliburtonInvoiceNumber();
+      } catch (error) {
+        Log.l(`Options: error while getting HB invoice number. Continuing without setting HB invoice number.`);
+      }
+      this.spinner1On = false;
+       return res;
+    } catch(err) {
+      Log.l(`fetchInvoiceNumbers(): Error fetching invoice numbers`);
+      Log.e(err);
+      throw err;
     }
   }
 
@@ -151,6 +183,18 @@ export class OptionsComponent implements OnInit,OnDestroy {
     this.payPeriodsSelect = payPeriodDropdowns;
   }
 
+  public tabChanged(event:{originalEvent:MouseEvent, index:number}) {
+    let i:number = event.index;
+    let evt:MouseEvent = event.originalEvent;
+    Log.l(`tabChanged(): Options tab changed to tab # `, i);
+    this.tabIndex = i;
+    if(i === 0) {
+      this.optionType = 'global';
+    } else if(i === 1) {
+      this.optionType = 'advanced';
+    }
+  }
+
   public cancel(event:any) {
     Log.l("Options: cancel() called")
     this.onCancel.emit(this.prefs);
@@ -161,7 +205,7 @@ export class OptionsComponent implements OnInit,OnDestroy {
     this.onSave.emit(this.prefs);
   }
 
-  public async getKeaneInvoiceNumber() {
+  public async getKeaneInvoiceNumber():Promise<number> {
     try {
       if(!this.data.isAppReady()) {
         return -1;
@@ -176,7 +220,7 @@ export class OptionsComponent implements OnInit,OnDestroy {
     }
   }
 
-  public async saveKeaneInvoiceNumber(event?:any) {
+  public async saveKeaneInvoiceNumber(event?:any):Promise<number> {
     try {
       if(!this.data.isAppReady()) {
         this.notify.addError("ERROR", "Not logged in yet", 3000);
@@ -186,6 +230,7 @@ export class OptionsComponent implements OnInit,OnDestroy {
       let num = this.keaneInvoiceNumber;
       let res:any = await this.invoiceService.saveKeaneInvoiceNumber(num);
       this.notify.addSuccess("SUCCESS", `Set Keane invoice number to '${num}'.`, 3000);
+      return res;
     } catch(err) {
       Log.l(`saveKeaneInvoiceNumber(): Error saving Keane invoice number!`);
       Log.e(err);
@@ -193,7 +238,7 @@ export class OptionsComponent implements OnInit,OnDestroy {
     }
   }
 
-  public async refreshKeaneInvoiceNumber(event?:any) {
+  public async refreshKeaneInvoiceNumber(event?:any):Promise<number> {
     try {
       if(!this.data.isAppReady()) {
         this.notify.addError("ERROR", "Not logged in yet", 3000);
@@ -214,7 +259,7 @@ export class OptionsComponent implements OnInit,OnDestroy {
     }
   }
 
-  public async getHalliburtonInvoiceNumber() {
+  public async getHalliburtonInvoiceNumber():Promise<number> {
     try {
       if(!this.data.isAppReady()) {
         return -1;
@@ -229,7 +274,7 @@ export class OptionsComponent implements OnInit,OnDestroy {
     }
   }
 
-  public async saveHalliburtonInvoiceNumber(event?:any) {
+  public async saveHalliburtonInvoiceNumber(event?:any):Promise<number> {
     try {
       if(!this.data.isAppReady()) {
         this.notify.addError("ERROR", "Not logged in yet", 3000);
@@ -239,6 +284,7 @@ export class OptionsComponent implements OnInit,OnDestroy {
       let num = this.halliburtonInvoiceNumber;
       let res:any = await this.invoiceService.saveHalliburtonInvoiceNumber(num);
       this.notify.addSuccess("SUCCESS", `Set Halliburton invoice number to '${num}'.`, 3000);
+      return res;
     } catch(err) {
       Log.l(`saveHalliburtonInvoiceNumber(): Error saving Halliburton invoice number!`);
       Log.e(err);
@@ -246,11 +292,11 @@ export class OptionsComponent implements OnInit,OnDestroy {
     }
   }
 
-  public async refreshHalliburtonInvoiceNumber(event?:any) {
+  public async refreshHalliburtonInvoiceNumber(event?:any):Promise<number> {
     try {
       if(!this.data.isAppReady()) {
         this.notify.addError("ERROR", "Not logged in yet", 3000);
-        return;
+        return -1;
       }
       Log.l("refreshHalliburtonInvoiceNumber(): Event is:\n", event);
       this.spinner1On = true;

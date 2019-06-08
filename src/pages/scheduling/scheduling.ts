@@ -1456,7 +1456,16 @@ export class SchedulingPage implements OnInit,OnDestroy {
     // let name:string = user.getUsername();
     tech.employeeMoved = true;
     // if(this.prefs.saveMovedTechs() || name === 'grumpy' || name === 'Chorpler' || name === 'Hachero' || name === 'mike' || name === 'Chilo') {
-    if(this.prefs.saveMovedTechs()) {
+    
+
+    /* TODO(2019-06-08)
+       This whole "don't save moved techs unless that preference is specifically set" thing 
+       may be causing Report location issues, so I'm disabling it for now.
+    */
+    // if(this.prefs.saveMovedTechs()) {
+    let saveTech:boolean = this.prefs.saveMovedTechs();
+    saveTech = true;
+    if(saveTech) {
       let i:number = unassignedSlot.indexOf(tech);
       // let j = legraveSlot.indexOf(tech);
       if(i > -1) {
@@ -1526,7 +1535,16 @@ export class SchedulingPage implements OnInit,OnDestroy {
     let name = user.getUsername();
     tech.employeeMoved = true;
     // if(this.prefs.saveMovedTechs() || name === 'grumpy' || name === 'Chorpler' || name === 'Hachero' || name === 'mike' || name === 'Chilo') {
-    if(this.prefs.saveMovedTechs()) {
+
+
+    /* TODO(2019-06-08)
+       This whole "don't save moved techs unless that preference is specifically set" thing 
+       may be causing Report location issues, so I'm disabling it for now.
+    */
+    // if(this.prefs.saveMovedTechs()) {
+    let saveTech:boolean = this.prefs.saveMovedTechs();
+    saveTech = true;
+    if(saveTech) {
       if(slot === unassignedSlot) {
         Log.l("techDroppedInto(): Tech %s dropped into unassigned pool.", tech.toString());
         this.schedule.addUnassignedTech(tech);
@@ -1606,7 +1624,14 @@ export class SchedulingPage implements OnInit,OnDestroy {
     this.schedule.removeTech(tech);
     this.schedule.removeUnassignedTech(tech);
     // if(this.prefs.saveMovedTechs() || name === 'grumpy' || name === 'Chorpler' || name === 'Hachero' || name === 'mike' || name === 'Chilo') {
-    if(this.prefs.saveMovedTechs() || name === 'grumpy' || name === 'Chorpler' || name === 'Hachero' || name === 'mike' || name === 'Chilo') {
+    /* TODO(2019-06-08)
+       This whole "don't save moved techs unless that preference is specifically set" thing 
+       may be causing Report location issues, so I'm disabling it for now.
+    */
+    // if(this.prefs.saveMovedTechs() || name === 'grumpy' || name === 'Chorpler' || name === 'Hachero' || name === 'mike' || name === 'Chilo') {
+    let saveTech:boolean = this.prefs.saveMovedTechs();
+    saveTech = true;
+    if(saveTech || name === 'grumpy' || name === 'Chorpler' || name === 'Hachero' || name === 'mike' || name === 'Chilo') {
       Log.l(`techDroppedIntoLegrave(): Tech ${tech.toString()} dropped into ex-employee pool.`);
       this.updateTechSettings(tech, legravSite, "UNASSIGNED", "AM");
     }
