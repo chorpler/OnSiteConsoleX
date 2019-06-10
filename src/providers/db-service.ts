@@ -495,8 +495,17 @@ export class DBService {
       let db1 = this.addDB(reportsDB);
       // let loading = spinnerID ? this.alert.getSpinner(spinnerID) : null;
       // let loading = spinnerID ? this.alert.getSpinner(spinnerID) : {setContent: (input:string) => {Log.l("getWorkReports(): Fake loading text: %s", input)}, data: { set content(input:string) {Log.l("getWorkReports(): Fake loading text: %s", input);}, get content():string { return "Fake";}}};
-      let loading:Loading|{setContent:Function} = this.alert.getSpinner(spinnerID);
-      loading = loading && typeof loading.setContent === 'function' ? loading : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
+      // let loading:Loading|{setContent:(text:string) => any} = this.alert.getSpinner(spinnerID);
+      // loading = loading && typeof loading.setContent === 'function' ? loading : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
+      let loading:Loading = this.alert.getSpinner(spinnerID);
+      function updateLoaderStatus(text:string) {
+        let loadText:string = "Retrieving data from:<br>\n";
+        if(loading && typeof loading.setContent === 'function') {
+          loading.setContent(loadText + text + "…");
+        } else {
+          Log.l("Fake loading controller text:\n", text);
+        }
+      }
 
       Log.l("DB.getWorkReports(): this.loading is:", loading);
       let options = {include_docs: true};
@@ -544,9 +553,13 @@ export class DBService {
               Log.l(text);
               await delay(this.loadDelay);
               if(this.runInZone) {
-                this.zone.run(() => { loading.setContent(text); });
+                this.zone.run(() => {
+                  // loading.setContent(text);
+                  updateLoaderStatus(text);
+                });
               } else {
-                loading.setContent(text);
+                updateLoaderStatus(text);
+                // loading.setContent(text);
               }
             }
             let doc = row.doc;
@@ -830,12 +843,21 @@ export class DBService {
     try {
       // let loading = spinnerID ? this.alert.getSpinner(spinnerID) : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
       // let loading:any = this.alert.getSpinner(spinnerID);
-      let loading:Loading|{setContent:Function} = this.alert.getSpinner(spinnerID);
-      loading = loading && typeof loading.setContent === 'function' ? loading : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
+      // let loading:Loading|{setContent:Function} = this.alert.getSpinner(spinnerID);
+      // loading = loading && typeof loading.setContent === 'function' ? loading : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
       Log.l(`DB.getAllNonScheduleData(): GETTING REPORTS: ${getReports}, spinnerID:`, spinnerID);
+      // function updateLoaderStatus(text:string) {
+      //   let loadText:string = "Retrieving data from:<br>\n";
+      //   loading.setContent(loadText + text + "…");
+      // }
+      let loading:Loading = this.alert.getSpinner(spinnerID);
       function updateLoaderStatus(text:string) {
         let loadText:string = "Retrieving data from:<br>\n";
-        loading.setContent(loadText + text + "…");
+        if(loading && typeof loading.setContent === 'function') {
+          loading.setContent(loadText + text + "…");
+        } else {
+          Log.l("Fake loading controller text:\n", text);
+        }
       }
       // let reportDate:Moment = moment().subtract(2, 'weeks');
       // let data:any = { sites: [], employees: [], reports: [], others: [], logistics:[], timecards: [], periods: [], shifts: [], old_reports: [], schedules: [] };
