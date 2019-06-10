@@ -1283,7 +1283,7 @@ export type RemotePDBOptions   = PouchDB.Configuration.RemoteDatabaseConfigurati
 export type PDBOptions         = LocalPDBOptions|RemotePDBOptions;
 
 export interface PouchDocRequired extends Object {
-  _id:string;
+  _id?:string;
   _rev?:string;
   [propName:string]:any;
 }
