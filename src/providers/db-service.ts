@@ -1,5 +1,6 @@
 import { sprintf                                          } from 'sprintf-js'           ;
 import { Injectable, NgZone                               } from '@angular/core'        ;
+import { Loading                                          } from 'ionic-angular'        ;
 import { Log, moment, Moment, isMoment                    } from 'domain/onsitexdomain' ;
 import { PouchDBService,                                  } from './pouchdb-service'    ;
 import { Database, PDBInfo,                               } from './pouchdb-service'    ;
@@ -423,6 +424,26 @@ export class DBService {
     // });
   }
 
+  public async getDBDocCount(dbtype:string):Promise<number> {
+    try {
+      let dbname:string = this.prefs.getDB(dbtype);
+      if(dbname) {
+        let db1:Database = this.addDB(dbname);
+        let info:PDBInfo = await db1.info();
+        let count:number = info.doc_count;
+        return count;
+      } else {
+        Log.w(`DB.getDBDocCount(): Error finding database for DB type ${dbtype}`);
+        return -1;
+      }
+    } catch(err) {
+      Log.l(`DB.getDBDocCount(): Error getting doc count for DB type '${dbtype}'`);
+      Log.e(err);
+      // throw err;
+      return -1;
+    }
+  }
+
   public async getDocCount(dbname:string):Promise<number> {
     try {
       let db1:Database = this.addDB(dbname);
@@ -430,7 +451,7 @@ export class DBService {
       let count:number = info.doc_count;
       return count;
     } catch(err) {
-      Log.l(`getDocCount(): Error getting doc count for database '${dbname}'`);
+      Log.l(`DB.getDocCount(): Error getting doc count for database '${dbname}'`);
       Log.e(err);
       throw err;
     }
@@ -448,7 +469,7 @@ export class DBService {
       db1.createIndex(query).then(res => {
         return db1.find(query);
       }).then((res:any) => {
-        Log.l("getReports(): Got documents:\n", res);
+        Log.l("DB.getReports(): Got documents:\n", res);
         let docArray:Report[] = [];
         for (let row of res.rows) {
           if (row.id[0] !== "_" && row['doc'] !== undefined) {
@@ -458,10 +479,10 @@ export class DBService {
             docArray.push(tmpReport);
           }
         }
-        Log.l("getReports(): Got reports:\n", docArray);
+        Log.l("DB.getReports(): Got reports:\n", docArray);
         resolve(docArray);
       }).catch(err => {
-        Log.l("getReports(): Error getting all work reports!");
+        Log.l("DB.getReports(): Error getting all work reports!");
         Log.e(err);
         reject(err);
       });
@@ -472,14 +493,16 @@ export class DBService {
     try {
       let reportsDB:string = this.prefs.getDB('reports');
       let db1 = this.addDB(reportsDB);
-      let loading = spinnerID ? this.alert.getSpinner(spinnerID) : null;
-
+      // let loading = spinnerID ? this.alert.getSpinner(spinnerID) : null;
       // let loading = spinnerID ? this.alert.getSpinner(spinnerID) : {setContent: (input:string) => {Log.l("getWorkReports(): Fake loading text: %s", input)}, data: { set content(input:string) {Log.l("getWorkReports(): Fake loading text: %s", input);}, get content():string { return "Fake";}}};
-      Log.l("getWorkReports(): this.loading is:\n", loading);
+      let loading:Loading|{setContent:Function} = this.alert.getSpinner(spinnerID);
+      loading = loading && typeof loading.setContent === 'function' ? loading : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
+
+      Log.l("DB.getWorkReports(): this.loading is:", loading);
       let options = {include_docs: true};
       let res:any, reports:Report[] = [];
       if(fetchCount && !fetchCount) {
-        Log.l(`getWorkReports(): Attempting to load last ${fetchCount} reports...`);
+        Log.l(`DB.getWorkReports(): Attempting to load last ${fetchCount} reports...`);
         let select:any = {
           selector: {rprtDate: {$gte: "2000-01-01"}},
           sort: [{ rprtDate: "desc"}],
@@ -488,7 +511,7 @@ export class DBService {
         res = await db1.find(select);
         if(res && Array.isArray(res.docs)) {
           let count = res.docs.length;
-          Log.l(`getWorkReports(): Got ${count} documents:\n`, res);
+          Log.l(`DB.getWorkReports(): Got ${count} documents:\n`, res);
           let i = 0;
           let text = sprintf("Processing report %06d/%06d", i, count);
           Log.l(text);
@@ -497,14 +520,14 @@ export class DBService {
             reports.push(tmpReport);
           }
           let newCount = reports.length;
-          Log.l(`getWorkReports(): Queried and created array of ${newCount} reports.`);
+          Log.l(`DB.getWorkReports(): Queried and created array of ${newCount} reports.`);
         }
       } else {
-        Log.l(`getWorkReports(): Attempting to load all reports...`);
+        Log.l(`DB.getWorkReports(): Attempting to load all reports...`);
         res = await db1.allDocs(options);
         if(res && Array.isArray(res['rows'])) {
           let count = res.rows.length;
-          Log.l(`getWorkReports(): Got ${count} documents:\n`, res);
+          Log.l(`DB.getWorkReports(): Got ${count} documents:\n`, res);
           let i = 0;
           let text1 = sprintf("Processing report %06d/%06d", i, count);
           Log.l(text1);
@@ -532,7 +555,7 @@ export class DBService {
             i++;
           }
           let newCount = reports.length;
-          Log.l(`getWorkReports(): Created array of ${newCount} reports.`);
+          Log.l(`DB.getWorkReports(): Created array of ${newCount} reports.`);
           reports = reports.sort((a:Report,b:Report) => {
             let tsA = a.timestamp;
             let tsB = b.timestamp;
@@ -542,7 +565,7 @@ export class DBService {
       }
       return reports;
     } catch(err) {
-      Log.l(`getWorkReports(): Error getting all work reports!`);
+      Log.l(`DB.getWorkReports(): Error getting all work reports!`);
       Log.e(err);
       throw err;
     }
@@ -553,7 +576,7 @@ export class DBService {
       let dbname = this.prefs.getDB('reports');
       let db1 = this.addDB(dbname);
       this.loading = this.loading || {setContent: (input:string) => {Log.l("getAllReports(): Fake loading text: %s", input)}};
-      Log.l("getAllReports(): this.loading is:\n", this.loading);
+      Log.l("DB.getAllReports(): this.loading is:\n", this.loading);
       let options = {include_docs: true};
       let query: any = { selector: { rprtDate: { $gte: "1900-01-01" } }, limit: 1000000 };
       if(startDate) {
@@ -568,7 +591,7 @@ export class DBService {
         // db1.allDocs(options).then(res => {
       let res:any = await db1.find(query);
       let count = res.docs.length;
-      Log.l(`getAllReports(): Got ${count} documents:\n`, res);
+      Log.l(`DB.getAllReports(): Got ${count} documents:\n`, res);
       let i = 0;
       let text = sprintf("Processing report %06d/%06d", i, count);
       Log.l(text);
@@ -593,10 +616,10 @@ export class DBService {
       }
       // Log.l("getAllReports(): Got reports:\n", docArray);
       let newCount = docArray.length;
-      Log.l(`getAllReports(): Created array of ${newCount} reports.`);
+      Log.l(`DB.getAllReports(): Created array of ${newCount} reports.`);
       return docArray;
     } catch(err) {
-      Log.l(`getAllReports(): Error getting all work reports!`);
+      Log.l(`DB.getAllReports(): Error getting all work reports!`);
       Log.e(err);
       throw err;
     }
@@ -605,10 +628,10 @@ export class DBService {
   public async getAllReportsPlusNew(startDate?:Moment|Date):Promise<Report[]> {
     try {
       let res:Report[] = await this.getAllReports(startDate);
-      Log.l("getAllReportsPlusNew(): Returning final array of reports:\n", res);
+      Log.l("DB.getAllReportsPlusNew(): Returning final array of reports:\n", res);
       return res;
     } catch(err) {
-      Log.l(`getAllReportsPlusNew(): Error retrieving reports.`);
+      Log.l(`DB.getAllReportsPlusNew(): Error retrieving reports.`);
       Log.e(err);
       throw err;
     }
@@ -621,7 +644,7 @@ export class DBService {
       let db1 = this.addDB(dbname);
       // this.loading.setContent("Processing non-work reports...");
       let res:any = await db1.allDocs({ include_docs: true });
-      Log.l(`getReportOthers(): Successfully retrieved other reports:\n`, res);
+      Log.l(`DB.getReportOthers(): Successfully retrieved other reports:\n`, res);
       let others:ReportOther[] = [];
       if(res && Array.isArray(res['rows'])) {
         for(let row of res.rows) {
@@ -633,23 +656,23 @@ export class DBService {
           }
         }
       }
-      Log.l("getReportOthers(): Returning array of other reports:\n", others);
+      Log.l("DB.getReportOthers(): Returning array of other reports:\n", others);
       return others;
     } catch(err) {
-      Log.l(`getReportOthers(): Error retrieving ReportOther list!`);
+      Log.l(`DB.getReportOthers(): Error retrieving ReportOther list!`);
       Log.e(err);
       throw err;
     }
   }
 
   public async getReportLogistics(fetchCount?:number, spinnerID?:string):Promise<ReportLogistics[]> {
-    let loading = spinnerID ? this.alert.getSpinner(spinnerID) : {setContent: (input:string) => {Log.l("getReportLogistics(): Fake loading text: %s", input)}, data: { set content(input:string) {Log.l("getReportLogistics(): Fake loading text: %s", input);}, get content():string { return "Fake";}}};
+    // let loading = spinnerID ? this.alert.getSpinner(spinnerID) : {setContent: (input:string) => {Log.l("getReportLogistics(): Fake loading text: %s", input)}, data: { set content(input:string) {Log.l("getReportLogistics(): Fake loading text: %s", input);}, get content():string { return "Fake";}}};
     try {
       let dbname:string = this.prefs.getDB('logistics');
       let db1:Database = this.addDB(dbname);
       // this.loading.setContent("Processing logistics reports...");
       let res:any = await db1.allDocs({ include_docs: true });
-      Log.l(`getReportLogistics(): Successfully retrieved other reports:\n`, res);
+      Log.l(`DB.getReportLogistics(): Successfully retrieved logistics reports:`, res);
       let logistics:ReportLogistics[] = [];
       if(res && Array.isArray(res['rows'])) {
         for(let row of res.rows) {
@@ -661,10 +684,10 @@ export class DBService {
           }
         }
       }
-      Log.l("getReportLogistics(): Returning array of logistics reports:\n", logistics);
+      Log.l("DB.getReportLogistics(): Returning array of logistics reports:\n", logistics);
       return logistics;
     } catch(err) {
-      Log.l(`getReportLogistics(): Error retrieving ReportLogistics list!`);
+      Log.l(`DB.getReportLogistics(): Error retrieving ReportLogistics list!`);
       Log.e(err);
       throw err;
     }
@@ -673,14 +696,14 @@ export class DBService {
   public getLogisticsReports = this.getReportLogistics;
 
   public async getReportTimeCards(spinnerID?:string):Promise<ReportTimeCard[]> {
-    let loading = spinnerID ? this.alert.getSpinner(spinnerID) : {setContent: (input:string) => {Log.l("getReportTimeCards(): Fake loading text: %s", input)}, data: { set content(input:string) {Log.l("getReportTimeCards(): Fake loading text: %s", input);}, get content():string { return "Fake";}}};
+    // let loading = spinnerID ? this.alert.getSpinner(spinnerID) : {setContent: (input:string) => {Log.l("getReportTimeCards(): Fake loading text: %s", input)}, data: { set content(input:string) {Log.l("getReportTimeCards(): Fake loading text: %s", input);}, get content():string { return "Fake";}}};
     let reports:ReportTimeCard[] = [];
     try {
       let dbname:string = this.prefs.getDB('timecards');
       let db1:Database = this.addDB(dbname);
       // this.loading.setContent("Processing timecard reports...");
       let res:any = await db1.allDocs({ include_docs: true });
-      Log.l(`getReportTimeCards(): Successfully retrieved timecard reports:\n`, res);
+      Log.l(`DB.getReportTimeCards(): Successfully retrieved timecard reports:\n`, res);
       if(res && Array.isArray(res['rows'])) {
         for(let row of res.rows) {
           if(row['id'][0] !== '_' && row['doc'] != undefined) {
@@ -691,7 +714,7 @@ export class DBService {
           }
         }
       }
-      Log.l("getReportTimeCards(): Returning array of timecard reports:\n", reports);
+      Log.l("DB.getReportTimeCards(): Returning array of timecard reports:\n", reports);
       return reports;
       // let u:string = this.ud.getUsername();
       // let p:string = this.ud.getPassword();
@@ -716,7 +739,7 @@ export class DBService {
       // Log.l("getTimecardsForTech(): Returning final reports array:\n", reports);
       // return reports;
     } catch(err) {
-      Log.l(`getReportTimeCards(): Error retrieving TimeCard report list`);
+      Log.l(`DB.getReportTimeCards(): Error retrieving TimeCard report list`);
       Log.l(err);
       // return reports;
       throw err;
@@ -726,10 +749,12 @@ export class DBService {
   public getTimeCards = this.getReportTimeCards;
 
   public async getOldReports(spinnerID?:string):Promise<Report[]> {
-    let loading = spinnerID ? this.alert.getSpinner(spinnerID) : {setContent: (input:string) => {Log.l("getOtherReports(): Fake loading text: %s", input)}, data: { set content(input:string) {Log.l("getOldReports(): Fake loading text: %s", input);}, get content():string { return "Fake";}}};
+    // let loading = spinnerID ? this.alert.getSpinner(spinnerID) : {setContent: (input:string) => {Log.l("getOtherReports(): Fake loading text: %s", input)}, data: { set content(input:string) {Log.l("getOldReports(): Fake loading text: %s", input);}, get content():string { return "Fake";}}};
     let dbnames = this.prefs.getOldReportsDBList();
     try {
-      // this.loading.setContent("Processing old reports...");
+      let loading:Loading|{setContent:Function} = this.alert.getSpinner(spinnerID);
+      loading = loading && typeof loading.setContent === 'function' ? loading : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
+    // this.loading.setContent("Processing old reports...");
       let reports:Report[] = [];
       for(let dbname of dbnames) {
         try {
@@ -744,10 +769,10 @@ export class DBService {
           throw err;
         }
       }
-      Log.l(`DB.getOldReports(): Final array of old reports from is:\n`, reports);
+      Log.l(`DB.getOldReports(): Final array of old reports from is:`, reports);
       return reports;
     } catch(err) {
-      Log.l(`DB.getOldReports(): Error retrieving old reports at some point from OldReports list:\n`, dbnames);
+      Log.l(`DB.getOldReports(): Error retrieving old reports at some point from OldReports list:`, dbnames);
       Log.e(err);
       throw err;
     }
@@ -755,14 +780,14 @@ export class DBService {
 
   public async getSchedules(archives?:boolean, employees?:Employee[]):Promise<Schedule[]> {
     try {
-      Log.l("getSchedules(): Firing up...");
+      Log.l("DB.getSchedules(): Firing up...");
       let dbname:string = this.prefs.getDB('scheduling');
       let db1 = this.addDB(dbname);
       let now = moment().startOf('day');
       let startDate:Moment = moment(now).subtract(12, 'weeks').startOf('week');
       let start:string = startDate.format("YYYY-MM-DD");
       let res:any = await db1.allDocs({ include_docs: true, startkey: start});
-      Log.l("getSchedules(): Got initial schedule results:\n", res);
+      Log.l("DB.getSchedules(): Got initial schedule results:\n", res);
       let schedules:Schedule[] = [];
       if(res && res.rows && Array.isArray(res.rows)) {
         for(let row of res.rows) {
@@ -779,11 +804,11 @@ export class DBService {
             }
           }
         }
-        Log.l("getSchedules(): Final result array is:\n", schedules);
+        Log.l("DB.getSchedules(): Final result array is:\n", schedules);
       }
       return schedules;
     } catch(err) {
-      Log.l("getSchedules(): Error retrieving schedule list!");
+      Log.l("DB.getSchedules(): Error retrieving schedule list!");
       Log.e(err);
       return null;
       // resolve(null);
@@ -803,12 +828,26 @@ export class DBService {
 
   public async getAllNonScheduleData(getReports:boolean, spinnerID?:string):Promise<any> {
     try {
-      let loading = spinnerID ? this.alert.getSpinner(spinnerID) : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
-      let loadText = "Retrieving data from:<br>\n"
-      let reportDate = moment().subtract(2, 'weeks');
-      let data = { sites: [], employees: [], reports: [], others: [], logistics:[], timecards: [], periods: [], shifts: [], old_reports: [], schedules: [] };
-      if(loading && loading.setContent) { loading.setContent(loadText + "sesa-jobsites..."); }
+      // let loading = spinnerID ? this.alert.getSpinner(spinnerID) : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
+      // let loading:any = this.alert.getSpinner(spinnerID);
+      let loading:Loading|{setContent:Function} = this.alert.getSpinner(spinnerID);
+      loading = loading && typeof loading.setContent === 'function' ? loading : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
+      Log.l(`DB.getAllNonScheduleData(): GETTING REPORTS: ${getReports}, spinnerID:`, spinnerID);
+      function updateLoaderStatus(text:string) {
+        let loadText:string = "Retrieving data from:<br>\n";
+        loading.setContent(loadText + text + "…");
+      }
+      // let reportDate:Moment = moment().subtract(2, 'weeks');
+      // let data:any = { sites: [], employees: [], reports: [], others: [], logistics:[], timecards: [], periods: [], shifts: [], old_reports: [], schedules: [] };
+      let data:{ sites:Jobsite[], employees:Employee[], reports:Report[], others:ReportOther[], logistics:ReportLogistics[], timecards:ReportTimeCard[], periods:PayrollPeriod[], shifts:any[], old_reports:Report[], schedules:any[] } = {
+        sites: [], employees: [], reports: [], others: [], logistics:[], timecards: [], periods: [], shifts: [], old_reports: [], schedules: [],
+      };
+      // if(loading && loading.setContent) { loading.setContent(loadText + "sesa-jobsites..."); }
+      // let text:string = "sesa-jobsites";
+      // updateLoaderStatus(text);
+      // loading.setContent(loadText + text);
       // let res:any = await this.getJobsites();
+      updateLoaderStatus("sesa-jobsites");
       let res:any;
       let sites:Jobsite[] = await this.getJobsites();
       data.sites = sites;
@@ -818,21 +857,25 @@ export class DBService {
       //   data.sites.push(site);
       // }
       // data.sites = res;
-      loading.setContent(loadText + "sesa-employees...");
-      res = await this.getEmployees();
-      for(let doc of res) {
-        let user = new Employee();
-        user.readFromDoc(doc);
-        data.employees.push(user);
-      }
-
+      updateLoaderStatus("sesa-employees");
+      data.employees = await this.getEmployees();
+      // data.employees = 
+      // for(let doc of res) {
+      //   let user = new Employee();
+      //   user.readFromDoc(doc);
+      //   data.employees.push(user);
+      // }
+      updateLoaderStatus("sesa-logistics");
       res = await this.getReportLogistics();
       data.logistics = res;
+
+      updateLoaderStatus("sesa-timecards");
       res = await this.getReportTimeCards();
       data.timecards = res;
 
       if(this.prefs.CONSOLE.global.loadMiscReports) {
-        loading.setContent(loadText + "sesa-reports-other...");
+        updateLoaderStatus("sesa-reports-other");
+        // loading.setContent(loadText + "sesa-reports-other...");
         let ros:ReportOther[] = await this.getReportOthers();
         data.others = ros.sort((a:ReportOther, b:ReportOther) => {
           // let dA = a.report_date.format("YYYYMMDD");
@@ -847,7 +890,8 @@ export class DBService {
         });
       }
       if(this.prefs.CONSOLE.global.loadOldReports) {
-        loading.setContent(loadText + "sesa-reports-old ...");
+        updateLoaderStatus("sesa-reports-old");
+        // loading.setContent(loadText + "sesa-reports-old ...");
         let ors:Report[] = await this.getOldReports();
         data.old_reports = ors;
       }
@@ -859,6 +903,7 @@ export class DBService {
         return data;
       } else {
         let fetchCount:number = this.prefs.CONSOLE.global.reportsToLoad || 1000000;
+        updateLoaderStatus("sesa-reports");
         let rpts:Report[] = await this.getReportsData(fetchCount, spinnerID);
         Log.l("getAllNonScheduleData(): Success plus reports, final data to be returned is:\n", data);
         data.reports = rpts;

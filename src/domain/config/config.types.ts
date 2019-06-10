@@ -125,12 +125,12 @@ export const FileSaverSaveAs = FILE_SAVER.saveAs;
 
 // export const moment = momentous;
 
-export type Spinners = Map<string,any>;
+// export type Spinners = Map<string,any>;
 
-export interface SpinnerRecord {
-  id     : string;
-  spinner: any;
-}
+// export interface SpinnerRecord {
+//   id     : string;
+//   spinner: any;
+// }
 
 export interface Tab {
   name     : string ;

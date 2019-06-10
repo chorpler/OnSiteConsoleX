@@ -1085,22 +1085,30 @@ export class PayrollPage implements OnInit,OnDestroy {
     }
   }
 
-  public readReports(period:PayrollPeriod) {
-    let date = moment(period.start_date);
-    let spinnerID = this.alert.showSpinner(`readReports(): Reading reports for week '${date.format("DD MMM YYYY")}'...`);
-    let spinner = this.alert.getSpinner(spinnerID);
-    this.db.getAllReportsPlusNew(date).then(res => {
-      Log.l("readReports(): Read in:\n", res);
+  public async readReports(period:PayrollPeriod):Promise<any> {
+    let spinnerID:string;
+    try {
+      let date = moment(period.start_date);
+      spinnerID = await this.alert.showSpinner(`readReports(): Reading reports for week '${date.format("DD MMM YYYY")}'...`);
+      let spinner = this.alert.getSpinner(spinnerID);
+      let res = await this.db.getAllReportsPlusNew(date)
+      Log.l("Payroll.readReports(): Read in:", res);
       this.reports = res;
       this.data.setData('reports', res);
       this.updatePeriod(period);
-      this.alert.hideSpinner(spinnerID);
-    }).catch(err => {
-      Log.l("readReports(): Error reading reports for PayrollPeriod.");
+      await this.alert.hideSpinner(spinnerID);
+      // }).catch(err => {
+      //   Log.l("readReports(): Error reading reports for PayrollPeriod.");
+      //   Log.e(err);
+      //   this.alert.hideSpinner(spinnerID);
+      //   this.notify.addError("ERROR", "Error reading reports for payroll period:<br>\n<br>\n" + err.message, 10000);
+      // });
+    } catch(err) {
+      Log.l("Payroll.readReports(): Error reading reports for PayrollPeriod.");
       Log.e(err);
       this.alert.hideSpinner(spinnerID);
       this.notify.addError("ERROR", "Error reading reports for payroll period:<br>\n<br>\n" + err.message, 10000);
-    });
+    }
   }
 
   public async refreshData(event?:any) {

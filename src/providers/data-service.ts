@@ -1,6 +1,7 @@
 import { sprintf                                                            } from 'sprintf-js'           ;
 import { Subscription                                                       } from 'rxjs'                 ;
 import { Injectable                                                         } from '@angular/core'        ;
+import { Loading                                                            } from 'ionic-angular'        ;
 import { Log, moment, Moment, isMoment, dec, Decimal, _matchCLL, _matchSite } from 'domain/onsitexdomain' ;
 import { PouchDBService, PDBChangeEvent,                                    } from './pouchdb-service'    ;
 import { AlertService                                                       } from './alert-service'      ;
@@ -471,8 +472,8 @@ export class OSData {
     }
   }
 
-  public async fetchData() {
-    let spinnerID;
+  public async fetchData():Promise<any> {
+    let spinnerID:string;
     try {
       if(this.status.ready) {
         return true;
@@ -480,8 +481,9 @@ export class OSData {
       this.status.loading = true;
       this.status.ready   = false;
       // this.alert.clearSpinners();
-      spinnerID = this.alert.showSpinner("Retrieving data from database...");;
-      let loading = this.alert.getSpinner(spinnerID);
+      spinnerID = await this.alert.showSpinnerPromise("Retrieving data from database...");;
+      let loading:Loading|{setContent:Function} = this.alert.getSpinner(spinnerID);
+      loading = loading && typeof loading.setContent === 'function' ? loading : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
       let tech:Employee = await this.server.getEmployee(this.auth.getUser());
       this.user = tech;
       // let res:any = await this.server.getUserData(this.auth.getUser());
@@ -507,7 +509,7 @@ export class OSData {
       this.schedules = new Schedules();
       this.schedules.setSchedules(res);
       this.loaded.schedules = true;
-      loading.setContent("Retrieving data from:<br>\nsesa-config");
+      loading.setContent("Retrieving data from:<br>\nsesa-config …");
       res = await this.db.getAllConfigData();
       this.config.clients         = res['clients']         ;
       this.config.locations       = res['locations']       ;
@@ -527,18 +529,19 @@ export class OSData {
       // OSData.dps = res;
       this.dps = res;
       this.loaded.dps = true;
-      this.alert.hideSpinner(spinnerID);
+      await this.alert.hideSpinnerPromise(spinnerID);
       Log.l("fetchData(): All data fetched.");
       this.status.ready   = true;
       this.status.loading = false;
       // let data = { sites: [], employees: [], reports: [], others: [], periods: [], shifts: [], schedules: [] };
       return true;
     } catch(err) {
-      this.alert.hideSpinner(spinnerID);
       Log.l("fetchData(): Error fetching all data.");
       Log.e(err);
+      await this.alert.hideSpinnerPromise(spinnerID);
       let errText:string = err && err.message ? err.message : typeof err === 'string' ? err : "UNKNOWN ERROR";
-      this.alert.showAlert("ERROR", "Error retrieving data:<br>\n<br\n" + errText);
+      // this.alert.showAlert("ERROR", "Error retrieving data:<br>\n<br\n" + errText);
+      this.alert.showErrorMessage("ERROR", "Error retrieving data", err);
       this.status.ready   = false;
       this.status.loading = false;
       throw err;
@@ -642,6 +645,7 @@ export class OSData {
         spinnerID = this.alert.showSpinner(`Retrieving ${count} logistics reports...`);
       }
       let logistics:ReportLogistics[] = await this.server.getReportLogistics(spinnerID);
+      // let logistics:ReportLogistics[] = await this.db.getReportLogistics(spinnerID);
       this.dbdata.logistics = logistics;
       this.loaded.logistics = true;
       if(!hideSpinner) {

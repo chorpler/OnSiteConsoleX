@@ -1679,12 +1679,12 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
   }
 
   public async authenticate():Promise<string> {
-    let spinnerID;
+    let spinnerID:string;;
     try {
       // let spinnerID = this.alert.showSpinner("Logging in to server...");
       let spinnerText = "Logging in to databases on server...";
       let res:any = await this.auth.areCredentialsSaved();
-      spinnerID = this.alert.showSpinner(spinnerText);
+      spinnerID = await this.alert.showSpinner(spinnerText);
       this.loading = this.alert.getSpinner(spinnerID);
       if(res) {
         Log.l("authenticate(): User credentials found.");
@@ -1707,14 +1707,14 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
           Log.e(err);
           this.currentlyLoggedIn = false;
           this.data.status.loggedIn = false;
-          this.alert.hideSpinner(spinnerID);
+          let out:any = await this.alert.hideSpinnerPromise(spinnerID);
           throw err;
         }
       } else {
         Log.l("authenticate(): user credentials not found. Need to log in.");
         this.currentlyLoggedIn = false;
         this.data.status.loggedIn = false;
-        this.alert.hideSpinner(spinnerID);
+        let out:any = await this.alert.hideSpinnerPromise(spinnerID);
         let err:Error = new Error("authenticate(): No credentials found");
         throw err;
       }
@@ -1723,6 +1723,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
       Log.e(err);
       this.currentlyLoggedIn = false;
       this.data.status.loggedIn = false;
+      // let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       this.notify.addError("ERROR", `Error during authentication: ${err.message}`, 10000);
       throw err;
     }

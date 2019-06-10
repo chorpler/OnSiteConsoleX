@@ -626,24 +626,38 @@ export class DPSMainPage implements OnInit,OnDestroy {
   }
 
   /* DPS Calculations start */
-  public runDPSCalculations() {
+  public async runDPSCalculations():Promise<boolean> {
     // this.dps = this.data.dps;
-    this.periods = this.data.createPayrollPeriods();
-    this.period = this.periods[0];
-    this.periodSelectReady = true;
-    let spinnerID = this.alert.showSpinner('Gathering DPS data...');
-    setTimeout(() =>  {
-      try {
-        this.generateDPSCalculations(this.period);
-        this.alert.hideSpinner(spinnerID);
-        this.dataReady = true;
-      } catch(err) {
-        this.alert.hideSpinner(spinnerID);
-        Log.l("runWhenReady(): Error generating DPS calculations.");
-        Log.e(err);
-        this.alert.showAlert("ERROR", "Error generating DPS calculations:<br>\n<br>\n" + err.message);
-      }
-    }, 1000);
+    let spinnerID:string;
+    try {
+      this.periods = this.data.createPayrollPeriods();
+      this.period = this.periods[0];
+      this.periodSelectReady = true;
+      spinnerID = await this.alert.showSpinnerPromise('Gathering DPS data...');
+      // setTimeout(() =>  {
+        // try {
+          this.generateDPSCalculations(this.period);
+          this.alert.hideSpinner(spinnerID);
+          this.dataReady = true;
+        // } catch(err) {
+          // this.alert.hideSpinner(spinnerID);
+          // Log.l("runWhenReady(): Error generating DPS calculations.");
+          // Log.e(err);
+          // this.alert.showAlert("ERROR", "Error generating DPS calculations:<br>\n<br>\n" + err.message);
+        // }
+      // }, 1000);
+      
+      return true;
+    } catch(err) {
+      // Log.l("runWhenReady(): Error generating DPS calculations.");
+      Log.l(`runDPSCalculations(): Error generating DPS calculations`);
+      Log.e(err);
+      let out = await this.alert.hideSpinnerPromise(spinnerID);
+      await this.alert.showErrorMessage("ERROR", "Error generating DPS calculations", err);
+      // this.alert.showAlert("ERROR", "Error generating DPS calculations:<br>\n<br>\n" + err.message);
+      // Log.e(err);
+      // throw err;
+    }
   }
 
   public generateEmployeePeriodMap(period?:PayrollPeriod) {
@@ -684,14 +698,22 @@ export class DPSMainPage implements OnInit,OnDestroy {
     return eperiod;
   }
 
-  public generateDPSCalculations(period:PayrollPeriod) {
-    let spinnerID = this.alert.showSpinner("Calculating DPS for selected payroll period...");
-    let ep = this.generateEmployeePeriodMap(period);
-    let datagrid = this.generateDPSCalculationsGridData();
-    // this.dataGrid = datagrid;
-    this.DPSCalcsDataGrid = datagrid;
-    this.alert.hideSpinner(spinnerID);
-    return datagrid;
+  public async generateDPSCalculations(period:PayrollPeriod):Promise<any[][]>{
+    let spinnerID:string;
+    try {
+      spinnerID = await this.alert.showSpinnerPromise("Calculating DPS for selected payroll period …");
+      let ep = this.generateEmployeePeriodMap(period);
+      let datagrid:any[][] = this.generateDPSCalculationsGridData();
+      // this.dataGrid = datagrid;
+      this.DPSCalcsDataGrid = datagrid;
+      await this.alert.hideSpinnerPromise(spinnerID);
+      return datagrid;
+    } catch(err) {
+      Log.l(`generateDPSCalculations(): Error generating DPS calculations`);
+      Log.e(err);
+      await this.alert.hideSpinnerPromise(spinnerID);
+      throw err;
+    }
   }
 
   public generateDPSReportData() {
@@ -920,7 +942,7 @@ export class DPSMainPage implements OnInit,OnDestroy {
     return working_techs;
   }
 
-  public generateDPSCalculationsGridData() {
+  public generateDPSCalculationsGridData():any[] {
     let techs = this.techs.slice(0);
     let e:Map<Employee,PayrollPeriod> = this.ePeriod;
     let grid = [];
@@ -1099,7 +1121,7 @@ export class DPSMainPage implements OnInit,OnDestroy {
     // return new Promise((resolve,reject) => {
       try {
         this.period = period;
-        this.DPSCalcsDataGrid = this.generateDPSCalculations(period);
+        this.DPSCalcsDataGrid = await this.generateDPSCalculations(period);
         // this.alert.hideSpinnerPromise(this.spinnerID).then(res => {
         this.dataReady = true;
         this.dispatch.updatePeriod(period);

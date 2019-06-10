@@ -2144,7 +2144,7 @@ export class ServerService {
       let rdb1:Database = this.addRDB(dbname);
       // this.loading.setContent("Processing non-work reports...");
       let res:AllDocsResponse = await rdb1.allDocs(GETDOCS);
-      Log.l(`getReportOthers(): Successfully retrieved other reports:\n`, res);
+      Log.l(`Server.getReportOthers(): Successfully retrieved other reports:\n`, res);
       let others:ReportOther[] = [];
       if(res && Array.isArray(res['rows'])) {
         for(let row of res.rows) {
@@ -2156,10 +2156,10 @@ export class ServerService {
           }
         }
       }
-      Log.l("getReportOthers(): Returning array of other reports:\n", others);
+      Log.l("Server.getReportOthers(): Returning array of other reports:\n", others);
       return others;
     } catch(err) {
-      Log.l(`getReportOthers(): Error retrieving ReportOther list!`);
+      Log.l(`Server.getReportOthers(): Error retrieving ReportOther list!`);
       Log.e(err);
       throw err;
     }
@@ -2172,7 +2172,7 @@ export class ServerService {
       let rdb1:Database = this.addRDB(dbname);
       // this.loading.setContent("Processing logistics reports...");
       let res:any = await rdb1.allDocs({ include_docs: true });
-      Log.l(`getReportLogistics(): Successfully retrieved other reports:\n`, res);
+      Log.l(`Server.getReportLogistics(): Successfully retrieved other reports:\n`, res);
       let logistics:ReportLogistics[] = [];
       if(res && Array.isArray(res['rows'])) {
         for(let row of res.rows) {
@@ -2201,7 +2201,7 @@ export class ServerService {
       let db1:Database = this.addDB(dbname);
       // this.loading.setContent("Processing timecard reports...");
       let res:any = await db1.allDocs({ include_docs: true });
-      Log.l(`getReportTimeCards(): Successfully retrieved timecard reports:\n`, res);
+      Log.l(`Server.getReportTimeCards(): Successfully retrieved timecard reports:\n`, res);
       if(res && Array.isArray(res['rows'])) {
         for(let row of res.rows) {
           if(row['id'][0] !== '_' && row['doc'] != undefined) {
@@ -2212,7 +2212,7 @@ export class ServerService {
           }
         }
       }
-      Log.l("getReportTimeCards(): Returning array of timecard reports:\n", reports);
+      Log.l("Server.getReportTimeCards(): Returning array of timecard reports:\n", reports);
       return reports;
       // let u:string = this.ud.getUsername();
       // let p:string = this.ud.getPassword();
@@ -2237,7 +2237,7 @@ export class ServerService {
       // Log.l("getTimecardsForTech(): Returning final reports array:\n", reports);
       // return reports;
     } catch(err) {
-      Log.l(`getReportTimeCards(): Error retrieving TimeCard report list`);
+      Log.l(`Server.getReportTimeCards(): Error retrieving TimeCard report list`);
       Log.l(err);
       // return reports;
       throw err;

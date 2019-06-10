@@ -894,7 +894,9 @@ export class ReportsPage implements OnInit,OnDestroy {
     let spinnerID;
     try {
       // let res:Report[] = await this.db.getAllReportsPlusNew();
-      spinnerID = await this.alert.showSpinnerPromise('Retrieving work reports from database...');
+      let count:number = await this.db.getDBDocCount('reports');
+      let text:string = `Retrieving ${count} work reports from database …`;
+      spinnerID = await this.alert.showSpinnerPromise(text);
       // this.dataReady = false;
       // this.resetReportsTable();
       this.resetTable(1);
@@ -921,7 +923,9 @@ export class ReportsPage implements OnInit,OnDestroy {
       // this.resetReportsTable();
       this.resetTable(2);
       // this.dataReady = false;
-      spinnerID = await this.alert.showSpinnerPromise('Retrieving misc reports from database...');
+      let count:number = await this.db.getDBDocCount('reports_other');
+      let text:string = `Retrieving ${count} misc reports from database …`;
+      spinnerID = await this.alert.showSpinnerPromise(text);
       let res:ReportOther[] = await this.data.getReportOthers(true);
       Log.l("getOthers(): Got others:\n", res);
       this.allOthers = res;
@@ -945,7 +949,9 @@ export class ReportsPage implements OnInit,OnDestroy {
       // this.resetReportsTable();
       this.resetTable(3);
       // this.dataReady = false;
-      spinnerID = await this.alert.showSpinnerPromise('Retrieving logistics reports from database...');
+      let count:number = await this.db.getDBDocCount('reports_other');
+      let text:string = `Retrieving ${count} logistics reports from database …`;
+      spinnerID = await this.alert.showSpinnerPromise(text);
       let res:ReportLogistics[] = await this.data.getReportLogistics(true);
       Log.l("getLogistics(): Got logistics:\n", res);
       this.allLogistics = res;

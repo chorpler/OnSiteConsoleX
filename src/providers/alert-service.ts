@@ -2,10 +2,20 @@ import { sprintf                                           } from 'sprintf-js'  
 import { Injectable                                        } from '@angular/core'        ;
 import { NavParams, LoadingController, PopoverController,  } from 'ionic-angular'        ;
 import { ModalController, AlertController, ToastController } from 'ionic-angular'        ;
-import { Log, SpinnerRecord, Spinners, UUID,               } from 'domain/onsitexdomain' ;
+import { Loading, Alert, Toast, Popover                    } from 'ionic-angular'        ;
+import { Log, UUID,                                        } from 'domain/onsitexdomain' ;
+// import { Log, SpinnerRecord, Spinners, UUID,               } from 'domain/onsitexdomain' ;
 
-export type SpinnerRecord = {id: string, spinner: any};
-export type Spinners = Map<string,any>;
+export interface SpinnerRecord {
+  id: string;
+  spinner: Loading;
+};
+export interface AlertRecord {
+  id:string;
+  alert:Alert;
+}
+export type Spinners = Map<string,Loading>;
+export type Alerts = Map<string,Alert>;
 
 @Injectable()
 export class AlertService {
@@ -16,19 +26,26 @@ export class AlertService {
   public toast          : any        ;
   public popoverData    : any        ;
   public nav            : any        ;
-  public static ALERTS  : Array<any> = [] ;
-  public static LOADINGS: Array<any> = [] ;
-  public static POPOVERS: Array<any> = [] ;
-  public static TOASTS  : Array<any> = [] ;
-  public static SPINNERS:Spinners = new Map();
+  // public static ALERTS  : Alert[] = [] ;
+  // public static LOADINGS: Loading[] = [] ;
+  // public static POPOVERS: Popover[] = [] ;
+  // public static TOASTS  : Toast[] = [] ;
+  // public static SPINNERS: Spinners = new Map();
   // public static SPINNERS:Spinners = [];
   // public static SPINNERS:Spinners = {};
-  public get SPINNERS():Spinners {return AlertService.SPINNERS;}    ;
-  public get spinners():Spinners {return AlertService.SPINNERS;}    ;
-  public get alerts():Array<any> {return AlertService.ALERTS;  }    ;
-  public get loadings():Array<any> {return AlertService.LOADINGS; } ;
-  public get popovers():Array<any> {return AlertService.POPOVERS; } ;
-  public get toasts():Array<any> {return AlertService.TOASTS; }     ;
+  // public get SPINNERS():Spinners {return AlertService.SPINNERS;}    ;
+  // public get spinners():Spinners {return AlertService.SPINNERS;}    ;
+  // public get alerts():Alert[] {return AlertService.ALERTS;  }    ;
+  // public get loadings():Loading[] {return AlertService.LOADINGS; } ;
+  // public get popovers():Popover[] {return AlertService.POPOVERS; } ;
+  // public get toasts():Toast[] {return AlertService.TOASTS; }     ;
+
+  public spinners:Spinners = new Map();
+  // public alerts:Alerts = new Map();
+  public alerts:AlertRecord[] = [];
+  public loadings:Loading[] = [];
+  public popovers:Popover[] = [];
+  public toasts:Toast[] = [];
 
   constructor(
     public loadingCtrl : LoadingController ,
@@ -55,21 +72,21 @@ export class AlertService {
         showBackdrop: false,
       });
 
-      let id = UUID();
+      let id:string = UUID.v4();
       // let id = loading.id;
-      let i = this.spinners.size;
-      Log.l(`showSpinner(): Created spinner #${i} '${id}':\n`, loading);
+      let i:number = this.spinners.size;
+      Log.l(`showSpinner(): Created spinner #${i} '${id}':`, loading);
       if(!id) {
-        Log.l("showSpinner(): Spinner ID 'undefined' for spinner, can't add it to Spinners Map:\n", loading);
+        Log.l("showSpinner(): Spinner ID 'undefined' for spinner, can't add it to Spinners Map:", loading);
       } else {
         this.spinners.set(id, loading);
       }
-      Log.l("showSpinner(): Active spinner array:\n", this.spinners);
+      Log.l("showSpinner(): Active spinner array:", this.spinners);
       try {
         let res:any = await loading.present();
         return id;
       } catch(err) {
-        Log.l("showSpinner(): Error presenting spinner!\n", loading);
+        Log.l("showSpinner(): Error presenting spinner!", loading);
         Log.e(err);
       }
 
@@ -88,61 +105,67 @@ export class AlertService {
     } catch(err) {
       Log.l(`showSpinnerPromise(): Error presenting spinner!`);
       Log.e(err);
-      throw new Error(err);
+      // throw err;
     }
   }
 
-  public showSpinner(text: string) {
-    const loading = this.loadingCtrl.create({
-      content: text,
-      showBackdrop: false,
-    });
-
-    let id = UUID();
-    // let id = loading.id;
-    let i = this.spinners.size;
-    Log.l(`showSpinner(): Created spinner #${i} '${id}':`, loading);
-    if(!id) {
-      Log.l("showSpinner(): Spinner ID 'undefined' for spinner, can't add it to Spinners Map:\n", loading);
-    } else {
-      this.spinners.set(id, loading);
-    }
-    Log.l("showSpinner(): Active spinner array:", this.spinners);
-    loading.present()
-    // ;
-    .catch((err) => {
-      Log.l("showSpinner(): Error presenting spinner!", loading);
+  public async showSpinner(text:string):Promise<string> {
+    try {
+      const loading = this.loadingCtrl.create({
+        content: text,
+        showBackdrop: false,
+      });
+  
+      let id:string = UUID.v4();
+      let i:number = this.spinners.size;
+      Log.l(`showSpinner(): Created spinner #${i} '${id}':`, loading);
+      if(!id) {
+        Log.l("showSpinner(): Spinner ID 'undefined' for spinner, can't add it to Spinners Map:", loading);
+      } else {
+        this.spinners.set(id, loading);
+      }
+      Log.l("showSpinner(): Active spinner array:", this.spinners);
+      try {
+        await loading.present();
+        return id;
+      } catch (error) {
+        Log.l("showSpinner(): Error presenting spinner!", loading);
+        Log.e(error);
+      }
+  
+      // this.loadings.push(loading);
+      // let spinner:SpinnerRecord = {id: id, spinner: loading};
+      // return
+      // }, 50);
+      // }).catch((err) => {
+      //   Log.l("showSpinner(): Error presenting spinner!\n", loading); Log.e(err);
+      // });
+      // this.spinners[id] = loading;
+      // return loading;
+      // return loading;
+      // return id;
+    } catch(err) {
+      Log.l(`showSpinner(): Error showing spinner`);
       Log.e(err);
-    });
-
-    // this.loadings.push(loading);
-    // let spinner:SpinnerRecord = {id: id, spinner: loading};
-    // return
-    // }, 50);
-    // }).catch((err) => {
-    //   Log.l("showSpinner(): Error presenting spinner!\n", loading); Log.e(err);
-    // });
-    // this.spinners[id] = loading;
-    // return loading;
-    // return loading;
-    return id;
+      // throw err;
+    }
   }
 
-  public getSpinner(spinID?:string) {
-    let spinners = this.spinners;
-    let length = spinners.size;
-    let spinner = undefined;
+  public getSpinner(spinID?:string):Loading {
+    let spinners:Spinners = this.spinners;
+    let length:number = spinners.size;
+    let spinner:Loading;
     if(!length) {
       Log.l("getSpinner(): No spinners found!");
       return spinner;
     }
-    let id;
-    if(spinID !== undefined) {
+    let id:string;
+    if(spinID != undefined) {
       id = spinID;
       spinner = spinners.get(id);
     } else {
-      let list = Array.from(spinners);
-      let entry = list.pop();
+      let list:[string, Loading][] = Array.from(spinners);
+      let entry:[string, Loading] = list.pop();
       id = entry[0];
       spinner = spinners.get(id);
       Log.l(`getSpinner(): Called with no ID, returning last added spinner...`);
@@ -164,21 +187,29 @@ export class AlertService {
     // });
   }
 
-  public hideSpinner(spinID?:string) {
-    let id = spinID ? spinID : "(no id provided)";
-    let spinner = this.getSpinner(spinID);
-    let spinners = this.spinners;
-    if(spinner) {
-      // id = spinner.id;
-      Log.l(`hideSpinner(): Hiding spinner '${id}':`, spinner);
-      spinner.dismiss().catch(err => {Log.l(`hideSpinner(): Error dismissing spinner '${id}'!`); Log.l(err); });
-      spinners.delete(id);
-    } else {
-      Log.l(`hideSpinner(): Could not find spinner '${id}' to hide! Spinners array is:\n`, spinners);
+  public async hideSpinner(spinID?:string):Promise<boolean> {
+    let id:string = spinID && typeof spinID === 'string' ? spinID : "(no id provided)";
+    try {
+      let spinner:Loading = this.getSpinner(spinID);
+      let spinners:Spinners = this.spinners;
+      if(spinner) {
+        Log.l(`hideSpinner(): Hiding spinner '${id}':`, spinner);
+          await spinner.dismiss();
+          spinners.delete(id);
+          return true;
+      } else {
+        Log.l(`hideSpinner(): Could not find spinner '${id}' to hide! Spinners array is:`, spinners);
+        return false;
+      }
+    } catch(err) {
+      Log.l(`hideSpinner(): Error dismissing spinner '${id}'!`);
+      Log.l(err);
+      return false;
+  // throw err;
     }
   }
 
-  public hideSpinnerPromise(spinID?:string) {
+  public hideSpinnerPromise(spinID?:string):Promise<any> {
     return new Promise((resolve,reject) => {
       let id = spinID ? spinID : "(no id provided)";
       let spinner = this.getSpinner(spinID);
@@ -241,57 +272,71 @@ export class AlertService {
     // });
   }
 
-  public showAlert(title: string, text: string) {
-    return new Promise((resolve, reject) => {
-      this.alert = this.alertCtrl.create({
+  public showAlert(title: string, text: string):Promise<string> {
+    return new Promise(async (resolve, reject) => {
+      let id:string = UUID();
+      let alert:Alert = this.alertCtrl.create({
         title: title,
         message: text,
         buttons: [
-          { text: 'OK', handler: () => { Log.l("OK clicked."); resolve(true); } }
-        ]
+          {
+            text: 'OK',
+            handler: () => {
+              Log.l(`OK clicked for alert ${id}:`, alert);
+              resolve(id);
+            }
+          }
+        ],
       });
-      this.alert.present();
+      this.alert = alert;
+      let record:AlertRecord = {
+        id: id,
+        alert: alert,
+      };
+      this.alerts.push(record);
+      await alert.present();
+      return id;
     });
   }
 
-  public async showAlertPromise(title: string, text: string):Promise<any> {
-    try {
-      return new Promise((resolve,reject) => {
-        let uuid = UUID.v4();
-        let alert = this.alertCtrl.create({
-          title: title,
-          message: text,
-          enableBackdropDismiss: false,
-          buttons: [
-            {
-              text: "OK", handler: () => {
-                let thisAlert;
-                let i:number = 0;
-                for(let alert of this.alerts) {
-                  if(alert.id === uuid) {
-                    thisAlert = alert.alert;
-                    break;
-                  }
-                  i++;
-                }
-                let alert = this.alerts.splice(i, 1)[0];
-                Log.l("OK clicked from:\n", alert);
-                window['onsitealertdismissed'] = alert;
-                resolve(true);
+  public showAlertPromise(title:string, text:string):Promise<string> {
+    return new Promise(async (resolve,reject) => {
+      let id:string = UUID.v4();
+      let alert:Alert = this.alertCtrl.create({
+        title: title,
+        message: text,
+        enableBackdropDismiss: false,
+        buttons: [
+          {
+            text: "OK", handler: () => {
+              // let thisAlert:Alert;
+              // let i:number = 0;
+              let i:number = this.alerts.findIndex((a:AlertRecord) => {
+                return a.id === id;
+              });
+              if(i > -1) {
+                let record:AlertRecord = this.alerts.splice(i, 1)[0];
+                let thisAlert:Alert = record.alert;
+                Log.l(`OK clicked from alert ${id}:`, thisAlert);
+                window['onsitealertdismissed'] = thisAlert;
               }
+              resolve(id);
             }
-          ]
-        });
-        let oneAlert = {alert: alert, id: uuid};
-        this.alerts.push(oneAlert);
-        this.alert = alert;
-        alert.present();
+          }
+        ]
       });
-    } catch(err) {
-      Log.l(`showAlertPromise(): Error showing alert`);
-      Log.e(err);
-      throw err;
-    }
+      // let oneAlert:AlertRecord = {id:uuid, alert: alert};
+      // this.alerts.set(id, oneAlert);
+      // this.alert = alert;
+      // alert.present();
+      let record:AlertRecord = {
+        id: id,
+        alert: alert,
+      };
+      this.alerts.push(record);
+      await alert.present();
+      return id;
+    });
   }
 
   /**

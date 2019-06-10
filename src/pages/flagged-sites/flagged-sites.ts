@@ -204,31 +204,40 @@ export class FlaggedSitesPage implements OnInit,OnDestroy {
     }
   }
 
-  public saveSortOrder() {
-    Log.l("saveSortOrder(): The sort order is now:");
-    let str = "";
-    for(let site of this.jobsites) {
-      str += site.sort_number + ": " + site.getSiteName() + "\n";
-    }
-    Log.l(str);
-    let len = this.jobsites.length;
-    for(let i = 0; i < len; i++) {
-      let site = this.jobsites[i];
-      site.sort_number = i+1;
-    }
-    Log.l("saveSortOrder(): Site array is now:\n", this.jobsites);
-    let spinnerID = this.alert.showSpinner("Saving all sites in new order...");
-    this.server.saveJobsiteSortOrder(this.jobsites).then(res => {
+  public async saveSortOrder():Promise<any> {
+    let spinnerID:string;
+    try {
+      Log.l("saveSortOrder(): The sort order is now:");
+      let str = "";
+      for(let site of this.jobsites) {
+        str += site.sort_number + ": " + site.getSiteName() + "\n";
+      }
+      Log.l(str);
+      let len = this.jobsites.length;
+      for(let i = 0; i < len; i++) {
+        let site = this.jobsites[i];
+        site.sort_number = i+1;
+      }
+      Log.l("saveSortOrder(): Site array is now:\n", this.jobsites);
+      spinnerID = await this.alert.showSpinnerPromise("Saving all sites in new order...");
+      let res = await this.server.saveJobsiteSortOrder(this.jobsites);
       Log.l("saveSortOrder(): Success!");
       this.alert.hideSpinner(spinnerID);
       this.sortMode = false;
-    }).catch(err => {
+      // }).catch(err => {
+      //   Log.l("saveSortOrder(): Failure!");
+      //   Log.e(err);
+      //   this.alert.hideSpinner(spinnerID);
+      //   // this.alert.showAlert("ERROR", "Could not save new sort order for job sites.");
+      //   this.notify.addError("ERROR", `Could not save new sort order for job sites: ${err.message}`)
+      // });
+    } catch(err) {
       Log.l("saveSortOrder(): Failure!");
       Log.e(err);
-      this.alert.hideSpinner(spinnerID);
+      await this.alert.hideSpinner(spinnerID);
       // this.alert.showAlert("ERROR", "Could not save new sort order for job sites.");
       this.notify.addError("ERROR", `Could not save new sort order for job sites: ${err.message}`)
-    });
+    }
   }
 
   public toggleSortMode() {

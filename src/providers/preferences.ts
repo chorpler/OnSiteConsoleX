@@ -602,23 +602,34 @@ export class Preferences {
     return Preferences.getSyncableDBList();
   }
 
-  public static getDB(dbkeys?:string|Array<string>, onlySyncableDatabases?:boolean):any {
+  public static getDB(dbkeys?:string|Array<string>, onlySyncableDatabases?:boolean):string|string[] {
     let keys:string[] = Preferences.getDBKeys();
     let out:string[] = [];
     let DB:any = Preferences.getDBRecords();
     if(typeof dbkeys === 'string') {
-      if(DB[dbkeys] !== undefined) {
+      if(DB[dbkeys] != undefined) {
         return DB[dbkeys];
       } else {
         return null;
       }
-    } else if(Array.isArray(dbkeys)) {
-      for(let dbKey of keys) {
-        for(let newKey of dbkeys) {
-          out.push(newKey);
+    } else if(Array.isArray(dbkeys) && dbkeys.length) {
+      // for(let dbKey of keys) {
+      //   for(let newKey of dbkeys) {
+      //     out.push(newKey);
+      //   }
+      // }
+      for(let key of dbkeys) {
+        if(key && typeof key === 'string') {
+          let dbname:string = DB[key];
+          if(dbname) {
+            out.push(dbname);
+          }
         }
       }
-      return out;
+      if(out.length) {
+        return out;
+      }
+      return null;
     } else {
       return DB;
     }

@@ -100,32 +100,36 @@ export class EmployeesBetaPage implements OnInit,OnDestroy {
     this.cancelSubscriptions();
   }
 
-  public runWhenReady() {
-    let spinnerID = this.alert.showSpinner('Retrieving employee list...');
-    this.styleColEdit = {'max-width':'50px', 'width': '50px'};
-    // this.styleColIndex = {'max-width':'50px', 'width': '50px'};
-    this.selected = this.fields;
-    this.ctxItems = [
-      {label: 'Edit Employee', icon: 'fa-user', command: (event) => this.editEmployee(this.selectedEmployee)},
-    ];
-
-    this.initializeSubscriptions();
-    this.updatePageSizes();
-
-    this.generateFieldList();
-    // this.createFields();
-    this.db.getEmployees().then((docs: Array<Employee>) => {
-      Log.l("EmployeesPage: got results:\n", docs);
-      docs.forEach((employeeDoc) => {
-        let emp1 = new Employee();
-        emp1.readFromDoc(employeeDoc);
-        this.allEmployees.push(emp1);
-        // let emp2 = new Employee();
-        // emp2.readFromDoc(employeeDoc);
-        // this.allEmployees.push(emp1);
-        // this.displayEmployees.push(emp2);
-      });
-      Log.l("EmployeesPage: final employees list:\n", this.allEmployees);
+  public async runWhenReady() {
+    let spinnerID;
+    try {
+      
+      spinnerID = this.alert.showSpinner('Retrieving employee list...');
+      this.styleColEdit = {'max-width':'50px', 'width': '50px'};
+      // this.styleColIndex = {'max-width':'50px', 'width': '50px'};
+      this.selected = this.fields;
+      this.ctxItems = [
+        {label: 'Edit Employee', icon: 'fa-user', command: (event) => this.editEmployee(this.selectedEmployee)},
+      ];
+  
+      this.initializeSubscriptions();
+      this.updatePageSizes();
+  
+      this.generateFieldList();
+      // this.createFields();
+      // let docs:Employee[] = await this.db.getEmployees();
+      // Log.l("EmployeesPage: got results:", docs);
+      // docs.forEach((employeeDoc) => {
+      //   let emp1 = new Employee();
+      //   emp1.readFromDoc(employeeDoc);
+      //   this.allEmployees.push(emp1);
+      //   // let emp2 = new Employee();
+      //   // emp2.readFromDoc(employeeDoc);
+      //   // this.allEmployees.push(emp1);
+      //   // this.displayEmployees.push(emp2);
+      // });
+      this.allEmployees = await this.db.getEmployees();
+      Log.l("EmployeesPage: final employees list:", this.allEmployees);
       this.employees = this.allEmployees.filter((a: Employee) => {
         if (!this.showAllEmployees) {
           return a.active;
@@ -156,27 +160,37 @@ export class EmployeesBetaPage implements OnInit,OnDestroy {
         tech.location = this.data.getFullName('location', location);
         tech.locID = this.data.getFullName('locID', locID);
       }
-      this.alert.hideSpinner(spinnerID);
+      await this.alert.hideSpinner(spinnerID);
       this.dataReady = true;
-      // setTimeout(() => {
-      //   let newColumns = [
-      //     // "updated",
-      //     "avatarName",
-      //     "lastName",
-      //     "firstName",
-      //     "client",
-      //     "location",
-      //     "locID",
-      //   ];
-      //   this.selectedColumns = newColumns;
-      //   this.columnsChanged();
-      // }, 1000);
-    }).catch((err) => {
-      this.alert.hideSpinner(spinnerID);
-      Log.l("Error retrieving docs from users DB!");
+        // setTimeout(() => {
+        //   let newColumns = [
+        //     // "updated",
+        //     "avatarName",
+        //     "lastName",
+        //     "firstName",
+        //     "client",
+        //     "location",
+        //     "locID",
+        //   ];
+        //   this.selectedColumns = newColumns;
+        //   this.columnsChanged();
+        // }, 1000);
+      // }).catch((err) => {
+      //   this.alert.hideSpinner(spinnerID);
+      //   Log.l("Error retrieving docs from users DB!");
+      //   Log.e(err);
+      //   this.notify.addError("ERROR", `Error retrieving employees from database: '${err.message}'`, 10000)
+      // });
+      // return res;
+    } catch(err) {
+      Log.l("EmployeesBeta.runWhenReady(): Error retrieving docs from users DB!");
       Log.e(err);
+      await this.alert.hideSpinnerPromise(spinnerID);
       this.notify.addError("ERROR", `Error retrieving employees from database: '${err.message}'`, 10000)
-    });
+      // Log.l(`EmployeesBeta.runWhenReady(): Error running page code`);
+      // Log.e(err);
+      // throw err;
+    }
   }
 
   public initializeSubscriptions() {

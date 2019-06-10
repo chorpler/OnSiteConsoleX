@@ -48,17 +48,25 @@ export class ScheduleListPage implements OnInit {
 
   ngOnInit() {
     Log.l("ScheduleListPage: ngOnInit() called");
-    if(this.navParams.get('mode') !== undefined) {
-      this.mode = this.navParams.get('mode');
+    if(this.data.isAppReady()) {
+      this.runWhenReady();
     }
-    if(this.navParams.get('schedule') !== undefined) {
-      this.schedule = this.navParams.get('schedule');
-    }
-    if(this.navParams.get('schedules') !== undefined) {
-      this.schedules = this.navParams.get('schedules');
-    }
-    let spinnerID = this.alert.showSpinner('Loading schedules...');
-    this.initializeScheduleList().then((res:Array<Schedule>) => {
+  }
+
+  public async runWhenReady():Promise<any> {
+    let spinnerID:string;
+    try {
+      if(this.navParams.get('mode') !== undefined) {
+        this.mode = this.navParams.get('mode');
+      }
+      if(this.navParams.get('schedule') !== undefined) {
+        this.schedule = this.navParams.get('schedule');
+      }
+      if(this.navParams.get('schedules') !== undefined) {
+        this.schedules = this.navParams.get('schedules');
+      }
+      spinnerID = await this.alert.showSpinner('Loading schedules...');
+      let res:Schedule[] = await this.initializeScheduleList();
       // this.allSchedules = res.sort(_sortSchedule);
       this.allSchedules = res;
       if(!this.showAll) {
@@ -69,14 +77,14 @@ export class ScheduleListPage implements OnInit {
         this.schedules = this.allSchedules.slice(0);
       }
       this.schedules = this.schedules.sort(_sortSchedule);
-      this.alert.hideSpinner(spinnerID);
+      await this.alert.hideSpinner(spinnerID);
       this.dataReady = true;
-    }).catch(err => {
+    } catch(err) {
       Log.l("ScheduleList: error loading schedule list!");
       Log.e(err);
-      this.alert.hideSpinner(spinnerID);
+      await this.alert.hideSpinner(spinnerID);
       this.alert.showAlert("ERROR", "Error while loading schedule list:<br>\n<br>\n" + err);
-    });
+    }
   }
 
   public async initializeScheduleList() {

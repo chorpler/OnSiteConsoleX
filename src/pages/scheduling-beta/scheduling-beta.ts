@@ -159,135 +159,146 @@ export class SchedulingBetaPage implements OnInit,OnDestroy {
     this.cancelSubscriptions();
   }
 
-  public runWhenReady() {
-    // let user_prefs = this.prefs.get
-    if(this.navParams.get('modal') !== undefined) { this.modal = this.navParams.get('modal'); }
-    this.initializeSubscriptions();
-
-    let user = this.data.getUser();
-    let name = user.getUsername(), filtername = name;
-    if(name === 'Chorpler') {
-      filtername = 'grumpy';
-    }
-    this.schedules = this.data.getSchedules().filter((a:Schedule) => {
-      // let result = (a.creator === filtername);
-      // if(name === 'Chorpler') {
-        // result = result || (a.creator === name);
+  public async runWhenReady() {
+    let spinnerID:string;
+    try {
+      // let user_prefs = this.prefs.get
+      if(this.navParams.get('modal') !== undefined) { this.modal = this.navParams.get('modal'); }
+      this.initializeSubscriptions();
+  
+      let user = this.data.getUser();
+      let name = user.getUsername(), filtername = name;
+      if(name === 'Chorpler') {
+        filtername = 'grumpy';
+      }
+      this.schedules = this.data.getSchedules().filter((a:Schedule) => {
+        // let result = (a.creator === filtername);
+        // if(name === 'Chorpler') {
+          // result = result || (a.creator === name);
+        // }
+        // return result;
+        // return a.creator === filtername;
+        return true;
+      }).sort((a:Schedule,b:Schedule) => {
+        let startA = a.start.format("YYYY-MM-DD");
+        let startB = b.start.format("YYYY-MM-DD");
+        return startA > startB ? -1 : startA < startB ? 1 : 0;
+      });
+  
+      this.sites = this.data.getData('sites')
+      // .filter((a:Jobsite) => {
+      //   return a.site_active;
+      // })
+      .sort((a:Jobsite, b:Jobsite) => {
+        let an = a.sort_number;
+        let bn = b.sort_number;
+        return an < bn ? -1 : an > bn ? 1 : 0;
+      });
+  
+      let unassignedSite = this.sites.find((a:Jobsite) => {
+        return a.client.name === 'XX';
+      });
+      this.unassignedSite = unassignedSite;
+  
+      let techs = this.data.getData('employees');
+      this.allTechs = techs.slice(0).sort(_techSort);
+      this.techs = techs.filter(_techFilter);
+      this.shiftTypes = this.data.getConfigData('rotations');
+      this.shiftHeaders = this.data.getConfigData('rotations');
+      // this.clients = this.data.getConfigData('clients');
+      this.clients = _dedupe(this.sites.map((a:Jobsite) => a.client), 'fullName');
+  
+      if(this.navParams.get('schedule') !== undefined) {
+        this.schedule = this.navParams.get('schedule');
+      } else {
+        this.schedule = this.schedules[0];
+      }
+  
+      Log.l("SchedulingBeta: Setting this.schedule to:", this.schedule);
+  
+      this.start = this.schedule.getStartDate();
+      this.end   = this.schedule.getEndDate();
+      // this.start = this.getScheduleStartDate().startOf('day');
+      // this.end = moment(this.start).add(6, 'days');
+      this.dateStart  = moment(this.start).toDate();
+      this.dateEnd    = moment(this.end).toDate();
+      this.strDateEnd = moment(this.dateEnd).format("DD MMM YYYY");
+      this.oldStartDate = moment(this.start);
+  
+      this.schedule.loadSites(this.sites);
+      // this.techs = [];
+      // this.shiftTypes = [];
+      // this.dateStart = this.start.toDate();
+      // this.dateEnd    = this.end.toDate();
+      // this.strDateEnd = this.end.format("DD MMM YYYY");
+      this.minDate = moment().startOf('day').toDate();
+  
+      spinnerID = await this.alert.showSpinner('Retrieving scheduling data...');
+      // this.schedules = this.data.getSchedules();
+      // this.techTotal = {};
+      // for (let client of this.clients) {
+      //   this.techTotal[client.fullName] = 0;
       // }
-      // return result;
-      // return a.creator === filtername;
-      return true;
-    }).sort((a:Schedule,b:Schedule) => {
-      let startA = a.start.format("YYYY-MM-DD");
-      let startB = b.start.format("YYYY-MM-DD");
-      return startA > startB ? -1 : startA < startB ? 1 : 0;
-    });
-
-    this.sites = this.data.getData('sites')
-    // .filter((a:Jobsite) => {
-    //   return a.site_active;
-    // })
-    .sort((a:Jobsite, b:Jobsite) => {
-      let an = a.sort_number;
-      let bn = b.sort_number;
-      return an < bn ? -1 : an > bn ? 1 : 0;
-    });
-
-    let unassignedSite = this.sites.find((a:Jobsite) => {
-      return a.client.name === 'XX';
-    });
-    this.unassignedSite = unassignedSite;
-
-    let techs = this.data.getData('employees');
-    this.allTechs = techs.slice(0).sort(_techSort);
-    this.techs = techs.filter(_techFilter);
-    this.shiftTypes = this.data.getConfigData('rotations');
-    this.shiftHeaders = this.data.getConfigData('rotations');
-    // this.clients = this.data.getConfigData('clients');
-    this.clients = _dedupe(this.sites.map((a:Jobsite) => a.client), 'fullName');
-
-    if(this.navParams.get('schedule') !== undefined) {
-      this.schedule = this.navParams.get('schedule');
-    } else {
-      this.schedule = this.schedules[0];
-    }
-
-    Log.l("SchedulingBeta: Setting this.schedule to:\n", this.schedule);
-
-    this.start = this.schedule.getStartDate();
-    this.end   = this.schedule.getEndDate();
-    // this.start = this.getScheduleStartDate().startOf('day');
-    // this.end = moment(this.start).add(6, 'days');
-    this.dateStart  = moment(this.start).toDate();
-    this.dateEnd    = moment(this.end).toDate();
-    this.strDateEnd = moment(this.dateEnd).format("DD MMM YYYY");
-    this.oldStartDate = moment(this.start);
-
-    this.schedule.loadSites(this.sites);
-    // this.techs = [];
-    // this.shiftTypes = [];
-    // this.dateStart = this.start.toDate();
-    // this.dateEnd    = this.end.toDate();
-    // this.strDateEnd = this.end.format("DD MMM YYYY");
-    this.minDate = moment().startOf('day').toDate();
-
-    let spinnerID = this.alert.showSpinner('Retrieving scheduling data...');
-    // this.schedules = this.data.getSchedules();
-    // this.techTotal = {};
-    // for (let client of this.clients) {
-    //   this.techTotal[client.fullName] = 0;
-    // }
-
-    this.shiftCount  = this.shiftTypes.length;
-    this.siteCount   = this.sites.length;
-    this.techCount   = this.techs.length;
-    // this.shiftsData  = {};
-    this.tmpSlots    = [];
-    this.dragOngoing = false;
-
-    // for (let site of this.sites) {
-    //   this.shiftsData[site.schedule_name] = {};
-    //   for (let shft of this.shiftTypes) {
-    //     let oneShift = new Array();
-    //     this.shiftsData[site.schedule_name][shft.name] = oneShift;
-    //   }
-    // }
-
-    // let previousSchedule = this.prefs.getConsolePrefs().lastScheduleUsed;
-    // if(!previousSchedule) {
-    //   this.schedule = this.schedules[0];
-    // } else {
-    //   this.schedule = this.schedules.find(a => {
-    //     return a['start'].format("YYYY-MM-DD") === previousSchedule;
-    //   })
-    // }
-    // Log.l("Scheduling: About to getSchedule() ...");
-    let schedule = this.schedule;
-    if (schedule && schedule['schedule']) {
-      let tempSchedule = Object.assign({}, schedule);
-      Log.l("Scheduling: got Schedule!\n", tempSchedule);
-      this.doc = schedule;
-      // Log.l("Scheduling: about to readScheduleFromDoc(): ", schedule['schedule']);
-      // this.readScheduleFromDoc(schedule['schedule']);
-      // this.shiftsData =
-      schedule.createSchedulingObject(this.sites, this.techs);
-      // Log.l("Scheduling: about to removeUsedTechs()");
-      // this.removeUsedTechs();
-      Log.l("SchedulingBeta: about to getScheduleStats()");
-      this.getScheduleStats();
-      // this.schedule = schedule;
-      let name = this.schedule ? this.schedule.getScheduleTitle() : 'unknown';
-      this.title = `Scheduling (${name})`;
-      Log.l("SchedulingBeta: schedule is ready.");
-      this.scheduleChosen(schedule);
-      this.initializeHighlights();
-      this.scheduleReady = true;
-      this.alert.hideSpinner(spinnerID);
-    } else {
-      this.alert.hideSpinner(spinnerID);
+  
+      this.shiftCount  = this.shiftTypes.length;
+      this.siteCount   = this.sites.length;
+      this.techCount   = this.techs.length;
+      // this.shiftsData  = {};
+      this.tmpSlots    = [];
+      this.dragOngoing = false;
+  
+      // for (let site of this.sites) {
+      //   this.shiftsData[site.schedule_name] = {};
+      //   for (let shft of this.shiftTypes) {
+      //     let oneShift = new Array();
+      //     this.shiftsData[site.schedule_name][shft.name] = oneShift;
+      //   }
+      // }
+  
+      // let previousSchedule = this.prefs.getConsolePrefs().lastScheduleUsed;
+      // if(!previousSchedule) {
+      //   this.schedule = this.schedules[0];
+      // } else {
+      //   this.schedule = this.schedules.find(a => {
+      //     return a['start'].format("YYYY-MM-DD") === previousSchedule;
+      //   })
+      // }
+      // Log.l("Scheduling: About to getSchedule() ...");
+      let schedule = this.schedule;
+      if(schedule && schedule['schedule']) {
+        let tempSchedule = Object.assign({}, schedule);
+        Log.l("Scheduling: got Schedule!\n", tempSchedule);
+        this.doc = schedule;
+        // Log.l("Scheduling: about to readScheduleFromDoc(): ", schedule['schedule']);
+        // this.readScheduleFromDoc(schedule['schedule']);
+        // this.shiftsData =
+        schedule.createSchedulingObject(this.sites, this.techs);
+        // Log.l("Scheduling: about to removeUsedTechs()");
+        // this.removeUsedTechs();
+        Log.l("SchedulingBeta: about to getScheduleStats()");
+        this.getScheduleStats();
+        // this.schedule = schedule;
+        let name = this.schedule ? this.schedule.getScheduleTitle() : 'unknown';
+        this.title = `Scheduling (${name})`;
+        Log.l("SchedulingBeta: schedule is ready.");
+        this.scheduleChosen(schedule);
+        this.initializeHighlights();
+        this.scheduleReady = true;
+        await this.alert.hideSpinner(spinnerID);
+      } else {
+        await this.alert.hideSpinner(spinnerID);
+        this.scheduleReady = false;
+        this.notify.addError("PROBLEM", "Could not read schedule. Please load a new schedule.", 10000);
+        // this.alert.showAlert("PROBLEM", "Could not read schedule.  Please load a new schedule.");
+      }
+    } catch(err) {
+      Log.l(`SchedulingBeta.runWhenReady(): Error loading schedule`);
+      Log.e(err);
+      // Log.e(err);
+      // throw err;
+      await this.alert.hideSpinner(spinnerID);
       this.scheduleReady = false;
       this.notify.addError("PROBLEM", "Could not read schedule. Please load a new schedule.", 10000);
-      // this.alert.showAlert("PROBLEM", "Could not read schedule.  Please load a new schedule.");
     }
   }
 
@@ -399,45 +410,47 @@ export class SchedulingBetaPage implements OnInit,OnDestroy {
   //   })
   // }
 
-  public persistSchedule(startDate?:any, endDate?:any) {
-    Log.l("Persisting schedule to CouchDB server...");
-    let spinnerID = this.alert.showSpinner('Saving...');
-    let doc:any = {}, key = "current";
-    if (typeof startDate === 'string') {
-      // key = startDate + "_" + endDate;
-      key = startDate;
-    } else if (isMoment(startDate)) {
-      // key = startDate.format("YYYY-MM-DD") + "_" + endDate.format("YYYY-MM-DD");
-      key = startDate.format("YYYY-MM-DD");
-    }
-    // doc['_id'] = this.doc['_id'] || key;
-    let user = this.data.getUser();
-    let name = user.getUsername();
-    if(name !== 'grumpy' && name !== 'Chorpler') {
-      doc._id = `${key}_${name}`;
-    } else {
-      doc._id = key;
-    }
-    if (this.doc['_rev']) {
-      doc['_rev'] = this.doc['_rev'];
-    }
-    doc.start   = moment(this.start).format("YYYY-MM-DD");
-    doc.startXL = moment(this.start).toExcel(true);
-    doc.end     = moment(this.end).format("YYYY-MM-DD");
-    doc.endXL   = moment(this.end).toExcel(true);
-    doc.creator = name;
-    doc.type    = 'week';
-    this.saveScheduleToDatabase(doc, true).then(res => {
+  public async persistSchedule(startDate?:any, endDate?:any):Promise<any> {
+    let spinnerID:string;
+    try {
+      Log.l("persistSchedule(): Persisting schedule to CouchDB server...");
+      spinnerID = await this.alert.showSpinner('Saving...');
+      let doc:any = {}, key = "current";
+      if(typeof startDate === 'string') {
+        // key = startDate + "_" + endDate;
+        key = startDate;
+      } else if (isMoment(startDate)) {
+        // key = startDate.format("YYYY-MM-DD") + "_" + endDate.format("YYYY-MM-DD");
+        key = startDate.format("YYYY-MM-DD");
+      }
+      // doc['_id'] = this.doc['_id'] || key;
+      let user = this.data.getUser();
+      let name = user.getUsername();
+      if(name !== 'grumpy' && name !== 'Chorpler') {
+        doc._id = `${key}_${name}`;
+      } else {
+        doc._id = key;
+      }
+      if (this.doc['_rev']) {
+        doc['_rev'] = this.doc['_rev'];
+      }
+      doc.start   = moment(this.start).format("YYYY-MM-DD");
+      doc.startXL = moment(this.start).toExcel(true);
+      doc.end     = moment(this.end).format("YYYY-MM-DD");
+      doc.endXL   = moment(this.end).toExcel(true);
+      doc.creator = name;
+      doc.type    = 'week';
+      let res = await this.saveScheduleToDatabase(doc, true);
       Log.l("persistSchedule(): Successfully saved schedule.");
       this.alert.hideSpinner(spinnerID);
       this.updated = false;
-    }).catch(err => {
+    } catch(err) {
       Log.l("persistSchedule(): Error saving schedule.");
       Log.e(err);
-      this.alert.hideSpinner(spinnerID);
+      await this.alert.hideSpinner(spinnerID);
       this.notify.addError('ERROR', `Error while saving schedule: '${err.message}'`, 10000);
       // this.alert.showAlert('ERROR', 'Error while saving schedule:<br>\n<br>\n' + err);
-    });
+    }
   }
 
   public saveVisibleSchedule(schedule:Schedule) {
