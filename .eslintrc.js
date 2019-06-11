@@ -5,7 +5,10 @@ module.exports = {
         "es6": true,
         "node": true,
     },
-    "extends": "eslint:recommended",
+    "extends": [
+      "eslint:recommended",
+      "plugin:you-dont-need-momentjs/recommended",
+    ],
     "parserOptions": {
         "sourceType": "module",
         "ecmaVersion": 2017,
