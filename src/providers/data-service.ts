@@ -482,8 +482,19 @@ export class OSData {
       this.status.ready   = false;
       // this.alert.clearSpinners();
       spinnerID = await this.alert.showSpinnerPromise("Retrieving data from databases …");
-      let loading:Loading|{setContent:Function} = this.alert.getSpinner(spinnerID);
-      loading = loading && typeof loading.setContent === 'function' ? loading : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
+      // let loading:Loading|{setContent:Function} = this.alert.getSpinner(spinnerID);
+      // loading = loading && typeof loading.setContent === 'function' ? loading : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
+      // let loading:Loading|{setContent:Function} = this.alert.getSpinner(spinnerID);
+      // loading = loading && typeof loading.setContent === 'function' ? loading : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
+      let loading:Loading = this.alert.getSpinner(spinnerID);
+      function updateLoaderStatus(text:string) {
+        let loadText:string = "Retrieving data from:<br>\n";
+        if(loading && typeof loading.setContent === 'function') {
+          loading.setContent(loadText + text + "…");
+        } else {
+          Log.l("Fake loading controller text:\n", text);
+        }
+      }
       let tech:Employee = await this.server.getEmployee(this.auth.getUser());
       this.user = tech;
       // let res:any = await this.server.getUserData(this.auth.getUser());
@@ -505,12 +516,14 @@ export class OSData {
       this.loaded.employees = true;
       this.loaded.logistics = true;
       this.loaded.timecards = true;
-      loading.setContent("Retrieving data from:<br>\nsesa-scheduling …");
+      // loading.setContent("Retrieving data from:<br>\nsesa-scheduling …");
+      updateLoaderStatus("sesa-scheduling");
       res = await this.db.getSchedules(false, this.dbdata.employees);
       this.schedules = new Schedules();
       this.schedules.setSchedules(res);
       this.loaded.schedules = true;
-      loading.setContent("Retrieving data from:<br>\nsesa-config …");
+      // loading.setContent("Retrieving data from:<br>\nsesa-config …");
+      updateLoaderStatus("sesa-config");
       res = await this.db.getAllConfigData();
       this.config.clients         = res['clients']         ;
       this.config.locations       = res['locations']       ;

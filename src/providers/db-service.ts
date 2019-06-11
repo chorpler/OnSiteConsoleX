@@ -894,9 +894,10 @@ export class DBService {
     }
   }
 
-  public async getSchedules(archives?:boolean, employees?:Employee[]):Promise<Schedule[]> {
-    try {
-      Log.l("DB.getSchedules(): Firing up...");
+  // public async getSchedules(archives?:boolean, employees?:Employee[]):Promise<Schedule[]> {
+  public async getSchedules(archives?:boolean, employees?:Employee[], spinnerID?:string):Promise<Schedule[]> {
+      try {
+      Log.l("DB.getSchedules(): Firing up, spinnerID is:", spinnerID);
       let dbname:string = this.prefs.getDB('scheduling');
       let db1 = this.addDB(dbname);
       let now = moment().startOf('day');
