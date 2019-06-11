@@ -105,7 +105,7 @@ export class FlaggedEmployeesPage implements OnInit,OnDestroy {
   public async runWhenReady() {
     let spinnerID;
     try {
-      spinnerID = this.alert.showSpinner('Retrieving employee list...');
+      spinnerID = await this.alert.showSpinner('Retrieving employee list...');
       this.styleColEdit = {'max-width':'50px', 'width': '50px'};
       // this.styleColIndex = {'max-width':'50px', 'width': '50px'};
       this.selected = this.fields;
@@ -118,8 +118,8 @@ export class FlaggedEmployeesPage implements OnInit,OnDestroy {
 
       this.generateFieldList();
       // this.createFields();
-      let techs:Array<Employee> = await this.db.getEmployees();
-      Log.l("FlaggedEmployeesPage: got results:\n", techs);
+      let techs:Employee[] = await this.db.getEmployees();
+      Log.l("FlaggedEmployeesPage: got results:", techs);
       this.allEmployees = techs;
       this.employees = this.allEmployees.filter((a:Employee) => {
         if(!this.showAllEmployees) {

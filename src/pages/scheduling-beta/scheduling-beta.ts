@@ -379,37 +379,6 @@ export class SchedulingBetaPage implements OnInit,OnDestroy {
     return hilite;
   }
 
-  // public saveScheduleCustom() {
-  //   let name;
-  //   this.alert.showPrompt("Custom Save", "Enter a custom name for the schedule").then(res => {
-  //     name = res;
-  //     if(name) {
-  //       let spinnerID = this.alert.showSpinner(`Saving as ${res}...`);
-  //       let schedule:Schedule = new Schedule();
-  //       // schedule.setSchedule(this.shiftsData);
-  //       schedule.start = moment(this.start);
-  //       schedule.startXL = moment(this.start).toExcel(true);
-  //       schedule.end = moment(this.end);
-  //       schedule.endXL = moment(this.end).toExcel(true);
-  //       let doc = schedule.serialize();
-  //       this.saveScheduleToDatabase(doc, true).then(res => {
-  //         Log.l("saveScheduleCustom(): Successfully saved schedule.");
-  //         this.alert.hideSpinner(spinnerID);
-  //         this.updated = false;
-  //       }).catch(err => {
-  //         Log.l("saveScheduleCustom(): Error saving schedule.");
-  //         Log.e(err);
-  //         this.alert.hideSpinner(spinnerID);
-  //         this.notify.addError('ERROR', `Error while saving schedule as ${name}: '${err.message}'`, 10000);
-  //         // this.alert.showAlert('ERROR', `Error while saving schedule as ${name}:<br>\n<br>\n` + err.message);
-  //       });
-  //     }
-  //   }).catch(err => {
-  //     Log.l("saveScheduleCustom(): Error getting schedule name.");
-  //     Log.e(err);
-  //   })
-  // }
-
   public async persistSchedule(startDate?:any, endDate?:any):Promise<any> {
     let spinnerID:string;
     try {

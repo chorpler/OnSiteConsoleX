@@ -2055,6 +2055,15 @@ export class ReportsPage implements OnInit,OnDestroy {
       return;
     }
     dt.selection = null;
+    if(dt === this.dt) {
+      this.selectedReports = null;
+    } else if(dt === this.othersTable) {
+      this.selectedReportsOther = null;
+    } else if(dt === this.logisticsTable) {
+      this.selectedReportsLogistics = null;
+    } else if(dt === this.timecardsTable) {
+      this.selectedTimeCards = null;
+    }
     return dt;
   }
 

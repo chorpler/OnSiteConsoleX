@@ -67,10 +67,10 @@ export class TechPhonesPage implements OnInit,OnDestroy {
   }
 
   public async runWhenReady() {
-    let spinnerID;
+    let spinnerID:string;
     try {
-      spinnerID = this.alert.showSpinner("Retrieving latest tech login data...");
       if(this.navParams.get('modalMode') != undefined) { this.modalMode = this.navParams.get('modalMode'); }
+      spinnerID = await this.alert.showSpinnerPromise("Retrieving latest tech login data...");
       this.initializeFields();
       let res:any[] = await this.db.getTechPhones();
       let loginArray = res;
@@ -85,14 +85,14 @@ export class TechPhonesPage implements OnInit,OnDestroy {
         let bT = b.timestamp;
         return aT > bT ? -1 : aT < bT ? 1 : 0;
       });
-      this.alert.hideSpinner(spinnerID);
+      await this.alert.hideSpinnerPromise(spinnerID);
       this.dataReady = true;
       this.setPageLoaded();
       return this.techPhoneLogins;
     } catch(err) {
-      this.alert.hideSpinner(spinnerID);
       Log.l(`runWhenReady(): Error getting tech phone login list!`);
       Log.e(err);
+      await this.alert.hideSpinnerPromise(spinnerID);
       this.notify.addError("ERROR", `Error getting tech login list from server: '${err.message}'`, 10000);
     }
   }

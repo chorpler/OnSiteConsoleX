@@ -128,24 +128,24 @@ export class FlaggedReportsOtherPage implements OnInit,OnDestroy {
     return fields;
   }
 
-  public getData() {
-    let spinnerID;
-    return new Promise((resolve, reject) => {
-      spinnerID = this.alert.showSpinner("Retrieving other reports...");
-      this.db.getReportOthers(spinnerID).then((res:Array<ReportOther>) => {
-        Log.l("getData(): Got reports:\n", res);
-        this.allOthers = res;
-        this.data.setData('reports', res.slice(0));
-        this.others = this.allOthers.slice(0);
-        this.alert.hideSpinner(spinnerID);
-        resolve(res);
-      }).catch(err => {
-        Log.l("getData(): Error getting Other Reports list!");
-        Log.e(err);
-        this.alert.hideSpinner(spinnerID);
-        reject(err);
-      });
-    });
+  public async getData():Promise<ReportOther[]> {
+    let spinnerID:string;
+    // return new Promise((resolve, reject) => {
+    try {
+      spinnerID = await this.alert.showSpinner("Retrieving other reports...");
+      let res:ReportOther[] = await this.db.getReportOthers(spinnerID);
+      Log.l("getData(): Got reports:\n", res);
+      this.allOthers = res;
+      this.data.setData('reports', res.slice(0));
+      this.others = this.allOthers.slice(0);
+      await this.alert.hideSpinner(spinnerID);
+      return res;
+    } catch(err) {
+      Log.l("getData(): Error getting Other Reports list!");
+      Log.e(err);
+      await this.alert.hideSpinner(spinnerID);
+      throw err;
+    }
   }
 
   public onRowSelect(event:any) {

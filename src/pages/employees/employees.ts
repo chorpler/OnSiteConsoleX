@@ -126,11 +126,11 @@ export class EmployeesPage implements OnInit,OnDestroy,AfterViewInit {
   }
 
   public async runWhenReady() {
-    let spinnerID;
+    let spinnerID:string;
     try {
       if(this.navParams.get('modalMode') !== undefined) { this.modalMode = this.navParams.get('modalMode'); }
       if(this.navParams.get('mode') !== undefined) { this.mode = this.navParams.get('mode'); }
-      // let spinnerID = this.alert.showSpinner('Retrieving employee list...');
+      // spinnerID = await this.alert.showSpinnerPromise('Retrieving employee list...');
       // this.styleColEdit   = {'max-width':'50px', 'width': '50px'};
       this.styleColActive = {'max-width':'50px', 'width': '50px'};
       // this.styleColIndex = {'max-width':'50px', 'width': '50px'};
@@ -144,18 +144,18 @@ export class EmployeesPage implements OnInit,OnDestroy,AfterViewInit {
 
       this.generateFieldList();
       // this.createFields();
-      let employees:Employee[] = [];
+      // let employees:Employee[] = [];
       let elist:Employee[] = this.data.getData('employees');
       if(elist && elist.length > 0) {
         this.allEmployees = elist;
       } else {
-        spinnerID = await this.alert.showSpinnerPromise('Retrieving employee list...');
+        spinnerID = await this.alert.showSpinnerPromise('Retrieving employee list …');
         let docs:Employee[] = await this.db.getEmployees();
         let out:any = await this.alert.hideSpinnerPromise(spinnerID);
         Log.l("EmployeesPage: got results:\n", docs);
         this.allEmployees = docs;
       }
-      Log.l("EmployeesPage: final employees list:\n", this.allEmployees);
+      Log.l("EmployeesPage: allEmployees list:", this.allEmployees);
       this.employees = this.allEmployees.filter((a: Employee) => {
         if(!this.showAllEmployees) {
           return a.active;
@@ -193,7 +193,7 @@ export class EmployeesPage implements OnInit,OnDestroy,AfterViewInit {
     } catch(err) {
       Log.l(`Employees.runWhenReady(): Error during initialization!`);
       Log.e(err);
-      let out:any = await this.alert.hideSpinnerPromise(spinnerID);
+      await this.alert.hideSpinnerPromise(spinnerID);
       // this.alert.hideSpinner(spinnerID);
       // Log.l("Error retrieving docs from users DB!");
       // Log.e(err);

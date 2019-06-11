@@ -228,7 +228,8 @@ export class AlertService {
       } else {
         Log.l(`hideSpinnerPromise(): Could not find spinner '${id}' to hide!`);
         let msg = {status: 101, message: `Spinner '${id}' not found to be dismissed.`};
-        reject(msg);
+        // reject(msg);
+        resolve(false);
       }
       // let load = this.loadings.pop();
       // load.dismiss().then(res => {

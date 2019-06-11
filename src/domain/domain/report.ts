@@ -1,8 +1,9 @@
 /**
  * Name: Report domain class
- * Vers: 7.6.1
- * Date: 2019-03-06
+ * Vers: 7.7.1
+ * Date: 2019-06-11
  * Auth: David Sargeant
+ * Logs: 7.7.1 2019-06-11: Added times_error,date_error properties, areTimesValid() method, and new methods to force date/time updates without checking instantly for errors
  * Logs: 7.6.1 2019-03-06: Modified getReportDate() and getReportDateAsString()
  * Logs: 7.5.1 2019-01-29: Removed Shift and PayrollPeriod imports; added static methods getPayrollPeriodDate(), getPayrollSerial(), getShiftNumber(), getShiftWeek(), getShiftSerial()
  * Logs: 7.4.1 2018-12-13: refactored imports; added standard OnSite methods
@@ -85,6 +86,8 @@ export class Report {
   public paid_date        : string  = "";
   public premium_eligible : boolean = true;
   public isTest           : boolean = false;
+  public times_error      : boolean = false;
+  public date_error       : boolean = false;
 
   /**
    * Create a Report object. All parameters are optional, and can be populated later from a serialized object document from database.
@@ -505,6 +508,13 @@ export class Report {
     return this.getReportDateAsMoment().toExcel(true);
   }
 
+  public setReportDate(date:Moment|Date):string {
+    let report_date = moment(date).format("YYYY-MM-DD");
+    this.report_date = report_date;
+    this.areTimesValid();
+    return report_date;
+  }
+
   public getStartTime():Moment {
     return moment(this.time_start);
   }
@@ -607,6 +617,55 @@ export class Report {
     } else {
       Log.w("Report.checkTimeCalculations(): Start or end times are not moments, or repair hours is not a number/duration!\nStart: %s\nEnd: %s\nHours: %s", start, end, time);
     }
+  }
+
+  public forceRepairHours(hours:number) {
+    this.repair_hours = hours;
+    this.areTimesValid();
+  }
+
+  public forceStartTime(time:Date|Moment):Moment {
+    this.time_start = moment(time);
+    // this.checkTimeCalculations(0);
+    this.areTimesValid();
+    return this.time_start;
+  }
+
+  public forceEndTime(time:Date|Moment):Moment {
+    this.time_end = moment(time);
+    // this.checkTimeCalculations(1);
+    this.areTimesValid();
+    return this.time_end;
+  }
+
+  public areTimesValid():boolean {
+    let date = this.getReportDateAsMoment();
+    let start = this.time_start;
+    let end = this.time_end;
+    let time = this.repair_hours;
+    if(!isMoment(date)) {
+      this.date_error = true;
+      return false;
+    }
+    if(isMoment(start) && isMoment(end) && start !== null && end !== null && typeof time === 'number') {
+      let HH:number = moment(start).hour();
+      let MM:number = moment(start).minute();
+      let dateStart = moment(date).add(HH, 'hours').add(MM, 'minutes');
+      let checkMatchTime = moment(start).add(time, 'hours');
+      if(dateStart.isSame(start)) {
+        this.date_error = false;
+      } else {
+        this.date_error = true;
+      }
+      if(checkMatchTime.isSame(end)) {
+        this.times_error = false;
+      } else {
+        this.times_error = true;
+      }
+    } else {
+      this.times_error = true;
+    }
+    return !(this.date_error || this.times_error);
   }
 
   public genReportID(tech:Employee):string {

@@ -127,24 +127,23 @@ export class ReportsOtherPage implements OnInit,OnDestroy {
     return fields;
   }
 
-  public getData() {
-    let spinnerID;
-    return new Promise((resolve, reject) => {
-      spinnerID = this.alert.showSpinner("Retrieving other reports...");
-      this.db.getReportOthers(spinnerID).then((res:Array<ReportOther>) => {
-        Log.l("getData(): Got reports:\n", res);
-        this.allOthers = res;
-        this.data.setData('reports', res.slice(0));
-        this.others = this.allOthers.slice(0);
-        this.alert.hideSpinner();
-        resolve(res);
-      }).catch(err => {
-        Log.l("getData(): Error getting Other Reports list!");
-        Log.e(err);
-        this.alert.hideSpinner();
-        reject(err);
-      });
-    });
+  public async getData():Promise<ReportOther[]> {
+    let spinnerID:string;
+    try {
+      spinnerID = await this.alert.showSpinnerPromise("Retrieving other reports …");
+      let res:ReportOther[] = await this.db.getReportOthers(spinnerID);
+      Log.l("ReportsOther.getData(): Got reports:", res);
+      this.allOthers = res;
+      this.data.setData('reports', res.slice(0));
+      this.others = this.allOthers.slice(0);
+      await this.alert.hideSpinnerPromise(spinnerID);
+      return res;
+    } catch(err) {
+      Log.l("ReportsOther.getData(): Error getting Other Reports list!");
+      Log.e(err);
+      await this.alert.hideSpinnerPromise(spinnerID);
+      throw err;
+    }
   }
 
   public onRowSelect(event:any) {

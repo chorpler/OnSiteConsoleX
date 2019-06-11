@@ -17,20 +17,23 @@ import { SESAClient, SESALocation, SESALocID, SESAAux,             } from 'domai
 import { Message, SelectItem, InputTextarea, Dropdown,             } from 'primeng/primeng'               ;
 import { NotifyService                                             } from 'providers/notify-service'      ;
 import { Command, KeyCommandService                                } from 'providers/key-command-service' ;
+import { Calendar } from 'primeng/calendar';
 
 @Component({
   selector: 'report-view-beta',
   templateUrl: 'report-view-beta.html',
 })
 export class ReportViewBetaComponent implements OnInit,OnDestroy {
+  @ViewChild('startTimeCal') startTimeCal:Calendar;
+  @ViewChild('endTimeCal') endTimeCal:Calendar;
   @Input('mode')       mode : string = "edit"     ;
   @Input('shift')     shift : Shift               ;
   @Input('period')   period : PayrollPeriod       ;
   @Input('report')   report : Report              ;
-  @Input('reports') reports : Array<Report>  = [] ;
+  @Input('reports') reports : Report[]  = []      ;
   @Input('tech')       tech : Employee            ;
   @Input('site')       site : Jobsite             ;
-  @Input('sites')     sites : Array<Jobsite> = [] ;
+  @Input('sites')     sites : Jobsite[] = []      ;
   @Output('finished') finished = new EventEmitter<any>();
   @Output('reportChange') reportChange = new EventEmitter<any>();
   @Output('cancel') cancel = new EventEmitter<any>();
@@ -51,9 +54,9 @@ export class ReportViewBetaComponent implements OnInit,OnDestroy {
   public location   : any            ;
   public locID      : any            ;
 
-  public clients     :Array<any>     = []                 ;
-  public locations   :Array<any>     = []                 ;
-  public locIDs      :Array<any>     = []                 ;
+  public clients     :any[]           = []                 ;
+  public locations   :any[]           = []                 ;
+  public locIDs      :any[]           = []                 ;
   public repair_hours:number = 0;
   public time_start  :Date           = new Date()         ;
   public time_end    :Date           = new Date()         ;
@@ -61,7 +64,10 @@ export class ReportViewBetaComponent implements OnInit,OnDestroy {
   public locationList:SelectItem[]   = []                 ;
   public locIDList   :SelectItem[]   = []                 ;
   public timeList    :SelectItem[]   = []                 ;
-  public reportUndo  :Array<any>     = []                 ;
+  public reportUndo  :any[]          = []                 ;
+  public prevComp    :any                                 ;
+  public reportTimeError:boolean     = false              ;
+  public stepMinute  :number         = 15                 ;
   public dataReady   :boolean        = false              ;
 
   constructor(
@@ -73,7 +79,10 @@ export class ReportViewBetaComponent implements OnInit,OnDestroy {
     public keyService : KeyCommandService ,
     public numServ    : NumberService     ,
   ) {
-    window['onsitereportview'] = this;
+    window['onsitereportview']  = this;
+    window['onsitereportview2'] = this;
+    this.prevComp = window['p'];
+    window['p'] = this;
     window['_dedupe'] = _dedupe;
   }
 
@@ -89,6 +98,9 @@ export class ReportViewBetaComponent implements OnInit,OnDestroy {
   ngOnDestroy() {
     Log.l("ReportViewComponent: ngOnDestroy() fired.");
     this.cancelSubscriptions();
+    if(this.prevComp) {
+      window['p'] = this.prevComp;
+    }
   }
 
   public installSubscribers() {
@@ -125,9 +137,13 @@ export class ReportViewBetaComponent implements OnInit,OnDestroy {
     let site = this.getReportLocation();
     this.site = site;
     let report = this.report;
-    this.setHeader()
+    this.setHeader();
     this.createMenuLists();
     this.updateDisplay(report);
+    // let report_date = rpt.getReportDateAsMoment().toDate();
+    // this.report_date = report_date;
+    this.report_date = rpt.getReportDateAsMoment().toDate();
+
 
     this.dataReady = true;
   }
@@ -176,11 +192,13 @@ export class ReportViewBetaComponent implements OnInit,OnDestroy {
 
   public updateDisplay(report?:Report) {
     let rpt:Report = report || this.report;
-    let reportDate = moment(rpt.report_date, "YYYY-MM-DD");
-    let hours = this.report.getRepairHours();
+    // let reportDate = moment(rpt.report_date, "YYYY-MM-DD");
+    // let reportDate = moment(rpt.report_date, "YYYY-MM-DD");
+    let hours = rpt.getRepairHours();
     let repair_hours = this.data.convertTimeStringToHours(hours);
     let time_start = moment(rpt.time_start);
     let time_end   = moment(rpt.time_end  );
+    // rpt.getStartTime().toDate()
     this.time_start = time_start.toDate();
     this.time_end = time_end.toDate();
     this.repair_hours = repair_hours;
@@ -196,11 +214,12 @@ export class ReportViewBetaComponent implements OnInit,OnDestroy {
     // this.time_end = endItem.value.toDate();
 
 
-    let name  = rpt.username;
-    let index = this.reports.indexOf(rpt) + 1;
-    let count = this.reports.length;
-    let report_date = moment(rpt.report_date).toDate();
-    this.report_date = report_date;
+    // let name  = rpt.username;
+    // let index = this.reports.indexOf(rpt) + 1;
+    // let count = this.reports.length;
+    // let report_date = moment(rpt.report_date).toDate();
+    // this.report_date = report_date;
+    // this.report_date = report_date;
     let client = this.data.getFullClient(rpt.client);
     let location = this.data.getFullLocation(rpt.location);
     let locID = this.data.getFullLocID(rpt.location_id);
@@ -217,52 +236,104 @@ export class ReportViewBetaComponent implements OnInit,OnDestroy {
 
   public cancelClicked(event?:any) {
     // this.viewCtrl.dismiss();
-    Log.l("cancel(): Clicked, event is:\n", event);
+    Log.l("cancel(): Clicked, event is:", event);
     this.cancel.emit(event);
     this.finished.emit(event);
   }
 
-  public saveNoExit(event?:any) {
-    this.db.saveReport(this.report).then(res => {
-      Log.l("saveNoExit(): Report successfully saved.");
-      if(this.period) {
-        this.period.addReport(this.report);
-      } else if(this.shift) {
-        this.shift.addShiftReport(this.report);
+  public async saveNoExitClicked(event?:any) {
+    let spinnerID:string;
+    let rpt:Report = this.report;
+    try {
+      Log.l("saveNoExitClicked(): Attempting to save report …");
+      let username:string = this.data.getUsername();
+      if(rpt.times_error || rpt.date_error) {
+        let text:string = "This report has an error somewhere. The report date and start time may not match, or the start time plus repair hours may not match the end time. Are you sure you want to save a broken report?";
+        let confirm:boolean = await this.alert.showConfirmYesNo("WARNING", text);
+        if(!confirm) {
+          return;
+        }
       }
-      this.reportChange.emit()
-      // this.viewCtrl.dismiss();
-    }).catch(err => {
-      Log.l("save(): Error saving report.");
+      spinnerID = await this.alert.showSpinnerPromise("Saving report …");
+      let res = await this.db.saveReport(rpt, username);
+      Log.l("saveNoExitClicked(): Report successfully saved.");
+      await this.alert.hideSpinnerPromise(spinnerID);
+      // if(this.period) {
+        //   this.period.addReport(this.report);
+        // } else if(this.shift) {
+          //   this.shift.addShiftReport(this.report);
+          // }
+          // this.viewCtrl.dismiss();
+      // this.save.emit(event);
+      // this.finished.emit(event);
+      return res;
+    } catch(err) {
+      Log.l(`saveNoExitClicked(): Error saving report`);
       Log.e(err);
-      this.notify.addError("ERROR", `Error saving report: '${err.message}'`, 10000);
-      // this.alert.showAlert("ERROR", "Error saving report:<br>\n<br>\n" + err.message);
-    });
+      await this.alert.hideSpinnerPromise(spinnerID);
+      // this.notify.addError("ERROR", `Error saving report: '${err.message}'`, 5000);
+      await this.alert.showErrorMessage("ERROR", "Error saving report", err);
+    }
   }
 
-  public saveClicked(event?:any) {
-    this.db.saveReport(this.report).then(res => {
-      Log.l("save(): Report successfully saved.");
-      if(this.period) {
-        this.period.addReport(this.report);
-      } else if(this.shift) {
-        this.shift.addShiftReport(this.report);
+  // public saveNoExit(event?:any) {
+  //   this.db.saveReport(this.report).then(res => {
+  //     Log.l("saveNoExit(): Report successfully saved.");
+  //     if(this.period) {
+  //       this.period.addReport(this.report);
+  //     } else if(this.shift) {
+  //       this.shift.addShiftReport(this.report);
+  //     }
+  //     this.reportChange.emit()
+  //     // this.viewCtrl.dismiss();
+  //   }).catch(err => {
+  //     Log.l("save(): Error saving report.");
+  //     Log.e(err);
+  //     this.notify.addError("ERROR", `Error saving report: '${err.message}'`, 10000);
+  //     // this.alert.showAlert("ERROR", "Error saving report:<br>\n<br>\n" + err.message);
+  //   });
+  // }
+
+  public async saveClicked(event?:any) {
+    let spinnerID:string;
+    let rpt:Report = this.report;
+    try {
+      Log.l("saveClicked(): Attempting to save report …");
+      let username:string = this.data.getUsername();
+      if(rpt.times_error || rpt.date_error) {
+        let text:string = "This report has an error somewhere. The report date and start time may not match, or the start time plus repair hours may not match the end time. Are you sure you want to save a broken report?";
+        let confirm:boolean = await this.alert.showConfirmYesNo("WARNING", text);
+        if(!confirm) {
+          return;
+        }
       }
-      // this.viewCtrl.dismiss();
+      spinnerID = await this.alert.showSpinnerPromise("Saving report …");
+      let res = await this.db.saveReport(rpt, username);
+      Log.l("saveClicked(): Report successfully saved.");
+      await this.alert.hideSpinnerPromise(spinnerID);
+      // if(this.period) {
+        //   this.period.addReport(this.report);
+        // } else if(this.shift) {
+          //   this.shift.addShiftReport(this.report);
+          // }
+          // this.viewCtrl.dismiss();
       this.save.emit(event);
       this.finished.emit(event);
-    }).catch(err => {
-      Log.l("save(): Error saving report.");
+      return res;
+    } catch(err) {
+      Log.l(`saveClicked(): Error saving report`);
       Log.e(err);
-      this.notify.addError("ERROR", `Error saving report: '${err.message}'`, 1000);
-    });
+      await this.alert.hideSpinnerPromise(spinnerID);
+      // this.notify.addError("ERROR", `Error saving report: '${err.message}'`, 5000);
+      await this.alert.showErrorMessage("ERROR", "Error saving report", err);
+    }
   }
 
   public async deleteReport(event:any) {
     let spinnerID;
     let report:Report = this.report;
     try {
-      Log.l(`deleteReport(): Event is:\n`, event);
+      Log.l(`deleteReport(): Event is:`, event);
       // let report:Report = this.report;
       let title:string = "DELETE REPORT";
       let text:string = `Are you sure you want to delete this report? This will permanently delete this report and cannot be undone.`;
@@ -292,9 +363,11 @@ export class ReportViewBetaComponent implements OnInit,OnDestroy {
   }
 
   public updateDate(newDate:Date) {
+    Log.l(`updateDate(): setting date to:`, newDate);
     let date = moment(newDate);
     let report = this.report;
-    report.report_date = date.format("YYYY-MM-DD");
+    // report.report_date = date.format("YYYY-MM-DD");
+    report.setReportDate(date);
     report.shift_serial = Shift.getShiftSerial(date);
     report.payroll_period = PayrollPeriod.getPayrollSerial(date);
   }
@@ -355,13 +428,92 @@ export class ReportViewBetaComponent implements OnInit,OnDestroy {
     } else {
       Log.w(`updateReportCLL(): Unable to find key ${key} to set, in ReportOther:\n`, report);
     }  }
-
+    
   public updateRepairHours() {
     let report = this.report;
-    report.setRepairHours(Number(this.report.repair_hours));
+    let hours:number = report.getRepairHours();
+    Log.l(`updateRepairHours(): Setting repair hours to:`, hours);
+    report.forceRepairHours(hours);
+    // report.setRepairHours(Number(this.report.repair_hours));
     // this.time_start = moment(report.time_start);
     // this.time_end = moment(report.time_end);
     this.updateDisplay();
+  }
+
+  public timeChanged(type:number, event?:any) {
+    Log.l(`timeChanged(): Called for type ${type}, value is:`, event);
+    let date:Date;
+    let time:Moment;
+    let report:Report = this.report;
+    if(type === 1) {
+      date = this.time_start;
+      time = moment(date);
+      Log.l(`timeChanged(): Setting report start time to: `, time);
+      // report.setStartTime(time);
+      // report.forceStartTime(time);
+    } else if(type === 2) {
+      date = this.time_end;
+      time = moment(date);
+      Log.l(`timeChanged(): Setting report end time to: `, time);
+      // report.setEndTime(time);
+      // report.forceEndTime(time);
+    }
+    // if(!report.areTimesValid()) {
+    //   this.reportTimeError = true;
+    // } else {
+    //   this.reportTimeError = false;
+    // }
+    // this.updateDisplay();
+  }
+
+  public updateTime(type:number, event?:Date) {
+    Log.l(`updateTime(): Called for type ${type}, value is:`, event);
+    let date:Date;
+    let time:Moment;
+    let report:Report = this.report;
+    if(type === 1) {
+      date = this.time_start;
+      time = moment(date);
+      Log.l(`updateTime(): Setting report start time to: `, time);
+      // report.setStartTime(time);
+      report.forceStartTime(time);
+    } else if(type === 2) {
+      date = this.time_end;
+      time = moment(date);
+      Log.l(`updateTime(): Setting report end time to: `, time);
+      // report.setEndTime(time);
+      report.forceEndTime(time);
+    }
+    // if(!report.areTimesValid()) {
+    //   this.reportTimeError = true;
+    // } else {
+    //   this.reportTimeError = false;
+    // }
+    this.updateDisplay();
+  }
+
+  public selectTime(type:number, event?:Date) {
+    Log.l(`selectTime(): Called for type ${type}, value is:`, event);
+    let date:Date;
+    let time:Moment;
+    let report:Report = this.report;
+    if(type === 1) {
+      date = this.time_start;
+      time = moment(date);
+      Log.l(`selectTime(): Setting report start time to: `, time);
+      report.forceStartTime(time);
+    } else if(type === 2) {
+      date = this.time_end;
+      time = moment(date);
+      Log.l(`selectTime(): Setting report end time to: `, time);
+      report.forceEndTime(time);
+    }
+    // if(!report.areTimesValid()) {
+    //   this.reportTimeError = true;
+    // } else {
+    //   this.reportTimeError = false;
+    // }
+    // this.updateDisplay();
   }
 
   public updateTimeStart() {

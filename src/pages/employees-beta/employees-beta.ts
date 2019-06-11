@@ -104,7 +104,7 @@ export class EmployeesBetaPage implements OnInit,OnDestroy {
     let spinnerID;
     try {
       
-      spinnerID = this.alert.showSpinner('Retrieving employee list...');
+      spinnerID = await this.alert.showSpinner('Retrieving employee list …');
       this.styleColEdit = {'max-width':'50px', 'width': '50px'};
       // this.styleColIndex = {'max-width':'50px', 'width': '50px'};
       this.selected = this.fields;
@@ -160,7 +160,7 @@ export class EmployeesBetaPage implements OnInit,OnDestroy {
         tech.location = this.data.getFullName('location', location);
         tech.locID = this.data.getFullName('locID', locID);
       }
-      await this.alert.hideSpinner(spinnerID);
+      await this.alert.hideSpinnerPromise(spinnerID);
       this.dataReady = true;
         // setTimeout(() => {
         //   let newColumns = [

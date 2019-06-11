@@ -508,7 +508,7 @@ export class DPSMainPage implements OnInit,OnDestroy {
 
   public async dpsSettingsRevert() {
     try {
-      let confirm = this.alert.showConfirmYesNo("UNDO CHANGES", "Do you want to undo any changes made to DPS Settings?");
+      let confirm = await this.alert.showConfirmYesNo("UNDO CHANGES", "Do you want to undo any changes made to DPS Settings?");
       if(confirm) {
         this.revertDPSSettings();
       } else {
@@ -517,7 +517,7 @@ export class DPSMainPage implements OnInit,OnDestroy {
     } catch(err) {
       Log.l(`dpsSettingsRevert(): Error while reverting!`);
       Log.e(err);
-      throw new Error(err);
+      throw err;
     }
   }
 
@@ -1084,37 +1084,49 @@ export class DPSMainPage implements OnInit,OnDestroy {
     return grid;
   }
 
-  public updatePeriod(period:PayrollPeriod) {
-    Log.l("updatePeriod(): Period changed, attempting to update ....\n", period);
-    // this.dataReady = false;
-    this.spinnerID = this.alert.showSpinner("Setting period to " + period.getPeriodName("MMM DD") + " ...");
-    setTimeout(() => {
-      this.performPeriodCalculations(period).then(res => {
-        Log.l("updatePeriod(): Period successfully updated!");
-        this.alert.hideSpinner(this.spinnerID);
-        setTimeout(() => {
-          this.dispatch.updatePeriod(period);
-        }, 1000);
-      }).catch(err => {
-        Log.l("updatePeriod(): Error updating period.");
-        Log.e(err);
-        this.alert.hideSpinner(this.spinnerID);
-        this.alert.showAlert("ERROR", "Error updating payroll period:<br>\n<br>\n" + err.message);
-      });
-    }, 500);
-    // setTimeout(() => {
-    //   try {
-    //     this.period = period;
-    //     this.DPSCalcsDataGrid = this.generateDPSCalculations(period);
-    //     this.alert.hideSpinner();
-    //     this.dataReady = true;
-    //     this.dispatch.updatePeriod(period);
-    //     this.dispatch.updateDPSCalculationsGrid(this.DPSCalcsDataGrid);
-    //   } catch(err) {
-    //     this.alert.hideSpinner();
-    //     this.alert.showAlert("ERROR", "Error updating payroll period:<br>\n<br>\n" + err.message);
-    //   }
-    // }, 1000);
+  public async updatePeriod(period:PayrollPeriod):Promise<any> {
+    let spinnerID:string;
+    try {
+      Log.l("updatePeriod(): Period changed, attempting to update ....\n", period);
+      // this.dataReady = false;
+      spinnerID = await this.alert.showSpinner("Setting period to " + period.getPeriodName("MMM DD") + " …");
+      await this.data.delay(500);
+      let res = await this.performPeriodCalculations(period);
+      await this.alert.hideSpinner(spinnerID);
+      Log.l("updatePeriod(): Period successfully updated!");
+      await this.alert.hideSpinner(spinnerID);
+      // await this.data.delay(1000);
+      this.dispatch.updatePeriod(period);
+          // setTimeout(() => {
+          //   this.dispatch.updatePeriod(period);
+          // }, 1000);
+      //   }).catch(err => {
+      //     Log.l("updatePeriod(): Error updating period.");
+      //     Log.e(err);
+      //     this.alert.hideSpinner(this.spinnerID);
+      //     this.alert.showAlert("ERROR", "Error updating payroll period:<br>\n<br>\n" + err.message);
+      //   });
+      // }, 500);
+      // setTimeout(() => {
+      //   try {
+      //     this.period = period;
+      //     this.DPSCalcsDataGrid = this.generateDPSCalculations(period);
+      //     this.alert.hideSpinner();
+      //     this.dataReady = true;
+      //     this.dispatch.updatePeriod(period);
+      //     this.dispatch.updateDPSCalculationsGrid(this.DPSCalcsDataGrid);
+      //   } catch(err) {
+      //     this.alert.hideSpinner();
+      //     this.alert.showAlert("ERROR", "Error updating payroll period:<br>\n<br>\n" + err.message);
+      //   }
+      // }, 1000);
+    } catch(err) {
+      Log.l("updatePeriod(): Error updating period.");
+      Log.e(err);
+      await this.alert.hideSpinner(spinnerID);
+      // this.alert.showAlert("ERROR", "Error updating payroll period:<br>\n<br>\n" + err.message);
+      await this.alert.showErrorMessage("ERROR", "Error updating payroll period", err);
+    }
   }
 
   public async performPeriodCalculations(period:PayrollPeriod) {
@@ -1131,7 +1143,7 @@ export class DPSMainPage implements OnInit,OnDestroy {
       } catch(err) {
         Log.l(`performPeriodCalculations(): Error while performing calculations!`);
         Log.e(err);
-        throw new Error(err);
+        throw err;
       }
         // resolve("Successfully performed period calculations.");
       // }).catch(err => {

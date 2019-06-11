@@ -149,7 +149,7 @@ export class PayrollPage implements OnInit,OnDestroy {
     } catch(err) {
       Log.l(`runWhenSubscriptionsAreAlreadyInitialize(): Error during data initialization and/or recalculation`);
       Log.e(err);
-      throw new Error(err);
+      throw err;
     }
   }
 
@@ -211,12 +211,12 @@ export class PayrollPage implements OnInit,OnDestroy {
           //   // this.updatePeriod(period);
           //   Log.l(`Payroll: DataStore update event received and setupData() finished.`);
           // });
-        // throw new Error(err);
+        // throw err;
         }
       } catch(err) {
         Log.l(`PayrollPage(): datastoreUpdated() but got error processing it! `);
         Log.e(err);
-        throw new Error(err);
+        throw err;
       }
     });
   }
@@ -377,15 +377,15 @@ export class PayrollPage implements OnInit,OnDestroy {
       Log.l(`rerunPayroll(): Error rerunning payroll!`);
       Log.e(err);
       this.notify.addError("ERROR", `Error rerunning payroll: '${err.message}'`, 4000);
-      throw new Error(err);
+      throw err;
     }
   }
 
   public async generatePayrollData():Promise<boolean> {
-    let spinnerID;
+    let spinnerID:string;
     try {
       Log.l("generatePayrollData(): Started...!");
-      spinnerID = this.alert.showSpinner(`Generating payroll data...`);
+      spinnerID = await this.alert.showSpinner(`Generating payroll data...`);
       let _sortTechs = (a:Employee, b:Employee) => {
         let date:Moment  = this.period.start_date;
         let siteA:Jobsite = this.data.getTechLocationForDate(a, date);
@@ -513,7 +513,7 @@ export class PayrollPage implements OnInit,OnDestroy {
       let out = await this.alert.hideSpinnerPromise(spinnerID);
       Log.l(`generatePayrollData(): Error generating payroll data!`);
       Log.e(err);
-      throw new Error(err);
+      throw err;
     }
   }
 
@@ -595,7 +595,7 @@ export class PayrollPage implements OnInit,OnDestroy {
       let out = await this.alert.hideSpinnerPromise(spinnerID);
       Log.l(`updatePeriodPromise(): Error while updating period!`);
       Log.e(err);
-      throw new Error(err);
+      throw err;
     }
   }
 
@@ -606,7 +606,7 @@ export class PayrollPage implements OnInit,OnDestroy {
     } catch(err) {
       Log.l("updatePeriodPromise(): Error while updating period!");
       Log.e(err);
-      throw new Error(err);
+      throw err;
     }
   }
 
@@ -1112,128 +1112,135 @@ export class PayrollPage implements OnInit,OnDestroy {
   }
 
   public async refreshData(event?:any) {
-    let spinnerID;
+    let spinnerID:string;
     try {
-      this.notify.addInfo("OK", "Refreshing data and recalculating payroll...", 5000);
-      setTimeout(async () => {
-        let dbname1:string = this.prefs.getDB('reports');
-        let dbname2:string = this.prefs.getDB('reports_other');
-        let dbname3:string = this.prefs.getDB('logistics');
-        let count1:number = await this.db.getDocCount(dbname1);
-        let count2:number = await this.db.getDocCount(dbname2);
-        let count3:number = await this.db.getDocCount(dbname3);
-        let text:string = `Reading ${count1} work reports, ${count2} misc reports, and ${count3} logistics reports ...`;
-        spinnerID = this.alert.showSpinner(text);
-        let j = await this.data.getReports(1000000);
-        let k = await this.data.getReportOthers();
-        let n = await this.data.getReportLogistics();
-        // let M = await this.runWhenReady();
-        let M:any;
-        M = await this.alert.hideSpinnerPromise(spinnerID);
-        M = await this.runWhenSubscriptionsAreAlreadyInitialized();
-        this.notify.addSuccess("SUCCESS", "Refreshed data and recalculated payroll!", 3000);
-      }, 500);
+      // this.notify.addInfo("OK", "Refreshing data and recalculating payroll...", 5000);
+      // setTimeout(async () => {
+      await this.data.delay(500);
+      let dbname1:string = this.prefs.getDB('reports');
+      let dbname2:string = this.prefs.getDB('reports_other');
+      let dbname3:string = this.prefs.getDB('logistics');
+      let count1:number = await this.db.getDocCount(dbname1);
+      let count2:number = await this.db.getDocCount(dbname2);
+      let count3:number = await this.db.getDocCount(dbname3);
+      let text:string = `Reading ${count1} work reports, ${count2} misc reports, and ${count3} logistics reports ...`;
+      spinnerID = await this.alert.showSpinner(text);
+      let j = await this.data.getReports(1000000);
+      let k = await this.data.getReportOthers();
+      let n = await this.data.getReportLogistics();
+      // let M = await this.runWhenReady();
+      let M:any;
+      M = await this.alert.hideSpinnerPromise(spinnerID);
+      M = await this.runWhenSubscriptionsAreAlreadyInitialized();
+      this.notify.addSuccess("SUCCESS", "Refreshed data and recalculated payroll!", 3000);
+      // }, 500);
     } catch (err) {
       Log.l("refreshData(): Error refreshing data!");
       Log.e(err);
-      let M = await this.alert.hideSpinnerPromise(spinnerID);
+      await this.alert.hideSpinnerPromise(spinnerID);
       this.notify.addError("Error", `Error refreshing data: '${err.message}'`, 10000);
     }
   }
 
   public async refreshReports(doNotRecalculate?:boolean, event?:any) {
-    let spinnerID;
+    let spinnerID:string;
     try {
       let recalc:boolean = doNotRecalculate === true ? false : true;
       this.notify.addInfo("OK", "Refreshing work reports ...", 5000);
-      setTimeout(async () => {
-        let dbname:string = this.prefs.getDB('reports');
-        let count:number = await this.db.getDocCount(dbname);
-        let text:string;
-        if(recalc) {
-          text = `Reading ${count} reports and recalculating...`;
-        } else {
-          text = `Reading ${count} reports. Payroll must be recalculated after this is done.`;
-        }
-        spinnerID = this.alert.showSpinner(text);
-        let j = await this.data.getReports(1000000);
-        // let k = await this.data.getReportOthers();
-        // let M = await this.runWhenReady();
-        let M:any;
-        if(recalc) {
-          M = await this.runWhenSubscriptionsAreAlreadyInitialized();
-        }
-        M = await this.alert.hideSpinnerPromise(spinnerID);
-        this.notify.addSuccess("SUCCESS", "Refreshed work reports", 3000);
-      }, 500);
+      await this.data.delay(500);
+      // setTimeout(async () => {
+      // let dbname:string = this.prefs.getDB('reports');
+      // let count:number = await this.db.getDocCount(dbname);
+      let count:number = await this.db.getDBDocCount('reports');
+      let text:string;
+      if(recalc) {
+        text = `Reading ${count} reports and recalculating...`;
+      } else {
+        text = `Reading ${count} reports. Payroll must be recalculated after this is done.`;
+      }
+      spinnerID = await this.alert.showSpinnerPromise(text);
+      let j = await this.data.getReports(1000000);
+      // let k = await this.data.getReportOthers();
+      // let M = await this.runWhenReady();
+      let M:any;
+      if(recalc) {
+        M = await this.runWhenSubscriptionsAreAlreadyInitialized();
+      }
+      await this.alert.hideSpinnerPromise(spinnerID);
+      this.notify.addSuccess("SUCCESS", "Refreshed work reports", 3000);
+      // }, 500);
     } catch (err) {
       Log.l("refreshReports(): Error refreshing data!");
       Log.e(err);
-      let M = await this.alert.hideSpinnerPromise(spinnerID);
+      await this.alert.hideSpinnerPromise(spinnerID);
       this.notify.addError("Error", `Error refreshing reports: '${err.message}'`, 10000);
     }
   }
 
   public async refreshOthers(doNotRecalculate?:boolean, event?:any) {
-    let spinnerID;
+    let spinnerID:string;
     try {
       let recalc:boolean = doNotRecalculate === true ? false : true;
       this.notify.addInfo("OK", "Refreshing misc reports ...", 5000);
-      setTimeout(async () => {
-        let dbname:string = this.prefs.getDB('reports_other');
-        let count:number = await this.db.getDocCount(dbname);
-        let text:string;
-        if(recalc) {
-          text = `Reading ${count} misc reports and recalculating...`;
-        } else {
-          text = `Reading ${count} misc reports. Payroll must be recalculated after this is done.`;
-        }
-        spinnerID = this.alert.showSpinner(text);
-        let j = await this.data.getReportOthers();
-        // let k = await this.runWhenReady();
-        let M:any;
-        if(recalc) {
-          M = await this.runWhenSubscriptionsAreAlreadyInitialized();
-        }
-        M = await this.alert.hideSpinnerPromise(spinnerID);
-        this.notify.addSuccess("SUCCESS", "Refreshed misc reports", 3000);
-      }, 500);
+      await this.data.delay(500);
+      // setTimeout(async () => {
+      // let dbname:string = this.prefs.getDB('reports_other');
+      // let count:number = await this.db.getDocCount(dbname);
+      let count:number = await this.db.getDBDocCount('reports_other');
+      let text:string;
+      if(recalc) {
+        text = `Reading ${count} misc reports and recalculating...`;
+      } else {
+        text = `Reading ${count} misc reports. Payroll must be recalculated after this is done.`;
+      }
+      spinnerID = await this.alert.showSpinnerPromise(text);
+      let j = await this.data.getReportOthers();
+      // let k = await this.runWhenReady();
+      let M:any;
+      if(recalc) {
+        M = await this.runWhenSubscriptionsAreAlreadyInitialized();
+      }
+      M = await this.alert.hideSpinnerPromise(spinnerID);
+      this.notify.addSuccess("SUCCESS", "Refreshed misc reports", 3000);
+      // }, 500);
     } catch (err) {
       Log.l("refreshOthers(): Error refreshing misc reports!");
       Log.e(err);
-      let M = await this.alert.hideSpinnerPromise(spinnerID);
+      await this.alert.hideSpinnerPromise(spinnerID);
       this.notify.addError("Error", `Error refreshing misc reports: '${err.message}'`, 10000);
     }
   }
 
   public async refreshLogistics(doNotRecalculate?:boolean, event?:any) {
-    let spinnerID;
+    let spinnerID:string;
     try {
       let recalc:boolean = doNotRecalculate === true ? false : true;
       this.notify.addInfo("OK", "Refreshing logistics reports ...", 5000);
-      setTimeout(async () => {
-        let dbname:string = this.prefs.getDB('logistics');
-        let count:number = await this.db.getDocCount(dbname);
-        let text:string;
-        if(recalc) {
-          text = `Reading ${count} logistics reports and recalculating...`;
-        } else {
-          text = `Reading ${count} logistics reports. Payroll must be recalculated after this is done.`;
-        }
-        spinnerID = this.alert.showSpinner(text);
-        let j = await this.data.getReportLogistics();
-        // let k = await this.runWhenReady();
-        let M:any;
-        if(recalc) {
-          M = await this.runWhenSubscriptionsAreAlreadyInitialized();
-        }
-        M = await this.alert.hideSpinnerPromise(spinnerID);
-        this.notify.addSuccess("SUCCESS", "Refreshed logistics reports", 3000);
-      }, 500);
+      await this.data.delay(500);
+      // setTimeout(async () => {
+      // let dbname:string = this.prefs.getDB('logistics');
+      // let count:number = await this.db.getDocCount(dbname);
+      let count:number = await this.db.getDBDocCount('logistics');
+      let text:string;
+      if(recalc) {
+        text = `Reading ${count} logistics reports and recalculating...`;
+      } else {
+        text = `Reading ${count} logistics reports. Payroll must be recalculated after this is done.`;
+      }
+      spinnerID = await this.alert.showSpinnerPromise(text);
+      let j = await this.data.getReportLogistics();
+      // let k = await this.runWhenReady();
+      let M:any;
+      if(recalc) {
+        M = await this.runWhenSubscriptionsAreAlreadyInitialized();
+      }
+      await this.alert.hideSpinnerPromise(spinnerID);
+      this.notify.addSuccess("SUCCESS", "Refreshed logistics reports", 3000);
+      // }, 500);
     } catch (err) {
       Log.l("refreshLogistics(): Error refreshing logistics reports!");
       Log.e(err);
-      let M = await this.alert.hideSpinnerPromise(spinnerID);
+      await this.alert.hideSpinnerPromise(spinnerID);
       this.notify.addError("Error", `Error refreshing logistics reports: '${err.message}'`, 10000);
     }
   }

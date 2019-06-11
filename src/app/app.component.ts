@@ -246,6 +246,8 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
   public jsonEditorDialogStyle:any = {
     overflow: 'visible',
   };
+  public path = path;
+  public fs   = gracefulfs;
 
   constructor(
     // public elementRef         : ElementRef               ,
@@ -915,13 +917,13 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
   }
 
   public async reauthenticate(evt?:Event) {
-    // let spinnerID = '';
+    // let spinnerID:string;
     try {
       let res:any;
       if(this.menuCtrl.isOpen()) {
         res = await this.menuCtrl.close();
       }
-      // spinnerID = this.alert.showSpinner("Reauthenticating to server...");
+      // spinnerID = await this.alert.showSpinnerPromise("Reauthenticating to server...");
       res = await this.authenticate();
       Log.l("reauthenticate(): success!");
       // let out:any = await this.alert.hideSpinnerPromise(spinnerID);
@@ -967,7 +969,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
         // let remoteTarArchiveURL:string = "http://sesafleetservices.com/onsitedb/onsiteconsolex.tar.gz";
         let remoteTarArchiveURL:string = "http://sesafleetservices.com/onsitedb/onsiteconsolex.db.zip";
         this.progressVisible = true;
-        this.downloadStatus = "Downloading database ZIP file ..."
+        this.downloadStatus = "Downloading database ZIP file …";
         // let total:number = 50000000;
         // let total:number = 54755864;
         let total:number = 55226198;
@@ -1028,7 +1030,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
             // let stream1:ReadableStream = blob.stream();
             // await blob.stream().pipeTo(fileStream);
             if(this.pouchdb.inElectron()) {
-              this.downloadStatus = "Saving downloaded file ...";
+              this.downloadStatus = "Saving downloaded file …";
               // let fs = require('graceful-fs');
               let fs = gracefulfs;
               let abuffer:ArrayBuffer = await blob.arrayBuffer();
@@ -1038,16 +1040,22 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
               // fs.createReadStream(fileName).pipe(gunzip()).pipe(tar.extract('.')).on('close', (data:any) => {
               //   Log.l(`initialReplication(): ZIP file extracted. Resulting data:\n`, data);
               // });
-              this.downloadStatus = "Extracting databases ...";
+              function getParentDir(filename:string):string {
+                return path.basename(path.dirname(filename));
+              }
+              this.downloadStatus = "Extracting databases …";
               fs.readFile(fileName, async (err, data) => {
                 if(!err) {
                   try {
                     let zip:JSZip = new JSZip();
                     let contents = await zip.loadAsync(data);
-                    Log.l(`AFTER CREATION, ZIP FILE IS: `, zip);
+                    Log.l(`JSZIP: AFTER CREATION, ZIP FILE IS: `, zip);
                     let zipfiles = contents.files;
+                    Log.l(`JSZIP: ZIP file contents: `, contents);
                     for(let filename in zipfiles) {
-                      this.downloadStatus = `Extracting database '${filename}' ...`;
+                      let basename:string = path.basename(filename);
+                      // this.downloadStatus = `Extracting database '${filename}' …`;
+                      this.downloadStatus = `Extracting database '${basename}' …`;
                       this.app.tick();
                       // await this.data.delay(300);
                       let zipfile = zipfiles[filename];
@@ -1303,15 +1311,15 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
   }
 
   public async updateData(evt?:Event):Promise<any> {
-    let spinnerID;
+    let spinnerID:string;
     try {
       let res:any;
       if(this.menuCtrl.isOpen()) {
         let out:any = await this.menuCtrl.close();
       }
       let count:number = 0, queued:number = 0;
-
-      count = await this.server.getDocCount('reports');
+      // count = await this.server.getDocCount('reports');
+      count = await this.db.getDBDocCount('reports');
       if(this.prefs.CONSOLE.global.reportsToLoad) {
         queued = this.prefs.CONSOLE.global.reportsToLoad;
       } else {
@@ -1321,7 +1329,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
       if(queued > 0 && queued !== 1000000) {
         text += ` (${count} total)`;
       }
-      text += ' ...';
+      text += ' …';
       spinnerID = await this.alert.showSpinnerPromise(text);
       let fetchCount:number = queued;
       res = await this.data.getReports(fetchCount, spinnerID);
@@ -1679,12 +1687,12 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
   }
 
   public async authenticate():Promise<string> {
-    let spinnerID:string;;
+    let spinnerID:string;
     try {
-      // let spinnerID = this.alert.showSpinner("Logging in to server...");
+      // spinnerID = await this.alert.showSpinnerPromise("Logging in to server...");
       let spinnerText = "Logging in to databases on server...";
       let res:any = await this.auth.areCredentialsSaved();
-      spinnerID = await this.alert.showSpinner(spinnerText);
+      spinnerID = await this.alert.showSpinnerPromise(spinnerText);
       this.loading = this.alert.getSpinner(spinnerID);
       if(res) {
         Log.l("authenticate(): User credentials found.");
@@ -1723,7 +1731,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
       Log.e(err);
       this.currentlyLoggedIn = false;
       this.data.status.loggedIn = false;
-      // let out:any = await this.alert.hideSpinnerPromise(spinnerID);
+      let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       this.notify.addError("ERROR", `Error during authentication: ${err.message}`, 10000);
       throw err;
     }
@@ -1758,7 +1766,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
   public async savePreferences(updatedPrefs?:any) {
     let spinnerID;
     try {
-      spinnerID = this.alert.showSpinner('Saving preferences...');
+      spinnerID = await this.alert.showSpinner('Saving preferences...');
       let prefs = updatedPrefs ? updatedPrefs : this.prefs.getPrefs();
       let res:any = await this.storage.persistentSet('PREFS', prefs);
       Log.l("savePreferences: Preferences stored:\n", this.prefs.getPrefs());
@@ -1768,26 +1776,26 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
     } catch(err) {
       Log.l(`savePreferences(): Error saving preferences!`);
       Log.e(err);
-      this.alert.hideSpinner(spinnerID);
+      await this.alert.hideSpinner(spinnerID);
       // return err;
       throw err;
     }
   }
 
   public async quietSavePreferences(updatedPrefs?:any) {
-    // let spinnerID;
+    // let spinnerID:string;
     try {
-      // spinnerID = this.alert.showSpinner('Saving preferences...');
+      // spinnerID = await this.alert.showSpinnerPromise('Saving preferences...');
       let prefs = updatedPrefs ? updatedPrefs : this.prefs.getPrefs();
       let res:any = await this.storage.persistentSet('PREFS', prefs);
-      Log.l("savePreferences: Preferences stored:\n", this.prefs.getPrefs());
-      // let out:any = await this.alert.hideSpinner(spinnerID);
+      Log.l("savePreferences: Preferences stored:", this.prefs.getPrefs());
+      // await this.alert.hideSpinnerPromise(spinnerID);
       // this.notify.addSuccess('SAVED', `Saved user preferences!`, 3000);
       return res;
     } catch(err) {
       Log.l(`savePreferences(): Error saving preferences!`);
       Log.e(err);
-      // this.alert.hideSpinner(spinnerID);
+      // await this.alert.hideSpinnerPromise(spinnerID);
       // return err;
       throw err;
     }

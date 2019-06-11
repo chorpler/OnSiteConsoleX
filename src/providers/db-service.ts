@@ -22,7 +22,12 @@ type CLLS = SESAClient | SESALocation | SESALocID;
 
 const delay = (ms:number):Promise<boolean> => {
   return new Promise((resolve) => {
-    setTimeout(() => { resolve(true) }, ms);
+    if(!ms) {
+      resolve(true);
+    // } else if(typeof ms === 'number') {
+    } else {
+      setTimeout(() => { resolve(true) }, ms);
+    }
   });
 };
 
@@ -36,13 +41,17 @@ export class DBService {
   public remoteDB                    : any                                            ;
   public pdbOpts                     : any                                            ;
   public StaticPouchDB : any = null                                         ;
-  public PREFS         : any = new Preferences()                            ;
+  // public PREFS         : any = new Preferences()                            ;
   public opts          : any = {auto_compaction: true}                      ;
   public repopts       : any = {live: false, retry: false}                  ;
   public syncOptions   : any = {live: true, retry: true, continuous: true}  ;
-  public loading              : any                                                ;
-  public loadDelay     : number = 5;
-  public runInZone     : boolean = true;
+  public loading       : Loading | {setContent:(text:string) => any};
+  public loadDelay     : number = 1;
+  // public runInZone     : boolean = true;
+  public runInZone     : number = 1;
+  public useQuery      : boolean = false;
+  public thisApp       : any;
+  public testDocs      : any;
 
   // constructor(public data:OSData, public alert:AlertService) {
   constructor(
@@ -489,6 +498,47 @@ export class DBService {
     });
   }
 
+  public updateStatusSync(text:string) {
+    let loadText:string = "Retrieving data from:<br>\n";
+    let elem = document.querySelector("div.loading-wrapper div.loading-content");
+    if(elem) {
+      elem.innerHTML = loadText + text + " …";
+    } else {
+      Log.l("updateStatusSync(): Fake loading controller text:\n", text);
+    }
+  }
+
+  public updateStatus(text:string, loading:Loading) {
+    let loadText:string = "Retrieving data from:<br>\n";
+    if(loading && typeof loading.setContent === 'function') {
+      loading.setContent(loadText + text + " …");
+    } else {
+      Log.l("updateStatus(): Fake loading controller text:\n", text);
+    }
+  }
+
+  public updateStatusTick(text:string, loading:Loading) {
+    let loadText:string = "Retrieving data from:<br>\n";
+    // if(loading && typeof loading.setContent === 'function') {
+    // Log.l("updateStatusTick(): Fake loading controller text:\n", text);
+    loading.setContent(loadText + text + " …");
+    this.thisApp.tick();
+    // } else {
+      // Log.l("updateStatus(): Fake loading controller text:\n", text);
+    // }
+  }
+
+  public async updateStatusTickAsync(text:string, loading:Loading):Promise<any> {
+    let loadText:string = "Retrieving data from:<br>\n";
+    // if(loading && typeof loading.setContent === 'function') {
+    // Log.l("updateStatusTick(): Fake loading controller text:\n", text);
+    loading.setContent(loadText + text + " …");
+    this.thisApp.tick();
+    // } else {
+      // Log.l("updateStatus(): Fake loading controller text:\n", text);
+    // }
+  }
+
   public async getWorkReports(fetchCount:number, spinnerID?:string):Promise<Report[]> {
     try {
       let reportsDB:string = this.prefs.getDB('reports');
@@ -507,36 +557,45 @@ export class DBService {
         }
       }
 
-      Log.l("DB.getWorkReports(): this.loading is:", loading);
+      Log.l("DB.getWorkReports(): Loading spinner is:", loading);
       let options = {include_docs: true};
       let res:any, reports:Report[] = [];
-      if(fetchCount && !fetchCount) {
-        Log.l(`DB.getWorkReports(): Attempting to load last ${fetchCount} reports...`);
+      // if(fetchCount && !fetchCount) {
+      if(this.useQuery) {
+        // Log.l(`DB.getWorkReports(): Attempting to load last ${fetchCount} reports...`);
+        let total:number = await this.getDocCount(reportsDB);
+        let fetch:number = typeof fetchCount === 'number' ? fetchCount : 1000000;
+        Log.l(`DB.getWorkReports(): Attempting to load last ${total} reports …`);
         let select:any = {
           selector: {rprtDate: {$gte: "2000-01-01"}},
           sort: [{ rprtDate: "desc"}],
-          limit: fetchCount,
+          limit: fetch,
         };
         res = await db1.find(select);
         if(res && Array.isArray(res.docs)) {
-          let count = res.docs.length;
-          Log.l(`DB.getWorkReports(): Got ${count} documents:\n`, res);
-          let i = 0;
-          let text = sprintf("Processing report %06d/%06d", i, count);
+          let count:number = res.docs.length;
+          Log.l(`DB.getWorkReports(): Got ${count} documents:`, res);
+          let i:number = 0;
+          let text:string = sprintf("Processing report %06d/%06d", i, count);
           Log.l(text);
           for(let doc of res.docs) {
             let tmpReport:Report = Report.deserialize(doc);
             reports.push(tmpReport);
           }
-          let newCount = reports.length;
+          let newCount:number = reports.length;
           Log.l(`DB.getWorkReports(): Queried and created array of ${newCount} reports.`);
         }
       } else {
         Log.l(`DB.getWorkReports(): Attempting to load all reports...`);
-        res = await db1.allDocs(options);
+        if(!this.testDocs) {
+          res = await db1.allDocs(options);
+        } else {
+          res = this.testDocs;
+        }
         if(res && Array.isArray(res['rows'])) {
-          let count = res.rows.length;
-          Log.l(`DB.getWorkReports(): Got ${count} documents:\n`, res);
+          Log.ti("processreports");
+          let count:number = res.rows.length;
+          Log.l(`DB.getWorkReports(): Got ${count} documents:`, res);
           let i = 0;
           let text1 = sprintf("Processing report %06d/%06d", i, count);
           Log.l(text1);
@@ -547,16 +606,28 @@ export class DBService {
               i++;
               continue;
             }
-            if(loading && i % 2000 === 1) {
+            // if(loading && i % 2000 === 1) {
+            if(i % 2000 === 1) {
               let text = sprintf("Processing report %06d/%06d", i-1, count);
               // let text:string = `Processing report ${i-2}/${count}`;
               Log.l(text);
-              await delay(this.loadDelay);
-              if(this.runInZone) {
+              if(this.loadDelay) {
+                await delay(this.loadDelay);
+              }
+              // if(this.runInZone) {
+              if(this.runInZone === 1) {
                 this.zone.run(() => {
                   // loading.setContent(text);
                   updateLoaderStatus(text);
                 });
+              } else if(this.runInZone === 2) {
+                this.updateStatusTick(text, loading);
+              } else if(this.runInZone === 3) {
+                await this.updateStatusTickAsync(text, loading);
+              } else if(this.runInZone === 4) {
+                this.updateStatus(text, loading);
+              } else if(this.runInZone === 5) {
+                this.updateStatusSync(text);
               } else {
                 updateLoaderStatus(text);
                 // loading.setContent(text);
@@ -574,14 +645,46 @@ export class DBService {
             let tsB = b.timestamp;
             return tsA > tsB ? -1 : tsA < tsB ? 1 : 0;
           });
+          Log.tie("processreports");
         }
       }
       return reports;
     } catch(err) {
       Log.l(`DB.getWorkReports(): Error getting all work reports!`);
       Log.e(err);
+      Log.tie("processreports");
       throw err;
     }
+  }
+
+  public delay = delay;
+
+  public async testLoadReports():Promise<any> {
+    try {
+      let tn = "testloadreports";
+      Log.ti(tn);
+      let dbname:string = this.prefs.getDB('reports');
+      let db1 = this.addDB(dbname);
+      Log.l("DB.testLoadReports(): Loading ...");
+      let options = {include_docs: true};
+      let res:any = await db1.allDocs(options);
+      this.testDocs = res;
+      Log.tie(tn);
+      return res;
+    } catch(err) {
+      Log.l(`testLoadReports(): Error test loading reports`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public zoneInc(forceValue?:number):number {
+    if(typeof forceValue === 'number') {
+      this.runInZone = forceValue;
+    } else {
+      this.runInZone = this.runInZone >= 5 ? 0 : this.runInZone + 1;
+    }
+    return this.runInZone;
   }
 
   public async getAllReports(startDate?:Moment|Date, endDate?:Moment|Date):Promise<Report[]> {
@@ -589,7 +692,7 @@ export class DBService {
       let dbname = this.prefs.getDB('reports');
       let db1 = this.addDB(dbname);
       this.loading = this.loading || {setContent: (input:string) => {Log.l("getAllReports(): Fake loading text: %s", input)}};
-      Log.l("DB.getAllReports(): this.loading is:\n", this.loading);
+      Log.l("DB.getAllReports(): this.loading is:", this.loading);
       let options = {include_docs: true};
       let query: any = { selector: { rprtDate: { $gte: "1900-01-01" } }, limit: 1000000 };
       if(startDate) {
@@ -641,7 +744,7 @@ export class DBService {
   public async getAllReportsPlusNew(startDate?:Moment|Date):Promise<Report[]> {
     try {
       let res:Report[] = await this.getAllReports(startDate);
-      Log.l("DB.getAllReportsPlusNew(): Returning final array of reports:\n", res);
+      Log.l("DB.getAllReportsPlusNew(): Returning final array of reports:", res);
       return res;
     } catch(err) {
       Log.l(`DB.getAllReportsPlusNew(): Error retrieving reports.`);
@@ -669,7 +772,7 @@ export class DBService {
           }
         }
       }
-      Log.l("DB.getReportOthers(): Returning array of other reports:\n", others);
+      Log.l("DB.getReportOthers(): Returning array of other reports:", others);
       return others;
     } catch(err) {
       Log.l(`DB.getReportOthers(): Error retrieving ReportOther list!`);
@@ -1219,17 +1322,17 @@ export class DBService {
   //   });
   // }
 
-  public saveReport(report:Report, username?:string) {
-    return new Promise((resolve,reject) => {
-      let db = this.prefs.getDB();
-      let db1 = this.addDB(db.reports);
-      let ts = moment().format();
-      let user = username ? username : window['onsiteconsoleusername'] ? window['onsiteconsoleusername'] : "unknown_user";
+  public async saveReport(report:Report, username?:string):Promise<UpsertResponse> {
+    try {
+      let dbname = this.prefs.getDB('reports');
+      let db1 = this.addDB(dbname);
+      let ts:string = moment().format();
+      let user:string = username ? username : window['onsiteconsoleusername'] ? window['onsiteconsoleusername'] : "unknown_user";
       let nr:any = report.serialize();
       // nr.time_start = report.time_start.format();
       // nr.time_end = report.time_end.format();
       // let rpt:any = JSON.stringify(report);
-      db1.upsert(nr._id, (doc:any) => {
+      let res = await db1.upsert(nr._id, (doc:any) => {
         if(doc && doc._id) {
           let rev = doc._rev;
           nr._rev = rev;
@@ -1250,20 +1353,19 @@ export class DBService {
           });
         }
         return doc;
-      }).then(res => {
-        if(!res['ok'] && !res.updated) {
-          Log.l(`saveReport(): Upsert error saving report ${report._id}.\n`, res);
-          reject(res);
-        } else {
-          Log.l(`saveReport(): Successfully saved report ${report._id}.\n`, res);
-          resolve(res);
-        }
-      }).catch(err => {
-        Log.l(`saveReport(): Error saving report ${report._id}.`);
-        Log.e(err);
-        reject(err);
       });
-    });
+      if(!res['ok'] && !res.updated) {
+        Log.l(`saveReport(): Upsert error saving report ${report._id}.`, res);
+        throw res;
+      } else {
+        Log.l(`saveReport(): Successfully saved report ${report._id}.`, res);
+      }
+      return res;
+    } catch(err) {
+      Log.l(`DB.saveReport(): Error saving report '${report._id}'`);
+      Log.e(err);
+      throw err;
+    }
   }
 
   public deleteReport(report:Report) {

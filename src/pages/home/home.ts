@@ -345,7 +345,7 @@ export class HomePage implements OnInit,OnDestroy {
 
   public async loadReportOthers(event?:Event):Promise<ReportOther[]> {
     Log.l("loadReportOthers() clicked.");
-    this.notify.addInfo("RETRIEVING", `Downloading non-work reports...`, 3000);
+    // this.notify.addInfo("RETRIEVING", `Downloading non-work reports...`, 3000);
     try {
       // let res = await this.db.getOldReports();
       let res:ReportOther[] = await this.data.getReportOthers();

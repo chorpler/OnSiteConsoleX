@@ -481,7 +481,7 @@ export class OSData {
       this.status.loading = true;
       this.status.ready   = false;
       // this.alert.clearSpinners();
-      spinnerID = await this.alert.showSpinnerPromise("Retrieving data from database...");;
+      spinnerID = await this.alert.showSpinnerPromise("Retrieving data from databases …");
       let loading:Loading|{setContent:Function} = this.alert.getSpinner(spinnerID);
       loading = loading && typeof loading.setContent === 'function' ? loading : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
       let tech:Employee = await this.server.getEmployee(this.auth.getUser());
@@ -505,6 +505,7 @@ export class OSData {
       this.loaded.employees = true;
       this.loaded.logistics = true;
       this.loaded.timecards = true;
+      loading.setContent("Retrieving data from:<br>\nsesa-scheduling …");
       res = await this.db.getSchedules(false, this.dbdata.employees);
       this.schedules = new Schedules();
       this.schedules.setSchedules(res);
@@ -539,7 +540,7 @@ export class OSData {
       Log.l("fetchData(): Error fetching all data.");
       Log.e(err);
       await this.alert.hideSpinnerPromise(spinnerID);
-      let errText:string = err && err.message ? err.message : typeof err === 'string' ? err : "UNKNOWN ERROR";
+      // let errText:string = err && err.message ? err.message : typeof err === 'string' ? err : "UNKNOWN ERROR";
       // this.alert.showAlert("ERROR", "Error retrieving data:<br>\n<br\n" + errText);
       this.alert.showErrorMessage("ERROR", "Error retrieving data", err);
       this.status.ready   = false;
@@ -549,10 +550,10 @@ export class OSData {
   }
 
   public async getReports(fetchCount:number, existingSpinnerID?:string):Promise<Report[]> {
-    // let spinnerID = existingSpinnerID || null;
+    // let spinnerID:string = existingSpinnerID && typeof existingSpinnerID === 'string' ? existingSpinnerID : null;
     try {
       // let reportsDB = this.prefs.getDB('reports');
-      // spinnerID = this.alert.showSpinner("Retrieving work reports...");
+      // spinnerID = await this.alert.showSpinnerPromise("Retrieving work reports …");
       // let res:Report[] = await this.db.getReportsData(fetchCount, reportsDB);
       let res:Report[] = await this.db.getWorkReports(fetchCount, existingSpinnerID);
       this.dbdata.reports = res;
@@ -563,20 +564,20 @@ export class OSData {
       // this.pouchChanges[reportsDB] = change;
       return res;
     } catch(err) {
-      // this.alert.hideSpinner(spinnerID);
       Log.l("getReports(): Error getting reports!");
       Log.e(err);
+      // await this.alert.hideSpinnerPromise(spinnerID);
       throw err;
     }
   }
 
   public async getOldReports(hideSpinner?:boolean):Promise<Report[]> {
-    let spinnerID;
+    let spinnerID:string;
     try {
       if(!hideSpinner) {
-        spinnerID = this.alert.showSpinner("Retrieving old work reports...");
+        spinnerID = await this.alert.showSpinnerPromise("Retrieving old work reports...");
       }
-      let reports_old = "reports_old01";
+      let reports_old:string = "reports_old01";
       // let db = this.prefs.getDB();
       // let rdb1 = this.db.addDB(db.reports_old01);
       // Log.l(`Server.getOldReports(): retrieving all reports from '${db.reports_old01}'...`)
@@ -593,17 +594,17 @@ export class OSData {
       Log.l("getOldReports(): Final array of old reports is:\n", reports);
       return reports;
     } catch(err) {
+      Log.l(`getOldReports(): Error retrieving reports.`);
+      Log.e(err);
       if(!hideSpinner) {
         let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       }
-      Log.l(`getOldReports(): Error retrieving reports.`);
-      Log.e(err);
       throw err;
     }
   }
 
   public async getReportOthers(hideSpinner?:boolean):Promise<ReportOther[]> {
-    let spinnerID;
+    let spinnerID:string;
     try {
       let dbname = this.prefs.getDB('reports_other');
       let db1 = this.db.addDB(dbname);
@@ -611,7 +612,7 @@ export class OSData {
       let count:number = dbinfo.doc_count;
       // let othersDB = this.prefs.DB.reports_other;
       if(!hideSpinner) {
-        spinnerID = this.alert.showSpinner(`Retrieving ${count} non-work reports...`);
+        spinnerID = await this.alert.showSpinner(`Retrieving ${count} non-work reports...`);
       }
       let others:ReportOther[] = await this.db.getReportOthers(spinnerID);
       this.dbdata.others = others;
@@ -625,24 +626,24 @@ export class OSData {
       Log.l("getReportOthers(): Final ReportOther array is:\n", others);
       return others;
     } catch(err) {
+      Log.l("getReportOthers(): Error getting reports!");
+      Log.e(err);
       if(!hideSpinner) {
         let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       }
-      Log.l("getReportOthers(): Error getting reports!");
-      Log.e(err);
       throw err;
     }
   }
 
   public async getReportLogistics(hideSpinner?:boolean):Promise<ReportLogistics[]> {
-    let spinnerID;
+    let spinnerID:string;
     try {
       let dbname = this.prefs.getDB('logistics');
       let db1 = this.db.addDB(dbname);
       let dbinfo:any = await db1.info();
       let count:number = dbinfo.doc_count;
       if(!hideSpinner) {
-        spinnerID = this.alert.showSpinner(`Retrieving ${count} logistics reports...`);
+        spinnerID = await this.alert.showSpinnerPromise(`Retrieving ${count} logistics reports...`);
       }
       let logistics:ReportLogistics[] = await this.server.getReportLogistics(spinnerID);
       // let logistics:ReportLogistics[] = await this.db.getReportLogistics(spinnerID);
@@ -654,27 +655,27 @@ export class OSData {
       this.dispatch.updateDatastore('logistics', this.dbdata.logistics);
       // let change = this.syncChanges(dbname);
       // this.pouchChanges[dbname] = change;
-      Log.l("getReportOthers(): Final ReportLogistics array is:\n", dbname);
+      Log.l("getReportLogistics(): Final ReportLogistics array is:", dbname);
       return dbname;
     } catch(err) {
       if(!hideSpinner) {
         let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       }
-      Log.l("getReportOthers(): Error getting reports!");
+      Log.l("getReportLogistics(): Error getting logistics reports!");
       Log.e(err);
       throw err;
     }
   }
 
   public async getTimeCards(hideSpinner?:boolean):Promise<ReportTimeCard[]> {
-    let spinnerID;
+    let spinnerID:string;
     try {
       let dbname = this.prefs.getDB('timecards');
       let db1 = this.db.addDB(dbname);
       let dbinfo:any = await db1.info();
       let count:number = dbinfo.doc_count;
       if(!hideSpinner) {
-        spinnerID = this.alert.showSpinner(`Retrieving ${count} time card reports...`);
+        spinnerID = await this.alert.showSpinnerPromise(`Retrieving ${count} time card reports...`);
       }
       let timecards:ReportTimeCard[] = await this.server.getReportTimeCards(spinnerID);
       this.dbdata.timecards = timecards;
@@ -685,13 +686,13 @@ export class OSData {
       this.dispatch.updateDatastore('logistics', this.dbdata.logistics);
       // let change = this.syncChanges(dbname);
       // this.pouchChanges[dbname] = change;
-      Log.l("getReportOthers(): Final ReportTimeCard array is:\n", dbname);
+      Log.l("getTimeCards(): Final ReportTimeCard array is:\n", dbname);
       return dbname;
     } catch(err) {
       if(!hideSpinner) {
         let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       }
-      Log.l("getReportOthers(): Error getting reports!");
+      Log.l("getTimeCards(): Error getting reports!");
       Log.e(err);
       throw err;
     }

@@ -1,10 +1,10 @@
 <div class="report-view-wrapper">
-  <p-dialog #reportViewBetaDialog styleClass="report-view-beta-dialog" [header]="header" [(visible)]="visible" [contentStyle]="{'overflow':'visible'}" [modal]="false" [responsive]="true" [draggable]="true" [resizable]="true" [positionLeft]="dialogLeft" [positionTop]="dialogTop" (onHide)="cancelClicked($event)">
+  <p-dialog #reportViewBetaDialog styleClass="report-view-beta-dialog" [class.time-error]="report.times-error" [class.date-error]="report.date-error" [header]="header" [(visible)]="visible" [contentStyle]="{'overflow':'visible'}" [modal]="false" [responsive]="true" [draggable]="true" [resizable]="true" [positionLeft]="dialogLeft" [positionTop]="dialogTop" (onHide)="cancelClicked($event)">
     <table class="report-view-button-table top">
       <tr class="report-view-button-row">
         <!-- <td class="cell-button-like" (click)="splitReport($event)"  title="Split work report" ><span class="svg-icon"></span></td> -->
         <!-- <td class="cell-button-like" (click)="splitReport($event)"  title="Split work report" ><svg viewBox="0 0 26 26" class="icon svg-icon"></svg></td> -->
-        <td class="cell-button-like" (click)="splitReport($event)"  title="Split work report" *ngIf="data.status.role==='dev'"><i class="icomoon-split icon-button-like"></i></td>
+        <td class="cell-button-like" (click)="splitReport($event)"  title="Split work report" *ngIf="data.status.role==='dev'"><i class="icomoon-split icon-button-like button-dev"></i></td>
         <td class="cell-button-like" (click)="deleteReport($event)" title="Delete work report"                                ><i class="fal fa-trash-alt icon-button-like"></i></td>
         <td class="cell-button-like" (click)="saveNoExit($event)"   title="Save, don't exit"                                  ><i class="fa fa-save icon-button-like"   ></i></td>
         <div *ngIf="idx+1 > 1; then previousAvailable; else previousUnavailable"></div>
@@ -44,26 +44,41 @@
         <td class="label">Timestamp</td>
         <td class="data" ><input class="report-view-input" [(ngModel)]="report.timestamp" /></td>
       </tr>
-      <tr class="report-view-row">
+      <tr class="report-view-row" [class.date-error]="report.date_error">
         <td class="label">Date</td>
-        <td class="data" ><p-calendar [class.report-view-calendar]="true" dateFormat="dd M yy" [(ngModel)]="report_date" (onChange)="updateDate(report_date)"></p-calendar></td>
+        <!-- <td class="data" ><p-calendar [class.report-view-calendar]="true" dateFormat="dd M yy" [(ngModel)]="report_date" (onChange)="updateDate(report_date)"></p-calendar></td> -->
+        <!-- <td class="data" ><p-calendar [class.report-view-calendar]="true" dateFormat="dd M yy" [(ngModel)]="report_date" (ngModelChange)="updateDate(report_date)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar></td> -->
+        <td class="data" ><p-calendar [class.report-view-calendar]="true" dateFormat="dd M yy" [(ngModel)]="report_date" (onSelect)="updateDate(report_date)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar></td>
       </tr>
-      <tr class="report-view-row">
+      <tr class="report-view-row" [class.time-error]="report.times_error">
         <td class="label">Repair Time</td>
-        <td class="data" ><input class="report-view-input" type="number" min="0" step="0.5" [(ngModel)]="report.repair_hours" (ngModelChange)="updateRepairHours()"/></td>
+        <!-- <td class="data" [class.time-error]="reportTimeError"><input class="report-view-input" type="number" min="0" step="0.5" [(ngModel)]="report.repair_hours" (ngModelChange)="updateRepairHours()"/></td> -->
+        <td class="data"><input class="report-view-input" type="number" min="0" step="0.5" [(ngModel)]="report.repair_hours" (ngModelChange)="updateRepairHours()"/></td>
       </tr>
-      <tr class="report-view-row">
+      <tr class="report-view-row" [class.time-error]="report.times_error" [class.date-error]="report.date_error">
         <td class="label">Start Time</td>
         <!-- <td class="data" ><p-dropdown [class.report-view-dropdown]="true" [options]="timeList" [(ngModel)]="time_start" (onChange)="updateTimeStart()"></p-dropdown></td> -->
-        <td class="data" >
-          <p-calendar [class.report-view-calendar]="true" dateFormat="dd M yy" showTime="true" stepMinute="30" [(ngModel)]="time_start" (onChange)="updateTimeStart()"></p-calendar>
+        <!-- <td class="data" [class.time-error]="reportTimeError"> -->
+        <td class="data">
+          <!-- <p-calendar [class.report-view-calendar]="true" dateFormat="dd M yy" showTime="true" stepMinute="30" [(ngModel)]="time_start" (ngModelChange)="updateTimeStart()"></p-calendar> -->
+          <!-- <p-calendar [class.report-view-calendar]="true" dateFormat="dd M yy" showTime="true" stepMinute="30" [(ngModel)]="time_start" (ngModelChange)="updateTime(1)" (onSelect)="selectTime(1, $event)"></p-calendar> -->
+          <!-- <p-calendar [class.report-view-calendar]="true" dateFormat="dd M yy" showTime="true" stepMinute="15" [(ngModel)]="time_start" (ngModelChange)="timeChanged(1, $event)" (onSelect)="selectTime(1, $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar> -->
+          <!-- <p-calendar [class.report-view-calendar]="true" dateFormat="dd M yy" showTime="true" stepMinute="15" [(ngModel)]="time_start" (onClose)="selectTime(1, $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar> -->
+          <!-- <p-calendar [class.report-view-calendar]="true" dateFormat="dd M yy" showTime="true" stepMinute="15" [(ngModel)]="time_start" (ngModelChange)="timeChanged(1, $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar> -->
+          <p-calendar #startTimeCal [class.report-view-calendar]="true" dateFormat="dd M yy" showTime="true" [stepMinute]="stepMinute" [(ngModel)]="time_start" (onSelect)="selectTime(1, $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar>
         </td>
       </tr>
-      <tr class="report-view-row">
+      <tr class="report-view-row" [class.time-error]="report.times_error">
         <td class="label">End Time</td>
         <!-- <td class="data" ><p-dropdown [class.report-view-dropdown]="true" [options]="timeList" [(ngModel)]="time_end" (onChange)="updateTimeEnd()"></p-dropdown></td> -->
-        <td class="data" >
-          <p-calendar [class.report-view-calendar]="true" dateFormat="dd M yy" showTime="true" stepMinute="30" [(ngModel)]="time_end" (onChange)="updateTimeEnd()"></p-calendar>
+        <!-- <td class="data" [class.time-error]="reportTimeError"> -->
+        <td class="data">
+          <!-- <p-calendar [class.report-view-calendar]="true" dateFormat="dd M yy" showTime="true" stepMinute="30" [(ngModel)]="time_end" (ngModelChange)="updateTimeEnd()"></p-calendar> -->
+          <!-- <p-calendar [class.report-view-calendar]="true" dateFormat="dd M yy" showTime="true" stepMinute="15" [(ngModel)]="time_end" (ngModelChange)="updateTime(2)" (onSelect)="selectTime(2, $event)"></p-calendar> -->
+          <!-- <p-calendar [class.report-view-calendar]="true" dateFormat="dd M yy" showTime="true" stepMinute="15" [(ngModel)]="time_end" (ngModelChange)="timeChanged(2, $event)" (onSelect)="selectTime(2, $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar> -->
+          <!-- <p-calendar [class.report-view-calendar]="true" dateFormat="dd M yy" showTime="true" stepMinute="15" [(ngModel)]="time_end" (onClose)="selectTime(2, $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar> -->
+          <!-- <p-calendar [class.report-view-calendar]="true" dateFormat="dd M yy" showTime="true" stepMinute="15" [(ngModel)]="time_end" (ngModelChange)="timeChanged(2, $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar> -->
+          <p-calendar #endTimeCal [class.report-view-calendar]="true" dateFormat="dd M yy" showTime="true" [stepMinute]="stepMinute" [(ngModel)]="time_end" (onSelect)="selectTime(2, $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar>
         </td>
       </tr>
       <tr class="report-view-row">
@@ -97,10 +112,11 @@
     </table>
     <table class="report-view-button-table bottom">
       <tr class="report-view-button-row">
-        <td class="report-view-button-td cell-button-like" (click)="cancelClicked($event)"><i class="fal fa-times-circle icon-button-like" title="Cancel any edits"></i></td>
+        <td class="report-view-button-td cell-button-like" (click)="cancelClicked($event)" title="Cancel without saving"><i class="fal fa-times-circle icon-button-like"></i></td>
         <td class="report-view-button-td"></td>
+        <td class="report-view-button-td cell-button-like" (click)="saveNoExitClicked($event)" title="Save but keep report open"><i class="fal fa-save icon-button-like"></i></td>
         <td class="report-view-button-td"></td>
-        <td class="report-view-button-td cell-button-like" (click)="saveClicked($event)"><i class="fal fa-check-circle icon-button-like"   title="Save and exit"></i></td>
+        <td class="report-view-button-td cell-button-like" (click)="saveClicked($event)" title="Save and close report viewer"><i class="fal fa-check-circle icon-button-like"></i></td>
       </tr>
     </table>
   </p-dialog>
