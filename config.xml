@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.sesaonsite.onsiteconsolex" version="10.16.29" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="com.sesaonsite.onsiteconsolex" version="10.16.30" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>OnSiteConsoleX</name>
     <description>OnSiteConsoleX: A PANIC-stack desktop application.</description>
     <author email="hachero@gmail.com" href="https://www.sesaonsite.com">Star Mobile Developers</author>
