@@ -539,6 +539,7 @@ export class OSData {
       this.training_types         = res['training_types']  ;
       // return this.db.getDPSSettings();
       this.loaded.config = true;
+      updateLoaderStatus("sesa-dps-config");
       res = await this.server.getDPSSettings();
       // OSData.dps = res;
       this.dps = res;
