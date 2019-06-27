@@ -932,7 +932,7 @@ export class PayrollPage implements OnInit,OnDestroy {
     let overall = [];
     let i = 0, j = 0;
 
-    let header = [
+    let header:string[] = [
       "#",
       "SHFT",
       "LEN",
@@ -957,9 +957,10 @@ export class PayrollPage implements OnInit,OnDestroy {
       "V",
       "E",
       "NOTES",
+      "Rate",
     ];
     let pDate = moment(this.period.start_date);
-    i = 8;
+    i = header.findIndex(a => "");
     for(let shift of this.period.getPayrollShifts()) {
       let momentDate = moment(shift.getShiftDate());
       let date = String(momentDate.toExcel(true));
@@ -979,6 +980,7 @@ export class PayrollPage implements OnInit,OnDestroy {
       let shiftLen = site.getSiteShiftLength(rotation, shift, pDate);
       let shiftStart = site.getShiftStartTime(shift);
       let usr = "";
+      let rate = !isNaN(Number(tech.payRate)) ? Number(tech.payRate) : 0;
       if(this.prefs.CONSOLE.payroll.exportUseQuickbooksName) {
         usr = tech.getQuickbooksName();
       } else {
@@ -1009,6 +1011,7 @@ export class PayrollPage implements OnInit,OnDestroy {
       row.push(periodTotal.Vacation);
       row.push(periodTotal.Sick);
       row.push("");
+      row.push(rate);
       outer.push(row);
     }
     if(this.prefs.CONSOLE.payroll.exportUseQuickbooksName) {

@@ -22,12 +22,12 @@ export class PayrollExportPage {
   @ViewChild('printArea') printArea:ElementRef;
   @ViewChild('exportTable') exportTable:ElementRef;
   public title    : string             = "Payroll Export" ;
-  public period   : PayrollPeriod      ;
-  public reports  : Array<Report>      = []               ;
-  public others   : Array<ReportOther> = []               ;
-  public techs    : Array<Employee>    = []               ;
+  public period   : PayrollPeriod                         ;
+  public reports  : Report[]           = []               ;
+  public others   : ReportOther[]      = []               ;
+  public techs    : Employee[]         = []               ;
   public dataReady: boolean            = false            ;
-  public grid     : Array<Array<any>>  = []               ;
+  public grid     : any[][]            = []               ;
   public csv      : string             = ""               ;
 
   constructor(
@@ -38,6 +38,7 @@ export class PayrollExportPage {
     public notify       : NotifyService  ,
   ) {
     window['payrollexport'] = this;
+    window['p'] = this;
   }
 
   ionViewDidLoad() {
@@ -53,7 +54,7 @@ export class PayrollExportPage {
   public processData() {
     Log.l("processData(): Called...");
     let keys = [];
-    if (this.grid !== undefined && this.grid !== null) {
+    if(this.grid !== undefined && this.grid !== null) {
       keys = Object.keys(this.grid);
     }
     if (this.grid && keys.length > 0) {

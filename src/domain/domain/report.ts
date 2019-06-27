@@ -1,8 +1,9 @@
 /**
  * Name: Report domain class
- * Vers: 7.7.1
- * Date: 2019-06-11
+ * Vers: 7.7.2
+ * Date: 2019-06-27
  * Auth: David Sargeant
+ * Logs: 7.7.2 2019-06-27: Changed StatusUpdateType to ReportStatusUpdateType
  * Logs: 7.7.1 2019-06-11: Added times_error,date_error properties, areTimesValid() method, and new methods to force date/time updates without checking instantly for errors
  * Logs: 7.6.1 2019-03-06: Modified getReportDate() and getReportDateAsString()
  * Logs: 7.5.1 2019-01-29: Removed Shift and PayrollPeriod imports; added static methods getPayrollPeriodDate(), getPayrollSerial(), getShiftNumber(), getShiftWeek(), getShiftSerial()
@@ -35,12 +36,13 @@ import { ReportFlag } from '../config/config.types'  ;
 import { Employee   } from './employee'              ;
 import { Jobsite    } from './jobsite'               ;
 
-type StatusUpdateType = "created" | "updated" | "invoiced" | "paid";
-type ReportStatusLogEntry = {
-  type       : StatusUpdateType ,
-  user       : string           ,
-  timestamp  : string           ,
-  invoice   ?: number           ,
+export type FieldRecord = [string, string, number];
+export type ReportStatusUpdateType = "created" | "updated" | "invoiced" | "paid";
+export type ReportStatusLogEntry = {
+  type       : ReportStatusUpdateType ,
+  user       : string                 ,
+  timestamp  : string                 ,
+  invoice   ?: number                 ,
 };
 
 export class Report {
@@ -88,6 +90,47 @@ export class Report {
   public isTest           : boolean = false;
   public times_error      : boolean = false;
   public date_error       : boolean = false;
+
+  public static fields:FieldRecord[] = [
+    ["_id"             , "_id"               , 0 ] ,
+    ["_rev"            , "_rev"              , 0 ] ,
+    ["repairHrs"       , "repair_hours"      , 1 ] ,
+    ["uNum"            , "unit_number"       , 0 ] ,
+    ["wONum"           , "work_order_number" , 0 ] ,
+    ["notes"           , "notes"             , 1 ] ,
+    ["rprtDate"        , "report_date"       , 0 ] ,
+    ["lastName"        , "last_name"         , 0 ] ,
+    ["firstName"       , "first_name"        , 0 ] ,
+    ["client"          , "client"            , 1 ] ,
+    ["location"        , "location"          , 1 ] ,
+    ["locID"           , "location_id"       , 0 ] ,
+    ["shift"           , "shift_time"        , 0 ] ,
+    ["shiftLength"     , "shift_length"      , 0 ] ,
+    ["shiftStartTime"  , "shift_start_time"  , 0 ] ,
+    ["shiftSerial"     , "shift_serial"      , 0 ] ,
+    ["workSite"        , "workSite"          , 1 ] ,
+    ["payrollPeriod"   , "payroll_period"    , 0 ] ,
+    ["technician"      , "technician"        , 1 ] ,
+    ["timeStamp"       , "timestamp"         , 0 ] ,
+    ["timeStampM"      , "timestampM"        , 0 ] ,
+    ["username"        , "username"          , 1 ] ,
+    ["site_number"     , "site_number"       , 1 ] ,
+    ["invoiced"        , "invoiced"          , 1 ] ,
+    ["invoiced_dates"  , "invoiced_dates"    , 1 ] ,
+    ["change_log"      , "change_log"        , 1 ] ,
+    ["flagged"         , "flagged"           , 1 ] ,
+    ["flagged_fields"  , "flagged_fields"    , 1 ] ,
+    ["preauthed"       , "preauthed"         , 1 ] ,
+    ["preauth_dates"   , "preauth_dates"     , 1 ] ,
+    ["invoiced"        , "invoiced"          , 1 ] ,
+    ["invoiced_date"   , "invoiced_date"     , 1 ] ,
+    ["invoiced_dates"  , "invoiced_dates"    , 1 ] ,
+    ["invoice_numbers" , "invoice_numbers"   , 1 ] ,
+    ["crew_number"     , "crew_number"       , 1 ] ,
+    ["paid"            , "paid"              , 1 ] ,
+    ["paid_date"       , "paid_date"         , 1 ] ,
+    ["isTest"          , "isTest"            , 1 ] ,
+  ];
 
   /**
    * Create a Report object. All parameters are optional, and can be populated later from a serialized object document from database.
@@ -167,45 +210,7 @@ export class Report {
   }
 
   public readFromDoc(doc:any):Report {
-    let fields = [
-      ["_id"             , "_id"               ] ,
-      ["_rev"            , "_rev"              ] ,
-      ["repairHrs"       , "repair_hours"      ] ,
-      ["uNum"            , "unit_number"       ] ,
-      ["wONum"           , "work_order_number" ] ,
-      ["notes"           , "notes"             ] ,
-      ["rprtDate"        , "report_date"       ] ,
-      ["lastName"        , "last_name"         ] ,
-      ["firstName"       , "first_name"        ] ,
-      ["client"          , "client"            ] ,
-      ["location"        , "location"          ] ,
-      ["locID"           , "location_id"       ] ,
-      ["shift"           , "shift_time"        ] ,
-      ["shiftLength"     , "shift_length"      ] ,
-      ["shiftStartTime"  , "shift_start_time"  ] ,
-      ["shiftSerial"     , "shift_serial"      ] ,
-      ["workSite"        , "workSite"          ] ,
-      ["payrollPeriod"   , "payroll_period"    ] ,
-      ["technician"      , "technician"        ] ,
-      ["timeStamp"       , "timestamp"         ] ,
-      ["timeStampM"      , "timestampM"        ] ,
-      ["username"        , "username"          ] ,
-      ["site_number"     , "site_number"       ] ,
-      ["invoiced"        , "invoiced"          ] ,
-      ["invoiced_dates"  , "invoiced_dates"    ] ,
-      ["change_log"      , "change_log"        ] ,
-      ["flagged"         , "flagged"           ] ,
-      ["flagged_fields"  , "flagged_fields"    ] ,
-      ["preauthed"       , "preauthed"         ] ,
-      ["preauth_dates"   , "preauth_dates"     ] ,
-      ["invoiced"        , "invoiced"          ] ,
-      ["invoiced_date"   , "invoiced_date"     ] ,
-      ["invoiced_dates"  , "invoiced_dates"    ] ,
-      ["invoice_numbers" , "invoice_numbers"   ] ,
-      ["crew_number"     , "crew_number"       ] ,
-      ["paid"            , "paid"              ] ,
-      ["paid_date"       , "paid_date"         ] ,
-    ];
+    let fields = Report.fields;
       // try {
       let len = fields.length;
       for(let i = 0; i < len; i++) {
@@ -289,48 +294,37 @@ export class Report {
     // }
     return this;
   }
+  
+  public getSerializeKey(key:string):string {
+    let record = Report.fields.find(a => {
+      return key === a[1];
+    });
+    if(record) {
+      return record[0];
+    } else {
+      let text:string = `Report.getSerializeKey(): Key '${key}' not found`;
+      let err:Error = new Error(text);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public getDeserializeKey(key:string):string {
+    let record = Report.fields.find(a => {
+      return key === a[0];
+    });
+    if(record) {
+      return record[1];
+    } else {
+      let text:string = `Report.getDeserializeKey(): Key '${key}' not found`;
+      let err:Error = new Error(text);
+      Log.e(err);
+      throw err;
+    }
+  }
 
   public serialize(tech?:Employee):any {
-    let fields:string[][] = [
-      ["_id"             , "_id"               ] ,
-      ["_rev"            , "_rev"              ] ,
-      ["repairHrs"       , "repair_hours"      ] ,
-      ["uNum"            , "unit_number"       ] ,
-      ["wONum"           , "work_order_number" ] ,
-      ["notes"           , "notes"             ] ,
-      ["rprtDate"        , "report_date"       ] ,
-      ["lastName"        , "last_name"         ] ,
-      ["firstName"       , "first_name"        ] ,
-      ["client"          , "client"            ] ,
-      ["location"        , "location"          ] ,
-      ["locID"           , "location_id"       ] ,
-      ["shift"           , "shift_time"        ] ,
-      ["shiftLength"     , "shift_length"      ] ,
-      ["shiftStartTime"  , "shift_start_time"  ] ,
-      ["shiftSerial"     , "shift_serial"      ] ,
-      ["workSite"        , "workSite"          ] ,
-      ["payrollPeriod"   , "payroll_period"    ] ,
-      ["technician"      , "technician"        ] ,
-      ["timeStamp"       , "timestamp"         ] ,
-      ["timeStampM"      , "timestampM"        ] ,
-      ["username"        , "username"          ] ,
-      ["timeStarts"      , "time_start"        ] ,
-      ["timeEnds"        , "time_end"          ] ,
-      ["change_log"      , "change_log"        ] ,
-      ["invoiced"        , "invoiced"          ] ,
-      ["invoiced_dates"  , "invoiced_dates"    ] ,
-      ["flagged"         , "flagged"           ] ,
-      ["flagged_fields"  , "flagged_fields"    ] ,
-      ["preauthed"       , "preauthed"         ] ,
-      ["preauth_dates"   , "preauth_dates"     ] ,
-      ["invoiced"        , "invoiced"          ] ,
-      ["invoiced_date"   , "invoiced_date"     ] ,
-      ["invoiced_dates"  , "invoiced_dates"    ] ,
-      ["invoice_numbers" , "invoice_numbers"   ] ,
-      ["crew_number"     , "crew_number"       ] ,
-      ["paid"            , "paid"              ] ,
-      ["paid_date"       , "paid_date"         ] ,
-    ];
+    let fields = Report.fields;
     let doc:any = {};
     // try {
     let len = fields.length;
@@ -788,7 +782,7 @@ export class Report {
     this.flagged = false;
   }
 
-  public addStatusUpdate(type:StatusUpdateType, username:string):ReportStatusLogEntry[] {
+  public addStatusUpdate(type:ReportStatusUpdateType, username:string):ReportStatusLogEntry[] {
     let now:Moment = moment();
     let timestamp:string = now.format();
     let logEntry:ReportStatusLogEntry = {

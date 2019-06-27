@@ -26,7 +26,7 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
   @ViewChild('avatarName') avatarName:ElementRef                                      ;
   @ViewChild('emailTextArea') emailTextArea:ElementRef                                ;
   @Input('employee') employee:Employee                                                ;
-  @Input('employees') employees:Array<Employee> = []                                  ;
+  @Input('employees') employees:Employee[] = []                                  ;
   @Input('mode') mode:string = "edit";
   @Output('onUpdate')  onUpdate = new EventEmitter<any>()                             ;
   @Output('onCancel')  onCancel = new EventEmitter<any>()                             ;
@@ -44,7 +44,7 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
   public errors         : any           = {username: false, email: false}             ;
   // public mode           : string        = "Add"                                       ;
   public from           : string        = "employees"                                 ;
-  public usernames      : Array<string> = []                                          ;
+  public usernames      : string[] = []                                          ;
   public clients        : SESAClient[]  = []                                          ;
   public locations      : SESALocation[]= []                                          ;
   public locids         : SESALocID[]   = []                                          ;
@@ -76,11 +76,11 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
   public birthdate      : Date          = new Date()                                  ;
   public isBirthdateReadOnly:boolean    = false                                       ;
 
-  public prefixes       : Array<string> = ["", "Mr.", "Dr.", "Sr.", "Mrs.", "Ms.", "HRM"] ;
-  public suffixes       : Array<string> = ["", "Jr.", "Sr.", "III", "Esq"]                ;
+  public prefixes       : string[] = ["", "Mr.", "Dr.", "Sr.", "Mrs.", "Ms.", "HRM"] ;
+  public suffixes       : string[] = ["", "Jr.", "Sr.", "III", "Esq"]                ;
   public site           : Jobsite                                                     ;
-  public sites          : Array<Jobsite>= []                                          ;
-  public allSites       : Array<Jobsite>= []                                          ;
+  public sites          : Jobsite[]= []                                          ;
+  public allSites       : Jobsite[]= []                                          ;
   public username       : string = "unknown"                                          ;
   public yearRange      : string = null                                               ;
   public backupEmployee : any                                                         ;
@@ -88,6 +88,7 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
   public optionsType      : string = 'employeeView'                                   ;
   public dataReady      : boolean = false                                             ;
   public isVisible      : boolean = true                                              ;
+  public 
   public dialogStyle    : any = {
     // overflow: 'visible',
     overflow: 'auto',
@@ -277,7 +278,7 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
     // return new Promise((resolve,reject) => {
     //   this.server.getJobsites().then(res => {
     //     Log.l("initializeJobsiteData(): Successfully fetched jobsite list:\n",res);
-    //     let sites = new Array<Jobsite>();
+    //     let sites = new Jobsite[]();
     //     for(let key of Object.keys(res)) {
     //       let doc  = res[key];
     //       let site = new Jobsite();
@@ -580,7 +581,7 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
   //     this._shiftStartTime.setValue(tech.shiftStartTime, {emitEvent: false})                                   ;
   // }
 
-  public async updateEmployeeList():Promise<Array<Employee>> {
+  public async updateEmployeeList():Promise<Employee[]> {
     Log.l(`updateEmployeeList(): Function called...`);
     try {
       let res:Employee[] = await this.server.getEmployees();
@@ -606,7 +607,7 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
     } else if(param === 'suffix') {
       this.employee.suffix = value;
     } else if(param === 'jobsite') {
-      Log.l("updateEmployee(): Now updating employee jobsite for site:\n", value);
+      Log.l("updateEmployee(): Now updating employee jobsite for site:", value);
       let site:Jobsite = value;
       let cli = site.client.name;
       let loc = site.location.name;

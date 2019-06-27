@@ -125,6 +125,7 @@
     "ionic:clean": "ionic-app-scripts clean",
     "ionic:serve": "npm run start",
     "ionic:debug": "npm run start --debug",
+    "tsfix": "npm run fixts",
     "fixts": "run-script-os",
     "fixts:win32": "cd node_modules\\@ionic\\app-scripts && npm i typescript@2.7.2 && cd ..\\..\\..",
     "fixts:darwin": "cd 'node_modules/@ionic/app-scripts' && npm i typescript@2.7.2 && cd ../../.."

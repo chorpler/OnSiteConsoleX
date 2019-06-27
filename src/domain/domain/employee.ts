@@ -1,8 +1,9 @@
 /**
  * Name: Employee domain class
- * Vers: 8.1.4
- * Date: 2019-02-01
+ * Vers: 8.1.5
+ * Date: 2019-06-27
  * Auth: David Sargeant
+ * Logs: 8.1.5 2019-06-27: Changed StatusUpdateType to EmployeeStatusUpdateType
  * Logs: 8.1.4 2019-02-01: Changed how isLevel1Manager() works to make it case-insensitive
  * Logs: 8.1.3 2019-01-24: Changed employeeMoved to default to false, and not to save during serialization
  * Logs: 8.1.2 2018-09-25: Fixed case-sensitivity bug for isLogistics() and isOffice() methods
@@ -51,11 +52,11 @@ export enum EmployeeType {
   LOGISTICS = 'LOGISTICS' ,
 };
 
-export type StatusUpdateType = "created" | "updated" | "activated" | "deactivated";
+export type EmployeeStatusUpdateType = "created" | "updated" | "activated" | "deactivated";
 export type EmployeeStatusLogEntry = {
-  type      : StatusUpdateType ,
-  user      : string           ,
-  timestamp : string           ,
+  type      : EmployeeStatusUpdateType ,
+  user      : string                   ,
+  timestamp : string                   ,
 };
 
 export class Employee {
@@ -666,7 +667,7 @@ export class Employee {
     }
   }
 
-  public addStatusUpdate(type:StatusUpdateType, username:string):EmployeeStatusLogEntry[] {
+  public addStatusUpdate(type:EmployeeStatusUpdateType, username:string):EmployeeStatusLogEntry[] {
     let now:Moment = moment();
     let timestamp:string = now.format();
     let logEntry:EmployeeStatusLogEntry = {
