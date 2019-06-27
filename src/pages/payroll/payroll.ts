@@ -960,7 +960,9 @@ export class PayrollPage implements OnInit,OnDestroy {
       "Rate",
     ];
     let pDate = moment(this.period.start_date);
-    i = header.findIndex(a => "");
+    i = header.findIndex(a => {
+      return a === "";
+    });
     for(let shift of this.period.getPayrollShifts()) {
       let momentDate = moment(shift.getShiftDate());
       let date = String(momentDate.toExcel(true));
