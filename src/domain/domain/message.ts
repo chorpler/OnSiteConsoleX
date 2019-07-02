@@ -14,9 +14,9 @@
  */
 
 import { Log      } from '../config/config.log'    ;
-import { Moment   } from '../config/config.moment' ;
-import { moment   } from '../config/config.moment' ;
-import { isMoment } from '../config/config.moment' ;
+import { Moment   } from '../config/moment-onsite' ;
+import { moment   } from '../config/moment-onsite' ;
+import { isMoment } from '../config/moment-onsite' ;
 import { oo       } from '../config/config.types'  ;
 import { Employee } from './employee'              ;
 
