@@ -926,5 +926,5 @@ export class Report {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }
