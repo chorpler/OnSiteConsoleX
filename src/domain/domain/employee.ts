@@ -29,10 +29,10 @@
  * Logs: 3.5.1: Changed "created" and "lastUpdated" to timestamp strings instead of Moment
  */
 
-import { moment           } from '../config'               ;
-import { isMoment         } from '../config'               ;
+import { moment           } from '../config/moment-onsite' ;
+import { isMoment         } from '../config/moment-onsite' ;
 import { Moment           } from '../config/moment-onsite' ;
-import { oo               } from '../config'               ;
+import { oo               } from '../config/config.types'  ;
 import { Street           } from './street'                ;
 import { Address          } from './address'               ;
 import { Jobsite          } from './jobsite'               ;
@@ -153,7 +153,9 @@ export class Employee {
   }
 
   public readFromForm(doc:any) {
-    for (let prop in doc) {
+    let keys:string[] = Object.keys(doc);
+    for(let key of keys) {
+      let prop = key;
       let docprop = doc[prop];
       if (docprop && typeof docprop === 'object') {
         if (prop === 'shiftStartTime') {
@@ -234,7 +236,9 @@ export class Employee {
 
   public readFromDoc(doc:any):Employee {
     let localKeys:string[] = Object.keys(this);
-    for(let prop in doc) {
+    let keys:string[] = Object.keys(doc);
+    for(let key of keys) {
+      let prop = key;
       let docprop = doc[prop];
       if(docprop && typeof docprop === 'object') {
         if(Array.isArray(docprop)) {
@@ -401,7 +405,11 @@ export class Employee {
 
   public getShiftRotation():string {
     if(this.rotation) {
-      return this.rotation;
+      if(this.rotation['name']) {
+        return this.rotation['name'];
+      } else {
+        return this.rotation;
+      }
     } else {
       return "CONTN WEEK";
     }

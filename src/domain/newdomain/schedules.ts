@@ -17,9 +17,9 @@ import { moment   } from '../config'  ;
 import { isMoment } from '../config'  ;
 
 export class Schedules implements Iterator<Schedule> {
-  public get length():number { return Array.isArray(this.schedules) ? this.schedules.length : 0 };
-  public get lastIndex():number { let len = this.length; return len > 0 ? len - 1 : null; };
-  public get lastSchedule():Schedule { return this.length > 0 ? this.schedules[this.lastIndex] : null };
+  public get length():number { return Array.isArray(this.schedules) ? this.schedules.length : 0; }
+  public get lastIndex():number { let len = this.length; return len > 0 ? len - 1 : null; }
+  public get lastSchedule():Schedule { return this.length > 0 ? this.schedules[this.lastIndex] : null; }
   public schedules:Schedule[] = [];
   public iteratorSchedule:Schedule;
   public sites:Jobsite[] = [];
@@ -98,9 +98,17 @@ export class Schedules implements Iterator<Schedule> {
     let schedule = schedules.find(a => {
       return a['start'].isSame(date, 'day');
     });
-    outerloop: for(let siteName in schedule.schedule) {
-      for(let rotation in schedule.schedule[siteName]) {
-        let techs = schedule.schedule[siteName][rotation];
+    let siteList = schedule.schedule;
+    let siteNames = Object.keys(siteList);
+    outerloop:
+    for(let siteName of siteNames) {
+      let siteRotations = siteList[siteName];
+      let rotationNames = Object.keys(siteRotations);
+      // for(let rotation in schedule.schedule[siteName]) {
+      for(let rotationName of rotationNames) {
+        // let techs = schedule.schedule[siteName][rotation];
+        let techList = siteRotations[rotationName];
+        let techs = techList[rotationName];
         let i = techs.indexOf(username);
         if(i > -1) {
           foundSiteName = siteName;
@@ -128,7 +136,7 @@ export class Schedules implements Iterator<Schedule> {
     let schedules:Schedule[] = this.getSchedules();
     let datem = moment(date);
     let inDateString = datem.format("YYYY-MM-DD");
-    Log.l(`Schedules.getScheduleForDate(): Now getting schedule for date '${inDateString}' ...`);
+    Log.l(`Schedules.getScheduleForDate(): Now getting schedule for date '${inDateString}' …`);
     let scheduleDate:Moment = this.getScheduleStartDateFor(datem);
     // let schDateString = isMoment(scheduleDate) ? scheduleDate.format("YYYY-MM-DD") : "INVALID DATE RESULT";
     let dateString:string = isMoment(scheduleDate) ? scheduleDate.format("YYYY-MM-DD") : "INVALID DATE RESULT";
@@ -176,5 +184,5 @@ export class Schedules implements Iterator<Schedule> {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }

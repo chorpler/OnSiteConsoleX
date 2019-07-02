@@ -41,6 +41,8 @@ export class Timesheet {
   // public site_number      : number = -1001;
 
   constructor() {
+    Log.l("Timesheet created:", this);
+    console.trace();
     let now = moment();
     this._id               = ""                       ;
     this._rev              = ""                       ;
@@ -83,7 +85,8 @@ export class Timesheet {
   }
 
   public serialize() {
-    Log.l("Timesheet.serialize(): Now serializing timesheet ...");
+    Log.l("Timesheet.serialize(): Now serializing timesheet:", this);
+    console.trace("Timesheet serializing");
     let newSheet:any = {};
     // this._id = this._id || this.genReportID(tech);
     let keys = Object.keys(this);
@@ -135,6 +138,8 @@ export class Timesheet {
     return true;
   }
   public toJSON():any {
+    Log.l(`TimeSheet.toJSON(): Called`);
+    console.trace();
     return this.serialize();
   }
   public static fromJSON(doc:any):Timesheet {

@@ -17,8 +17,10 @@ export class SESAShiftStartTime implements CLL {
   public set value(val:string) { this.fullName = val; };
 
   constructor(time?:number|string) {
-    if(time !== undefined) {
+    if(time != undefined) {
       this.name = String(time);
+      // let numeric:number = Number(this.name);
+      // let val:string = sprintf("%02d:%02d", numeric, 0);
       this.fullName = String(time);
     } else {
       this.name = this.name || "6";

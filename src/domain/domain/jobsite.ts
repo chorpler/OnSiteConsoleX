@@ -1,8 +1,9 @@
 /**
  * Name: Jobsite domain class
- * Vers: 7.2.1
- * Date: 2019-03-15
+ * Vers: 7.3.1
+ * Date: 2019-07-01
  * Auth: David Sargeant
+ * Logs: 7.3.1 2019-07-01: Added SESAShiftRotation, SESAShiftStartTime, SiteScheduleType, ShiftTimes, and other type info; minor TSLint warning fixes
  * Logs: 7.2.1 2019-03-15: Added getClient(), getLocation(), getLocID() methods
  * Logs: 7.1.2 2018-12-13: Added getKeys() and isOnSite() methods; refactored imports
  * Logs: 7.1.1 2018-10-11: Added getSiteReportName() method
@@ -25,19 +26,35 @@
  * Logs: 2.2.1 2017-08-30: Updated with site_number and new methods
  */
 
-import { Log          } from '../config/config.log'    ;
-import { Moment       } from '../config/moment-onsite' ;
-import { moment       } from '../config/moment-onsite' ;
-import { isMoment     } from '../config/moment-onsite' ;
-import { SESAClient   } from '../config/config.types'  ;
-import { SESALocation } from '../config/config.types'  ;
-import { SESALocID    } from '../config/config.types'  ;
-import { SESAAux      } from '../config/config.types'  ;
-import { Street       } from './street'                ;
-import { Address      } from './address'               ;
+import { Log                } from '../config/config.log'    ;
+import { Moment             } from '../config/moment-onsite' ;
+import { moment             } from '../config/moment-onsite' ;
+import { isMoment           } from '../config/moment-onsite' ;
+import { SESAClient         } from '../config/config.types'  ;
+import { SESALocation       } from '../config/config.types'  ;
+import { SESALocID          } from '../config/config.types'  ;
+import { SESAAux            } from '../config/config.types'  ;
+import { Street             } from './street'                ;
+import { Address            } from './address'               ;
+import { SESAShiftRotation  } from '../config/config.types'  ;
+import { SESAShiftStartTime } from '../config/config.types'  ;
+// import { SESAShiftStartTime } from 'domain/newdomain';
 
 export type CLLType      = 'client' | 'location' | 'locID' | 'aux';
 export type SiteKeyValue = SESAClient | SESALocation | SESALocID | SESAAux;
+export type SiteScheduleType = "AM"|"PM";
+// export type ShiftTimes = {AM:string, PM:string};
+export type ShiftTimes = {
+  [propName in SiteScheduleType]?:string;
+};
+export type ShiftStartTimes = [string, string, string, string, string, string, string];
+export type SiteRotationStartTimes = {
+  [propName in SiteScheduleType]?:ShiftStartTimes;
+};
+export type SESAShiftRotationKey = "FIRST WEEK" | "CONTN WEEK" | "FINAL WEEK" | "DAYS OFF" | "VACATION";
+export type SiteHoursList = {
+  [propName in SESAShiftRotationKey]?: SiteRotationStartTimes;
+};
 
 const matchesCI = function(str1:string, str2:string):boolean {
   let lc1:string = typeof str1 === 'string' ? str1.toLowerCase() : "";
@@ -73,14 +90,14 @@ export class Jobsite {
   public billing_rate              : number  =65           ;
   public site_active               : boolean =true         ;
   public divisions                 : any     ;
-  public shiftRotations            : any     ;
-  public hoursList                 : any     ;
+  public shiftRotations            : SESAShiftRotation[] = [];
+  public hoursList                 : SiteHoursList     ;
   public techShifts                : any     ;
   public schedule_name             : string   = "" ;
   public has_standby               : boolean  = false;
   public sort_number               : number   = 0;
   public site_number               : number = -1001;
-  public shift_start_times         : {AM:string, PM:string} = {"AM" :"06:00", "PM": "18:00"} ;
+  public shift_start_times         : ShiftTimes = {"AM" :"06:00", "PM": "18:00"} ;
   public lunch_hour_time           : number = 1;
   public test_site                 : boolean = false;
   public inactive_users            : boolean = false;
@@ -276,33 +293,36 @@ export class Jobsite {
     return this.getSiteKeyAsString('aux');
   }
 
-  public initializeShiftRotations():Array<any> {
-    this.shiftRotations = [
-      { name: "FIRST WEEK", fullName: "First Week"      },
-      { name: "CONTN WEEK", fullName: "Continuing Week" },
-      { name: "FINAL WEEK", fullName: "Final Week"      },
-      { name: "DAYS OFF"  , fullName: "Days Off"        },
-      { name: "VACATION"  , fullName: "Vacation"        },
+  public initializeShiftRotations():SESAShiftRotation[] {
+    let rotList = [
+      new SESAShiftRotation({ name: "FIRST WEEK", fullName: "First Week"      }),
+      new SESAShiftRotation({ name: "CONTN WEEK", fullName: "Continuing Week" }),
+      new SESAShiftRotation({ name: "FINAL WEEK", fullName: "Final Week"      }),
+      new SESAShiftRotation({ name: "DAYS OFF"  , fullName: "Days Off"        }),
+      new SESAShiftRotation({ name: "VACATION"  , fullName: "Vacation"        }),
     ];
+    this.shiftRotations = rotList;
     return this.shiftRotations;
   }
 
-  public initializeTechShifts():Array<string> {
+  public initializeTechShifts():string[] {
     this.techShifts = [ "AM", "PM" ];
     return this.techShifts;
   }
 
   public initializeHoursList():any {
-    let hoursList:any = {};
+    let hoursList:SiteHoursList = new Object();
     for(let rotation of this.shiftRotations) {
       let shiftHours:any = {};
       for(let shift of this.techShifts) {
-        let weekHours:Array<string> = [ "0", "0", "0", "0", "0", "0", "0" ];
+        let weekHours:ShiftStartTimes = [ "0", "0", "0", "0", "0", "0", "0" ];
         shiftHours[shift] = weekHours;
       }
       if(!rotation['name']) {
-        Log.w(`Jobsite.initializeHoursList(): can't initialize hoursList with this rotation list!`, this);
-        throw new Error("Hours")
+        let text:string = `Jobsite.initializeHoursList(): can't initialize hoursList with this rotation list!`;
+        Log.w(text, this);
+        let err:Error = new Error(text);
+        throw err;
       } else {
         hoursList[rotation.name] = shiftHours;
       }
@@ -389,12 +409,27 @@ export class Jobsite {
     return this.shift_start_times;
   }
 
-  public getShiftStartTime(key:string) {
-    if(this.shift_start_times[key] !== undefined) {
-      return this.shift_start_times[key];
+  public getShiftStartTimeString(key:SiteScheduleType):string {
+    let out = "";
+    let sst = this.getShiftStartTime(key);
+    if(sst && sst.fullName) {
+      out = sst.fullName;
+    }
+    return out;
+  }
+
+  public getShiftStartTime(key:SiteScheduleType):SESAShiftStartTime {
+    let doc:any = {name:"0", fullName:"0"};
+    if(this.shift_start_times[key] != undefined) {
+      let val = this.shift_start_times[key];
+      // let sst = new SESAShiftStartTime(val);
+      let sst = SESAShiftStartTime.fromFormatted(val);
+      return sst;
     } else {
       if(this.site_number === 1) {
-        return {name: "0", fullName: "0", value: "0", code: "0"};
+        // return {name: "0", fullName: "0", value: "0", code: "0"};
+        let sst = new SESAShiftStartTime(0);
+        return sst;
       } else {
         Log.e("getShiftStartTime(): Error, key was not found in start times object: ", key);
         return null;
@@ -496,7 +531,8 @@ export class Jobsite {
     return this.hoursList;
   }
 
-  public getHoursList(shiftRotation:string|object, shiftTime?:string) {
+//  public getHoursList(shiftRotation:string|object, shiftTime?:string):{AM:string[],PM:string[]} {
+  public getHoursList(shiftRotation:string|object, shiftTime?:string):SiteRotationStartTimes {
     let match = "", oneHourList = null, singleShiftList = null;
     if(typeof shiftRotation === 'string') {
       match = shiftRotation;

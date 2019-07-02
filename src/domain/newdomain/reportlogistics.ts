@@ -109,7 +109,7 @@ export class ReportLogistics {
   }
 
   public serialize():Object {
-    Log.l("ReportLogistics.serialize(): Now serializing report...");
+    Log.l("ReportLogistics.serialize(): Now serializing report …");
     // let ts = moment(this.timestamp);
     // Log.l("ReportLogistics.serialize(): timestamp moment is now:\n", ts);
     // let XLDate = moment([1900, 0, 1]);

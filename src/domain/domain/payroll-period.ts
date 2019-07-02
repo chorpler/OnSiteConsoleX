@@ -17,20 +17,21 @@
  * Logs: 4.0.1 2017-10-16, added site_number data field
  */
 
-// import { oo           } from '../config'     ;
-// import { reportType   } from '../config'     ;
-import { Moment       } from '../config'     ;
-import { moment       } from '../config'     ;
-import { Log          } from '../config'     ;
-import { isMoment     } from '../config'     ;
-import { _matchCLL    } from '../config'     ;
-import { _matchSite   } from '../config'     ;
-import { _sortReports } from '../config'     ;
-import { Shift        } from './shift'       ;
-import { Employee     } from './employee'    ;
-import { Jobsite      } from './jobsite'     ;
-import { Report       } from './report'      ;
-import { ReportOther  } from './reportother' ;
+// import { oo               } from '../config'     ;
+// import { reportType       } from '../config'     ;
+import { Moment           } from '../config'     ;
+import { moment           } from '../config'     ;
+import { Log              } from '../config'     ;
+import { isMoment         } from '../config'     ;
+import { _matchCLL        } from '../config'     ;
+import { _matchSite       } from '../config'     ;
+import { _sortReports     } from '../config'     ;
+import { Shift            } from './shift'       ;
+import { Employee         } from './employee'    ;
+import { Jobsite          } from './jobsite'     ;
+import { SiteScheduleType } from './jobsite'     ;
+import { Report           } from './report'      ;
+import { ReportOther      } from './reportother' ;
 
 
 export class PayrollPeriod {
@@ -348,10 +349,11 @@ export class PayrollPeriod {
       let shifts = new Array<Shift>();
       for(let i = 0; i < 7; i++) {
         let tmpDay = moment(day).add(i, 'days');
-        let techShift = tech.shift && typeof tech.shift === 'string' ? tech.shift.toUpperCase() : "AM";
-        let ampm = techShift ? techShift.trim() : "AM";
+        let techShift:string = tech.shift && typeof tech.shift === 'string' ? tech.shift.toUpperCase().trim() : "AM";
+        // let ampm:SiteScheduleType = techShift ? techShift.trim() : "AM";
+        let ampm:SiteScheduleType = (techShift as SiteScheduleType);
         let shift_day = moment(tmpDay).startOf('day');
-        let tmpStart = site.getShiftStartTime(ampm);
+        let tmpStart = site.getShiftStartTimeString(ampm);
         let h   :number = Number(tmpStart.split(':')[0]);
         let m   :number = Number(tmpStart.split(':')[1]);
         let hrs :number = h + (m/60);

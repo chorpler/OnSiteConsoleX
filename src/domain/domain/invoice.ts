@@ -1,8 +1,9 @@
 /**
  * Name: Invoice domain class
- * Vers: 3.0.1
- * Date: 2018-12-13
+ * Vers: 3.0.2
+ * Date: 2019-07-01
  * Auth: David Sargeant
+ * Logs: 3.0.2 2019-07-01: TSLint error fixes (minor)
  * Logs: 3.0.1 2018-12-13: Refactored to eliminate circular dependencies, got rid of NumberService, added default initializers
  * Logs: 2.4.1 2018-07-09: Added PO# property, and methods for getting totals
  * Logs: 2.3.1 2017-12-04: Added crew field
@@ -30,8 +31,8 @@ export class Invoice {
   public date              : Moment            = moment()                   ;
   public period_start      : string            = ""                         ;
   public invoice_number    : string            = ""                         ;
-  public get number()      : string            { return this.invoice_number ;       } ;
-  public set number(val    : string)           { this.invoice_number        = val ; } ;
+  public get number()      : string            { return this.invoice_number ;       }
+  public set number(val    : string)           { this.invoice_number        = val ; }
   public customer          : Jobsite           ;
   public customer_name     : string            = ""                         ;
   public customer_number   : string            = ""                         ;
@@ -236,5 +237,5 @@ export class Invoice {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }

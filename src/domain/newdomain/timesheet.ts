@@ -76,7 +76,7 @@ export class Timesheet {
   }
 
   public serialize() {
-    Log.l("Timesheet.serialize(): Now serializing timesheet ...");
+    Log.l("Timesheet.serialize(): Now serializing timesheet …");
     let newSheet:any = {};
     // this._id = this._id || this.genReportID(tech);
     let keys = Object.keys(this);
@@ -131,5 +131,5 @@ export class Timesheet {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }

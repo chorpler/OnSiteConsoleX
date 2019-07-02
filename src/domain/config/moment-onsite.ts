@@ -19,7 +19,7 @@ import   * as moment              from 'moment'             ;
 // import Moment from 'moment';
 // import   * as momentTimezone      from 'moment-timezone'    ;
 import { Moment, Duration } from 'moment';
-import   * as moShortFormat   from 'moment-shortformat' ;
+// import   * as moShortFormat   from 'moment-shortformat' ;
 import   * as moTimer         from 'moment-timer'       ;
 import   * as momentRange         from 'moment-range'       ;
 import { PreciseRange, preciseDiff, staticPreciseDiff } from './moment-precise-range';
@@ -489,7 +489,7 @@ export type DateRange = momentRange.DateRange;
 // export {moment, momentTimezone};
 // export {moment, momentTimezone};
 export { moment };
-export const momentShortFormat = moShortFormat;         
-export const momentTimer       = moTimer;   
+// export const momentShortFormat = moShortFormat;
+export const momentTimer       = moTimer;
 // momentDurationFormat
 const momo = extendMoment(moment);

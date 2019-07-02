@@ -1,8 +1,9 @@
 /**
  * Name: Schedules domain class
- * Vers: 3.2.2
- * Date: 2019-01-31
+ * Vers: 3.2.3
+ * Date: 2019-07-01
  * Auth: David Sargeant
+ * Logs: 3.2.3 2019-07-01: Minor TSLint error fixes
  * Logs: 3.2.2 2019-01-31: Fixed bug in getLatestSchedule() method that was returning OLDEST schedule if no current schedule existed
  * Logs: 3.2.1 2018-12-13: Refactored imports to remove circular dependencies; added standard OnSite methods
  * Logs: 3.1.1 2018-09-17: Added getLatestSchedule() and getCurrentSchedule() methods
@@ -24,9 +25,9 @@ import { Employee      } from './employee'       ;
 import { Schedule      } from './schedule'       ;
 
 export class Schedules implements Iterator<Schedule> {
-  public get length():number { return Array.isArray(this.schedules) ? this.schedules.length : 0 };
-  public get lastIndex():number { let len = this.length; return len > 0 ? len - 1 : null; };
-  public get lastSchedule():Schedule { return this.length > 0 ? this.schedules[this.lastIndex] : null };
+  public get length():number { return Array.isArray(this.schedules) ? this.schedules.length : 0; }
+  public get lastIndex():number { let len = this.length; return len > 0 ? len - 1 : null; }
+  public get lastSchedule():Schedule { return this.length > 0 ? this.schedules[this.lastIndex] : null; }
   public schedules:Schedule[] = [];
   public iteratorSchedule:Schedule;
   public sites:Jobsite[] = [];
@@ -139,8 +140,11 @@ export class Schedules implements Iterator<Schedule> {
     let schedule = schedules.find(a => {
       return a['start'].isSame(date, 'day');
     });
-    outerloop: for(let siteName in schedule.schedule) {
-      for(let rotation in schedule.schedule[siteName]) {
+    let siteNames = Object.keys(schedule.schedule);
+    outerloop:
+    for(let siteName of siteNames) {
+      let rotationNames = Object.keys(siteNames);
+      for(let rotation of rotationNames) {
         let techs = schedule.schedule[siteName][rotation];
         let i = techs.indexOf(username);
         if(i > -1) {
@@ -169,7 +173,7 @@ export class Schedules implements Iterator<Schedule> {
     let schedules:Schedule[] = this.getSchedules();
     let datem = moment(date);
     let inDateString = datem.format("YYYY-MM-DD");
-    Log.l(`Schedules.getScheduleForDate(): Now getting schedule for date '${inDateString}' ...`);
+    Log.l(`Schedules.getScheduleForDate(): Now getting schedule for date '${inDateString}' …`);
     let scheduleDate:Moment = this.getScheduleStartDateFor(datem);
     // let schDateString = isMoment(scheduleDate) ? scheduleDate.format("YYYY-MM-DD") : "INVALID DATE RESULT";
     let dateString:string = isMoment(scheduleDate) ? scheduleDate.format("YYYY-MM-DD") : "INVALID DATE RESULT";
@@ -232,5 +236,5 @@ export class Schedules implements Iterator<Schedule> {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }

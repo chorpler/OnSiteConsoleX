@@ -445,15 +445,22 @@ export class EmployeesPage implements OnInit,OnDestroy,AfterViewInit {
   public employeeCanceled(event:any) {
     Log.l("employeeCanceled(): Event is:", event);
     this.employeeViewVisible = false;
-    let i:number = this.allEmployees.findIndex((a:Employee) => {
-      return a === this.employee;
-    });
-    if(i > -1) {
-      this.allEmployees.splice(i, 1);
+    if(this.mode === 'add' || this.mode === 'Add') {
+      // let i:number = this.allEmployees.findIndex((a:Employee) => {
+      //   return a !== this.employee;
+      // });
+      // if(i > -1) {
+      //   this.allEmployees.splice(i, 1);
+      // }
+      this.allEmployees = this.allEmployees.filter((a:Employee) => {
+        return a.username !== this.employee.username;
+      });
+      window['onsiteemployeecanceled'] = this.employee;
+      this.employee = null;
+      this.displayEmployees = this.allEmployees.filter((a: Employee) => {
+        return !this.showAllEmployees ? a.active : true;
+      });
     }
-    this.displayEmployees = this.allEmployees.filter((a: Employee) => {
-      return !this.showAllEmployees ? a.active : true;
-    });
   }
 
   public addEmployee(event?:any) {

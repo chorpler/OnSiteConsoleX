@@ -1,8 +1,9 @@
 /**
  * Name: Schedule domain class
- * Vers: 6.7.0
- * Date: 2018-09-10
+ * Vers: 6.8.0
+ * Date: 2019-07-01
  * Auth: David Sargeant
+ * Logs: 6.8.0 2019-07-01: Replaced for..in loop with Object.keys() and for..of
  * Logs: 6.7.0 2018-09-10: Added addSite() method
  * Logs: 6.6.0 2018-09-05: Added isSiteInSchedule(), isSiteNameInSchedule() methods, and modified loadSites() method to be case-insensitive
  * Logs: 6.5.2 2018-08-31: Added getContainerForUsername() method,
@@ -143,13 +144,16 @@ export class Schedule {
         doc[key] = this.end.toExcel(true);
       } else if(key === 'schedule') {
         let schDoc:any = {};
-        for(let sitename in this.schedule) {
+        let siteNames = Object.keys(this.schedule);
+        for(let sitename of siteNames) {
           if(!sitename) {
             continue;
           }
+          let rotationObject = this.schedule[sitename];
           schDoc[sitename] = {};
-          for(let rotation in this.schedule[sitename]) {
-            let shiftTechs = this.schedule[sitename][rotation];
+          let rotationNames = Object.keys(rotationObject);
+          for(let rotation of rotationNames) {
+            let shiftTechs = rotationObject[rotation];
             schDoc[sitename][rotation] = shiftTechs.map((a:Employee) => a.username);
           }
         }
@@ -218,17 +222,19 @@ export class Schedule {
     this.setUnassigned(unassigned);
 
     let schedule = this.getSchedule();
-    for(let siteName in schedule) {
+    let siteNames = Object.keys(schedule);
+    for(let siteName of siteNames) {
       let siteRotations = schedule[siteName];
-      for(let rotation in siteRotations) {
-        let techNames = siteRotations[rotation];
+      let rotationNames = Object.keys(siteRotations);
+      for(let rotation of rotationNames) {
+        let rotationTechNames = siteRotations[rotation];
         // let techs:Employee[] = [];
-        let len = techNames.length;
+        let len = rotationTechNames.length;
         for(let i = 0; i < len; i++) {
-          let name:string = techNames[i];
+          let name:string = rotationTechNames[i];
           let tech:Employee = employees.find((a:Employee) => a.username === name);
           if(tech) {
-            techNames[i] = tech;
+            rotationTechNames[i] = tech;
             if(this.techs.indexOf(tech) === -1) {
               this.techs.push(tech);
             }
@@ -238,7 +244,7 @@ export class Schedule {
     }
     // let workingTechs:Employee[] = this.getWorkingTechs();
     // let unassignedTechs:Employee[] = this.getUnassigned();
-    // let scheduled:Employee[] = [ ... workingTechs, ...unassignedTechs ];
+    // let scheduled:Employee[] = [ ...workingTechs, ...unassignedTechs ];
     let techs:Employee[] = this.techs.filter((a:Employee) => {
       if(a instanceof Employee) {
         let container:any[] = this.getContainerForTech(a);
@@ -260,7 +266,7 @@ export class Schedule {
     // this.unassigned_active = unassigned_active;
     this.generateUnassignedActive();
 
-    let id = this._id || 'unknown'
+    let id = this._id || 'unknown';
     // Log.l(`Schedule.loadTechs(${id}): Converted ${techsConverted} working techs and ${unassignedConverted} unassigned techs. Techs list:\n`, this.techs);
     return this;
   }
@@ -480,9 +486,11 @@ export class Schedule {
   }
 
   public setSchedule(schedule:any):any {
-    for(let i1 in schedule) {
+    let keys1 = Object.keys(schedule);
+    for(let i1 of keys1) {
       let el1 = schedule[i1];
-      for(let i2 in el1) {
+      let keys2 = Object.keys(el1);
+      for(let i2 of keys2) {
         let el2 = el1[i2];
         let employees = [];
         let replace = false;
@@ -491,8 +499,7 @@ export class Schedule {
             continue;
           } else {
             // Log.l("setSchedule(): Entry is")
-            let employee = new Employee();
-            employee.readFromDoc(entry);
+            let employee = Employee.deserialize(entry);
             let i = el2.indexOf(entry);
             el2[i] = employee;
           }
@@ -508,16 +515,17 @@ export class Schedule {
 
   public getScheduleDoc():Object {
     let doc:any = this.scheduleDoc;
+    let ID = this.getScheduleID();
     let keys = Object.keys(doc);
     if (keys.length > 0) {
       return doc;
     } else {
       let schedule:any = this.getSchedule();
-      let keys = Object.keys(schedule);
-      if(keys.length > 0) {
+      let keys2 = Object.keys(schedule);
+      if(keys2.length > 0) {
         return schedule;
       } else {
-        Log.w(`Schedule.getScheduleDoc(): For schedule '${this.getScheduleID()}', unable to find proper scheduleDoc to return. Returning empty object.`);
+        Log.w(`Schedule.getScheduleDoc(): For schedule '${ID}', unable to find proper scheduleDoc to return. Returning empty object.`);
         return {};
       }
     }
@@ -688,7 +696,7 @@ export class Schedule {
     let ts = this.techs;
     let ua = this.unassigned;
     let username:string = tech.getUsername();
-    Log.l(`removeTech(): Looking to remove tech '${username}' ...`);
+    Log.l(`removeTech(): Looking to remove tech '${username}' …`);
     this.techs = ts.filter((a:Employee) => a.username !== username);
     let container:Employee[] = this.getContainerForUsername(username);
     if(container) {
@@ -794,10 +802,10 @@ export class Schedule {
             return a.username === name;
           });
           if(i > -1) {
-            let tech = techs.splice(i, 1)[0];
-            scheduleObject[siteName][siteRotation].push(tech);
+            let tech2 = techs.splice(i, 1)[0];
+            scheduleObject[siteName][siteRotation].push(tech2);
           } else {
-            Log.w(`createSchedulingObject(): Can't find tech '${name}' in tech array:\n`, techs);
+            Log.w(`createSchedulingObject(): Can't find tech '${name}' in tech array:`, techs);
           }
         }
       }
@@ -827,7 +835,8 @@ export class Schedule {
     let schedule = this.getSchedule();
     let sites:Jobsite[] = this.sites || [];
     let site:Jobsite;
-    for(let siteName in schedule) {
+    let siteNames = Object.keys(schedule);
+    for(let siteName of siteNames) {
       try {
         if(!siteName) {
           continue;
@@ -848,7 +857,8 @@ export class Schedule {
           continue;
         }
         // let output:ScheduleListItem[] = [];
-        for(let rotationName in siteRotations) {
+        let rotationNames = Object.keys(siteRotations);
+        for(let rotationName of rotationNames) {
           let techList = siteRotations[rotationName];
           for(let tech of techList) {
             let docRecord:any = {};
@@ -890,14 +900,16 @@ export class Schedule {
     let output:Object[] = [];
     let outDoc:any = {};
     let schedule = this.getSchedule();
-    for(let siteName in schedule) {
+    let siteNames = Object.keys(schedule);
+    for(let siteName of siteNames) {
       let siteRotations = schedule[siteName];
       let site:Jobsite = this.sites.find((a:Jobsite) => {
         return a.schedule_name.toUpperCase() === siteName.toUpperCase();
       });
       let site_number:number = site.getSiteNumber();
-      let output:any[] = [];
-      for(let rotationName in siteRotations) {
+      let out:any[] = [];
+      let rotationNames = Object.keys(siteRotations);
+      for(let rotationName of rotationNames) {
         let techList = siteRotations[rotationName];
         for(let tech of techList) {
           let docRecord:any = {};
@@ -910,7 +922,7 @@ export class Schedule {
           outDoc[name] = docRecord;
           let newRecord = docRecord;
           docRecord['tech'] = name;
-          output.push(docRecord);
+          out.push(docRecord);
           // if(tech instanceof Employee) {
 
           // } else if(typeof tech === 'string') {
@@ -919,7 +931,7 @@ export class Schedule {
         }
       }
       this.scheduleDoc = outDoc;
-      this.scheduleList = output;
+      this.scheduleList = out;
     }
   }
 
@@ -1009,10 +1021,12 @@ export class Schedule {
       let techRotation:string;
       let name = tech.getUsername();
       let schedule = this.getSchedule();
+      let siteNames = Object.keys(schedule);
       outerloop:
-      for(let siteName in schedule) {
+      for(let siteName of siteNames) {
         let siteRotations = schedule[siteName];
-        for(let rotation in siteRotations) {
+        let rotationNames = Object.keys(siteRotations);
+        for(let rotation of rotationNames) {
           let techs = siteRotations[rotation];
           let testCase = techs[0];
           let techNames:string[] = [];
@@ -1078,10 +1092,12 @@ export class Schedule {
     } else {
       let schedule = this.getSchedule();
       let scheduleName;
+      let siteNames = Object.keys(schedule);
       outerloop:
-      for(let siteName in schedule) {
+      for(let siteName of siteNames) {
         let siteRotations = schedule[siteName];
-        for(let rotation in siteRotations) {
+        let rotationNames = Object.keys(siteRotations);
+        for(let rotation of rotationNames) {
           let techs = siteRotations[rotation];
           let testCase = techs[0];
           let techNames:string[] = [];
@@ -1121,15 +1137,16 @@ export class Schedule {
     let scheduleKeys = Object.keys(schedule);
     let keys:string[] = [];
     for(let key of scheduleKeys) {
-      let scheduleName = key.toUpperCase();
-      keys.push(scheduleName);
+      let scheduleName2 = key.toUpperCase();
+      keys.push(scheduleName2);
     }
     if(keys.indexOf(scheduleKey) === -1) {
       return out;
     } else {
       let siteRecord = schedule[scheduleName];
       if(siteRecord) {
-        for(let rotationName in siteRecord) {
+        let rotationNames = Object.keys(siteRecord);
+        for(let rotationName of rotationNames) {
           let siteRotationTechs = siteRecord[rotationName];
           for(let tech of siteRotationTechs) {
             out.push(tech);
@@ -1258,6 +1275,6 @@ export class Schedule {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 
 }

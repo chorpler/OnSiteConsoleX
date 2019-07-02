@@ -1,8 +1,9 @@
 /**
  * Name: Message domain class
- * Vers: 4.2.1
- * Date: 2018-12-14
+ * Vers: 4.3.1
+ * Date: 2019-07-01
  * Auth: David Sargeant
+ * Logs: 4.3.1 2019-07-01: Added isTest property, setDate(),setMessageDate() methods; minor TSLint error fixes
  * Logs: 4.2.1 2018-12-14: Refactored imports, added sentAt property
  * Logs: 4.1.1 2018-12-13: Added exclusion for empty texts and subjects properties when serializing
  * Logs: 4.0.1 2018-12-06: Lots of refactoring. Changed Moment properties to strings. Added oo (JSON8) dependency for cloning.
@@ -12,17 +13,17 @@
  * Logs: 2.0.1 2017-08-04: Added Spanish language fields
  */
 
-// import { Log      } from '../config'  ;
-import { Moment   } from '../config'  ;
-import { moment   } from '../config'  ;
-import { isMoment } from '../config'  ;
-import { oo       } from '../config'  ;
-import { Employee } from './employee' ;
+import { Log      } from '../config/config.log'    ;
+import { Moment   } from '../config/config.moment' ;
+import { moment   } from '../config/config.moment' ;
+import { isMoment } from '../config/config.moment' ;
+import { oo       } from '../config/config.types'  ;
+import { Employee } from './employee'              ;
 
-export type OnSiteLanguageStrings = {
+export interface OnSiteLanguageStrings {
   en:string;
   es:string;
-};
+}
 
 export class Message {
   public _id        : string  = "";
@@ -48,6 +49,7 @@ export class Message {
   public technician : string  = "";
   public phone      : any     = null;
   public to         : string[] = [];
+  public isTest     : boolean = false;
 
   // constructor(from?:string, date?:Moment | Date | string, duration?:number, subject?:string, text?:string) {
   constructor(messageDoc?:any) {
@@ -80,7 +82,8 @@ export class Message {
   }
 
   public readFromDoc(doc:any):Message {
-    for(let key in doc) {
+    let keys:string[] = this.getKeys();
+    for(let key of keys) {
       let value:any = doc[key];
       if(key === 'date') {
         this[key] = doc[key];
@@ -212,6 +215,34 @@ export class Message {
     return this.getMessageDateAsString(fmt);
   }
 
+  public setMessageDate(val:string|Moment|Date):string {
+    let date:Moment;
+    if(isMoment(val) || val instanceof Date) {
+      date = moment(val);
+    } else if(typeof val === 'string') {
+      date = moment(val, "YYYY-MM-DD");
+    } else {
+      let text:string = `Message.setMessageDate(): value must be Moment, Date, or string in YYYY-MM-DD format`;
+      Log.e(text + ", provided:", val);
+      let err = new Error(text);
+      throw err;
+    }
+    if(isMoment(date)) {
+      this.date = date.format("YYYY-MM-DD");
+      this.XLdate = date.toExcel();
+      return this.date;
+    } else {
+      let text:string = `Message.setMessageDate(): Invalid date provided`;
+      Log.e(text + ":", val);
+      let err = new Error(text);
+      throw err;
+    }
+  }
+
+  public setDate(val:string|Moment|Date):string {
+    return this.setMessageDate(val);
+  }
+
   public getMessageSender():string {
     return this.from;
   }
@@ -323,5 +354,5 @@ export class Message {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }

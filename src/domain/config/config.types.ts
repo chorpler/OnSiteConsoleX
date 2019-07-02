@@ -125,16 +125,17 @@ export const FileSaverSaveAs = FILE_SAVER.saveAs;
 
 // export const moment = momentous;
 
-// export type Spinners = Map<string,any>;
+export type Spinners = Map<string,any>;
 
-// export interface SpinnerRecord {
-//   id     : string;
-//   spinner: any;
-// }
+export interface SpinnerRecord {
+  id     : string;
+  spinner: any;
+}
 
 export interface Tab {
   name     : string ;
   fullName : string ;
+  url      : string ;
   icon     : string ;
   waiting ?: boolean;
   active  ?: boolean;
@@ -214,7 +215,8 @@ export class SESAShift extends SESAShiftSymbols {
   }
 }
 
-export class SESAShiftLength implements CLL {
+// export class SESAShiftLength implements CLL {
+export class SESAShiftLength {
   public isOnSite():boolean {
     return true;
   }
@@ -228,16 +230,20 @@ export class SESAShiftLength implements CLL {
     return this.getClassName();
   };
 
-
-  public name:string = "";
+  public name:number = NaN;
   public fullName:string = "";
+  public get code():number { return this.name;};
+  public set code(value:number) { this.name = value; };
+  public get value():string { return this.fullName; };
+  public set value(val:string) { this.fullName = val; };
   constructor(length?:number|string) {
-    if(length !== undefined) {
-      this.name = String(length);
-      this.fullName = String(length);
+    if(length != undefined) {
+      // this.name = String(length);
+      this.name = !isNaN(Number(length)) ? Number(length) : this.name;
+      this.fullName = !isNaN(Number(this.name)) ? String(Number(this.name)) : this.fullName;
     } else {
-      this.name == this.name || "8";
-      this.fullName = this.fullName || "8";
+      this.name == this.name || 8;
+      this.fullName = this.fullName || String(this.name);
     }
   }
 }
@@ -259,13 +265,22 @@ export class SESAShiftRotation implements CLL {
 
   public name: string = "";
   public fullName: string = "";
-  constructor() {
-    this.name = this.name || "CONTN WEEK";
-    this.fullName = this.fullName || "Continuing Week";
+  constructor(doc:{name:string,fullName:string}) {
+    if(doc && doc.name && doc.fullName) {
+      this.name = doc.name;
+      this.fullName = doc.fullName;
+    } else {
+      this.name = this.name || "CONTN WEEK";
+      this.fullName = this.fullName || "Continuing Week";
+    }
   }
 }
 
-export class SESAShiftStartTime implements CLL {
+export class SESAShiftStartTime {
+  public getKeys():string[] {
+    let keys = Object.keys(this);
+    return keys;
+  }
   public isOnSite():boolean {
     return true;
   }
@@ -280,16 +295,100 @@ export class SESAShiftStartTime implements CLL {
   };
 
 
-  public name: string = "";
-  public fullName: string = "";
+  // public name:string = "";
+  public name:number = NaN;
+  // public fullName:string = "";
+  // public get fullName():string { return SESAShiftStartTime.formatted(this.name); } ;
+  public get fullName():string { Log.l("SESAShiftStartTime: getting full name"); return this.formatted(); } ;
+  public set fullName(val:string) { Log.l("SESAShiftStartTime: setting full name"); let hrs = SESAShiftStartTime.numericFromFormatted(val); if(!isNaN(hrs)) { this.name = hrs; } };
+  public get code():number { return this.name;};
+  public set code(value:number) { this.name = value; };
+  public get value():string { return this.fullName; };
+  public set value(val:string) { this.fullName = val; };
   constructor(time?:number|string) {
-    if(time !== undefined) {
-      this.name = String(time);
-      this.fullName = String(time);
+    if(time != undefined) {
+      // this.name = String(time);
+      // this.name = !isNaN(Number(time)) ? Number(time) : this.name;
+      // let formatted = SESAShiftStartTime.formatted(time);
+      let hrs = SESAShiftStartTime.numeric(time);
+      this.name = hrs;
     } else {
-      this.name = this.name || "6";
-      this.fullName = this.fullName || "6";
+      this.name = this.name || 6;
+      // let val:string = this.formatted();
+      // this.fullName = String(val);
+      // this.fullName = this.fullName || String(this.name);
     }
+    // Object.defineProperty(SESAShiftStartTime.prototype, 'fullName', {enumerable:true});
+    // this.fullName = this.formatted();
+    Object.defineProperty(this, 'fullName', {
+      enumerable: true,
+      get: function():string { return this.formatted(); },
+      set: function(val:string) { let hrs = SESAShiftStartTime.numericFromFormatted(val); if(!isNaN(hrs)) { this.name = hrs; } },
+    });
+
+  }
+
+  public static numericFromFormatted(value:string):number {
+    if(!(typeof value === 'string' && value.indexOf(":") > -1 && value.length === 5)) {
+      Log.w("SESAShiftStartTime#numericFromFormatted(): Error 1, must be given 5-char string like '06:00' to parse. This was invalid:", value);
+      return NaN;
+    }
+    let parts:string[] = value.split(':');
+    let h   :number = Number(parts[0]);
+    let m   :number = Number(parts[1]);
+    let hrs :number = h + (m/60);
+    if(!isNaN(h) && !isNaN(m)) {
+      return hrs;
+    }
+    Log.w("SESAShiftStartTime#numericFromFormatted(): Error 2, nust be given 5-char time string like '06:00' to parse. This was unparseable:", value);
+    return null;
+  }
+
+  public static fromFormatted(value:string):SESAShiftStartTime {
+    if(!(typeof value === 'string' && value.indexOf(":") > -1 && value.length === 5)) {
+      Log.w("SESAShiftStartTime.fromFormatted(): Must be given 5-char string like '06:00' to parse. This was invalid:", value);
+      return null;
+    }
+    let hrs:number = SESAShiftStartTime.numericFromFormatted(value);
+    if(!isNaN(hrs)) {
+      let sst = new SESAShiftStartTime(hrs);
+      // sst.fullName = value;
+      // sst.name = hrs;
+      return sst;
+    } else {
+      Log.w("SESAShiftStartTime.fromFormatted(): Must be given 5-char time string like '06:00' to parse. This was unparseable:", value);
+      return null;
+    }
+  }
+
+  public static numeric(val:number|string):number {
+    let out:number = !isNaN(Number(val)) ? Number(val) : NaN;
+    return out;
+  }
+
+  public numeric():number {
+    let num:number = SESAShiftStartTime.numeric(this.name);
+    return num;
+  }
+
+  public static formatted(hours:number|string):string {
+    let val:number = SESAShiftStartTime.numeric(hours);
+    let hour:number = Math.trunc(val);
+    let mins:number = Math.trunc((val - hour) * 60);
+    let out:string = sprintf("%02d:%02d", hour, mins);
+    return out;
+  }
+
+  public formatted():string {
+    let out:string = SESAShiftStartTime.formatted(this.name);
+    return out;
+  }
+
+  public toJSON():{name:number,fullName:string} {
+    return {name: this.name, fullName: this.fullName};
+  }
+  public toJson():{name:number,fullName:string} {
+    return this.toJSON();
   }
 }
 

@@ -1,9 +1,9 @@
 /**
  * Name: Report domain class
- * Vers: 7.7.2
- * Date: 2019-06-27
+ * Vers: 7.8.1
+ * Date: 2019-06-19
  * Auth: David Sargeant
- * Logs: 7.7.2 2019-06-27: Changed StatusUpdateType to ReportStatusUpdateType
+ * Logs: 7.8.1 2019-06-19: Added a type property, for office/work_report types
  * Logs: 7.7.1 2019-06-11: Added times_error,date_error properties, areTimesValid() method, and new methods to force date/time updates without checking instantly for errors
  * Logs: 7.6.1 2019-03-06: Modified getReportDate() and getReportDateAsString()
  * Logs: 7.5.1 2019-01-29: Removed Shift and PayrollPeriod imports; added static methods getPayrollPeriodDate(), getPayrollSerial(), getShiftNumber(), getShiftWeek(), getShiftSerial()
@@ -36,18 +36,19 @@ import { ReportFlag } from '../config/config.types'  ;
 import { Employee   } from './employee'              ;
 import { Jobsite    } from './jobsite'               ;
 
-export type FieldRecord = [string, string, number];
-export type ReportStatusUpdateType = "created" | "updated" | "invoiced" | "paid";
-export type ReportStatusLogEntry = {
+type ReportStatusUpdateType = "created" | "updated" | "invoiced" | "paid";
+type ReportStatusLogEntry = {
   type       : ReportStatusUpdateType ,
   user       : string                 ,
   timestamp  : string                 ,
   invoice   ?: number                 ,
 };
+export type WorkReportType = "work_report" | "office";
 
 export class Report {
   public _id              : string = "";
   public _rev             : string = "";
+  public type             : WorkReportType = "work_report";
   public time_start       : Moment ;
   public time_end         : Moment ;
   public repair_hours     : number = 0;

@@ -1,8 +1,9 @@
 /**
  * Name: Shift domain class
- * Vers: 6.7.1
- * Date: 2019-01-02
+ * Vers: 6.7.2
+ * Date: 2019-07-01
  * Auth: David Sargeant
+ * Logs: 6.7.2 2019-07-01: Added SiteScheduleType import; minor TSLint error fixes
  * Logs: 6.7.1 2019-01-02: Added logistics reports to getShiftStatus() output
  * Logs: 6.6.1 2018-12-13: Refactored imports to remove circular dependencies; added standard OnSite methods
  * Logs: 6.5.1 2018-12-07: Major refactor, added serialize(), deserialize(), updateLocale() methods
@@ -27,18 +28,19 @@
  * TODO: 2018-08-08: Premium hours need to be changed to pull from Jobsite property, not just check report client
  */
 
-// import { oo              } from '../config'         ;
-import { sprintf         } from 'sprintf-js'        ;
-import { Log             } from '../config'         ;
-import { Moment          } from '../config'         ;
-import { isMoment        } from '../config'         ;
-import { moment          } from '../config'         ;
-import { Report          } from './report'          ;
-import { ReportOther     } from './reportother'     ;
-import { Jobsite         } from './jobsite'         ;
-import { Employee        } from './employee'        ;
-import { ReportLogistics } from './reportlogistics' ;
-import { Timesheet       } from './timesheet'       ;
+// import { oo               } from '../config'         ;
+import { sprintf          } from 'sprintf-js'        ;
+import { Log              } from '../config'         ;
+import { Moment           } from '../config'         ;
+import { isMoment         } from '../config'         ;
+import { moment           } from '../config'         ;
+import { Report           } from './report'          ;
+import { ReportOther      } from './reportother'     ;
+import { Jobsite          } from './jobsite'         ;
+import { Employee         } from './employee'        ;
+import { ReportLogistics  } from './reportlogistics' ;
+import { Timesheet        } from './timesheet'       ;
+import { SiteScheduleType } from './jobsite'         ;
 
 const _sortReports = (a:Report, b:Report): number => {
   if(a instanceof Report && b instanceof Report) {
@@ -150,7 +152,7 @@ export class Shift {
     this.shift_time   = shift_time   != undefined ? shift_time   : this.shift_time   ;
     this.start_time   = start_time   != undefined ? start_time   : this.start_time   ;
     this.shift_length = shift_length != undefined ? shift_length : this.shift_length ;
-    this.timesheet    = new Timesheet();
+    // this.timesheet    = new Timesheet();
     this.updateShiftNumber();
     this.getShiftWeek();
     this.getShiftColor();
@@ -476,7 +478,10 @@ export class Shift {
     let retVal:any = this.shift_length;
     let regHours = this.getNormalHours();
     let status = this.getShiftReportsStatus();
-    if(retVal == 0) {
+    /* 2019-07-02 TODO */
+    /* This might have been updated for Payroll in console, not sure if isNaN() should be in there */
+//    if(retVal == 0) {
+    if(retVal == 0 || isNaN(retVal)) {
       return 'off';
     } else {
       if(hrs) {
@@ -498,15 +503,17 @@ export class Shift {
   }
 
   public updateShiftSiteInfo(site:Jobsite, tech:Employee) {
-    let shiftTime = tech.getShiftType();
+    let shiftTime = (tech.getShiftType() as SiteScheduleType);
     let rotation  = tech.getShiftRotation();
     let date = moment(this.start_time).startOf('day');
     let shiftLength = site.getShiftLengthForDate(rotation, shiftTime, date);
     this.setShiftLength(shiftLength);
-    let startHours = site.getShiftStartTime(shiftTime);
-    let hours = moment.duration(startHours, 'hours');
-    let startTime = moment(date).add(hours.hours(), 'hours').add(hours.minutes(), 'minutes');
-    this.start_time = startTime;
+    let sst = site.getShiftStartTime(shiftTime);
+    let startHours = sst.numeric();
+    // let hours = moment.duration(startHours, 'hours');d
+    // let startTime = moment(date).add(hours.hours(), 'hours').add(hours.minutes(), 'minutes');
+    let startTime:Moment = moment(date).add(startHours, 'hours');
+    this.start_time = moment(startTime);
   }
 
   public getShiftColor() {
@@ -561,7 +568,7 @@ export class Shift {
   public getTotalBonusHoursForShift() {
     let shiftTotal = 0, bonusHours = 0, countsForBonusHours = 0;
     for(let report of this.shift_reports) {
-      if(!report['type'] || report['type'] === 'Work Report') {
+      if(!report['type'] || (report['type'] as string) === 'Work Report' || report['type'] === 'work_report') {
         let subtotal = report.getRepairHours();
         shiftTotal += subtotal;
         if(report.client !== "SESA" && report.client !== 'SE') {
@@ -601,7 +608,7 @@ export class Shift {
   public getBillableHours() {
     let total = 0;
     for(let report of this.shift_reports) {
-      if(report['type'] === undefined || report['type'] === 'Work Report') {
+      if(!report['type'] || (report['type'] as string) === 'Work Report' || report['type'] === 'work_report') {
         if(report.client !== 'SE' && report.client !== 'SESA') {
           total += report.getRepairHours();
         }

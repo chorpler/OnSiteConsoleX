@@ -9,7 +9,7 @@
  * Logs: 2.3.0 2017-11-12: Added _id and _rev
  * Logs: 2.2.0: Added customer_name and unitData properties
  * Logs: 2.1.0: Added unitCounts object
- * Logs: 2.0.0: First serious attempt, but a modification with huge breaking changes even though they were never used before, so ...
+ * Logs: 2.0.0: First serious attempt, but a modification with huge breaking changes even though they were never used before, so …
  */
 
 // import { Decimal       } from '../config'                ;
@@ -30,8 +30,8 @@ export class Invoice {
   public date              : Moment            = moment()                   ;
   public period_start      : string            = ""                         ;
   public invoice_number    : string            = ""                         ;
-  public get number()      : string            { return this.invoice_number ;       } ;
-  public set number(val    : string)           { this.invoice_number        = val ; } ;
+  public get number()      : string            { return this.invoice_number ;       }
+  public set number(val    : string)           { this.invoice_number        = val ; }
   public customer          : Jobsite           ;
   public customer_name     : string            = ""                         ;
   public customer_number   : string            = ""                         ;
@@ -233,5 +233,5 @@ export class Invoice {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }

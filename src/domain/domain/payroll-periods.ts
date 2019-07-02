@@ -1,8 +1,9 @@
 /**
  * Name: PayrollPeriods domain class
- * Vers: 1.2.1
- * Date: 2018-12-13
+ * Vers: 1.2.2
+ * Date: 2019-07-01
  * Auth: David Sar3geant
+ * Logs: 1.2.2 2019-07-01: Minor TSLint error fixes
  * Logs: 1.2.1 2018-12-13: Refactored imports; added standard OnSite methods
  * Logs: 1.0.1 2018-12-07: Initial creation of class
  */
@@ -17,9 +18,9 @@ import { PayrollPeriod } from './payroll-period' ;
 import { Schedule      } from './schedule'       ;
 
 export class PayrollPeriods implements Iterator<PayrollPeriod> {
-  public get length():number { return Array.isArray(this.periods) ? this.periods.length : 0 };
-  public get lastIndex():number { let len = this.length; return len > 0 ? len - 1 : null; };
-  public get lastPayrollPeriod():PayrollPeriod { return this.length > 0 ? this.periods[this.lastIndex] : null };
+  public get length():number { return Array.isArray(this.periods) ? this.periods.length : 0; }
+  public get lastIndex():number { let len = this.length; return len > 0 ? len - 1 : null; }
+  public get lastPayrollPeriod():PayrollPeriod { return this.length > 0 ? this.periods[this.lastIndex] : null; }
   public periods:PayrollPeriod[] = [];
   public iteratorPayrollPeriod:PayrollPeriod;
   // public sites:Jobsite[] = [];
@@ -157,7 +158,7 @@ export class PayrollPeriods implements Iterator<PayrollPeriod> {
     let periods:PayrollPeriod[] = this.getPayrollPeriods();
     let datem:Moment = moment(date);
     let inDateString:string = datem.format("YYYY-MM-DD");
-    Log.l(`PayrollPeriods.getPayrollPeriodForDate(): Now getting period for date '${inDateString}' ...`);
+    Log.l(`PayrollPeriods.getPayrollPeriodForDate(): Now getting period for date '${inDateString}' …`);
     let periodDate:Moment = this.getPayrollPeriodStartDateFor(datem);
     // let schDateString = isMoment(scheduleDate) ? scheduleDate.format("YYYY-MM-DD") : "INVALID DATE RESULT";
     let dateString:string = isMoment(periodDate) ? periodDate.format("YYYY-MM-DD") : "INVALID DATE RESULT";
@@ -224,5 +225,5 @@ export class PayrollPeriods implements Iterator<PayrollPeriod> {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }
