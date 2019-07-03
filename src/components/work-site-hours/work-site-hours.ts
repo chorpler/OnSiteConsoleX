@@ -126,8 +126,8 @@ export class WorkSiteHoursComponent implements OnInit,OnDestroy {
       let times = this.jobsite.getShiftStartTimes();
       this.shiftStartTimes = times;
     }
-    this.startAM = this.jobsite.getShiftStartTime('AM');
-    this.startPM = this.jobsite.getShiftStartTime('PM');
+    this.startAM = this.jobsite.getShiftStartTime('AM').fullName;
+    this.startPM = this.jobsite.getShiftStartTime('PM').fullName;
   }
 
   public initializeGrid() {

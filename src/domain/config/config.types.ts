@@ -169,6 +169,8 @@ export interface ISESAShiftSymbols extends CLL {
   moon      ?: string;
 }
 
+export type SiteShiftType = "AM"|"PM";
+
 export class SESAShiftSymbols implements ISESAShiftSymbols {
   public isOnSite():boolean {
     return true;
@@ -195,7 +197,96 @@ export class SESAShiftSymbols implements ISESAShiftSymbols {
   constructor() {}
 }
 
-export class SESAShift extends SESAShiftSymbols {
+// export class SESAShift extends SESAShiftSymbols {
+//   public isOnSite():boolean {
+//     return true;
+//   }
+//   public getClass():any {
+//     return SESAShift;
+//   }
+//   public getClassName():string {
+//     return 'SESAShift';
+//   }
+//   public get [Symbol.toStringTag]():string {
+//     return this.getClassName();
+//   };
+
+//   constructor() {
+//     super();
+//     return this;
+//   }
+// }
+
+/**
+ * Name: SESAShift domain class
+ * Vers: 2.0.1
+ * Date: 2019-07-03
+ * Auth: David Sargeant
+ * Logs: 2.0.1 2019-07-03: Updated significantly. Now just represents AM/PM, plus associated symbol
+ */
+export class SESAShift {
+  public static sunChars  : string = "☀☼🌞🌣";
+  public static moonChars : string = "☽🌛🌜" ;
+  public name:SiteShiftType = "AM";
+  public fullName:SiteShiftType = "AM";
+  public symbol:string = SESAShift.sunChars[0];
+  constructor(doc?:{name:SiteShiftType, fullName:SiteShiftType, symbol?:string}|SiteShiftType) {
+    if(doc) {
+      if(typeof doc === 'string') {
+        if(doc.toUpperCase() === 'AM') {
+          this.setDay();
+        } else if(doc.toUpperCase() === 'PM') {
+          this.setNight();
+        } else {
+          Log.w(`SESAShift(): Cannot create a SESAShift object using this parameter (must be "AM"|"PM"|SESAShift), not:`, doc);
+          return null;
+        }
+      } else if(typeof doc === 'object') {
+        this.name = doc.name ? doc.name : this.name;
+        this.fullName = doc.fullName ? doc.fullName : this.fullName;
+        this.symbol = doc.symbol ? doc.symbol : this.symbol;
+      } else {
+        Log.w(`SESAShift(): Cannot create a SESAShift object using this parameter (must be "AM"|"PM"|SESAShift), not:`, doc);
+        return null;
+      }
+    }
+    return this;
+  }
+
+  public setDay():SiteShiftType {
+    this.name = "AM";
+    this.fullName = "AM";
+    this.symbol = SESAShift.sunChars[0];
+    return this.name;
+  }
+
+  public setNight():SiteShiftType {
+    this.name = "PM";
+    this.fullName = "PM";
+    this.symbol = SESAShift.moonChars[0];
+    return this.name;
+  }
+
+  public getType():SiteShiftType {
+    return this.name;
+  }
+
+  public isDay():boolean {
+    if(this.name === "AM") {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  public isNight():boolean {
+    if(this.name === "PM") {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   public isOnSite():boolean {
     return true;
   }
@@ -208,11 +299,6 @@ export class SESAShift extends SESAShiftSymbols {
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
   };
-
-  constructor() {
-    super();
-    return this;
-  }
 }
 
 // export class SESAShiftLength implements CLL {
@@ -265,7 +351,7 @@ export class SESAShiftRotation implements CLL {
 
   public name: string = "";
   public fullName: string = "";
-  constructor(doc:{name:string,fullName:string}) {
+  constructor(doc?:{name:string,fullName:string}) {
     if(doc && doc.name && doc.fullName) {
       this.name = doc.name;
       this.fullName = doc.fullName;

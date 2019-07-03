@@ -25,9 +25,11 @@ const _compareTechAndSite = (tech:Employee, site:Jobsite) => {
   return equality;
 }
 
-@IonicPage({ name    : 'Employee'                                   })
-@Component({ selector: 'employee', templateUrl: 'employee.html' })
-
+@IonicPage({ name: 'Employee' })
+@Component({
+  selector: 'employee',
+  templateUrl: 'employee.html',
+})
 export class EmployeePage implements OnInit {
   @ViewChild('avatarName') avatarName                                                 ;
   public title          : string        = "Employee"                                  ;

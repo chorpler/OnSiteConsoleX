@@ -1,8 +1,9 @@
 /**
  * Name: Employee domain class
- * Vers: 8.1.5
- * Date: 2019-06-27
+ * Vers: 8.1.6
+ * Date: 2019-07-03
  * Auth: David Sargeant
+ * Logs: 8.1.6 2019-07-03: Changed shift property to use SiteScheduleType from Jobsite
  * Logs: 8.1.5 2019-06-27: Changed StatusUpdateType to EmployeeStatusUpdateType
  * Logs: 8.1.4 2019-02-01: Changed how isLevel1Manager() works to make it case-insensitive
  * Logs: 8.1.3 2019-01-24: Changed employeeMoved to default to false, and not to save during serialization
@@ -36,6 +37,7 @@ import { oo               } from '../config/config.types'  ;
 import { Street           } from './street'                ;
 import { Address          } from './address'               ;
 import { Jobsite          } from './jobsite'               ;
+import { SiteScheduleType } from './jobsite'               ;
 import { Log              } from '../config/config.log'    ;
 import { SESACLL          } from '../config/config.types'  ;
 import { SESAShiftSymbols } from '../config/config.types'  ;
@@ -83,13 +85,13 @@ export class Employee {
   public workSite            : string        = ""            ;
   public site_number         : number        = -1            ;
   // public shift               : any           = {name: "AM", fullName: "AM", value: "AM", code: "AM", };
-  public shift               : string        = "AM"          ;
+  public shift               : SiteScheduleType = "AM"          ;
   public shiftLength         : string|number = ""            ;
   public shiftStartTime      : number        = 8             ;
   public shiftStartTimeMoment: Moment        = null          ;
   public shiftStartTimeHour  : string        = "08:00"       ;
   public rotation            : string        = ""            ;
-  public email               : Array<string> = []            ;
+  public email               : string[]      = []            ;
   public phone               : string        = ""            ;
   public cell                : string        = ""            ;
   public address             : Address       = new Address() ;
@@ -99,7 +101,7 @@ export class Employee {
   public updated             : boolean       = false         ;
   public created             : string        = moment().format();
   public lastUpdated         : string        = moment().format();
-  public statusUpdates       : Array<EmployeeStatusLogEntry>    = []            ;
+  public statusUpdates       : EmployeeStatusLogEntry[] = [] ;
   public logistics           : boolean       = false         ;
   public employeeMoved       : boolean       = false         ;
   public isTestUser          : boolean       = false         ;
@@ -398,7 +400,7 @@ export class Employee {
     return this.shift || "AM";
   }
 
-  public setShiftType(AMorPM:string):string {
+  public setShiftType(AMorPM:SiteScheduleType):string {
     this.shift = AMorPM || "AM";
     return this.shift;
   }
@@ -415,8 +417,8 @@ export class Employee {
     }
   }
 
-  public getShift():string {
-    let shift:string = this.shift;
+  public getShift():SiteScheduleType {
+    let shift:SiteScheduleType = this.shift;
     if(shift) {
       return shift;
     } else {
@@ -424,7 +426,7 @@ export class Employee {
     }
   }
 
-  public setShift(AMorPM:string):string {
+  public setShift(AMorPM:SiteScheduleType):SiteScheduleType {
     this.shift = AMorPM;
     return this.shift;
   }

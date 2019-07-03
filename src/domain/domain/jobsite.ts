@@ -409,6 +409,15 @@ export class Jobsite {
     return this.shift_start_times;
   }
 
+  public getShiftStartTimeNumber(key:SiteScheduleType):number {
+    let out = 0;
+    let sst = this.getShiftStartTime(key);
+    if(sst && sst.name) {
+      out = Number(sst.name);
+    }
+    return out;
+  }
+
   public getShiftStartTimeString(key:SiteScheduleType):string {
     let out = "";
     let sst = this.getShiftStartTime(key);
@@ -419,7 +428,7 @@ export class Jobsite {
   }
 
   public getShiftStartTime(key:SiteScheduleType):SESAShiftStartTime {
-    let doc:any = {name:"0", fullName:"0"};
+    // let doc:any = new SESAShiftStartTime(0);
     if(this.shift_start_times[key] != undefined) {
       let val = this.shift_start_times[key];
       // let sst = new SESAShiftStartTime(val);

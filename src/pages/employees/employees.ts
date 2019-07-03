@@ -1,10 +1,11 @@
-import { Subscription                                                } from 'rxjs'          ;
+// import { Storage                                                     } from '@ionic/storage'             ;
+// import { DataTable                                                   } from 'primeng/datatable'          ;
+import { Subscription                                                } from 'rxjs'                       ;
 import { Component, OnInit, OnDestroy, NgZone, ViewChild, ElementRef } from '@angular/core'              ;
 import { ChangeDetectorRef, AfterViewInit,                           } from '@angular/core'              ;
 import { IonicPage                                                   } from 'ionic-angular'              ;
 import { NavController, ModalController, ViewController,             } from 'ionic-angular'              ;
 import { NavParams                                                   } from 'ionic-angular'              ;
-// import { Storage                                                     } from '@ionic/storage'             ;
 import { Log, moment, Moment, isMoment, oo,                          } from 'domain/onsitexdomain'       ;
 import { AuthService                                                 } from 'providers/auth-service'     ;
 import { ServerService                                               } from 'providers/server-service'   ;
@@ -18,7 +19,6 @@ import { SelectItem, MenuItem,                                       } from 'pri
 import { MultiSelect,                                                } from 'primeng/multiselect'        ;
 import { EmployeeViewComponent                                       } from 'components/employee-view'   ;
 import { NotifyService                                               } from 'providers/notify-service'   ;
-// import { DataTable                                                   } from 'primeng/datatable'          ;
 import { Table                                                       } from 'primeng/table'              ;
 
 @IonicPage({ name: 'Employees' })
@@ -198,7 +198,7 @@ export class EmployeesPage implements OnInit,OnDestroy,AfterViewInit {
       // Log.l("Error retrieving docs from users DB!");
       // Log.e(err);
       // this.notify.addError("ERROR", `Error retrieving employees from database: '${err.message}'`, 10000);
-      this.alert.showAlert("ERROR", `Error retrieving employees from database:<br>\n'${err.message}'`);
+      await this.alert.showErrorMessage("ERROR", `Error retrieving employees from database`, err);
       // throw new Error(err);
     }
   }
@@ -415,6 +415,7 @@ export class EmployeesPage implements OnInit,OnDestroy,AfterViewInit {
   public employeeUpdated(event:any) {
     Log.l("employeeUpdated(): Event is:", event);
     this.employeeViewVisible = false;
+    window['p'] = this;
     if(event && event.type && event.employee) {
       if(event.type === 'delete') {
         let employee = event.employee;
@@ -445,16 +446,17 @@ export class EmployeesPage implements OnInit,OnDestroy,AfterViewInit {
   public employeeCanceled(event:any) {
     Log.l("employeeCanceled(): Event is:", event);
     this.employeeViewVisible = false;
+    window['p'] = this;
     if(this.mode === 'add' || this.mode === 'Add') {
-      // let i:number = this.allEmployees.findIndex((a:Employee) => {
-      //   return a !== this.employee;
-      // });
-      // if(i > -1) {
-      //   this.allEmployees.splice(i, 1);
-      // }
-      this.allEmployees = this.allEmployees.filter((a:Employee) => {
-        return a.username !== this.employee.username;
+      let i:number = this.allEmployees.findIndex((a:Employee) => {
+        return a._id === this.employee._id;
       });
+      if(i > -1) {
+        this.allEmployees.splice(i, 1);
+      }
+      // this.allEmployees = this.allEmployees.filter((a:Employee) => {
+      //   return a.username !== this.employee.username;
+      // });
       window['onsiteemployeecanceled'] = this.employee;
       this.employee = null;
       this.displayEmployees = this.allEmployees.filter((a: Employee) => {
@@ -463,7 +465,7 @@ export class EmployeesPage implements OnInit,OnDestroy,AfterViewInit {
     }
   }
 
-  public addEmployee(event?:any) {
+  public addEmployee(event?:Event) {
     // let techs:Employee[] = this.displayEmployees;
     let employee:Employee = new Employee();
     // let index = 0;

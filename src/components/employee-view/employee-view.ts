@@ -7,6 +7,7 @@ import { SESAClient, SESALocation, SESALocID, SESACLL,           } from 'domain/
 import { SESAShift, SESAShiftLength, SESAShiftRotation,          } from 'domain/onsitexdomain'          ;
 import { SESAShiftStartTime,                                     } from 'domain/onsitexdomain'          ;
 import { Employee                                                } from 'domain/onsitexdomain'          ;
+import { SiteScheduleType                                        } from 'domain/onsitexdomain'          ;
 import { Jobsite                                                 } from 'domain/onsitexdomain'          ;
 import { Preferences                                             } from 'providers/preferences'         ;
 import { ServerService                                           } from 'providers/server-service'      ;
@@ -20,14 +21,14 @@ import { DispatchService                                         } from 'provide
 
 @Component({
   selector: 'employee-view',
-  templateUrl: 'employee-view.html'
+  templateUrl: 'employee-view.html',
 })
 export class EmployeeViewComponent implements OnInit,OnDestroy {
   @ViewChild('avatarName') avatarName:ElementRef                                      ;
   @ViewChild('emailTextArea') emailTextArea:ElementRef                                ;
   @Input('employee') employee:Employee                                                ;
-  @Input('employees') employees:Employee[] = []                                  ;
-  @Input('mode') mode:string = "edit";
+  @Input('employees') employees:Employee[] = []                                       ;
+  @Input('mode') mode:string = "edit"                                                 ;
   @Output('onUpdate')  onUpdate = new EventEmitter<any>()                             ;
   @Output('onCancel')  onCancel = new EventEmitter<any>()                             ;
   @Output('onDelete')  onDelete = new EventEmitter<any>()                             ;
@@ -44,12 +45,12 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
   public errors         : any           = {username: false, email: false}             ;
   // public mode           : string        = "Add"                                       ;
   public from           : string        = "employees"                                 ;
-  public usernames      : string[] = []                                          ;
+  public usernames      : string[] = []                                               ;
   public clients        : SESAClient[]  = []                                          ;
   public locations      : SESALocation[]= []                                          ;
   public locids         : SESALocID[]   = []                                          ;
   public rotations      : SESACLL[]     = []                                          ;
-  public shifts         : any[]         = []                                          ;
+  public shifts         : SESAShift[]   = []                                          ;
   public shiftlengths   : any[]         = []                                          ;
   public shiftstarttimes: any[]         = []                                          ;
   public jobsite        : Jobsite                                                     ;
@@ -88,7 +89,7 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
   public optionsType      : string = 'employeeView'                                   ;
   public dataReady      : boolean = false                                             ;
   public isVisible      : boolean = true                                              ;
-  public 
+  public usernameTouched: boolean = false                                             ;
   public dialogStyle    : any = {
     // overflow: 'visible',
     overflow: 'auto',
@@ -144,10 +145,12 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
     // .then(res => {
       //   return
     if(this.mode === 'add') {
-      this.employee = new Employee();
-      this.employee.address.state = 'TX';
-      this.employee.phone = '956-';
-      this.employee.cell = '956-';
+      // this.employee = new Employee();
+      if(this.employee && this.employee instanceof Employee) {
+        this.employee.address.state = 'TX';
+        this.employee.phone = '956-';
+        this.employee.cell = '956-';
+      }
     }
     this.backupEmployee = oo.clone(this.employee.serialize());
     this.initializeJobsiteData();
@@ -272,7 +275,7 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
   }
 
   public initializeJobsiteData() {
-    Log.l(`initializeJobsiteData(): Function called...`);
+    Log.l(`initializeJobsiteData(): Function called …`);
     // let sites = this.data.getData('sites');
     // this.sites = sites;
     // return new Promise((resolve,reject) => {
@@ -296,7 +299,7 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
   }
 
   public initializeForm() {
-    Log.l(`initializeForm(): Function called...`);
+    Log.l(`initializeForm(): Function called …`);
     let e = this.employee;
     let tech = e;
     type HoursItem = {name:string, fullName:string, value?:string, code?:string, capsName?:string};
@@ -311,7 +314,7 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
     let shiftlengths     = this.data.getConfigData('shiftLengths');
     let shiftstarttimes  = this.data.getConfigData('shiftStartTimes');
     let rotations        = this.data.getConfigData('rotations');
-    this.shifts          = shifts;
+    this.shifts          = shifts.map(a => new SESAShift(a));
     this.shiftlengths    = shiftlengths;
     this.shiftstarttimes = shiftstarttimes;
     this.rotations       = rotations;
@@ -517,7 +520,7 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
         ];
         this.shiftStartList = shiftStartTimeList.map((a:SESAShiftStartTime) => {
           let item:SelectItem = {
-            label: a.name,
+            label: String(a.name),
             value: a,
           };
           return item;
@@ -613,17 +616,20 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
       let loc = site.location.name;
       let lid = site.locID.name;
       let now = moment();
-      let shiftTime = this.employee.shift || this.shift || "AM";
-      if(typeof shiftTime === 'object') {
-        shiftTime = shiftTime.name;
-      }
-      let t1 = site.getShiftStartTime(shiftTime);
-      let startHour = typeof t1 === 'string' && t1.length === 5 ? Number(t1.split(":")[0]) : Number(t1);
+      // let shiftTime:SiteScheduleType = this.employee.shift || this.shift || "AM";
+      let shiftTime:SiteScheduleType = this.employee.shift || (this.shift.getType()) || "AM";
+      // if(typeof shiftTime === 'object') {
+      //   shiftTime = shiftTime.name;
+      // }
+      let t1 = site.getShiftStartTimeNumber(shiftTime);
+      // let startHour = typeof t1 === 'string' && t1.length === 5 ? Number(t1.split(":")[0]) : Number(t1);
+      let startHour = Number(t1);
       let startTime = Number(startHour);
       let shiftStartTime:SelectItem = this.shiftStartList.find((a:SelectItem) => {
         return Number(startTime) === Number(a.value.name);
       });
       if(shiftStartTime && shiftStartTime.value) {
+        // this.shiftStartTime = shiftStartTime.value;
         this.shiftStartTime = shiftStartTime.value;
       } else {
         if(Array.isArray(this.shiftStartList) && this.shiftStartList.length > 0) {
@@ -631,7 +637,7 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
         } else {
           let shiftStartTime:SESAShiftStartTime = new SESAShiftStartTime();
           let shiftStartItem:SelectItem = {
-            label: shiftStartTime.name,
+            label: String(shiftStartTime.name),
             value: shiftStartTime,
           };
           this.shiftStartList = [
@@ -689,6 +695,7 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
         } else {
           this.userEmail += email + "\n";
         }
+        this.updateUserEmail(this.userEmail);
       } else {
         this.notify.addError("ERROR", "This e-mail address is already listed!", 5000);
       }
@@ -1035,9 +1042,10 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
   }
 
   public updateName(evt?:any) {
-    Log.l(`updateName(): Event is:\n`, evt);
+    Log.l(`updateName(): Event is:`, evt);
     let first:string = "", last:string = "", username:string = "";
-    if(!this.employee.avatarName) {
+    // if(!this.employee.avatarName) {
+    if(!this.usernameTouched) {
       first = this.employee.firstName.toLowerCase();
       last  = this.employee.lastName.toLowerCase();
       if(first && first.length) {
@@ -1046,8 +1054,15 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
       if(last && last.length) {
         username += last;
       }
+      Log.l(`updateName(): Username should be '${username}'`);
       this.employee.avatarName = username;
+    } else {
+      Log.l(`updateName(): Username field was touched, not updating username.`);
     }
+  }
+
+  public usernameTouch(evt?:Event) {
+    this.usernameTouched = true;
   }
 
   public updateUserClass(userclass:string) {
@@ -1058,10 +1073,10 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
 
   public updateUserEmail(emails?:string) {
     let email = emails ? emails : this.userEmail;
-    Log.l(`updateUserEmail: updating user email from:\n`, email);
+    Log.l(`updateUserEmail: updating user email from:`, email);
     this.setError('email', false);
     let emailArray = email.trim().split('\n');
-    Log.l(`updateUserRole(): string '${email}' split into array:\n`, emailArray);
+    Log.l(`updateUserRole(): string '${email}' split into array:`, emailArray);
     this.userEmail = email;
     this.employee.email = emailArray;
   }
@@ -1090,7 +1105,7 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
         let site = this.sites.find((a: Jobsite) => {
           return a.site_number == 1075;
         });
-        if (site) {
+        if(site) {
           this.jobsite = site;
           this.updateEmployee('jobsite', site);
           // this.employee.setJobsite(site);

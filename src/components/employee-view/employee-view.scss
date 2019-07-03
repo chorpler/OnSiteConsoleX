@@ -29,6 +29,9 @@ employee-view {
           color: lightgrey;
           cursor: default;
         }
+        &.developer-icon {
+          color: rgba(255, 0, 0, 0.999);
+        }
       }
     }
     .p-grid {

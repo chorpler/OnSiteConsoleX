@@ -14,7 +14,7 @@ import { AlertService                                       } from 'providers/al
 import { Preferences                                        } from 'providers/preferences'         ;
 import { NotifyService                                      } from 'providers/notify-service'      ;
 import { OSData                                             } from 'providers/data-service'        ;
-import { Log, Moment, moment, isMoment, oo, _dedupe,        } from 'domain/onsitexdomain'          ;
+import { Log, Moment, moment, isMoment, oo, _dedupe, SiteShiftType,        } from 'domain/onsitexdomain'          ;
 import { Jobsite, Employee, Schedule,                       } from 'domain/onsitexdomain'          ;
 import { OptionsGenericComponent                            } from 'components/options-generic'    ;
 import { Dialog                                             } from 'primeng/dialog'               ;
@@ -929,7 +929,7 @@ export class SchedulingBetaPage implements OnInit,OnDestroy {
     }
   }
 
-  public async updateTechSettings(tech:Employee, site:Jobsite, rotation:string, shiftType:string) {
+  public async updateTechSettings(tech:Employee, site:Jobsite, rotation:string, shiftType:SiteShiftType) {
     try {
       let unassigned:Jobsite = this.sites.find((a:Jobsite) => {
         return a.site_number === 1;

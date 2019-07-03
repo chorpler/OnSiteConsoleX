@@ -7,7 +7,7 @@
     </div>
     <div class="p-grid button-grid">
       <div class="p-col">
-        <span class="cell-button-like" (click)="defaultFill($event)" title="Fill in default test user info" *ngIf="data.status.role==='dev'">
+        <span class="cell-button-like developer-icon" (click)="defaultFill($event)" title="Fill in default test user info" *ngIf="data.status.role==='dev'">
           <i class="fal fa-id-card icon-button-like"></i>
         </span>
       </div>
@@ -86,7 +86,7 @@
       </div>
       <div class="grid-row">
         <!-- <div class="grid-col grid-col-2 label" [class.error]="errors.username">Username <i class="fal fa-envelope icon-button-like" title="Create E-mail Address" (click)="createEmail($event)"></i></div><div class="grid-col grid-col-10 data"><input #avatarName [(ngModel)]="employee.avatarName" (ngModelChange)="setError('username', false)" (blur)="updateUserEmail(employee.avatarName + '@sesafleetservices.com')"/></div> -->
-        <div class="grid-col grid-col-2 label" [class.error]="errors.username">Username <i class="fal fa-envelope icon-button-like" title="Create E-mail Address" (click)="createEmail($event)"></i></div><div class="grid-col grid-col-10 data"><input #avatarName [(ngModel)]="employee.avatarName" (ngModelChange)="setError('username', false)" /></div>
+        <div class="grid-col grid-col-2 label" [class.error]="errors.username">Username <i class="fal fa-envelope icon-button-like" title="Create E-mail Address" (click)="createEmail($event)"></i></div><div class="grid-col grid-col-10 data"><input #avatarName [(ngModel)]="employee.avatarName" (ngModelChange)="setError('username', false)" (focus)="usernameTouch($event)"/></div>
       </div>
       <div class="grid-row">
         <div class="grid-col grid-col-2 label">User Class</div><div class="grid-col grid-col-10 data"><textarea [(ngModel)]="userClass" (ngModelChange)="updateUserClass(userClass)"></textarea></div>
@@ -144,8 +144,17 @@
         <div class="grid-col grid-col-2 data"><input class="input-data" type="number" step="0.01" [(ngModel)]="employee.payRate" /></div>
       </div>
       <div class="grid-row" *ngIf="data.status.role==='dev'">
-        <div class="grid-col grid-col-12 labeldata">
+        <!-- <div class="grid-col grid-col-12 labeldata">
           <p-checkbox binary="true" [(ngModel)]="employee.isTestUser" label="Test User"></p-checkbox>
+        </div> -->
+        <div class="grid-col grid-col-4 labeldata">
+          <p-checkbox binary="true" [(ngModel)]="employee.isTestUser" label="Test User"></p-checkbox>
+        </div>
+        <div class="grid-col grid-col-4 labeldata">
+          
+        </div>
+        <div class="grid-col grid-col-4 labeldata">
+          
         </div>
       </div>
     </div>

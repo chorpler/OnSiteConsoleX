@@ -29,6 +29,7 @@ import { ScheduleBeta,                                                     } fro
 import { OnSiteCoordinates, OnSiteGeoposition,                             } from 'domain/onsitexdomain'          ;
 import { LatLng, LatLonLiteral,                                            } from 'domain/onsitexdomain'          ;
 import { DatabaseProgress,                                                 } from 'domain/onsitexdomain'          ;
+import { SESAShift                                                         } from 'domain/onsitexdomain'          ;
 import { Employee as NewEmployee,                                          } from 'domain/newdomain'              ;
 import { Jobsite as NewJobsite,                                            } from 'domain/newdomain'              ;
 import { Street as NewStreet,                                              } from 'domain/newdomain'              ;
@@ -367,6 +368,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
     classes['Location']          = OnSiteGeolocation  ;
     classes['Position']          = OnSiteGeoposition  ;
     classes['LatLng']            = LatLng             ;
+    classes['SESAShift']         = SESAShift          ;
 
     g['onsitedebug']    = classes;
     g['consoleobjects'] = classes;
@@ -410,7 +412,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
   public async initializeApp() {
     try {
       let res:any = await this.platform.ready();
-      Log.l("OnSiteX Console: initializeApp() running. Now initializing PouchDB...");
+      Log.l("OnSiteX Console: initializeApp() running. Now initializing PouchDB …");
       this.electron.setApp(this);
       // this.initializeWindow();
       this.initializeSubscriptions();
@@ -426,7 +428,15 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
     } catch(err) {
       Log.l(`initializeApp(): Error initializing app!`);
       Log.e(err);
-      let out:any = await this.alert.showErrorMessage("STARTUP ERROR", "There was an error starting up", err);
+      let title:string = "STARTUP ERROR";
+      let text:string = "There was an error starting up";
+      if(err.type === 'OpenError') {
+        title= "DATABASE LOCKED";
+        text = "The app's database files are currently locked. This almost always means you have another instance of the app open. Please close this window and use the other instance of the app. If you cannot find one, please reboot your computer.";
+        let out:any = await this.alert.showAlertPromise(title, text);
+      } else {
+        let out:any = await this.alert.showErrorMessage(title, text, err);
+      }
       if(this['electron']) {
         this.exitApp();
       }

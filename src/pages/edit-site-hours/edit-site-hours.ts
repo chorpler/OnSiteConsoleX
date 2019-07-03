@@ -70,8 +70,8 @@ export class EditSiteHoursPage implements OnInit {
       let times = this.jobsite.getShiftStartTimes();
       this.shiftStartTimes = times;
     }
-    this.startAM = this.jobsite.getShiftStartTime('AM');
-    this.startPM = this.jobsite.getShiftStartTime('PM');
+    this.startAM = this.jobsite.getShiftStartTime('AM').fullName;
+    this.startPM = this.jobsite.getShiftStartTime('PM').fullName;
     // let i = this.startOptions.indexOf(this.jobsite.shift_start_times.AM);
     // if(i > -1) {
     //   this.jobsite.shift_start_times.AM = this.startOptions[i];

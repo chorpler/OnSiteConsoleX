@@ -2,7 +2,7 @@ let HARDCLOSE:boolean = true;
 let SPLASH_WINDOW_MINIMUM_TIMEOUT:number = 1000;
 // import { sprintf } from 'sprintf-js';
 const sprintf:(...args) => string = require('sprintf-js').sprintf;
-import { app, remote, BrowserWindow, dialog, ipcMain, nativeImage, globalShortcut, } from 'electron';
+import { app, Menu, BrowserWindow, dialog, ipcMain, nativeImage, globalShortcut, } from 'electron';
 import { BrowserWindowConstructorOptions, } from 'electron';
 import { MessageBoxOptions,               } from 'electron';
 import { ContextMenuParams,               } from 'electron';
@@ -579,6 +579,77 @@ function closeAllRandomWindows() {
     log.info(`closeAllRandomWindows(): No random windows to close`);
   }
 }
+
+function createMenu() {
+  const application = {
+    label: 'OnSiteConsoleX',
+    submenu: [
+      {
+        label: 'Quit',
+        accelerator: 'CmdOrCtrl+Q',
+        click: () => {
+          app.quit();
+        },
+      },
+    ],
+  };
+
+  const edit = {
+    label: 'Edit',
+    subMenu: [
+      { label: "Undo", accelerator: "CmdOrCtrl+Z", role: "undo" },
+      { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", role: "redo" },
+      { type: "separator" },
+      { label: "Cut", accelerator: "CmdOrCtrl+X", role: "cut" },
+      { label: "Copy", accelerator: "CmdOrCtrl+C", role: "copy" },
+      { label: "Paste", accelerator: "CmdOrCtrl+V", role: "paste" },
+      { label: "Select All", accelerator: "CmdOrCtrl+A", role: "selectAll" },
+    ],
+    // submenu: [
+    //   {
+    //     label: 'Undo',
+    //     accelerator: 'CmdOrCtrl+Z',
+    //     role: 'undo',
+    //   },
+    //   {
+    //     label: 'Redo',
+    //     accelerator: 'Shift+CmdOrCtrl+Z',
+    //     role: 'redo',
+    //   },
+    //   {
+    //     type: 'separator',
+    //   },
+    //   {
+    //     label: 'Cut',
+    //     accelerator: 'CmdOrCtrl+X',
+    //     role: 'cut',
+    //   },
+    //   {
+    //     label: 'Copy',
+    //     accelerator: 'CmdOrCtrl+C',
+    //     role: 'copy',
+    //   },
+    //   {
+    //     label: 'Paste',
+    //     accelerator: 'CmdOrCtrl+V',
+    //     role: 'paste',
+    //   },
+    //   {
+    //     label: 'Select All',
+    //     accelerator: 'CmdOrCtrl+A',
+    //     role: 'selectAll',
+    //   },
+    // ],
+  };
+
+  const template = [application, edit];
+  // const template = [application];
+  // const template = [edit];
+
+  let appMenu = Menu.buildFromTemplate(template);
+
+  Menu.setApplicationMenu(appMenu);
+};
 
 contextMenu({
   prepend: (defaultActions:contextMenu.Actions, params:ContextMenuParams, browserWindow:BrowserWindow) => {
