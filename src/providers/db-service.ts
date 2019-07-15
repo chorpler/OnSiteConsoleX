@@ -251,7 +251,7 @@ export class DBService {
 
   public async getAllConfigData():Promise<any> {
     try {
-      Log.l("getAllConfigData(): Retrieving clients, locations, locIDs, loc2nd's, shiftRotations, and shiftTimes...");
+      Log.l("getAllConfigData(): Retrieving clients, locations, locIDs, loc2nd's, shiftRotations, and shiftTimes …");
       let dbname = this.prefs.getDB('config');
       let db1 = this.addDB(dbname);
       // return new Promise((resolve, reject) => {
@@ -312,7 +312,7 @@ export class DBService {
   }
 
   // public getAllConfig() {
-  //   Log.l("getAllConfig(): Retrieving clients, locations, locIDs, loc2nd's, shiftRotations, shiftTimes, shiftLengths, shiftTypes, and shiftStartTimes...");
+  //   Log.l("getAllConfig(): Retrieving clients, locations, locIDs, loc2nd's, shiftRotations, shiftTimes, shiftLengths, shiftTypes, and shiftStartTimes …");
   //   let db1 = this.addDB('sesa-config');
   //   return new Promise((resolve, reject) => {
   //     db1.allDocs({ keys: ['client', 'location', 'locid', 'loc2nd', 'rotation', 'shift', 'shiftlength', 'shifttype', 'shiftstarttime'], include_docs: true }).then((docs) => {
@@ -369,7 +369,7 @@ export class DBService {
   }
 
   public getEmployeeDocs():Promise<any[]> {
-    Log.l("getEmployees(): Now retrieving employees...");
+    Log.l("getEmployees(): Now retrieving employees …");
     return new Promise((resolve, reject) => {
       let dbname = this.prefs.getDB('employees');
       let db1 = this.addDB(dbname);
@@ -391,7 +391,7 @@ export class DBService {
   }
 
   public async getJobsites():Promise<Jobsite[]> {
-    Log.l("getJobsites(): Retrieving job sites...");
+    Log.l("getJobsites(): Retrieving job sites …");
     try {
       let dbname = this.prefs.getDB('jobsites');
       let db1 = this.addDB(dbname);
@@ -562,7 +562,7 @@ export class DBService {
       let res:any, reports:Report[] = [];
       // if(fetchCount && !fetchCount) {
       if(this.useQuery) {
-        // Log.l(`DB.getWorkReports(): Attempting to load last ${fetchCount} reports...`);
+        // Log.l(`DB.getWorkReports(): Attempting to load last ${fetchCount} reports …`);
         let total:number = await this.getDocCount(reportsDB);
         let fetch:number = typeof fetchCount === 'number' ? fetchCount : 1000000;
         Log.l(`DB.getWorkReports(): Attempting to load last ${total} reports …`);
@@ -586,7 +586,7 @@ export class DBService {
           Log.l(`DB.getWorkReports(): Queried and created array of ${newCount} reports.`);
         }
       } else {
-        Log.l(`DB.getWorkReports(): Attempting to load all reports...`);
+        Log.l(`DB.getWorkReports(): Attempting to load all reports …`);
         if(!this.testDocs) {
           res = await db1.allDocs(options);
         } else {
@@ -758,7 +758,7 @@ export class DBService {
     try {
       let dbname:string = this.prefs.getDB('reports_other');
       let db1 = this.addDB(dbname);
-      // this.loading.setContent("Processing non-work reports...");
+      // this.loading.setContent("Processing non-work reports …");
       let res:any = await db1.allDocs({ include_docs: true });
       Log.l(`DB.getReportOthers(): Successfully retrieved other reports:\n`, res);
       let others:ReportOther[] = [];
@@ -786,7 +786,7 @@ export class DBService {
     try {
       let dbname:string = this.prefs.getDB('logistics');
       let db1:Database = this.addDB(dbname);
-      // this.loading.setContent("Processing logistics reports...");
+      // this.loading.setContent("Processing logistics reports …");
       let res:any = await db1.allDocs({ include_docs: true });
       Log.l(`DB.getReportLogistics(): Successfully retrieved logistics reports:`, res);
       let logistics:ReportLogistics[] = [];
@@ -817,7 +817,7 @@ export class DBService {
     try {
       let dbname:string = this.prefs.getDB('timecards');
       let db1:Database = this.addDB(dbname);
-      // this.loading.setContent("Processing timecard reports...");
+      // this.loading.setContent("Processing timecard reports …");
       let res:any = await db1.allDocs({ include_docs: true });
       Log.l(`DB.getReportTimeCards(): Successfully retrieved timecard reports:\n`, res);
       if(res && Array.isArray(res['rows'])) {
@@ -870,7 +870,7 @@ export class DBService {
     try {
       let loading:Loading|{setContent:Function} = this.alert.getSpinner(spinnerID);
       loading = loading && typeof loading.setContent === 'function' ? loading : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
-    // this.loading.setContent("Processing old reports...");
+    // this.loading.setContent("Processing old reports …");
       let reports:Report[] = [];
       for(let dbname of dbnames) {
         try {
@@ -902,9 +902,11 @@ export class DBService {
       let db1 = this.addDB(dbname);
       let now = moment().startOf('day');
       let startDate:Moment = moment(now).subtract(12, 'weeks').startOf('week');
+      let endDate:Moment = moment(now).add(10, 'years').startOf('week');
       let start:string = startDate.format("YYYY-MM-DD");
-      let res:any = await db1.allDocs({ include_docs: true, startkey: start});
-      Log.l("DB.getSchedules(): Got initial schedule results:\n", res);
+      let end:string = endDate.format("YYYY-MM-DD");
+      let res:any = await db1.allDocs({ include_docs: true, startkey: start, endkey: end});
+      Log.l("DB.getSchedules(): Got initial schedule results:", res);
       let schedules:Schedule[] = [];
       if(res && res.rows && Array.isArray(res.rows)) {
         for(let row of res.rows) {
@@ -914,14 +916,14 @@ export class DBService {
           } else {
             if(doc && row.id && row.id[0] !== '_' && doc.schedule) {
               let schedule = new Schedule(doc);
-              if(employees) {
+              if(employees && employees.length) {
                 schedule.loadTechs(employees);
               }
               schedules.push(schedule);
             }
           }
         }
-        Log.l("DB.getSchedules(): Final result array is:\n", schedules);
+        Log.l("DB.getSchedules(): Final result array is:", schedules);
       }
       return schedules;
     } catch(err) {
@@ -968,7 +970,7 @@ export class DBService {
       let data:{ sites:Jobsite[], employees:Employee[], reports:Report[], others:ReportOther[], logistics:ReportLogistics[], timecards:ReportTimeCard[], periods:PayrollPeriod[], shifts:any[], old_reports:Report[], schedules:any[] } = {
         sites: [], employees: [], reports: [], others: [], logistics:[], timecards: [], periods: [], shifts: [], old_reports: [], schedules: [],
       };
-      // if(loading && loading.setContent) { loading.setContent(loadText + "sesa-jobsites..."); }
+      // if(loading && loading.setContent) { loading.setContent(loadText + "sesa-jobsites …"); }
       // let text:string = "sesa-jobsites";
       // updateLoaderStatus(text);
       // loading.setContent(loadText + text);
@@ -1001,7 +1003,7 @@ export class DBService {
 
       if(this.prefs.CONSOLE.global.loadMiscReports) {
         updateLoaderStatus("sesa-reports-other");
-        // loading.setContent(loadText + "sesa-reports-other...");
+        // loading.setContent(loadText + "sesa-reports-other …");
         let ros:ReportOther[] = await this.getReportOthers();
         data.others = ros.sort((a:ReportOther, b:ReportOther) => {
           // let dA = a.report_date.format("YYYYMMDD");
@@ -1021,7 +1023,7 @@ export class DBService {
         let ors:Report[] = await this.getOldReports();
         data.old_reports = ors;
       }
-      // loading.setContent(loadText + "sesa-scheduling...");
+      // loading.setContent(loadText + "sesa-scheduling …");
       // res = await this.getSchedules();
       // data.schedules = res;
       if(!getReports) {
@@ -1049,14 +1051,14 @@ export class DBService {
     return new Promise((resolve, reject) => {
       let reportDate = moment().subtract(2, 'weeks');
       let data = { sites: [], employees: [], reports: [], others: [], logistics:[], timecards: [], periods: [], shifts: [], schedules: [] };
-      loading.setContent(loadText + "sesa-jobsites...");
+      loading.setContent(loadText + "sesa-jobsites …");
       this.getJobsites().then(res => {
         for (let doc of res) {
           let site = new Jobsite();
           site.readFromDoc(doc);
           data.sites.push(site);
         }
-        loading.setContent(loadText + "sesa-employees...");
+        loading.setContent(loadText + "sesa-employees …");
         return this.getEmployees();
       }).then(res => {
         for (let doc of res) {
@@ -1064,7 +1066,7 @@ export class DBService {
           user.readFromDoc(doc);
           data.employees.push(user);
         }
-        loading.setContent(loadText + "sesa-reports-other...");
+        loading.setContent(loadText + "sesa-reports-other …");
         return this.getReportOthers();
       }).then((res:ReportOther[]) => {
         data.others = res.sort((a:ReportOther, b:ReportOther) => {
@@ -1079,7 +1081,7 @@ export class DBService {
           return dA > dB ? -1 : dA < dB ? 1 : tA > tB ? -1 : tA < tB ? 1 : uA < uB ? -1 : uA > uB ? 1 : 0;
         });
         // Log.l("getAllData(): Success, final data to be returned is:\n", data);
-        loading.setContent(loadText + "sesa-scheduling...");
+        loading.setContent(loadText + "sesa-scheduling …");
         return this.getSchedules();
       }).then(res => {
         data.schedules = res;
@@ -1108,7 +1110,7 @@ export class DBService {
     // let loading = spinnerID ? this.alert.getSpinner(spinnerID) : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
     try {
       // let loadText = "Retrieving data from:<br>\n";
-      // if(loading && loading.setContent) { loading.setContent(loadText + "reports_ver101100..."); }
+      // if(loading && loading.setContent) { loading.setContent(loadText + "reports_ver101100 …"); }
       let res:Report[] = await this.getWorkReports(fetchCount, spinnerID);
       return res;
     } catch(err) {
@@ -1210,7 +1212,7 @@ export class DBService {
       //   }
       //   // });
       // };
-      Log.l("getSounds(): Now attempting to get sounds from server....");
+      Log.l("getSounds(): Now attempting to get sounds from server ….");
       let res:any = await db1.allDocs({ include_docs: true, attachments: true, binary:true });
       Log.l("getSounds(): Successfully got sounds back from server:\n", res);
       let out:any = {};
@@ -1287,7 +1289,7 @@ export class DBService {
   //       }
   //       // });
   //     };
-  //     Log.l("getSounds(): Now attempting to get sounds from server....");
+  //     Log.l("getSounds(): Now attempting to get sounds from server ….");
   //     db1.allDocs({ include_docs: true, attachments: true }).then(res => {
   //       Log.l("getSounds(): Successfully got sounds back from server:\n", res);
   //       let out = {};
@@ -1669,7 +1671,7 @@ export class DBService {
   }
 
   public getTechPhones():Promise<any[]> {
-    Log.l("getTechPhones(): Firing up...");
+    Log.l("getTechPhones(): Firing up …");
     return new Promise((resolve, reject) => {
       let db1 = this.addDB('sesa-tech-phones');
       db1.allDocs({ include_docs: true }).then(res => {

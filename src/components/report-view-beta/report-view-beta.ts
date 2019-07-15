@@ -60,6 +60,7 @@ export class ReportViewBetaComponent implements OnInit,OnDestroy {
   public repair_hours:number = 0;
   public time_start  :Date           = new Date()         ;
   public time_end    :Date           = new Date()         ;
+  public siteList    :SelectItem[]   = []                 ;
   public clientList  :SelectItem[]   = []                 ;
   public locationList:SelectItem[]   = []                 ;
   public locIDList   :SelectItem[]   = []                 ;
@@ -68,6 +69,8 @@ export class ReportViewBetaComponent implements OnInit,OnDestroy {
   public prevComp    :any                                 ;
   public reportTimeError:boolean     = false              ;
   public stepMinute  :number         = 15                 ;
+  public dropdownScroll : string     = "200px"            ;
+  public detailedSite:boolean        = false              ;
   public dataReady   :boolean        = false              ;
 
   constructor(
@@ -169,9 +172,15 @@ export class ReportViewBetaComponent implements OnInit,OnDestroy {
       }
     }
 
+    let siteList    : SelectItem[] = [] ;
     let clientList  : SelectItem[] = [] ;
     let locationList: SelectItem[] = [] ;
     let locIDList   : SelectItem[] = [] ;
+    for(let site of this.sites) {
+      let name:string = site.getSiteSelectName();
+      let item:SelectItem = {label: name, value: site}
+      siteList.push(item);
+    }
     for(let val of this.clients) {
       let item:SelectItem = {label: val.fullName, value: val}
       clientList.push(item);
@@ -185,6 +194,7 @@ export class ReportViewBetaComponent implements OnInit,OnDestroy {
       locIDList.push(item);
     }
     this.timeList     = timeList     ;
+    this.siteList     = siteList     ;
     this.clientList   = clientList   ;
     this.locationList = locationList ;
     this.locIDList    = locIDList    ;
@@ -220,6 +230,14 @@ export class ReportViewBetaComponent implements OnInit,OnDestroy {
     // let report_date = moment(rpt.report_date).toDate();
     // this.report_date = report_date;
     // this.report_date = report_date;
+    let site:Jobsite = this.sites.find((a:Jobsite) => {
+      return this.report.matchesSite(a);
+    });
+    if(site) {
+      this.site = this.siteList.find((a:SelectItem) => {
+        return a.value === site;
+      }).value;
+    }
     let client = this.data.getFullClient(rpt.client);
     let location = this.data.getFullLocation(rpt.location);
     let locID = this.data.getFullLocID(rpt.location_id);
@@ -401,7 +419,7 @@ export class ReportViewBetaComponent implements OnInit,OnDestroy {
     return this.report;
   }
 
-  public getReportLocation() {
+  public getReportLocation():Jobsite {
     let rpt = this.report;
     let cli  = this.data.getFullClient(rpt.client);
     let loc  = this.data.getFullLocation(rpt.location);
@@ -412,22 +430,29 @@ export class ReportViewBetaComponent implements OnInit,OnDestroy {
       let siteLocID    = a.locID.name;
       return siteClient === cli.name && siteLocation === loc.name && siteLocID === lid.name;
     });
-    Log.l(`getReportLocation(): Report/tech located at site:\n`, site);
+    Log.l(`getReportLocation(): Report/tech located at site:`, site);
     return site;
   }
 
   public updateReportCLL(key:string, value:any) {
     let report = this.report;
-    Log.l(`updateReportCLL(): Setting report key ${key} to:\n`, value);
+    Log.l(`updateReportCLL(): Setting report key ${key} to:`, value);
     if(key === 'client') {
       report.client = value.fullName;
+      let site = this.getReportLocation();
+      this.site = site;
     } else if(key === 'location') {
       report.location = value.fullName;
+      let site = this.getReportLocation();
+      this.site = site;
     } else if(key === 'locID') {
       report.location_id = value.name;
+      let site = this.getReportLocation();
+      this.site = site;
     } else {
-      Log.w(`updateReportCLL(): Unable to find key ${key} to set, in ReportOther:\n`, report);
-    }  }
+      Log.w(`updateReportCLL(): Unable to find key ${key} to set, in Report:`, report);
+    }
+  }
     
   public updateRepairHours() {
     let report = this.report;
@@ -554,7 +579,7 @@ export class ReportViewBetaComponent implements OnInit,OnDestroy {
 
   public splitReport(event?:any) {
     let report = this.report;
-    Log.l(`splitReport(): Now attempting to split report:\n`, report);
+    Log.l(`splitReport(): Now attempting to split report:`, report);
     this.notify.addInfo("DISABLED", `This function is not yet enabled.`, 3000);
     let proceed:boolean = false;
     if(proceed) {
@@ -594,7 +619,38 @@ export class ReportViewBetaComponent implements OnInit,OnDestroy {
     }
   }
 
-//   public
-// }
+  public toggleDetailedSiteView(evt?:Event) {
+    this.detailedSite = !this.detailedSite;
+    Log.l(`toggleDetailedSiteView(): Toggled to:`, this.detailedSite);
+  }
 
+  public updateReportSite(site:Jobsite, evt?:Event) {
+    Log.l(`updateReportSite(): Updating site to:`, site);
+    let rpt:Report = this.report;
+    let siteCLI = site.getSiteKeyAsString('client').toUpperCase();
+    let siteLOC = site.getSiteKeyAsString('location').toUpperCase();
+    let siteLID = site.getSiteKeyAsString('locID').toUpperCase();
+    let cli = this.clientList.find((a:SelectItem) => {
+      let val:SESAClient = a.value;
+      return val.name.toUpperCase() === siteCLI || val.fullName.toUpperCase() === siteCLI;
+    }).value;
+    let loc = this.locationList.find((a:SelectItem) => {
+      let val:SESALocation = a.value;
+      return val.name.toUpperCase() === siteLOC || val.fullName.toUpperCase() === siteLOC;
+    }).value;
+    let lid = this.locIDList.find((a:SelectItem) => {
+      let val:SESALocID = a.value;
+      return val.name.toUpperCase() === siteLID || val.fullName.toUpperCase() === siteLID;
+    }).value;
+    if(cli && loc && lid) {
+      this.client = cli;
+      this.location = loc;
+      this.locID = lid;
+      rpt.setSite(site);
+      Log.l(`updateReportSite(): Updated CLI, LOC, LID to:`, cli, loc, lid);
+    } else {
+      Log.w(`updateReportSite(): Error updating CLI, LOC, LID to:`, cli, loc, lid);
+      this.notify.addError("SITE ERROR", "Could not find details for this work site!", 6000);
+    }
+  }
 }

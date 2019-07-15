@@ -36,10 +36,10 @@ export class ReportViewComponent implements OnInit,OnDestroy {
   @Input('shift')     shift : Shift               ;
   @Input('period')   period : PayrollPeriod       ;
   @Input('report')   report : Report              ;
-  @Input('reports') reports : Array<Report>  = [] ;
+  @Input('reports') reports : Report[]  = [] ;
   @Input('tech')       tech : Employee            ;
   @Input('site')       site : Jobsite             ;
-  @Input('sites')     sites : Array<Jobsite> = [] ;
+  @Input('sites')     sites : Jobsite[] = [] ;
   @Output('finished') finished = new EventEmitter<any>();
   @Output('reportChange') reportChange = new EventEmitter<any>();
   public title      : string         = "View Work Report" ;
@@ -53,9 +53,9 @@ export class ReportViewComponent implements OnInit,OnDestroy {
   public location   : any            ;
   public locID      : any            ;
 
-  public clients     :Array<any>     = []                 ;
-  public locations   :Array<any>     = []                 ;
-  public locIDs      :Array<any>     = []                 ;
+  public clients     :any[]     = []                 ;
+  public locations   :any[]     = []                 ;
+  public locIDs      :any[]     = []                 ;
   public repair_hours:number = 0;
   public time_start  :Date           = new Date()         ;
   public time_end    :Date           = new Date()         ;
@@ -63,11 +63,20 @@ export class ReportViewComponent implements OnInit,OnDestroy {
   public locationList:SelectItem[]   = []                 ;
   public locIDList   :SelectItem[]   = []                 ;
   public timeList    :SelectItem[]   = []                 ;
-  public reportUndo  :Array<any>     = []                 ;
+  public reportUndo  :any[]     = []                 ;
   public dataReady   :boolean        = false              ;
 
-  constructor(public db:DBService, public server:ServerService, public alert:AlertService, public data:OSData, public notify:NotifyService, public keyService:KeyCommandService, public numServ:NumberService) {
+  constructor(
+    public db        : DBService         ,
+    public server    : ServerService     ,
+    public alert     : AlertService      ,
+    public data      : OSData            ,
+    public notify    : NotifyService     ,
+    public keyService: KeyCommandService ,
+    public numServ   : NumberService     ,
+  ) {
     window['reportviewcomponent'] = this;
+    window['p'] = this;
     window['_dedupe'] = _dedupe;
   }
 

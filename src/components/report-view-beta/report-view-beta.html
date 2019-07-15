@@ -86,16 +86,21 @@
         <td class="data" ><input class="report-view-input" [(ngModel)]="report.technician" /></td>
       </tr>
       <tr class="report-view-row">
+        <td class="label detailed-button" (click)="toggleDetailedSiteView($event)" title="Toggle client/location/locID editing"><span class="label-text">Work Site</span></td>
+        <td class="data" ><p-dropdown [class.report-view-dropdown]="true" [disabled]="detailedSite" [options]="siteList" [(ngModel)]="site" (onChange)="updateReportSite(site)" [scrollHeight]="dropdownScroll"></p-dropdown></td>
+        <!-- <div class="grid-col grid-col-2 label">Work Site</div><div class="grid-col grid-col-10 data"><p-dropdown appendTo="body" [options]="jobsiteList" [(ngModel)]="jobsite" (onChange)="updateEmployee('jobsite', jobsite)"></p-dropdown></div> -->
+      </tr>
+      <tr class="report-view-row">
         <td class="label">Client</td>
-        <td class="data" ><p-dropdown [class.report-view-dropdown]="true" [options]="clientList" [(ngModel)]="client" (onChange)="updateReportCLL('client', client)" [scrollHeight]="dropdownScroll"></p-dropdown></td>
+        <td class="data" ><p-dropdown [class.report-view-dropdown]="true" [disabled]="!detailedSite" [options]="clientList" [(ngModel)]="client" (onChange)="updateReportCLL('client', client)" [scrollHeight]="dropdownScroll"></p-dropdown></td>
       </tr>
       <tr class="report-view-row">
         <td class="label">Location</td>
-        <td class="data" ><p-dropdown [class.report-view-dropdown]="true" [options]="locationList" [(ngModel)]="location" (onChange)="updateReportCLL('location', location)" [scrollHeight]="dropdownScroll"></p-dropdown></td>
+        <td class="data" ><p-dropdown [class.report-view-dropdown]="true" [disabled]="!detailedSite" [options]="locationList" [(ngModel)]="location" (onChange)="updateReportCLL('location', location)" [scrollHeight]="dropdownScroll"></p-dropdown></td>
       </tr>
       <tr class="report-view-row">
         <td class="label">LocID</td>
-        <td class="data" ><p-dropdown [class.report-view-dropdown]="true" [options]="locIDList" [(ngModel)]="locID" (onChange)="updateReportCLL('locID', locID)" [scrollHeight]="dropdownScroll"></p-dropdown></td>
+        <td class="data" ><p-dropdown [class.report-view-dropdown]="true" [disabled]="!detailedSite" [options]="locIDList" [(ngModel)]="locID" (onChange)="updateReportCLL('locID', locID)" [scrollHeight]="dropdownScroll"></p-dropdown></td>
       </tr>
       <tr class="report-view-row">
         <td class="label">Unit No.</td>
