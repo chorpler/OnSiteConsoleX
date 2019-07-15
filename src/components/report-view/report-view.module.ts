@@ -13,12 +13,12 @@ import { InputTextareaModule, } from 'primeng/inputtextarea' ;
     ReportViewComponent,
   ],
   imports: [
-    CommonModule       ,
-    FormsModule        ,
-    DialogModule       ,
-    DropdownModule     ,
-    CalendarModule     ,
-    InputMaskModule    ,
+    CommonModule,
+    FormsModule,
+    DialogModule,
+    DropdownModule,
+    CalendarModule,
+    InputMaskModule,
     InputTextareaModule,
   ],
   exports: [

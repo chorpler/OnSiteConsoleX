@@ -4,7 +4,7 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Input, Output } fr
 import { EventEmitter, NgZone, ViewChildren, QueryList, AfterViewInit,      } from '@angular/core'                                ;
 import { IonicPage, NavController, NavParams                                } from 'ionic-angular'                                ;
 import { ViewController                                                     } from 'ionic-angular'                                ;
-import { Log, moment, Moment, oo, s2ab,                                   } from 'domain/onsitexdomain'                         ;
+import { Log, moment, Moment, oo, s2ab,                                     } from 'domain/onsitexdomain'                         ;
 import { Report, Invoice, Jobsite, Employee, Shift, PayrollPeriod, PreAuth, } from 'domain/onsitexdomain'                         ;
 import { AlertService                                                       } from 'providers/alert-service'                      ;
 import { DBService                                                          } from 'providers/db-service'                         ;
@@ -17,7 +17,7 @@ import { SelectItem,                                                        } fr
 import { MenuItem,                                                          } from 'primeng/api'                                  ;
 import { Dropdown,                                                          } from 'primeng/dropdown'                             ;
 import { MultiSelect,                                                       } from 'primeng/multiselect'                          ;
-import { ReportViewBetaComponent                                            } from 'components/report-view-beta/report-view-beta' ;
+import { ReportViewComponent                                                } from 'components/report-view'                       ;
 import { LoaderService                                                      } from 'providers/loader-service'                     ;
 
 export enum Row {
@@ -51,7 +51,6 @@ export class HBPreauthPage implements OnInit,OnDestroy {
   @ViewChildren('printArea') printArea:QueryList<any>;
   // @ViewChild('printArea') printArea:ElementRef;
   // @ViewChild('preauthTable') preauthTable: ElementRef;
-  public moment     : any        = moment       ;
   public title      : string     = "HB Preauth" ;
   public optionsVisible:boolean = false         ;
   public optionsType:string = "hbpreauth"       ;
@@ -916,5 +915,9 @@ export class HBPreauthPage implements OnInit,OnDestroy {
     this.viewCtrl.dismiss();
   }
 
+  public moment(...args):Moment {
+    let mo = moment(...args);
+    return mo;
+  }
 
 }

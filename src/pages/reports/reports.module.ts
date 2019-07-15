@@ -9,7 +9,7 @@ import { CalendarModule                     } from 'primeng/calendar'           
 import { MultiSelectModule                  } from 'primeng/multiselect'              ;
 import { TableModule                        } from 'primeng/table'                    ;
 import { ContextMenuModule                  } from 'primeng/contextmenu'              ;
-import { ReportViewBetaComponentModule      } from 'components/report-view-beta'      ;
+import { ReportViewComponentModule          } from 'components/report-view'           ;
 import { ReportOtherViewComponentModule     } from 'components/report-other-view'     ;
 import { ReportLogisticsViewComponentModule } from 'components/report-logistics-view' ;
 import { ReportTimeCardViewComponentModule  } from 'components/report-timecard-view'  ;
@@ -28,7 +28,7 @@ import { ReportTimeCardViewComponentModule  } from 'components/report-timecard-v
     TableModule,
     ContextMenuModule,
     // NgxDatatableModule,
-    ReportViewBetaComponentModule,
+    ReportViewComponentModule,
     ReportOtherViewComponentModule,
     ReportLogisticsViewComponentModule,
     ReportTimeCardViewComponentModule,

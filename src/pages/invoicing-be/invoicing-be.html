@@ -204,6 +204,7 @@
 
 <div #reportViewTarget id="report-view-target" class="report-view-target"></div>
 <p-dialog #reportViewDialog styleClass="report-view-dialog" [header]="reportViewTitle" [(visible)]="reportViewVisible" [modal]="false" [responsive]="true" [draggable]="true" [resizable]="true" [positionLeft]="dialogLeft" [positionTop]="dialogTop" *ngIf="dataReady && data.ready() && reportViewVisible">
-  <report-view-beta [report]="report" [reports]="reports" [tech]="tech" [site]="site" [sites]="sites" (finished)="updateReport($event)" (reportChange)="changeReport($event)"></report-view-beta>
+  <!-- <report-view-beta [report]="report" [reports]="reports" [tech]="tech" [site]="site" [sites]="sites" (finished)="updateReport($event)" (reportChange)="changeReport($event)"></report-view-beta> -->
+  <report-view #reportView *ngIf="reportViewVisible" [class.report-view-component]="true" [report]="report" [reports]="editReports" [tech]="tech" [site]="site" [sites]="sites" (save)="reportViewSave($event)" (cancel)="reportViewCancel($event)"></report-view>
 </p-dialog>
 <invoices-open *ngIf="dataReady && data.ready() && invoiceOpenVisible" type="BE" (open)="invoicesOpen($event)" (cancel)="cancelOpen($event)"></invoices-open>

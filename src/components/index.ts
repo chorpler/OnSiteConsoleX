@@ -26,7 +26,6 @@ export * from './options-generic';
 export * from './preauth-open';
 export * from './report-other-view';
 export * from './report-view';
-export * from './report-view-beta';
 // export * from './schedule-choose';
 export * from './schedule-open';
 export * from './scheduling-list-employees';

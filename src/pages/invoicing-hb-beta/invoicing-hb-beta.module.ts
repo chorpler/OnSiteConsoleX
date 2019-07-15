@@ -5,7 +5,7 @@ import { DropdownModule,               } from 'primeng/dropdown'            ;
 import { MultiSelectModule             } from 'primeng/multiselect'         ;
 // import { DialogModule                  } from 'primeng/dialog'              ;
 import { InvoiceHBComponentModule       } from 'components/invoice-hb/'     ;
-import { ReportViewBetaComponentModule } from 'components/report-view-beta' ;
+import { ReportViewComponentModule     } from 'components/report-view'      ;
 import { OptionsGenericComponentModule } from 'components/options-generic'  ;
 import { InvoicesOpenComponentModule   } from 'components/invoices-open'    ;
 
@@ -19,7 +19,7 @@ import { InvoicesOpenComponentModule   } from 'components/invoices-open'    ;
     MultiSelectModule,
     // DialogModule,
     InvoiceHBComponentModule,
-    ReportViewBetaComponentModule,
+    ReportViewComponentModule,
     InvoicesOpenComponentModule,
     OptionsGenericComponentModule,
   ],
