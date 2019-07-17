@@ -1,8 +1,9 @@
 /**
  * Name: PayrollPeriod domain class
- * Vers: 5.7.0
- * Date: 2019-01-24
+ * Vers: 5.7.1
+ * Date: 2019-07-17
  * Auth: David Sargeant
+ * Logs: 5.7.1 2019-07-17: Deleted empty getPayrollPeriodPremiumHours() method; changed all occurrences of "bonus" to "premium" for premium hours
  * Logs: 5.7.0 2019-01-24: Added deserialize() method (also static version)
  * Logs: 5.6.0 2018-12-13: Refactored imports; added standard OnSite methods
  * Logs: 5.5.0 2018-12-10: Added hasShiftForDate(), getShiftForDate(), addShift() methods
@@ -42,7 +43,7 @@ export class PayrollPeriod {
   public shift_hours_list        : number[]      = [] ;
   public shift_payroll_hours_list: number[]      = [] ;
   public total_hours             : number        = 0  ;
-  public bonus_hours             : number        = 0  ;
+  public premium_hours           : number        = 0  ;
   public payroll_hours           : number        = 0  ;
   public site_number             : number        = 0  ;
 
@@ -196,7 +197,7 @@ export class PayrollPeriod {
     return shifts;
   }
 
-  public getNormalHours() {
+  public getNormalHours():number {
     let total = 0;
     for(let shift of this.shifts) {
       total += shift.getNormalHours();
@@ -220,9 +221,9 @@ export class PayrollPeriod {
   }
 
   /**
-   * Need to add work report specific calculations in here for bonus hours
+   * Need to add work report specific calculations in here for premium hours
    *
-   * @returns total_hours: a number ostensibly representing total normal hours plus bonus hours, where hours are eligible
+   * @returns total_hours: a number ostensibly representing total normal hours plus premium hours, where hours are eligible
    * @memberof PayrollPeriod
    */
   public getPayrollHours() {
@@ -234,12 +235,12 @@ export class PayrollPeriod {
     return this.payroll_hours;
   }
 
-  public getBonusHours() {
+  public getPremiumHours():number {
     let total = 0;
     for(let shift of this.shifts) {
-      total += shift.getTotalBonusHoursForShift();
+      total += shift.getTotalPremiumHoursForShift();
     }
-    this.bonus_hours = total;
+    this.premium_hours = total;
     return total;
   }
 
@@ -261,8 +262,8 @@ export class PayrollPeriod {
 
   public getTotalHours() {
     let total = 0;
-    // total += this.getNormalHours() + this.getBonusHours() + this.getTrainingHours() + this.getTravelHours() + this.getSpecialHours().hours;
-    total += this.getNormalHours() + this.getBonusHours() + this.getSpecialHours().hours;
+    // total += this.getNormalHours() + this.getPremiumHours() + this.getTrainingHours() + this.getTravelHours() + this.getSpecialHours().hours;
+    total += this.getNormalHours() + this.getPremiumHours() + this.getSpecialHours().hours;
     return total;
   }
 
@@ -461,9 +462,6 @@ export class PayrollPeriod {
         }
       }
     }
-  }
-
-  public getPayrollPeriodBonusHours() {
   }
 
   public getPayrollPeriodTotal() {
