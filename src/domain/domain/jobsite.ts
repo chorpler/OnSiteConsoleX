@@ -1,8 +1,11 @@
 /**
  * Name: Jobsite domain class
- * Vers: 7.3.1
- * Date: 2019-07-01
+ * Vers: 7.4.2
+ * Date: 2019-07-17
  * Auth: David Sargeant
+ * Logs: 7.4.2 2019-07-17: Added isValidForReports() method
+ * Logs: 7.4.1 2019-07-17: Added billable property, isBillable() method
+ * Logs: 7.3.2 2019-07-03: Added getShiftStartTimeNumber() method
  * Logs: 7.3.1 2019-07-01: Added SESAShiftRotation, SESAShiftStartTime, SiteScheduleType, ShiftTimes, and other type info; minor TSLint warning fixes
  * Logs: 7.2.1 2019-03-15: Added getClient(), getLocation(), getLocID() methods
  * Logs: 7.1.2 2018-12-13: Added getKeys() and isOnSite() methods; refactored imports
@@ -64,7 +67,7 @@ const matchesCI = function(str1:string, str2:string):boolean {
     out = true;
   }
   return out;
-}
+};
 
 export class Jobsite {
   public _id                       : string  = "";
@@ -97,12 +100,13 @@ export class Jobsite {
   public has_standby               : boolean  = false;
   public sort_number               : number   = 0;
   public site_number               : number = -1001;
-  public shift_start_times         : ShiftTimes = {"AM" :"06:00", "PM": "18:00"} ;
+  public shift_start_times         : ShiftTimes = {AM :"06:00", PM: "18:00"} ;
   public lunch_hour_time           : number = 1;
   public test_site                 : boolean = false;
   public inactive_users            : boolean = false;
   public premium_hours             : boolean = true ;
   public is_office                 : boolean = false;
+  public billable                  : boolean = true ;
 
   constructor(doc?:any) {
     if(doc) {
@@ -428,7 +432,6 @@ export class Jobsite {
   }
 
   public getShiftStartTime(key:SiteScheduleType):SESAShiftStartTime {
-    // let doc:any = new SESAShiftStartTime(0);
     if(this.shift_start_times[key] != undefined) {
       let val = this.shift_start_times[key];
       // let sst = new SESAShiftStartTime(val);
@@ -678,6 +681,20 @@ export class Jobsite {
 
   public isDuplicateOf(site:Jobsite):boolean {
     return Jobsite.isDuplicateOf(this, site);
+  }
+
+  public isBillable():boolean {
+    return this.billable;
+  }
+
+  public isValidForReports():boolean {
+    if(this.site_number < 0) {
+      Log.w(`Jobsite.isValidForReports(): Called with site_number property < 0, probably not initialized`);
+      return false;
+    } else if(this.site_number < 1000) {
+      return false;
+    }
+    return true;
   }
 
   public toJSON():any {

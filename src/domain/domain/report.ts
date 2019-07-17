@@ -1,8 +1,10 @@
 /**
  * Name: Report domain class
- * Vers: 7.8.1
- * Date: 2019-06-27
+ * Vers: 7.8.3
+ * Date: 2019-07-17
  * Auth: David Sargeant
+ * Logs: 7.8.3 2019-07-17: Modified setPremiumStatus() method to throw error if not given Jobsite object; added billable property and isBillable(),setBillableStatus() methods
+ * Logs: 7.8.2 2019-07-17: Added matchesCLL(),matchesOneCLL(),matchesClient(),matchesLocation(),matchesLocID() methods
  * Logs: 7.8.1 2019-06-27: Changed StatusUpdateType to ReportStatusUpdateType; minor TSLint errors fixed
  * Logs: 7.7.2 2019-06-19: Added a type property, for office/work_report types
  * Logs: 7.7.1 2019-06-11: Added times_error,date_error properties, areTimesValid() method, and new methods to force date/time updates without checking instantly for errors
@@ -46,6 +48,13 @@ export interface ReportStatusLogEntry {
   invoice   ?: number                 ;
 }
 export type WorkReportType = "work_report" | "office";
+export interface SESAReportCLL {
+  name:string;
+  fullName:string;
+  code?:string;
+  value?:string;
+}
+export type ReportCLL = SESAReportCLL|string;
 
 export class Report {
   public _id              : string = "";
@@ -90,6 +99,7 @@ export class Report {
   public paid             : boolean = false;
   public paid_date        : string  = "";
   public premium_eligible : boolean = true;
+  public billable         : boolean = true;
   public isTest           : boolean = false;
   public times_error      : boolean = false;
   public date_error       : boolean = false;
@@ -133,6 +143,8 @@ export class Report {
     ["paid"            , "paid"              , 1 ] ,
     ["paid_date"       , "paid_date"         , 1 ] ,
     ["isTest"          , "isTest"            , 1 ] ,
+    ["premium_eligible", "premium_eligible"  , 1 ] ,
+    ["billable"        , "billable"          , 1 ] ,
   ];
 
   /**
@@ -674,9 +686,54 @@ export class Report {
     return docID;
   }
 
+  public matchesClient(cll:ReportCLL):boolean {
+    return this.matchesOneCLL('client', cll);
+  }
+
+  public matchesLocation(cll:ReportCLL):boolean {
+    return this.matchesOneCLL('location', cll);
+  }
+
+  public matchesLocID(cll:ReportCLL):boolean {
+    return this.matchesOneCLL('locID', cll);
+  }
+
+  public matchesOneCLL(type:"client"|"location"|"locID"|"location_id", cll:ReportCLL):boolean {
+    let me:string;
+    if(type === 'client') {
+      me = this.client.toUpperCase();
+    } else if(type === 'location') {
+      me = this.location.toUpperCase();
+    } else if(type === 'locID' || type === 'location_id') {
+      me = this.location_id.toUpperCase();
+    } else {
+      let text:string = `Report.matchesCLL(): Parameter 1 must be type: client|location|locID. Supplied type incorrect`;
+      Log.w(text + ":", type);
+      let err = new Error(text);
+      throw err;
+    }
+    if(typeof cll === 'object') {
+      let cll1 = typeof cll.name === 'string' ? cll.name.toUpperCase() : "";
+      let cll2 = typeof cll.fullName === 'string' ? cll.fullName.toUpperCase() : "";
+      return me === cll1 || me === cll2;
+    } else if(typeof cll === 'string') {
+      let cll1 = cll.toUpperCase();
+      return me === cll1;
+    } else {
+      let text:string = `Report.matchesCLL(): Parameter 2 must be object "{name:string,fullName:string}" or string. Supplied value invalid`;
+      Log.w(text + ":", cll);
+      let err = new Error(text);
+      throw err;
+    }
+  }
+
+  public matchesCLL(client:ReportCLL, location:ReportCLL, locID:ReportCLL):boolean {
+    return this.matchesClient(client) && this.matchesLocation(location) && this.matchesLocID(locID);
+  }
+
   public matchesSite(site:Jobsite):boolean {
     if(!(site instanceof Jobsite)) {
-      Log.w(`Report.matchesSite(): Must be called with Jobsite object. Called with:\n`, site);
+      Log.w(`Report.matchesSite(): Must be called with Jobsite object. Called with:`, site);
       return false;
     } else {
       if(this.site_number && this.site_number === site.site_number) {
@@ -840,8 +897,35 @@ export class Report {
       } else {
         this.premium_eligible = false;
       }
+    } else {
+      let text:string = `Report.setPremiumStatus(): must be provided with Jobsite object, provided parameter invalid`;
+      Log.w(text + ":", site);
+      let err = new Error(text);
+      Log.e(err);
+      throw err;
     }
     return this.premium_eligible;
+  }
+
+  public isBillable():boolean {
+    return this.billable;
+  }
+
+  public setBillableStatus(site:Jobsite):boolean {
+    if(site instanceof Jobsite) {
+      if(site.isBillable()) {
+        this.billable = true;
+      } else {
+        this.billable = false;
+      }
+    } else {
+      let text:string = `Report.setBillableStatus(): must be provided with Jobsite object, provided parameter invalid`;
+      Log.w(text + ":", site);
+      let err = new Error(text);
+      Log.e(err);
+      throw err;
+    }
+    return this.billable;
   }
 
   // public splitReportID(reportID?:string) {

@@ -1,8 +1,9 @@
 /**
  * Name: Shift domain class
- * Vers: 6.7.2
- * Date: 2019-07-01
+ * Vers: 7.0.1
+ * Date: 2019-07-17
  * Auth: David Sargeant
+ * Logs: 7.0.1 2019-07-17: Changed all instances of "bonus" hours to "premium" hours; now using Report class's premium property
  * Logs: 6.7.2 2019-07-01: Added SiteScheduleType import; minor TSLint error fixes
  * Logs: 6.7.1 2019-01-02: Added logistics reports to getShiftStatus() output
  * Logs: 6.6.1 2018-12-13: Refactored imports to remove circular dependencies; added standard OnSite methods
@@ -559,30 +560,33 @@ export class Shift {
 
   public getTotalPayrollHoursForShift() {
     let shiftTotal = this.getTotalShiftHours();
-    let bonusHours = this.getTotalBonusHoursForShift();
-    shiftTotal += bonusHours;
-    // Log.l("getTotalPayrollHoursForShift(): For shift %s, %d reports, %f hours, %f hours eligible, so bonus hours = %f.\nShift total: %f hours.", this.getShiftSerial(), this.shift_reports.length, shiftTotal, countsForBonusHours, bonusHours, shiftTotal);
+    let premiumHours = this.getTotalPremiumHoursForShift();
+    shiftTotal += premiumHours;
+    // Log.l("getTotalPayrollHoursForShift(): For shift %s, %d reports, %f hours, %f hours eligible, so premium hours = %f.\nShift total: %f hours.", this.getShiftSerial(), this.shift_reports.length, shiftTotal, countsForPremiumHours, premiumHours, shiftTotal);
     return shiftTotal;
   }
 
-  public getTotalBonusHoursForShift() {
-    let shiftTotal = 0, bonusHours = 0, countsForBonusHours = 0;
-    for(let report of this.shift_reports) {
-      if(!report['type'] || (report['type'] as string) === 'Work Report' || report['type'] === 'work_report') {
+  public getTotalPremiumHoursForShift():number {
+    let shiftTotal = 0, premiumHours = 0, countsForPremiumHours = 0;
+    let reports = this.getShiftReports();
+    for(let report of reports) {
+      // if(!report['type'] || (report['type'] as string) === 'Work Report' || report['type'] === 'work_report') {
+      if(report instanceof Report) {
         let subtotal = report.getRepairHours();
         shiftTotal += subtotal;
-        if(report.client !== "SESA" && report.client !== 'SE') {
-          countsForBonusHours += subtotal;
+        // if(report.client !== "SESA" && report.client !== 'SE') {
+        if(report.isPremiumEligible()) {
+          countsForPremiumHours += subtotal;
         }
       }
     }
-    if(countsForBonusHours >= 8 && countsForBonusHours <= 11) {
-      bonusHours = 3;
-    } else if(countsForBonusHours > 11) {
-      bonusHours = 3 + (countsForBonusHours - 11);
+    if(countsForPremiumHours >= 8 && countsForPremiumHours <= 11) {
+      premiumHours = 3;
+    } else if(countsForPremiumHours > 11) {
+      premiumHours = 3 + (countsForPremiumHours - 11);
     }
-    // Log.l("getTotalPayrollHoursForShift(): For shift %s, %d reports, %f hours, %f hours eligible, so bonus hours = %f.\nShift total: %f hours.", this.getShiftSerial(), this.shift_reports.length, shiftTotal, countsForBonusHours, bonusHours, shiftTotal);
-    return bonusHours;
+    // Log.l("getTotalPayrollHoursForShift(): For shift %s, %d reports, %f hours, %f hours eligible, so premium hours = %f.\nShift total: %f hours.", this.getShiftSerial(), this.shift_reports.length, shiftTotal, countsForPremiumHours, premiumHours, shiftTotal);
+    return premiumHours;
   }
 
   public getNormalHours():number {
@@ -607,9 +611,12 @@ export class Shift {
 
   public getBillableHours() {
     let total = 0;
-    for(let report of this.shift_reports) {
-      if(!report['type'] || (report['type'] as string) === 'Work Report' || report['type'] === 'work_report') {
-        if(report.client !== 'SE' && report.client !== 'SESA') {
+    let reports = this.getShiftReports();
+    for(let report of reports) {
+      // if(!report['type'] || (report['type'] as string) === 'Work Report' || report['type'] === 'work_report') {
+      if(report instanceof Report) {
+        // if(report.client !== 'SE' && report.client !== 'SESA') {
+        if(report.isBillable()) {
           total += report.getRepairHours();
         }
       }
@@ -621,8 +628,8 @@ export class Shift {
     return this.getTotalPayrollHoursForShift();
   }
 
-  public getBonusHours() {
-    return this.getTotalBonusHoursForShift();
+  public getPremiumHours() {
+    return this.getTotalPremiumHoursForShift();
   }
 
   public getTrainingHours() {
@@ -685,11 +692,11 @@ export class Shift {
     return total;
   }
 
-  public getShiftTimeline():Array<any> {
+  public getShiftTimeline():any[] {
     return [];
   }
 
-  public setShiftReports(reports:Array<Report>) {
+  public setShiftReports(reports:Report[]) {
     this.shift_reports = reports;
     return this.shift_reports;
   }

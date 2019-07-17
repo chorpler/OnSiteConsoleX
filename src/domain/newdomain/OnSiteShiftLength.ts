@@ -6,10 +6,10 @@
  * Logs: 2.0.1 2018-09-17: Initial setup
 */
 
+// import { SESAShift } from 'domain/config'     ;
 import { Log     } from '../config/config.log';
 import { CLL     } from './interfaces'        ;
 import { SESACLL } from './OnSiteCLL'         ;
-import { SESAShift } from 'domain/config';
 
 export class SESAShiftLength extends SESACLL {
   public static keys:string[] = [
