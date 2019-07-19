@@ -187,6 +187,7 @@
               <span class="col col-01" title="Requires preauthorization from client before invoicing"><span class="config-item"><span class="label">Requires Preauth</span><span class="data"><p-checkbox [(ngModel)]="jobsite.requires_preauth" binary="true"></p-checkbox></span></span></span>
               <span class="col col-02" title="Site requires work order reports (tech shift reports)"><span class="config-item"><span class="label">Tech Shift Reports</span><span class="data"><p-checkbox [(ngModel)]="jobsite.requires_invoice_woreports" binary="true"></p-checkbox></span></span></span>
               <span class="col col-03" title="Site has premium hours (billable site)"><span class="config-item"><span class="label">Premium Hours</span><span class="data"><p-checkbox [(ngModel)]="jobsite.premium_hours" binary="true"></p-checkbox></span></span></span>
+              <span class="col col-04" title="Site generates hours billable to a client (non-SESA site)"><span class="config-item"><span class="label">Billable</span><span class="data"><p-checkbox [(ngModel)]="jobsite.billable" binary="true"></p-checkbox></span></span></span>
             </div>
             <div class="site-config-row row-04">
               <span class="col col-01" title="Site is currently in active use"><span class="config-item"><span class="label">Site Active</span><span class="data"><p-checkbox [(ngModel)]="jobsite.site_active" binary="true"></p-checkbox></span></span></span>

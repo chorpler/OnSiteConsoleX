@@ -19,6 +19,7 @@
 }
 
 page-scheduling {
+  --schedule-vertical-margins: 132px;
   font-family: 'Roboto Condensed';
   font-style: normal;
   font-weight: 300;
@@ -245,7 +246,7 @@ page-scheduling {
     align-items: flex-start;
     align-content: flex-start;
     // min-height: 83vh;
-    height: calc(100vh - 120px);
+    height: calc(100vh - var(--schedule-vertical-margins));
     border-left: 1px dotted lightgrey;
     border-right: 1px dotted lightgrey;
     border-bottom: 1px dotted lightgrey;
@@ -297,7 +298,7 @@ page-scheduling {
       padding: 0;
       // max-height: 83vh;
       scroll-behavior: smooth;
-      height: calc(100vh - 120px);
+      height: calc(100vh - var(--schedule-vertical-margins));
       border-left: 1px dotted lightgrey;
       border-bottom: 1px dotted lightgrey;
     }

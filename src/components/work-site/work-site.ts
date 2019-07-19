@@ -135,8 +135,8 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
   public addSiteLocaleVisible:boolean    = false               ;
   public addSiteLocaleType:string        = 'client'            ;
   // public gmapOptions    : any                                  ;
-  public gmapOptions    : MapOptions                                  ;
-  public gmapOverlays   : MapOverlays   = []                  ;
+  public gmapOptions    : MapOptions                           ;
+  public gmapOverlays   : MapOverlays   = []                   ;
   // public mapUpdateDelay : number         = 750                 ;
   public mapUpdateDelay : number         = 400                 ;
   public googleMapVisible          : boolean       = false     ;
@@ -158,6 +158,8 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
   public scheduleNameCollision     : boolean = false           ;
   public siteNumberCollision       : boolean = false           ;
   public sortNumberReadOnly        : boolean = true            ;
+  public dialogTarget              : string  = null            ;
+  // public dialogTarget              : string  = "body"          ;
 
   // public addClient   : SESAClient   = new SESAClient(  { name: "__", fullName: "Add new client"      , code: "__", value: "Add new client"      , capsName: "ADD NEW CLIENT"      , scheduleName: "Add new client"      ,});
   // public addLocation : SESALocation = new SESALocation({ name: "__", fullName: "Add new location"    , code: "__", value: "Add new location"    , capsName: "ADD NEW LOCATION"    , scheduleName: "Add new location"    ,});
