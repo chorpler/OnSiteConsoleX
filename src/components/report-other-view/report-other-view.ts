@@ -27,6 +27,11 @@ import { Command, KeyCommandService                                } from 'provi
 //   });
 // }
 
+interface ReportTypeItem {
+  name:string;
+  value:string;
+}
+
 @Component({
   selector: 'report-other-view',
   templateUrl: 'report-other-view.html',
@@ -59,10 +64,12 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
   public client     : any                                 ;
   public location   : any                                 ;
   public locID      : any                                 ;
+  public reportType : any                                 ;
 
   public clients     :any[]     = []                      ;
   public locations   :any[]     = []                      ;
   public locIDs      :any[]     = []                      ;
+  public reportTypes :any[]     = []                      ;
   public repair_hours:number = 0;
   public time_start  :Date           = new Date()         ;
   public time_end    :Date           = new Date()         ;
@@ -72,6 +79,7 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
   public locationList:SelectItem[]   = []                 ;
   public locIDList   :SelectItem[]   = []                 ;
   public timeList    :SelectItem[]   = []                 ;
+  public typeList    :SelectItem[]   = []                 ;
   public unassigned  :Jobsite                             ;
   public oldComponent:any                                 ;
   public reportUndo  :any[]     = []                      ;
@@ -131,6 +139,10 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
       return a.site_number == 1;
     });
     let other = this.other;
+    let allReportTypes:ReportTypeItem[] = this.data.getConfigData('report_types');
+    this.reportTypes = allReportTypes.filter(a => {
+      return a.name !== 'work_report' && a.name !== 'logistics' && a.name !== 'office';
+    });
 
     this.createMenuLists();
     this.updateDisplay(other);
@@ -156,6 +168,7 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
     let locationList: SelectItem[] = [] ;
     let locIDList   : SelectItem[] = [] ;
     let siteList    : SelectItem[] = [] ;
+    let typeList    : SelectItem[] = [] ;
     for(let val of this.clients) {
       let item:SelectItem = {label: val.fullName, value: val}
       clientList.push(item);
@@ -172,11 +185,16 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
       let item:SelectItem = { label: site.getSiteSelectName(), value: site };
       siteList.push(item);
     }
+    for(let type of this.reportTypes) {
+      let item:SelectItem = { label: type.value, value: type };
+      typeList.push(item);
+    }
     this.timeList     = timeList     ;
     this.clientList   = clientList   ;
     this.locationList = locationList ;
     this.locIDList    = locIDList    ;
     this.siteList     = siteList     ;
+    this.typeList     = typeList     ;
   }
 
   public updateDisplay(other?:ReportOther) {
@@ -203,6 +221,7 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
     let client = this.data.getFullClient(rpt.client);
     let location = this.data.getFullLocation(rpt.location);
     let locID = this.data.getFullLocID(rpt.location_id);
+    let rptType = rpt.type.toLowerCase();
     let selClient = this.clientList.find((a:SelectItem) => {
       return a.value.name === client.name;
     });
@@ -212,16 +231,38 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
     let selLocID = this.locIDList.find((a:SelectItem) => {
       return a.value.name === locID.name;
     });
+    let selType = this.typeList.find((a:SelectItem) => {
+      let type = a.value;
+      let name  = type.name.toLowerCase();
+      let value = type.value.toLowerCase();
+      return rptType === name || rptType === value;
+    });
     this.client = selClient ? selClient.value : this.unassigned.client;
     this.location = selLocation ? selLocation.value : this.unassigned.location;
     this.locID = selLocID ? selLocID.value : this.unassigned.locID;
+    this.reportType = selType ? selType.value : null;
   }
 
-  public updateSite(site:Jobsite) {
-    let client   = site.client;
-    let location = site.location;
-    let locID    = site.locID;
+  public getReportOtherType(other:ReportOther):string {
+    if(other instanceof ReportOther) {
+      let type = typeof other.type === 'string' ? other.type.toLowerCase() : "";
+      return type;
+    }
+  }
+
+  public updateSite(site:Jobsite, evt?:Event) {
+    // let client   = site.client;
+    // let location = site.location;
+    // let locID    = site.locID;
+    Log.l(`ReportOtherView.updateSite(): Called with site:`, site);
     this.other.setSite(site);
+  }
+
+  public updateReportType(reportType:ReportTypeItem, other:ReportOther, event?:Event) {
+    if(other instanceof ReportOther && typeof reportType.value === 'string') {
+      // other.type = reportType.name;
+      other.type = reportType.value;
+    }
   }
 
   // public cancel(event?:any) {
@@ -279,6 +320,7 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
   }
 
   public updateDate(newDate:Date) {
+    Log.l(`ReportOtherView.updateDate(): Called with date:`, newDate);
     let date:Moment = moment(newDate);
     let report:ReportOther = this.other;
     // report.report_date = moment(date);

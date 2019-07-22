@@ -1,4 +1,5 @@
 report-other-view {
+  --other-dropdown-width: 50%;
   .svg-icon {
     width: 20px;
     height: 24px;
@@ -25,8 +26,8 @@ report-other-view {
       border-bottom: 1px dashed lightgrey;
     }
     &.bottom {
-      margin-top: 10px;
-      border-top: 1px dashed lightgrey;
+      // margin-top: 10px;
+      // border-top: 1px dashed lightgrey;
     }
     .icon-button-like {
       font-size: 24px;
@@ -81,6 +82,7 @@ report-other-view {
         width: 100%;
       }
       .other-view-fake-input {
+        display: inline-block;
         height: 22px;
         line-height: 16px;
         margin: 0;
@@ -96,15 +98,34 @@ report-other-view {
         }
       }
       .other-view-dropdown {
-        // width: 100% !important;
+        width: var(--other-dropdown-width) !important;
         .ui-dropdown {
-          // width: 100% !important;
+          width: var(--other-dropdown-width) !important;
         }
       }
       .other-view-textarea {
         width: 100% !important;
       }
 
+      .split-input {
+        display         : flex        ;
+        flex-flow       : row nowrap  ;
+        justify-content : flex-start ;
+        align-content   : center ;
+        align-items     : center ;
+        width: 100%;
+        .other-view-input {
+          flex: 0 0 49%;
+          width: 49%;
+        }
+      }
     }
+  }
+  .other-view-button-divider {
+    display: block;
+    width: 100%;
+    height: 10px;
+    border-bottom: 1px dashed lightgrey;
+    margin-bottom: 6px;
   }
 }

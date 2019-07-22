@@ -636,6 +636,10 @@ export class ReportsPage implements OnInit,OnDestroy {
       { field: 'training_type'    , header: 'Trn. Type'   , filter: true, filterPlaceholder: "Trn. Type"   , order:  8 , style: "", class: "col-nowrap col-07 col-training" , format: ""      , tooltip: "Training Type"   , },
       { field: 'travel_location'  , header: 'Travel Loc.' , filter: true, filterPlaceholder: "Travel Loc." , order:  9 , style: "", class: "col-nowrap col-08 col-travel"   , format: ""      , tooltip: "Travel Location" , },
       { field: 'site_number'      , header: 'Site#'       , filter: true, filterPlaceholder: "Site#"       , order: 10 , style: "", class: "col-nowrap col-09 col-sitenum"  , format: ""      , tooltip: "Site#"           , },
+      { field: 'notes'            , header: 'Notes'       , filter: true, filterPlaceholder: "Notes"       , order: 11 , style: "", class: "col-nowrap col-10 col-notes"    , format: ""      , tooltip: "Notes"           , },
+      { field: 'client'           , header: 'Client'      , filter: true, filterPlaceholder: "Client"      , order: 12 , style: "", class: "col-nowrap col-11 col-client"   , format: ""      , tooltip: "Client"          , },
+      { field: 'location'         , header: 'Location'    , filter: true, filterPlaceholder: "Location"    , order: 13 , style: "", class: "col-nowrap col-12 col-location" , format: ""      , tooltip: "Location"        , },
+      { field: 'location_id'      , header: 'LocID'       , filter: true, filterPlaceholder: "Location ID" , order: 14 , style: "", class: "col-nowrap col-13 col-locid"    , format: ""      , tooltip: "Location ID"     , },
     ];
     this.allFieldsOthers = fields;
     this.colsOthers      = fields;
@@ -665,7 +669,9 @@ export class ReportsPage implements OnInit,OnDestroy {
     // });
     // // this.selectedColumns = initialColumns;
     // this.selectedColumns = visibleCols;
-    this.selectedColumnsOthers = fields;
+    this.selectedColumnsOthers = fields.filter(a => {
+      return a.field !== 'notes' && a.field !== 'client' && a.field !== 'location' && a.field !== 'location_id';
+    });
     this.columnsChangedOthers();
     this.othersMultiSortMeta = [
       { field: 'report_date', order: -1 },
