@@ -248,6 +248,6 @@ export class Comment {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 
 }

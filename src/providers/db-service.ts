@@ -896,12 +896,13 @@ export class DBService {
 
   // public async getSchedules(archives?:boolean, employees?:Employee[]):Promise<Schedule[]> {
   public async getSchedules(archives?:boolean, employees?:Employee[], spinnerID?:string):Promise<Schedule[]> {
-      try {
+    try {
       Log.l("DB.getSchedules(): Firing up, spinnerID is:", spinnerID);
       let dbname:string = this.prefs.getDB('scheduling');
       let db1 = this.addDB(dbname);
       let now = moment().startOf('day');
-      let startDate:Moment = moment(now).subtract(12, 'weeks').startOf('week');
+      let weeks = this.prefs.getPastScheduleWeeksCount();
+      let startDate:Moment = moment(now).subtract(weeks, 'weeks').startOf('week');
       let endDate:Moment = moment(now).add(10, 'years').startOf('week');
       let start:string = startDate.format("YYYY-MM-DD");
       let end:string = endDate.format("YYYY-MM-DD");
@@ -1086,12 +1087,12 @@ export class DBService {
       }).then(res => {
         data.schedules = res;
         if(!getReports) {
-          Log.l("getAllData(): Success, final data to be returned is:\n", data);
+          Log.l("getAllData(): Success, final data to be returned is:", data);
           resolve(data);
         } else {
           let count:number = this.prefs.CONSOLE.global.reportsToLoad || 1000000;
           this.getReportsData(count, spinnerID).then(res => {
-            Log.l("getAllData(): Success plus reports, final data to be returned is:\n", data);
+            Log.l("getAllData(): Success plus reports, final data to be returned is:", data);
             data.reports = res;
             resolve(data);
           }).catch(err => {
@@ -1372,8 +1373,8 @@ export class DBService {
   }
 
   public deleteReport(report:Report) {
-    let db = this.prefs.getDB();
-    let db1 = this.addDB(db.reports);
+    let dbname = this.prefs.getDB('reports');
+    let db1 = this.addRDB(dbname);
     return new Promise((resolve, reject) => {
       db1.upsert(report._id, (doc:any) => {
         doc._deleted = true;
@@ -1395,57 +1396,63 @@ export class DBService {
     });
   }
 
-  public saveOtherReport(other:ReportOther) {
-    return new Promise((resolve, reject) => {
-      let db = this.prefs.getDB();
-      let db1 = this.addDB(db.reports_other);
-      db1.upsert(other._id, (doc:any) => {
-        if (doc && doc._id) {
+  public async saveOtherReport(other:ReportOther) {
+    try {
+      let dbname = this.prefs.getDB('reports_other');
+      let db1 = this.addRDB(dbname);
+      let newDoc = other.serialize();
+      let res = await db1.upsert(newDoc._id, (doc:any) => {
+        if(doc && doc._id) {
           let rev = doc._rev;
-          other._rev = rev;
-          doc = other;
+          newDoc._rev = rev;
+          doc = newDoc;
         } else {
-          doc = other;
+          doc = newDoc;
         }
         return doc;
-      }).then(res => {
-        if (!res['ok'] && !res.updated) {
-          Log.l(`saveOtherReport(): Upsert error saving ReportOther ${other._id}.\n`, res);
-          reject(res);
-        } else {
-          Log.l(`saveOtherReport(): Successfully saved ReportOther ${other._id}.\n`, res);
-          resolve(res);
-        }
-      }).catch(err => {
-        Log.l(`saveOtherReport(): Error saving ReportOther ${other._id}.`);
-        Log.e(err);
-        reject(err);
       });
-    });
+      if(!res.ok && !res.updated) {
+        let text = `DB.saveOtherReport(): Upsert error saving ReportOther '${other._id}'`;
+        Log.w(text + ":", other);
+        Log.w(res);
+        let err = new Error(text);
+        throw err;
+      } else {
+        Log.l(`DB.saveOtherReport(): Successfully saved ReportOther ${other._id}:`, res);
+        return res;
+      }
+    } catch(err) {
+      Log.l(`DB.saveOtherReport(): Error saving ReportOther ${other._id}.`);
+      Log.e(err);
+      throw err;
+    }
   }
 
-  public deleteOtherReport(other:ReportOther) {
-    let db = this.prefs.getDB();
-    let db1 = this.addRDB(db.reports);
-    return new Promise((resolve, reject) => {
-      db1.upsert(other._id, (doc:any) => {
-        doc._deleted = true;
-        return doc;
-      }).then(res => {
-        if (!res['ok'] && !res.updated) {
-          Log.l(`deleteOtherReport(): Upsert error trying to delete doc ${other._id}.`);
-          Log.e(res);
-          reject(res);
-        } else {
-          Log.l(`deleteOtherReport(): Successfully deleted doc ${other._id}.`);
-          resolve(res);
+  public async deleteOtherReport(other:ReportOther):Promise<any> {
+    try {
+      let dbname = this.prefs.getDB('reports_other');
+      let db1 = this.addRDB(dbname);
+      let res = await db1.upsert(other._id, (doc:any) => {
+        if(doc && doc._id && doc._rev) {
+          doc._deleted = true;
         }
-      }).catch(err => {
-        Log.l(`deleteOtherReport(): Could not delete doc ${other._id}.`);
-        Log.e(err);
-        reject(err);
+        return doc;
       });
-    });
+      if(!res.ok && !res.updated) {
+        let text = `DB.deleteOtherReport(): Upsert error trying to delete doc ${other._id}`;
+        Log.w(text + ":", other);
+        Log.w(res);
+        let err = new Error(text);
+        throw err;
+      } else {
+        Log.l(`DB.deleteOtherReport(): Successfully deleted doc ${other._id}.`);
+        return res;
+      }
+    } catch(err) {
+      Log.l(`DB.deleteOtherReport(): Error deleting misc. report`, other);
+      Log.e(err);
+      throw err;
+    }
   }
 
   public async saveJobsite(jobsite:Jobsite):Promise<UpsertResponse> {

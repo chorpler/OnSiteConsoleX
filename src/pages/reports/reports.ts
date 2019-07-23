@@ -523,29 +523,29 @@ export class ReportsPage implements OnInit,OnDestroy {
 
   public getReportsFields():any[] {
     let fields:any[] = [
-      { field: '_id'              , header: 'ID'          , filter: true, filterPlaceholder: "ID"          , order:  1 , style: "", class: "col-nowrap col-00 col-id"        , format: ""      , tooltip: "ID"          , },
-      { field: 'report_date'      , header: 'Date'        , filter: true, filterPlaceholder: "Date"        , order:  2 , style: "", class: "col-wrap   col-01 col-date"      , format: ""      , tooltip: "Date"        , },
-      { field: 'timestamp'        , header: "Timestamp"   , filter: true, filterPlaceholder: "Timestamp"   , order:  3 , style: "", class: "col-wrap   col-02 col-time"      , format: ""      , tooltip: "Timestamp"   , },
-      { field: 'last_name'        , header: 'Last Name'   , filter: true, filterPlaceholder: "Last Name"   , order:  4 , style: "", class: "col-wrap   col-03 col-last"      , format: ""      , tooltip: "Last Name"   , },
-      { field: 'first_name'       , header: 'First Name'  , filter: true, filterPlaceholder: "First Name"  , order:  5 , style: "", class: "col-wrap   col-04 col-first"     , format: ""      , tooltip: "First Name"  , },
-      { field: 'time_start'       , header: 'Start'       , filter: true, filterPlaceholder: "Start"       , order:  6 , style: "", class: "col-wrap   col-05 col-start"     , format: "HH:mm" , tooltip: "Start"       , },
-      { field: 'time_end'         , header: 'End'         , filter: true, filterPlaceholder: "End"         , order:  7 , style: "", class: "col-wrap   col-06 col-end"       , format: "HH:mm" , tooltip: "End"         , },
-      { field: 'repair_hours'     , header: 'Hrs'         , filter: true, filterPlaceholder: "Hrs"         , order:  8 , style: "", class: "col-wrap   col-07 col-hours"     , format: ""      , tooltip: "Repair hours", },
-      { field: 'client'           , header: 'Client'      , filter: true, filterPlaceholder: "Client"      , order:  9 , style: "", class: "col-wrap   col-08 col-cli"       , format: ""      , tooltip: "Client"      , },
-      { field: 'location'         , header: 'Location'    , filter: true, filterPlaceholder: "Location"    , order: 10 , style: "", class: "col-wrap   col-09 col-loc"       , format: ""      , tooltip: "Location"    , },
-      { field: 'location_id'      , header: 'LocID'       , filter: true, filterPlaceholder: "LocID"       , order: 11 , style: "", class: "col-wrap   col-10 col-lid"       , format: ""      , tooltip: "LocID"       , },
-      { field: 'unit_number'      , header: 'Unit #'      , filter: true, filterPlaceholder: "Unit #"      , order: 12 , style: "", class: "col-nowrap col-11 col-unitno"    , format: ""      , tooltip: "Unit #"      , },
-      { field: 'work_order_number', header: 'Work Order'  , filter: true, filterPlaceholder: "WO #"        , order: 13 , style: "", class: "col-nowrap col-12 col-wonum"     , format: ""      , tooltip: "WO #"        , },
-      { field: 'notes'            , header: 'Notes'       , filter: true, filterPlaceholder: "Notes"       , order: 14 , style: "", class: "col-nowrap col-13 col-notes"     , format: ""      , tooltip: "Notes"       , },
-      { field: 'site_number'      , header: 'Site#'       , filter: true, filterPlaceholder: "Site#"       , order: 15 , style: "", class: "col-nowrap col-14 col-sitenum"   , format: ""      , tooltip: "Site#"       , },
-      { field: 'workSite'         , header: 'Site'        , filter: true, filterPlaceholder: "Site"        , order: 16 , style: "", class: "col-nowrap col-15 col-worksite"  , format: ""      , tooltip: "Site"        , },
-      { field: 'change_log'       , header: 'Log'         , filter: true, filterPlaceholder: "Log"         , order: 17 , style: "", class: "col-nowrap col-16 col-changelog" , format: ""      , tooltip: "Log"         , },
-      { field: 'flagged_fields'   , header: 'Flags'       , filter: true, filterPlaceholder: "Flags"       , order: 18 , style: "", class: "col-nowrap col-17 col-flgd"      , format: ""      , tooltip: "Flags"       , },
-      { field: 'preauthed'        , header: 'Preauthed'   , filter: true, filterPlaceholder: "Preauthed"   , order: 19 , style: "", class: "col-nowrap col-18  col-preauthed" , format: ""      , tooltip: "Preauthed"   , },
-      { field: 'preauth_dates'    , header: 'PA Dates'    , filter: true, filterPlaceholder: "PA Dates"    , order: 20 , style: "", class: "col-nowrap col-19 col-padates"   , format: ""      , tooltip: "PA Dates"    , },
-      { field: 'invoiced'         , header: 'Invoiced'    , filter: true, filterPlaceholder: "Invoiced"    , order: 21 , style: "", class: "col-nowrap col-20 col-invoiced"  , format: ""      , tooltip: "Invoiced"    , },
-      { field: 'invoiced_dates'   , header: 'Inv Dates'   , filter: true, filterPlaceholder: "Inv Dates"   , order: 22 , style: "", class: "col-nowrap col-21 col-invdates"  , format: ""      , tooltip: "Inv Dates"   , },
-      { field: 'invoice_numbers'  , header: 'Inv #\'s'    , filter: true, filterPlaceholder: "Inv #'s"     , order: 23 , style: "", class: "col-nowrap col-22 col-invno"     , format: ""      , tooltip: "Inv #'s"     , },
+      { field: '_id'              , header: 'ID'          , filter: true, filterPlaceholder: "ID"          , order:  1 , show: true , style: "", class: "col-nowrap col-00 col-id"        , format: ""      , tooltip: "ID"          , },
+      { field: 'report_date'      , header: 'Date'        , filter: true, filterPlaceholder: "Date"        , order:  2 , show: true , style: "", class: "col-wrap   col-01 col-date"      , format: ""      , tooltip: "Date"        , },
+      { field: 'timestamp'        , header: "Timestamp"   , filter: true, filterPlaceholder: "Timestamp"   , order:  3 , show: true , style: "", class: "col-wrap   col-02 col-time"      , format: ""      , tooltip: "Timestamp"   , },
+      { field: 'last_name'        , header: 'Last Name'   , filter: true, filterPlaceholder: "Last Name"   , order:  4 , show: true , style: "", class: "col-wrap   col-03 col-last"      , format: ""      , tooltip: "Last Name"   , },
+      { field: 'first_name'       , header: 'First Name'  , filter: true, filterPlaceholder: "First Name"  , order:  5 , show: true , style: "", class: "col-wrap   col-04 col-first"     , format: ""      , tooltip: "First Name"  , },
+      { field: 'time_start'       , header: 'Start'       , filter: true, filterPlaceholder: "Start"       , order:  6 , show: true , style: "", class: "col-wrap   col-05 col-start"     , format: "HH:mm" , tooltip: "Start"       , },
+      { field: 'time_end'         , header: 'End'         , filter: true, filterPlaceholder: "End"         , order:  7 , show: true , style: "", class: "col-wrap   col-06 col-end"       , format: "HH:mm" , tooltip: "End"         , },
+      { field: 'repair_hours'     , header: 'Hrs'         , filter: true, filterPlaceholder: "Hrs"         , order:  8 , show: true , style: "", class: "col-wrap   col-07 col-hours"     , format: ""      , tooltip: "Repair hours", },
+      { field: 'client'           , header: 'Client'      , filter: true, filterPlaceholder: "Client"      , order:  9 , show: true , style: "", class: "col-wrap   col-08 col-cli"       , format: ""      , tooltip: "Client"      , },
+      { field: 'location'         , header: 'Location'    , filter: true, filterPlaceholder: "Location"    , order: 10 , show: true , style: "", class: "col-wrap   col-09 col-loc"       , format: ""      , tooltip: "Location"    , },
+      { field: 'location_id'      , header: 'LocID'       , filter: true, filterPlaceholder: "LocID"       , order: 11 , show: true , style: "", class: "col-wrap   col-10 col-lid"       , format: ""      , tooltip: "LocID"       , },
+      { field: 'unit_number'      , header: 'Unit #'      , filter: true, filterPlaceholder: "Unit #"      , order: 12 , show: true , style: "", class: "col-nowrap col-11 col-unitno"    , format: ""      , tooltip: "Unit #"      , },
+      { field: 'work_order_number', header: 'Work Order'  , filter: true, filterPlaceholder: "WO #"        , order: 13 , show: true , style: "", class: "col-nowrap col-12 col-wonum"     , format: ""      , tooltip: "WO #"        , },
+      { field: 'notes'            , header: 'Notes'       , filter: true, filterPlaceholder: "Notes"       , order: 14 , show: true , style: "", class: "col-nowrap col-13 col-notes"     , format: ""      , tooltip: "Notes"       , },
+      { field: 'site_number'      , header: 'Site#'       , filter: true, filterPlaceholder: "Site#"       , order: 15 , show: false, style: "", class: "col-nowrap col-14 col-sitenum"   , format: ""      , tooltip: "Site#"       , },
+      { field: 'workSite'         , header: 'Site'        , filter: true, filterPlaceholder: "Site"        , order: 16 , show: false, style: "", class: "col-nowrap col-15 col-worksite"  , format: ""      , tooltip: "Site"        , },
+      { field: 'change_log'       , header: 'Log'         , filter: true, filterPlaceholder: "Log"         , order: 17 , show: false, style: "", class: "col-nowrap col-16 col-changelog" , format: ""      , tooltip: "Log"         , },
+      { field: 'flagged_fields'   , header: 'Flags'       , filter: true, filterPlaceholder: "Flags"       , order: 18 , show: false, style: "", class: "col-nowrap col-17 col-flgd"      , format: ""      , tooltip: "Flags"       , },
+      { field: 'preauthed'        , header: 'Preauthed'   , filter: true, filterPlaceholder: "Preauthed"   , order: 19 , show: false, style: "", class: "col-nowrap col-18  col-preauthed" , format: ""      , tooltip: "Preauthed"   , },
+      { field: 'preauth_dates'    , header: 'PA Dates'    , filter: true, filterPlaceholder: "PA Dates"    , order: 20 , show: false, style: "", class: "col-nowrap col-19 col-padates"   , format: ""      , tooltip: "PA Dates"    , },
+      { field: 'invoiced'         , header: 'Invoiced'    , filter: true, filterPlaceholder: "Invoiced"    , order: 21 , show: false, style: "", class: "col-nowrap col-20 col-invoiced"  , format: ""      , tooltip: "Invoiced"    , },
+      { field: 'invoiced_dates'   , header: 'Inv Dates'   , filter: true, filterPlaceholder: "Inv Dates"   , order: 22 , show: false, style: "", class: "col-nowrap col-21 col-invdates"  , format: ""      , tooltip: "Inv Dates"   , },
+      { field: 'invoice_numbers'  , header: 'Inv #\'s'    , filter: true, filterPlaceholder: "Inv #'s"     , order: 23 , show: false, style: "", class: "col-nowrap col-22 col-invno"     , format: ""      , tooltip: "Inv #'s"     , },
     ];
     this.allFields = fields;
     this.cols      = fields;
@@ -566,12 +566,13 @@ export class ReportsPage implements OnInit,OnDestroy {
       "notes"             ,
     ];
     let visibleCols = this.cols.filter((a:any) => {
-      let field:string = a.field ? a.field : "";
-      if(field && initialColumns.indexOf(field) > -1) {
-        return true;
-      } else {
-        return false;
-      }
+      // let field:string = a.field ? a.field : "";
+      // if(field && initialColumns.indexOf(field) > -1) {
+      //   return true;
+      // } else {
+      //   return false;
+      // }
+      return a.show;
     });
     // this.selectedColumns = initialColumns;
     this.selectedColumns = visibleCols;
@@ -626,20 +627,21 @@ export class ReportsPage implements OnInit,OnDestroy {
 
   public getOthersFields():any[] {
     let fields:any[] = [
-      { field: '_id'              , header: 'ID'          , filter: true, filterPlaceholder: "ID"          , order:  1 , style: "", class: "col-nowrap col-00 col-id"       , format: ""      , tooltip: "ID"              , },
-      { field: 'report_date'      , header: 'Date'        , filter: true, filterPlaceholder: "Date"        , order:  2 , style: "", class: "col-wrap   col-01 col-date"     , format: "YYYY-MM-DD"      , tooltip: "Date"            , },
-      { field: 'type'             , header: 'Type'        , filter: true, filterPlaceholder: "Type"        , order:  3 , style: "", class: "col-wrap   col-02 col-type"     , format: ""      , tooltip: "Report Type"     , },
-      { field: 'timestamp'        , header: "Timestamp"   , filter: true, filterPlaceholder: "Timestamp"   , order:  4 , style: "", class: "col-wrap   col-03 col-time"     , format: ""      , tooltip: "Timestamp"       , },
-      { field: 'last_name'        , header: 'Last Name'   , filter: true, filterPlaceholder: "Last Name"   , order:  5 , style: "", class: "col-wrap   col-04 col-last"     , format: ""      , tooltip: "Last Name"       , },
-      { field: 'first_name'       , header: 'First Name'  , filter: true, filterPlaceholder: "First Name"  , order:  6 , style: "", class: "col-wrap   col-05 col-first"    , format: ""      , tooltip: "First Name"      , },
-      { field: 'time'             , header: 'Hrs'         , filter: true, filterPlaceholder: "Hrs"         , order:  7 , style: "", class: "col-wrap   col-06 col-hours"    , format: ""      , tooltip: "Repair hours"    , },
-      { field: 'training_type'    , header: 'Trn. Type'   , filter: true, filterPlaceholder: "Trn. Type"   , order:  8 , style: "", class: "col-nowrap col-07 col-training" , format: ""      , tooltip: "Training Type"   , },
-      { field: 'travel_location'  , header: 'Travel Loc.' , filter: true, filterPlaceholder: "Travel Loc." , order:  9 , style: "", class: "col-nowrap col-08 col-travel"   , format: ""      , tooltip: "Travel Location" , },
-      { field: 'site_number'      , header: 'Site#'       , filter: true, filterPlaceholder: "Site#"       , order: 10 , style: "", class: "col-nowrap col-09 col-sitenum"  , format: ""      , tooltip: "Site#"           , },
-      { field: 'notes'            , header: 'Notes'       , filter: true, filterPlaceholder: "Notes"       , order: 11 , style: "", class: "col-nowrap col-10 col-notes"    , format: ""      , tooltip: "Notes"           , },
-      { field: 'client'           , header: 'Client'      , filter: true, filterPlaceholder: "Client"      , order: 12 , style: "", class: "col-nowrap col-11 col-client"   , format: ""      , tooltip: "Client"          , },
-      { field: 'location'         , header: 'Location'    , filter: true, filterPlaceholder: "Location"    , order: 13 , style: "", class: "col-nowrap col-12 col-location" , format: ""      , tooltip: "Location"        , },
-      { field: 'location_id'      , header: 'LocID'       , filter: true, filterPlaceholder: "Location ID" , order: 14 , style: "", class: "col-nowrap col-13 col-locid"    , format: ""      , tooltip: "Location ID"     , },
+      { field: '_id'              , header: 'ID'          , filter: true , filterPlaceholder: "ID"          , order:  1 , show: true , style: "", class: "col-nowrap col-00 col-id"       , format: ""      , tooltip: "ID"              , },
+      { field: 'report_date'      , header: 'Date'        , filter: true , filterPlaceholder: "Date"        , order:  2 , show: true , style: "", class: "col-wrap   col-01 col-date"     , format: "YYYY-MM-DD"      , tooltip: "Date"            , },
+      { field: 'type'             , header: 'Type'        , filter: true , filterPlaceholder: "Type"        , order:  3 , show: true , style: "", class: "col-wrap   col-02 col-type"     , format: ""      , tooltip: "Report Type"     , },
+      { field: 'timestamp'        , header: "Timestamp"   , filter: true , filterPlaceholder: "Timestamp"   , order:  4 , show: true , style: "", class: "col-wrap   col-03 col-time"     , format: ""      , tooltip: "Timestamp"       , },
+      { field: 'last_name'        , header: 'Last Name'   , filter: true , filterPlaceholder: "Last Name"   , order:  5 , show: true , style: "", class: "col-wrap   col-04 col-last"     , format: ""      , tooltip: "Last Name"       , },
+      { field: 'first_name'       , header: 'First Name'  , filter: true , filterPlaceholder: "First Name"  , order:  6 , show: true , style: "", class: "col-wrap   col-05 col-first"    , format: ""      , tooltip: "First Name"      , },
+      { field: 'time'             , header: 'Hrs'         , filter: true , filterPlaceholder: "Hrs"         , order:  7 , show: true , style: "", class: "col-wrap   col-06 col-hours"    , format: ""      , tooltip: "Repair hours"    , },
+      { field: 'training_type'    , header: 'Trn. Type'   , filter: true , filterPlaceholder: "Trn. Type"   , order:  8 , show: true , style: "", class: "col-nowrap col-07 col-training" , format: ""      , tooltip: "Training Type"   , },
+      { field: 'travel_location'  , header: 'Travel Loc.' , filter: true , filterPlaceholder: "Travel Loc." , order:  9 , show: true , style: "", class: "col-nowrap col-08 col-travel"   , format: ""      , tooltip: "Travel Location" , },
+      { field: 'site_number'      , header: 'Site#'       , filter: true , filterPlaceholder: "Site#"       , order: 10 , show: true , style: "", class: "col-nowrap col-09 col-sitenum"  , format: ""      , tooltip: "Site#"           , },
+      { field: 'notes'            , header: 'Notes'       , filter: true , filterPlaceholder: "Notes"       , order: 11 , show: false, style: "", class: "col-nowrap col-10 col-notes"    , format: ""      , tooltip: "Notes"           , },
+      { field: 'client'           , header: 'Client'      , filter: true , filterPlaceholder: "Client"      , order: 12 , show: false, style: "", class: "col-nowrap col-11 col-client"   , format: ""      , tooltip: "Client"          , },
+      { field: 'location'         , header: 'Location'    , filter: true , filterPlaceholder: "Location"    , order: 13 , show: false, style: "", class: "col-nowrap col-12 col-location" , format: ""      , tooltip: "Location"        , },
+      { field: 'location_id'      , header: 'LocID'       , filter: true , filterPlaceholder: "Location ID" , order: 14 , show: false, style: "", class: "col-nowrap col-13 col-locid"    , format: ""      , tooltip: "Location ID"     , },
+      { field: 'flags'            , header: 'Flags'       , filter: false, filterPlaceholder: "Flags"       , order: 15 , show: false, style: "", class: "col-nowrap col-14 col-flags"    , format: ""      , tooltip: "Number of flags" , },
     ];
     this.allFieldsOthers = fields;
     this.colsOthers      = fields;
@@ -670,7 +672,8 @@ export class ReportsPage implements OnInit,OnDestroy {
     // // this.selectedColumns = initialColumns;
     // this.selectedColumns = visibleCols;
     this.selectedColumnsOthers = fields.filter(a => {
-      return a.field !== 'notes' && a.field !== 'client' && a.field !== 'location' && a.field !== 'location_id';
+      // return a.field !== 'notes' && a.field !== 'client' && a.field !== 'location' && a.field !== 'location_id';
+      return a.show;
     });
     this.columnsChangedOthers();
     this.othersMultiSortMeta = [
@@ -1468,7 +1471,7 @@ export class ReportsPage implements OnInit,OnDestroy {
   }
 
   public showReport(report:Report, event?:Event) {
-    Log.l(`showReport(): Called with report:\n`, report);
+    Log.l(`showReport(): Called with report:`, report);
     let reportList = this.dt.hasFilter() ? this.dt.filteredValue : this.dt.value;
     let site:Jobsite = this.sites.find((a:Jobsite) => {
       // return _matchReportSite(report, a);
@@ -1503,8 +1506,7 @@ export class ReportsPage implements OnInit,OnDestroy {
   }
 
   public showReportOther(other:ReportOther, event?:Event) {
-    Log.l(`showReportOther(): Called with report:pwd
-    `, other);
+    Log.l(`showReportOther(): Called with report:`, other);
     let reportList:ReportOther[] = this.othersTable.hasFilter() ? this.othersTable.filteredValue : this.othersTable.value;
     // let site = this.sites.find((a:Jobsite) => {
     //   // return _matchReportSite(report, a);
@@ -1545,7 +1547,7 @@ export class ReportsPage implements OnInit,OnDestroy {
   }
 
   public showReportLogistics(logistic:ReportLogistics, event?:Event) {
-    Log.l(`showReportLogistics(): Called with report:\n`, logistic);
+    Log.l(`showReportLogistics(): Called with report:`, logistic);
     let reportList:ReportLogistics[] = this.logisticsTable && this.logisticsTable.hasFilter() ? this.logisticsTable.filteredValue : this.logisticsTable.value;
     if(logistic && logistic instanceof ReportLogistics) {
       let username:string = logistic.username;
@@ -1571,7 +1573,7 @@ export class ReportsPage implements OnInit,OnDestroy {
   }
 
   public showReportTimeCard(timecard:ReportTimeCard, event?:Event) {
-    Log.l(`showReportTimeCard(): Called with report:\n`, timecard);
+    Log.l(`showReportTimeCard(): Called with report:`, timecard);
     let reportList:ReportTimeCard[] = this.timecardsTable && this.timecardsTable.hasFilter() ? this.timecardsTable.filteredValue : this.timecardsTable.value;
     if(timecard && timecard instanceof ReportTimeCard) {
       let username:string = timecard.username;
@@ -1775,13 +1777,13 @@ export class ReportsPage implements OnInit,OnDestroy {
   }
 
   public logisticsViewCancel(event?:Event) {
-    Log.l("logisticsViewCancel(): Event is:\n", event);
+    Log.l("logisticsViewCancel(): Event is:", event);
     this.reportLogisticsViewVisible = false;
     window['p'] = this;
   }
 
   public timeCardViewSave(event?:Event) {
-    Log.l("timeCardViewSave(): Event is:\n", event);
+    Log.l("timeCardViewSave(): Event is:", event);
     this.reportTimeCardViewVisible = false;
     window['p'] = this;
   }
@@ -1790,6 +1792,46 @@ export class ReportsPage implements OnInit,OnDestroy {
     Log.l("timeCardViewCancel(): Event is:\n", event);
     this.reportTimeCardViewVisible = false;
     window['p'] = this;
+  }
+
+  public reportViewDeleted(report:Report) {
+    Log.l(`ReportsPage.reportViewDeleted(): called for report:`, report);
+    let reports = this.reports;
+    let idx = reports.indexOf(report);
+    if(idx > -1) {
+      Log.l(`ReportsPage.reportViewDeleted(): Found report at ${idx}`);
+      window['onsitelastdeletedreport'] = reports.splice(idx, 1);
+    }
+  }
+
+  public otherViewDeleted(report:ReportOther) {
+    Log.l(`ReportsPage.otherViewDeleted(): called for report:`, report);
+    let reports = this.others;
+    let idx = reports.indexOf(report);
+    if(idx > -1) {
+      Log.l(`ReportsPage.otherViewDeleted(): Found report at ${idx}`);
+      window['onsitelastdeletedreport'] = reports.splice(idx, 1);
+    }
+  }
+
+  public logisticsViewDeleted(report:ReportLogistics) {
+    Log.l(`ReportsPage.logisticsViewDeleted(): called for report:`, report);
+    let reports = this.logistics;
+    let idx = reports.indexOf(report);
+    if(idx > -1) {
+      Log.l(`ReportsPage.logisticsViewDeleted(): Found report at ${idx}`);
+      window['onsitelastdeletedreport'] = reports.splice(idx, 1);
+    }
+  }
+  
+  public timeCardViewDeleted(report:ReportTimeCard) {
+    Log.l(`ReportsPage.timeCardViewDeleted(): called for report:`, report);
+    let reports = this.timecards;
+    let idx = reports.indexOf(report);
+    if(idx > -1) {
+      Log.l(`ReportsPage.timeCardViewDeleted(): Found report at ${idx}`);
+      window['onsitelastdeletedreport'] = reports.splice(idx, 1);
+    }
   }
 
   public openTechShiftReports(event?:Event) {

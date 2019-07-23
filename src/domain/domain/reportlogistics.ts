@@ -1,8 +1,9 @@
 /**
  * Name: ReportLogistics domain class
- * Vers: 1.8.1
- * Date: 2018-12-13
+ * Vers: 1.8.2
+ * Date: 2019-07-18
  * Auth: David Sargeant
+ * Logs: 1.8.2 2019-07-18: Minor corrections to fix TSLint errors
  * Logs: 1.8.1 2018-12-13: Refactored imports to remove circular dependencies; added standard OnSite methods
  * Logs: 1.7.2 2018-11-29: Added isTest property; added
  * Logs: 1.7.1 2018-11-14: Added getLocations(), getTimes(), getMiles() methods; updated readFromDoc() method to generate new OnSiteGeolocation objects for from, to, final Locations
@@ -68,16 +69,16 @@ export type LogisticsLocationType = "from"|"to"|"final";
 export type LogisticsAllType = LogisticsType | LogisticsLocationType;
 
 
-export type OnSitePhoto = {
-  type: LogisticsMileageType,
-  uri: string,
-  blob: Blob,
-};
+export interface OnSitePhoto {
+  type : LogisticsMileageType ;
+  uri  : string               ;
+  blob : Blob                 ;
+}
 
-export type ReportTime = {
-  start : string,
-  end  ?: string,
-};
+export interface ReportTime {
+  start : string ;
+  end  ?: string ;
+}
 
 export type ReportTimes = ReportTime[];
 
@@ -212,7 +213,7 @@ export class ReportLogistics {
         }
       }
     }
-    if(doc._rev == "") {
+    if(doc._rev === "") {
       delete doc._rev;
     }
     Log.l(`ReportLogistics.serialize(): Serialized report is:\n`, doc);
@@ -927,6 +928,6 @@ export class ReportLogistics {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 
 }

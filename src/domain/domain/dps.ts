@@ -1,8 +1,9 @@
 /**
  * Name: DPS domain class
- * Vers: 3.0.1
- * Date: 2018-01-23
+ * Vers: 3.1.1
+ * Date: 2019-07-18
  * Auth: David Sargeant
+ * Logs: 3.1.1 2019-07-18: Changed how readFromDoc() method works, although this method is so far unused since DPS is not serialized to database at all
  * Logs: 3.0.1 2018-01-23: Added constructor function
  * Logs: 2.1.1 2017-09-28: Added some values
  */
@@ -29,28 +30,34 @@ export class DPS {
   public internal_salaries: Decimal        = new dec("3270")     ;
   public internalPerTech  : Decimal        = new dec("0")        ;
 
-  public get cost_modifier(): Decimal {return new dec("1").plus(new dec(this.working_techs).times(this.multiplier))};
-  public set cost_modifier(value:Decimal) {Log.w("ERROR: cost_modifier is a read-only value.")};
-  public get insurance():any {return {
-    travelers  : this.travelers,
-    imperial   : this.imperial,
-    tx_mutual  : this.tx_mutual,
-    blue_cross : this.blue_cross,
-    property   : this.property,
-  }};
-  public get monthly():any {return {
-    fuel: this.fuel,
-    transportation:this.transportation,
-    insurance: this.insurance,
-  }};
+  public get cost_modifier(): Decimal { return new dec("1").plus(new dec(this.working_techs).times(this.multiplier)); }
+  public set cost_modifier(value:Decimal) { Log.w("ERROR: cost_modifier is a read-only value."); }
+  public get insurance():any {
+    return {
+      travelers  : this.travelers,
+      imperial   : this.imperial,
+      tx_mutual  : this.tx_mutual,
+      blue_cross : this.blue_cross,
+      property   : this.property,
+    };
+  }
+  public get monthly():any {
+    return {
+      fuel: this.fuel,
+      transportation:this.transportation,
+      insurance: this.insurance,
+    };
+  }
 
-  public get all():any { return {
-    working_techs: this.working_techs,
-    multiplier: this.multiplier,
-    cost_modifier: this.cost_modifier,
-    internal_salaries: this.internal_salaries,
-    monthly: this.monthly,
-  }};
+  public get all():any {
+    return {
+      working_techs: this.working_techs,
+      multiplier: this.multiplier,
+      cost_modifier: this.cost_modifier,
+      internal_salaries: this.internal_salaries,
+      monthly: this.monthly,
+    };
+  }
 
   constructor(fuel?:Decimal, transportation?:Decimal, internal_salaries?:Decimal) {
     window['onsiteDPSClass'] = DPS;
@@ -95,14 +102,19 @@ export class DPS {
       tx_mutual : this.tx_mutual.toNumber()  ,
       blue_cross: this.blue_cross.toNumber() ,
       property  : this.property.toNumber()   ,
-    }
+    };
   }
 
   public getInsuranceTotal():Decimal {
     let insurances = this.insurance;
     let total:Decimal = new dec(0);
-    for(let co in insurances) {
-      let insurance = insurances[co];
+    // for(let co in insurances) {
+    //   let insurance = insurances[co];
+    //   total = total.plus(insurance);
+    // }
+    let keys = Object.keys(insurances);
+    for(let key of keys) {
+      let insurance = insurances[key];
       total = total.plus(insurance);
     }
     return total;
@@ -199,6 +211,6 @@ export class DPS {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 
 }

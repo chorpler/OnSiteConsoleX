@@ -50,5 +50,5 @@ export class Street {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }

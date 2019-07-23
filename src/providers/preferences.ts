@@ -1,8 +1,9 @@
 /**
  * Name: Preferences provider (Console)
- * Vers: 77
- * Date: 2018-09-07
+ * Vers: 78
+ * Date: 2019-07-23
  * Auth: David Sargeant
+ * Logs: 78 2019-07-23: Added CONSOLE.scheduling.pastSchedulesToLoad
  * Logs: 77 2018-09-07: Added CONSOLE.scripts entry for Google Maps and Charts scripts to be lazy loaded, plus getScripts(), getScriptURL() methods
  * Logs: 76 2018-08-27: Added SERVER.howlerPort and some methods, plus SERVER.replicationBatchSize
  * Logs: 75 2018-08-03: Added logistics and timesheets DB
@@ -153,6 +154,7 @@ export class Preferences {
       showLegrave: true,
       showEmptyClients: true,
       showNonSESA: false,
+      pastSchedulesToLoad: 12,
     },
     payroll: {
       payroll_periods: 4,
@@ -961,6 +963,14 @@ export class Preferences {
     let timeFormat:string = this.getTimeFormat(type);
     let format:string = dateFormat + " " + timeFormat;
     return format;
+  }
+
+  public getPastScheduleWeeksCount():number {
+    let count = 12;
+    if(this.CONSOLE && this.CONSOLE.scheduling && typeof this.CONSOLE.scheduling.pastSchedulesToLoad === 'number') {
+      count = this.CONSOLE.scheduling.pastSchedulesToLoad;
+    }
+    return count;
   }
 
 

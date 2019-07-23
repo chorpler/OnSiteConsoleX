@@ -518,10 +518,11 @@ export class OSData {
       this.loaded.timecards = true;
       // loading.setContent("Retrieving data from:<br>\nsesa-scheduling …");
       updateLoaderStatus("sesa-scheduling");
-      res = await this.db.getSchedules(false, this.dbdata.employees);
-      this.schedules = new Schedules();
-      this.schedules.setSchedules(res);
-      this.loaded.schedules = true;
+      // res = await this.db.getSchedules(false, this.dbdata.employees);
+      // this.schedules = new Schedules();
+      // this.schedules.setSchedules(res);
+      // this.loaded.schedules = true;
+      await this.getSchedulesFromDatabase();
       // loading.setContent("Retrieving data from:<br>\nsesa-config …");
       updateLoaderStatus("sesa-config");
       res = await this.db.getAllConfigData();
@@ -556,12 +557,34 @@ export class OSData {
       await this.alert.hideSpinnerPromise(spinnerID);
       // let errText:string = err && err.message ? err.message : typeof err === 'string' ? err : "UNKNOWN ERROR";
       // this.alert.showAlert("ERROR", "Error retrieving data:<br>\n<br\n" + errText);
-      this.alert.showErrorMessage("ERROR", "Error retrieving data", err);
+      await this.alert.showErrorMessage("ERROR", "Error retrieving data", err);
       this.status.ready   = false;
       this.status.loading = false;
       throw err;
     }
   }
+
+  public async getSchedulesFromDatabase(server?:boolean, evt?:Event):Promise<Schedule[]> {
+    try {
+      Log.l(`getSchedulesFromServer(): Called with server '${server}' and event:`, evt);
+      let res;
+      if(server === true) {
+        res = await this.server.getSchedules(false, this.dbdata.employees);
+      } else {
+        res = await this.db.getSchedules(false, this.dbdata.employees);
+      }
+      this.schedules = new Schedules();
+      this.schedules.setSchedules(res);
+      this.loaded.schedules = true;
+      return res;
+    } catch(err) {
+      Log.l(`getSchedulesFromServer(): Error getting schedules from server`);
+      Log.e(err);
+      throw err;
+    }
+  }
+  
+  
 
   public async getReports(fetchCount:number, existingSpinnerID?:string):Promise<Report[]> {
     // let spinnerID:string = existingSpinnerID && typeof existingSpinnerID === 'string' ? existingSpinnerID : null;
@@ -1066,7 +1089,8 @@ export class OSData {
       for(let report of res.reports) {
         this.dbdata.reports.push(report);
       }
-      for(let other of res.otherReports) {
+      // for(let other of res.otherReports) {
+      for(let other of res.others) {
         this.dbdata.others.push(other);
       }
     }).catch(err => {
@@ -1096,7 +1120,7 @@ export class OSData {
     try {
       let prefs = updatedPrefs ? updatedPrefs : this.prefs.getPrefs();
       let res:any = await this.storage.persistentSet('PREFS', updatedPrefs);
-      Log.l("savePreferences: Preferences stored:\n", this.prefs.getPrefs());
+      Log.l("savePreferences: Preferences stored:", this.prefs.getPrefs());
       return res;
     } catch(err) {
       Log.l(`savePreferences(): Error saving preferences!`);
@@ -1325,7 +1349,7 @@ export class OSData {
   }
 
   public getStartDateForPayrollPeriodCount(count:number):Moment {
-    let PPToShow:number = count;
+    let PPToShow:number = count || 4;
     let now = moment();
     let ppStartDate:Moment = this.getPayrollPeriodStartDate(now).startOf('day');
     let payPeriodDate = moment(ppStartDate).subtract(PPToShow, 'weeks');

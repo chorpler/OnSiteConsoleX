@@ -1,8 +1,9 @@
 /**
  * Name: ReportTimeCard domain class
- * Vers: 1.2.1
- * Date: 2018-12-13
+ * Vers: 1.2.2
+ * Date: 2017-07-18
  * Auth: David Sargeant
+ * Logs: 1.2.2 2019-07-18: Minor corrections to fix TSLint errors
  * Logs: 1.2.1 2018-12-13: Refactored imports to remove circular dependencies; added standard OnSite methods
  * Logs: 1.1.2 2018-12-04: Added isTest property
  * Logs: 1.1.1 2018-10-09: Added getKeys(), isValid() methods
@@ -25,24 +26,24 @@ import { Employee      } from './employee'             ;
 import { Jobsite       } from './jobsite'              ;
 
 
-type StatusUpdateType = "created" | "updated"                               ;
+type StatusUpdateType = "created" | "updated";
 
-type ReportStatusLogEntry = {
-  type       : StatusUpdateType ,
-  user       : string           ,
-  timestamp  : string           ,
-  invoice   ?: number           ,
-};
+interface ReportStatusLogEntry {
+  type       : StatusUpdateType ;
+  user       : string           ;
+  timestamp  : string           ;
+  invoice   ?: number           ;
+}
 
-type TimeCardEntry = {
-  start : string,
-  end  ?: string,
-};
+interface TimeCardEntry  {
+  start : string ;
+  end  ?: string ;
+}
 
-export type ReportTimeEntry = {
-  start : string,
-  end  ?: string,
-};
+export interface ReportTimeEntry {
+  start : string ;
+  end  ?: string ;
+}
 
 export type ReportTimeEntries = ReportTimeEntry[];
 
@@ -72,47 +73,47 @@ export class ReportTimeCardDoc {
 
 export class ReportTimeCard {
   public timecard:ReportTimeCardDoc = new ReportTimeCardDoc();
-  public get _id               (): string                  { return this.timecard._id                      ; }  ;
-  public get _rev              (): string                  { return this.timecard._rev                     ; }  ;
-  public get notes             (): string                  { return this.timecard.notes                    ; }  ;
-  public get report_date       (): string                  { return this.timecard.report_date              ; }  ;
-  public get last_name         (): string                  { return this.timecard.last_name                ; }  ;
-  public get first_name        (): string                  { return this.timecard.first_name               ; }  ;
-  public get shift             (): string                  { return this.timecard.shift                    ; }  ;
-  public get client            (): string                  { return this.timecard.client                   ; }  ;
-  public get location          (): string                  { return this.timecard.location                 ; }  ;
-  public get locID             (): string                  { return this.timecard.locID                    ; }  ;
-  public get site_number       (): number                  { return this.timecard.site_number              ; }  ;
-  public get timestamp         (): number                  { return this.timecard.timestamp                ; }  ;
-  public get timestampM        (): Moment                  { return moment(this.timecard.timestampM)       ; }  ;
-  public get username          (): string                  { return this.timecard.username                 ; }  ;
-  public get change_log        (): ReportStatusLogEntry[]  { return this.timecard.change_log               ; }  ;
-  public get flagged           (): boolean                 { return this.timecard.flagged                  ; }  ;
-  public get flagged_fields    (): ReportFlag[]            { return this.timecard.flagged_fields           ; }  ;
-  public get times             (): TimeCardEntry[]         { return this.timecard.times                    ; }  ;
-  public get timer_running     (): boolean                 { return this.timecard.timer_running            ; }  ;
-  public get isTest            (): boolean                 { return this.timecard.isTest                   ; }  ;
+  public get _id               (): string                  { return this.timecard._id                      ; }
+  public get _rev              (): string                  { return this.timecard._rev                     ; }
+  public get notes             (): string                  { return this.timecard.notes                    ; }
+  public get report_date       (): string                  { return this.timecard.report_date              ; }
+  public get last_name         (): string                  { return this.timecard.last_name                ; }
+  public get first_name        (): string                  { return this.timecard.first_name               ; }
+  public get shift             (): string                  { return this.timecard.shift                    ; }
+  public get client            (): string                  { return this.timecard.client                   ; }
+  public get location          (): string                  { return this.timecard.location                 ; }
+  public get locID             (): string                  { return this.timecard.locID                    ; }
+  public get site_number       (): number                  { return this.timecard.site_number              ; }
+  public get timestamp         (): number                  { return this.timecard.timestamp                ; }
+  public get timestampM        (): Moment                  { return moment(this.timecard.timestampM)       ; }
+  public get username          (): string                  { return this.timecard.username                 ; }
+  public get change_log        (): ReportStatusLogEntry[]  { return this.timecard.change_log               ; }
+  public get flagged           (): boolean                 { return this.timecard.flagged                  ; }
+  public get flagged_fields    (): ReportFlag[]            { return this.timecard.flagged_fields           ; }
+  public get times             (): TimeCardEntry[]         { return this.timecard.times                    ; }
+  public get timer_running     (): boolean                 { return this.timecard.timer_running            ; }
+  public get isTest            (): boolean                 { return this.timecard.isTest                   ; }
 
-  public set _id               (val: string                )  { this.timecard._id                     = val ; }  ;
-  public set _rev              (val: string                )  { this.timecard._rev                    = val ; }  ;
-  public set notes             (val: string                )  { this.timecard.notes                   = val ; }  ;
-  public set report_date       (val: string                )  { this.timecard.report_date             = val ; }  ;
-  public set last_name         (val: string                )  { this.timecard.last_name               = val ; }  ;
-  public set first_name        (val: string                )  { this.timecard.first_name              = val ; }  ;
-  public set shift             (val: string                )  { this.timecard.shift                   = val ; }  ;
-  public set client            (val: string                )  { this.timecard.client                  = val ; }  ;
-  public set location          (val: string                )  { this.timecard.location                = val ; }  ;
-  public set locID             (val: string                )  { this.timecard.locID                   = val ; }  ;
-  public set site_number       (val: number                )  { this.timecard.site_number             = val ; }  ;
-  public set timestamp         (val: number                )  { this.timecard.timestamp               = val ; }  ;
-  public set timestampM        (val: Moment                )  { this.timecard.timestampM     = val.format() ; }  ;
-  public set username          (val: string                )  { this.timecard.username                = val ; }  ;
-  public set change_log        (val: ReportStatusLogEntry[])  { this.timecard.change_log              = val ; }  ;
-  public set flagged           (val: boolean               )  { this.timecard.flagged                 = val ; }  ;
-  public set flagged_fields    (val: ReportFlag[]          )  { this.timecard.flagged_fields          = val ; }  ;
-  public set times             (val: TimeCardEntry[]       )  { this.timecard.times                   = val ; }  ;
-  public set timer_running     (val: boolean               )  { this.timecard.timer_running           = val ; }  ;
-  public set isTest            (val: boolean               )  { this.timecard.isTest                  = val ; }  ;
+  public set _id               (val: string                )  { this.timecard._id                     = val ; }
+  public set _rev              (val: string                )  { this.timecard._rev                    = val ; }
+  public set notes             (val: string                )  { this.timecard.notes                   = val ; }
+  public set report_date       (val: string                )  { this.timecard.report_date             = val ; }
+  public set last_name         (val: string                )  { this.timecard.last_name               = val ; }
+  public set first_name        (val: string                )  { this.timecard.first_name              = val ; }
+  public set shift             (val: string                )  { this.timecard.shift                   = val ; }
+  public set client            (val: string                )  { this.timecard.client                  = val ; }
+  public set location          (val: string                )  { this.timecard.location                = val ; }
+  public set locID             (val: string                )  { this.timecard.locID                   = val ; }
+  public set site_number       (val: number                )  { this.timecard.site_number             = val ; }
+  public set timestamp         (val: number                )  { this.timecard.timestamp               = val ; }
+  public set timestampM        (val: Moment                )  { this.timecard.timestampM     = val.format() ; }
+  public set username          (val: string                )  { this.timecard.username                = val ; }
+  public set change_log        (val: ReportStatusLogEntry[])  { this.timecard.change_log              = val ; }
+  public set flagged           (val: boolean               )  { this.timecard.flagged                 = val ; }
+  public set flagged_fields    (val: ReportFlag[]          )  { this.timecard.flagged_fields          = val ; }
+  public set times             (val: TimeCardEntry[]       )  { this.timecard.times                   = val ; }
+  public set timer_running     (val: boolean               )  { this.timecard.timer_running           = val ; }
+  public set isTest            (val: boolean               )  { this.timecard.isTest                  = val ; }
 
   /**
    * Create a ReportTimeCard object. All parameters are optional, and can be populated later from a serialized object document from database.
@@ -725,5 +726,5 @@ export class ReportTimeCard {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }

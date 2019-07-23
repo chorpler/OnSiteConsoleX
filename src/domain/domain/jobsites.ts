@@ -48,5 +48,5 @@ export class Jobsites {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }

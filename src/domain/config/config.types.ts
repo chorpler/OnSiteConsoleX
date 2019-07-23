@@ -153,14 +153,20 @@ export interface SelectString {
 }
 
 export interface CLL {
-  name          : string;
-  fullName      : string;
+  name         ?: string;
+  fullName     ?: string;
   value        ?: string;
   code         ?: string;
   capsName     ?: string;
   techClass    ?: string;
   scheduleName ?: string;
+  id           ?: number;
 }
+
+// export interface EMPTYOBJECT {
+// }
+
+export type CLLOrEmptyOrNull = CLL|null|undefined|{};
 
 export interface ISESAShiftSymbols extends CLL {
   sunChars  ?: string;
@@ -477,6 +483,15 @@ export class SESAShiftStartTime {
   }
 }
 
+/**
+ * Name: SESACLL base domain class
+ * Vers: 3.0.1
+ * Date: 2019-07-18
+ * Auth: David Sargeant
+ * Logs: 3.0.1 2019-07-18: Added getCode(),getValue(),matches(),is() methods, plus new types for constructor parameter
+ * Logs: 2.0.1 2019-07-03: Updated significantly. Now just represents AM/PM, plus associated symbol
+ */
+export type SESACLLCompare = CLL|SESACLL|string;
 export class SESACLL implements CLL {
   public isOnSite():boolean {
     return true;
@@ -508,8 +523,9 @@ export class SESACLL implements CLL {
     capsName     = "",
     scheduleName = "",
     id           = -1,
+    // tslint:disable-next-line: no-unnecessary-initializer
     techClass    = undefined,
-  }:{name?:string,fullName?:string,value?:string,code?:string,capsName?:string,scheduleName?:string,id?:number,techClass?:string}={}) {
+  }:CLL={}) {
     this.name         = name         ? name         : "";
     this.fullName     = fullName     ? fullName     : "";
     this.value        = value        ? value        : "";
@@ -567,7 +583,7 @@ export class SESACLL implements CLL {
     } else if(typeof this.capsName === 'string') {
       return this.capsName.toUpperCase();
     } else {
-      Log.w(`SESACLL.toUpperCase(): Could not find Employee field value, fullName, or capsName for object:\n`, this);
+      Log.w(`SESACLL.toUpperCase(): Could not find field 'value', 'fullName', or 'capsName' for object:`, this);
       return "";
     }
   }
@@ -580,9 +596,74 @@ export class SESACLL implements CLL {
     } else if(typeof this.capsName === 'string') {
       return this.capsName.toLowerCase();
     } else {
-      Log.w(`SESACLL.toLowerCase(): Could not find Employee field value, fullName, or capsName for object:\n`, this);
+      Log.w(`SESACLL.toLowerCase(): Could not find field 'value', 'fullName', or 'capsName' for object:`, this);
       return "";
     }
+  }
+
+  public getCode():string {
+    if(typeof this.name === 'string') {
+      return this.name;
+    } else if(typeof this.code === 'string') {
+      return this.code;
+    } else {
+      Log.w(`SESACLL.getCode(): Could not find 'name' or 'code' properties of:`, this);
+      return "";
+    }
+  }
+
+  public getValue():string {
+    if(typeof this.fullName === 'string') {
+      return this.fullName;
+    } else if(typeof this.value === 'string') {
+      return this.value;
+    } else {
+      Log.w(`SESACLL.getValue(): Could not find 'fullName' or 'value' properties of:`, this);
+      return "";
+    }
+  }
+
+  public matches(item:SESACLLCompare):boolean {
+    if(this === item) {
+      return true;
+    }
+    let me1:string = this.getCode().trim().toUpperCase();
+    let me2:string = this.getValue().trim().toUpperCase();
+    if(!(me1 && me2)) {
+      return false;
+    }
+    if(typeof item === 'object') {
+      if(item.name && item.fullName && typeof item.name === 'string' && typeof item.fullName === 'string') {
+        let item1:string = item.name.trim().toUpperCase();
+        let item2:string = item.fullName.trim().toUpperCase();
+        // return item1 === me1 || item2 === me2;
+        return item1 === me1 && item2 === me2;
+      } else if(item.code && item.value && typeof item.code === 'string' && typeof item.value === 'string') {
+        let item1:string = item.code.trim().toUpperCase();
+        let item2:string = item.value.trim().toUpperCase();
+        // return item1 === me1 || item2 === me2;
+        return item1 === me1 && item2 === me2;
+      } else {
+        let text:string = `SESACLL.matches(): Error 1, parameter must be SESACLL item or string. Provided parameter invalid.`;
+        Log.w(text + ":", item);
+        // let err = new Error(text);
+        // throw err;
+        return false;
+      }
+    } else if(typeof item === 'string') {
+      let val = item.trim().toUpperCase();
+      return val === me1 || val === me2;
+    } else {
+      let text:string = `SESACLL.matches(): Error 2, parameter must be SESACLL item or string. Provided parameter invalid.`;
+      Log.w(text + ":", item);
+      // let err = new Error(text);
+      // throw err;
+      return false;
+    }
+  }
+
+  public is(item:SESACLLCompare):boolean {
+    return this.matches(item);
   }
 }
 

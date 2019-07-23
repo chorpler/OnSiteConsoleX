@@ -344,7 +344,7 @@ export class SchedulingPage implements OnInit,OnDestroy {
     let schedule:Schedule = this.schedule;
     if(schedule && schedule['schedule']) {
       let tempSchedule = Object.assign({}, schedule);
-      Log.l("Scheduling: got Schedule!\n", tempSchedule);
+      Log.l("Scheduling: got Schedule!", tempSchedule);
       this.doc = schedule;
 
       // schedule.createSchedulingObject(this.sites, this.techs);
@@ -415,7 +415,7 @@ export class SchedulingPage implements OnInit,OnDestroy {
       }
     }
     this.scheduleDatesMenu = scheduleMenu;
-    Log.l(`createDropdownMenus(): Dropdown menus created:\n`, scheduleMenu);
+    Log.l(`createDropdownMenus(): Dropdown menus created:`, scheduleMenu);
   }
 
   public openSchedule(id?:string):any {
@@ -2057,7 +2057,7 @@ z
   }
 
   public scheduleChosen(event:any) {
-    Log.l(`scheduleChosen(): Event is:\n`, event);
+    Log.l(`scheduleChosen(): Event is:`, event);
     this.scheduleOpenVisible = false;
     window['p'] = this;
     let schedule:Schedule;
@@ -2567,4 +2567,53 @@ z
     this.viewWorkSiteVisible = false;
   }
 
+  public async refreshSchedulesFromDatabase(evt?:MouseEvent):Promise<any> {
+    let spinnerID;
+    try {
+      Log.l(`refreshSchedulesFromDatabase(): Called with event:`, evt);
+      let useServer:boolean = false;
+      if(evt && evt.shiftKey) {
+        useServer = true;
+      }
+      let currentScheduleDate = this.schedule.getStartDateAsString();
+      let source:string = useServer ? "server" : "local";
+      spinnerID = await this.alert.showSpinnerPromise(`Retrieving schedules from ${source} database…`);
+      // let schedules:Schedule[] = await this.data.getSchedulesFromDatabase(true);
+      await this.data.getSchedulesFromDatabase(useServer);
+      let schedules = this.data.getSchedules().filter((a:Schedule) => {
+        // let result = (a.creator === filtername);
+        // if(name === 'Chorpler') {
+          // result = result || (a.creator === name);
+        // }
+        // return result;
+        // return a.creator === filtername;
+        return true;
+      }).sort((a:Schedule,b:Schedule) => {
+        let startA = a.start.format("YYYY-MM-DD");
+        let startB = b.start.format("YYYY-MM-DD");
+        return startA > startB ? -1 : startA < startB ? 1 : 0;
+      });
+      let schedule = schedules.find(a => {
+        return a.getStartDateAsString() === currentScheduleDate;
+      });
+      if(schedule) {
+        this.schedules = schedules;
+        this.createDropdownMenus();
+        await this.alert.hideSpinnerPromise(spinnerID);
+        this.scheduleChosen(schedule);
+      } else {
+        let text = "Scheduling.refreshSchedulesFromDatabase(): Unknown error loading schedules from server";
+        Log.w(text);
+        let err = new Error(text);
+        throw err;
+      }
+    } catch(err) {
+      Log.l(`refreshSchedulesFromDatabase(): Error loading schedules from database`);
+      Log.e(err);
+      await this.alert.hideSpinnerPromise(spinnerID);
+      await this.alert.showErrorMessage("REFRESH ERROR", "Error loading schedules from server database", err);
+    }
+  }
+  
+  
 }

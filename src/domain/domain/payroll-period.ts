@@ -1,8 +1,9 @@
 /**
  * Name: PayrollPeriod domain class
- * Vers: 5.7.1
- * Date: 2019-07-17
+ * Vers: 5.8.1
+ * Date: 2019-07-18
  * Auth: David Sargeant
+ * Logs: 5.8.1 2019-07-18: Changed how readFromDoc() method works, although this method is so far unused since PayrollPeriod is not serialized to database at all
  * Logs: 5.7.1 2019-07-17: Deleted empty getPayrollPeriodPremiumHours() method; changed all occurrences of "bonus" to "premium" for premium hours
  * Logs: 5.7.0 2019-01-24: Added deserialize() method (also static version)
  * Logs: 5.6.0 2018-12-13: Refactored imports; added standard OnSite methods
@@ -67,15 +68,28 @@ export class PayrollPeriod {
   }
 
   public readFromDoc(doc:any):PayrollPeriod {
-    for(let key in doc) {
-      let value:any = doc[key];
-      if(key === 'start_date' || key === 'end_date') {
-        this[key] = moment(value);
-      } else {
-        this[key] = value;
+    let docKeys = Object.keys(doc);
+    let myKeys = Object.keys(this);
+    for(let docKey of docKeys) {
+      if(myKeys.includes(docKey)) {
+        let value:any = doc[docKey];
+        if(docKey === 'start_date' || docKey === 'end_date') {
+          this[docKey] = moment(value);
+        } else {
+          this[docKey] = value;
+        }
       }
     }
     return this;
+    // for(let key in doc) {
+    //   let value:any = doc[key];
+    //   if(key === 'start_date' || key === 'end_date') {
+    //     this[key] = moment(value);
+    //   } else {
+    //     this[key] = value;
+    //   }
+    // }
+    // return this;
   }
 
   public static deserialize(doc:any):PayrollPeriod {
@@ -129,8 +143,8 @@ export class PayrollPeriod {
     let strDate:string = queryDate.format("YYYY-MM-DD");
     let shifts:Shift[] = this.getPayrollShifts();
     let shift:Shift = shifts.find((a:Shift) => {
-      let date:Moment = a.getShiftDate();
-      return date.format("YYYY-MM-DD") === strDate;
+      let shiftDate:Moment = a.getShiftDate();
+      return shiftDate.format("YYYY-MM-DD") === strDate;
     });
     if(shift) {
       return shift;
@@ -144,10 +158,10 @@ export class PayrollPeriod {
     let shift_time:string = "AM";
     let shift_start_time:number = 7;
     if(shifts.length && shifts.length < 7) {
-      let shift:Shift = shifts[0];
-      shift_length = shift.getShiftLength();
-      shift_time = shift.shift_time;
-      let startTime:Moment = shift.getStartTime();
+      let shiftToDuplicate:Shift = shifts[0];
+      shift_length = shiftToDuplicate.getShiftLength();
+      shift_time = shiftToDuplicate.shift_time;
+      let startTime:Moment = shiftToDuplicate.getStartTime();
       shift_start_time = startTime.hours();
     }
     let shift:Shift = new Shift();
@@ -391,8 +405,8 @@ export class PayrollPeriod {
         if(tmpDay.isAfter(today)) {
           continue;
         } else {
-          let ampm             = tech.shift.toUpperCase().trim()                         ;
-          let rotation         = tech.rotation.toUpperCase().trim()                      ;
+          // let ampm             = tech.shift.toUpperCase().trim()                         ;
+          // let rotation         = tech.rotation.toUpperCase().trim()                      ;
           let shift_day        = tmpDay.startOf('day')                                   ;
           let tmpStart         = tp.shiftStartTime                                       ;
           let shift_start_time = moment(shift_day).add(tmpStart, 'hours')                ;
@@ -546,5 +560,5 @@ export class PayrollPeriod {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }

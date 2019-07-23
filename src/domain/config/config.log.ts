@@ -106,6 +106,7 @@ export let Log = {
   get d() {
     if(!this.debug) { return _emptyFunc; }
     // return console.debug.bind( console, this._getLogHeader() );
+    // tslint:disable-next-line: no-console
     return console.debug.bind(console);
   },
 
@@ -151,6 +152,7 @@ export let Log = {
   get i() {
     // return console.table.bind( console, this._getLogHeader() );
     if(!this.info) { return _emptyFunc; }
+    // tslint:disable-next-line: no-console
     return console.info.bind(console);
   },
 

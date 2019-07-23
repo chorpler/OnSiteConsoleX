@@ -1,8 +1,9 @@
 /**
  * Name: Jobsite domain class
- * Vers: 7.4.2
- * Date: 2019-07-17
+ * Vers: 7.4.3
+ * Date: 2019-07-18
  * Auth: David Sargeant
+ * Logs: 7.4.3 2019-07-18: Added matchesClient(),matchesLocation(),matchesLocID(),matchesOneCLL(),matchesCLL methods; fixed small TSLint errors
  * Logs: 7.4.2 2019-07-17: Added isValidForReports() method
  * Logs: 7.4.1 2019-07-17: Added billable property, isBillable() method
  * Logs: 7.3.2 2019-07-03: Added getShiftStartTimeNumber() method
@@ -37,6 +38,8 @@ import { SESAClient         } from '../config/config.types'  ;
 import { SESALocation       } from '../config/config.types'  ;
 import { SESALocID          } from '../config/config.types'  ;
 import { SESAAux            } from '../config/config.types'  ;
+import { SESACLL            } from '../config/config.types'  ;
+import { SESACLLCompare     } from '../config/config.types'  ;
 import { Street             } from './street'                ;
 import { Address            } from './address'               ;
 import { SESAShiftRotation  } from '../config/config.types'  ;
@@ -58,11 +61,19 @@ export type SESAShiftRotationKey = "FIRST WEEK" | "CONTN WEEK" | "FINAL WEEK" | 
 export type SiteHoursList = {
   [propName in SESAShiftRotationKey]?: SiteRotationStartTimes;
 };
+// export interface SESAJobsiteCLL {
+//   name:string;
+//   fullName:string;
+//   code?:string;
+//   value?:string;
+// }
+// export type JobsiteCLL = SESAJobsiteCLL|string;
 
 const matchesCI = function(str1:string, str2:string):boolean {
   let lc1:string = typeof str1 === 'string' ? str1.toLowerCase() : "";
   let lc2:string = typeof str2 === 'string' ? str2.toLowerCase() : "";
   let out:boolean = false;
+  // tslint:disable-next-line: triple-equals
   if(lc1 == lc2) {
     out = true;
   }
@@ -360,7 +371,7 @@ export class Jobsite {
     // }
 
     if(this.locID.code !== "MNSHOP") {
-      siteName += ` ${lid}`
+      siteName += ` ${lid}`;
     }
 
     return siteName;
@@ -589,6 +600,7 @@ export class Jobsite {
     let shiftLength;
       shiftLength = list[hoursIndex];
     let output = shiftLength;
+    // tslint:disable-next-line: triple-equals
     if(shiftLength == 0) {
       output = "OFF";
     }
@@ -697,6 +709,55 @@ export class Jobsite {
     return true;
   }
 
+  public matchesClient(cll:SESACLLCompare):boolean {
+    return this.matchesOneCLL('client', cll);
+  }
+
+  public matchesLocation(cll:SESACLLCompare):boolean {
+    return this.matchesOneCLL('location', cll);
+  }
+
+  public matchesLocID(cll:SESACLLCompare):boolean {
+    return this.matchesOneCLL('locID', cll);
+  }
+
+  public matchesOneCLL(type:"client"|"location"|"locID"|"location_id", cll:SESACLLCompare):boolean {
+    let me:SESACLL;
+    if(type === 'client') {
+      // me = this.client.toUpperCase();
+      me = this.client;
+    } else if(type === 'location') {
+      // me = this.location.toUpperCase();
+      me = this.location;
+    } else if(type === 'locID' || type === 'location_id') {
+      // me = this.locID.toUpperCase();
+      me = this.locID;
+    } else {
+      let text:string = `Jobsite.matchesCLL(): Parameter 1 must be type: 'client'|'location'|'locID'. Supplied type incorrect`;
+      Log.w(text + ":", type);
+      let err = new Error(text);
+      throw err;
+    }
+    if(typeof cll === 'object') {
+      // let cll1 = typeof cll.name === 'string' ? cll.name.toUpperCase() : "";
+      // let cll2 = typeof cll.fullName === 'string' ? cll.fullName.toUpperCase() : "";
+      // return me.matches(cll1) || me.matches(cll2);
+      return me.matches(cll);
+    } else if(typeof cll === 'string') {
+      let cll1 = cll.toUpperCase();
+      return me.matches(cll1);
+    } else {
+      let text:string = `Jobsite.matchesCLL(): Parameter 2 must be SESACLL object "{name:string,fullName:string}" or string. Supplied value invalid`;
+      Log.w(text + ":", cll);
+      let err = new Error(text);
+      throw err;
+    }
+  }
+
+  public matchesCLL(client:SESACLLCompare, location:SESACLLCompare, locID:SESACLLCompare):boolean {
+    return this.matchesClient(client) && this.matchesLocation(location) && this.matchesLocID(locID);
+  }
+
   public toJSON():any {
     return this.serialize();
   }
@@ -722,5 +783,5 @@ export class Jobsite {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }

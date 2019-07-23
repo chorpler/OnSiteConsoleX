@@ -1,8 +1,9 @@
 /**
  * Name: Geolocation domain class and related interfaces/classes
- * Vers: 5.2.1
- * Date: 2019-06-04
+ * Vers: 5.2.2
+ * Date: 2019-07-18
  * Auth: David Sargeant
+ * Logs: 5.2.2 2019-07-18: Minor corrections to fix TSLint errors; changed OnSiteGeoposition getClass() to return OnSiteGeoposition instead of OnSiteGeolocation
  * Logs: 5.2.1 2019-06-04: Added isEmpty() method for OnSiteGeoposition/OnSiteLocation
  * Logs: 5.1.1 2018-11-14: Added getCoordinatesAsString() method; imported isNumeric() function; added isOnSite() to OnSiteGeoposition class
  * Logs: 5.0.1 2018-09-26: Added toJSON(), isOnSite() methods; added oo (JSON8) import for serializing via toJSON()
@@ -80,7 +81,7 @@ class LatLng {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
   public latitude : number = 0;
   public longitude: number = 0;
 
@@ -108,18 +109,18 @@ class LatLng {
   }
   public equals(other:LatLng):boolean {
     return this.lat === other.lat && this.lng === other.lng;
-  };
+  }
   public toString():string {
     let out:string = `(${this.lat}, ${this.lng})`;
     return out;
-  };
+  }
   public toUrlValue(precision?: number):string {
     let out:string = "";
     let places:number = precision != undefined ? precision : 6;
     let literal:{lat:string,lng:string} = {lat:this.lat().toFixed(places), lng: this.lng().toFixed(places)};
     out = JSON.stringify(literal);
     return out;
-  };
+  }
   public toJSON():LatLonLiteral {
     let out:LatLonLiteral = {
       lat: this.lat(),
@@ -146,7 +147,7 @@ class LatLng {
 interface IPosition {
   coords    : ICoordinates ;
   timestamp : DOMTimeStamp ;
-};
+}
 
 class OnSiteCoordinates implements ICoordinates {
   public getClass():any {
@@ -160,7 +161,7 @@ class OnSiteCoordinates implements ICoordinates {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 
   public latitude          : number = 0 ;
   public longitude         : number = 0 ;
@@ -224,6 +225,7 @@ class OnSiteGeoposition implements IPosition {
   }
 
   public isEmpty():boolean {
+    // tslint:disable-next-line: triple-equals
     if(this.coords && (this.coords.latitude != 0 && this.coords.longitude != 0)) {
       return false;
     }
@@ -241,7 +243,7 @@ class OnSiteGeoposition implements IPosition {
     return true;
   }
   public getClass():any {
-    return OnSiteGeolocation;
+    return OnSiteGeoposition;
   }
   public static getClassName():string {
     return 'OnSiteGeoposition';
@@ -251,7 +253,7 @@ class OnSiteGeoposition implements IPosition {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }
 
 class OnSiteGeolocation extends OnSiteGeoposition {
@@ -304,7 +306,7 @@ class OnSiteGeolocation extends OnSiteGeoposition {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }
 
 // const OnSiteLocation = OnSiteGeolocation;

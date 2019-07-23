@@ -35,7 +35,7 @@
         <span class="menubar-dropdown">
           <span class="dropdown-label">Schedule</span>
           <span class="dropdown-data">
-            <p-dropdown #scheduleDateDropdown [styleClass]="'schedule-date-dropdown'" [options]="scheduleDatesMenu" [(ngModel)]="schedule" (onChange)="updateScheduleDate($event)"></p-dropdown>
+            <p-dropdown #scheduleDateDropdown [styleClass]="'schedule-date-dropdown'" [options]="scheduleDatesMenu" [(ngModel)]="schedule" (ngModelChange)="updateScheduleDate($event)"></p-dropdown>
           </span>
         </span>
         <span class="menubar-buttons-right">
@@ -67,6 +67,9 @@
           </span>
           <span class="scheduling-menubar-button" (click)="viewTechList($event)" title="Show employees and add/remove them from schedule">
             <i class="fa fa-user-plus"></i>
+          </span>
+          <span class="scheduling-menubar-button button-svg db-download" (click)="refreshSchedulesFromDatabase($event)" title="Update schedules from database">
+            <!-- <fa-icon [icon]="faExclamationCircle" [size]="faSize"></fa-icon> -->
           </span>
           <span class="scheduling-menubar-button" (click)="clearCurrentSchedule($event)" title="Clear Schedule">
             <!-- <ion-icon class="schedule-clear-button" name="ios-trash-outline"></ion-icon> -->
@@ -282,7 +285,7 @@
   <schedule-open #scheduleOpenTemplate *ngIf="scheduleOpenVisible" (onClose)="closeScheduleChoose($event)" (onChoose)="scheduleChosen($event)"></schedule-open>
   <schedule-new #scheduleNewTemplate *ngIf="scheduleNewVisible" (onCancel)="cancelNewSchedule($event)" (onNewSchedule)="createNewSchedule($event)"></schedule-new>
   <work-site-view #scheduleWorkSite *ngIf="viewWorkSiteVisible" [sites]="sites" [jobsite]="site" [mode]="'Edit'" (onCancel)="cancelViewWorkSite($event)" (onSave)="saveViewWorkSite($event)"></work-site-view>
-  <!-- </span> -->
+<!-- </span> -->
 
 
 <!-- Employee List dialog -->

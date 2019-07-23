@@ -451,10 +451,10 @@
   </p-panel>
 </ion-content>
 
-<report-view #reportView *ngIf="reportViewVisible" [class.report-view-component]="true" [report]="report" [reports]="editReports" [tech]="tech" [site]="site" [sites]="sites" (save)="reportViewSave($event)" (cancel)="reportViewCancel($event)"></report-view>
-<report-other-view #otherView *ngIf="reportOtherViewVisible" [class.report-view-component]="true" [other]="other" [others]="editOthers" [tech]="tech" [site]="site" [sites]="sites" (save)="otherViewSave($event)" (cancel)="otherViewCancel($event)"></report-other-view>
-<report-logistics-view #logisticsView *ngIf="reportLogisticsViewVisible" [class.report-view-component]="true" [report]="logistic" [reports]="editLogistics" [tech]="tech" [site]="site" [sites]="sites" (save)="logisticsViewSave($event)" (cancel)="logisticsViewCancel($event)"></report-logistics-view>
-<report-timecard-view #timecardView *ngIf="reportTimeCardViewVisible" [class.report-view-component]="true" [report]="timecard" [reports]="editTimeCards" [tech]="tech" [site]="site" [sites]="sites" (save)="timeCardViewSave($event)" (cancel)="timeCardViewCancel($event)"></report-timecard-view>
+<report-view #reportView *ngIf="reportViewVisible" [class.report-view-component]="true" [report]="report" [reports]="editReports" [tech]="tech" [site]="site" [sites]="sites" (save)="reportViewSave($event)" (cancel)="reportViewCancel($event)" (deleted)="reportViewDeleted($event)"></report-view>
+<report-other-view #otherView *ngIf="reportOtherViewVisible" [class.report-view-component]="true" [other]="other" [others]="editOthers" [tech]="tech" [site]="site" [sites]="sites" (save)="otherViewSave($event)" (cancel)="otherViewCancel($event)" (deleted)="otherViewDeleted($event)"></report-other-view>
+<report-logistics-view #logisticsView *ngIf="reportLogisticsViewVisible" [class.report-view-component]="true" [report]="logistic" [reports]="editLogistics" [tech]="tech" [site]="site" [sites]="sites" (save)="logisticsViewSave($event)" (cancel)="logisticsViewCancel($event)" (deleted)="logisticsViewDeleted($event)"></report-logistics-view>
+<report-timecard-view #timecardView *ngIf="reportTimeCardViewVisible" [class.report-view-component]="true" [report]="timecard" [reports]="editTimeCards" [tech]="tech" [site]="site" [sites]="sites" (save)="timeCardViewSave($event)" (cancel)="timeCardViewCancel($event)" (deleted)="timeCardViewDeleted($event)"></report-timecard-view>
 
 <p-contextMenu #reportsCM1 [model]="reportsMenu1"></p-contextMenu>
 <p-contextMenu #reportsCM2 [model]="reportsMenu2"></p-contextMenu>

@@ -1,8 +1,9 @@
 /**
  * Name: Shift domain class
- * Vers: 7.0.1
- * Date: 2019-07-17
+ * Vers: 7.1.1
+ * Date: 2019-07-18
  * Auth: David Sargeant
+ * Logs: 7.1.1 2019-07-18: Changed how readFromDoc() method works, although this method is so far unused since Shift is not serialized to database at all
  * Logs: 7.0.1 2019-07-17: Changed all instances of "bonus" hours to "premium" hours; now using Report class's premium property
  * Logs: 6.7.2 2019-07-01: Added SiteScheduleType import; minor TSLint error fixes
  * Logs: 6.7.1 2019-01-02: Added logistics reports to getShiftStatus() output
@@ -165,8 +166,22 @@ export class Shift {
   }
 
   public readFromDoc(doc:any):Shift {
-    for(let prop in doc) {
-      this[prop] = doc[prop];
+    // for(let prop in doc) {
+    //   this[prop] = doc[prop];
+    // }
+    // this.getShiftColor();
+    // return this;
+    let docKeys = Object.keys(doc);
+    let myKeys = Object.keys(this);
+    for(let docKey of docKeys) {
+      if(myKeys.includes(docKey)) {
+        let value:any = doc[docKey];
+        if(docKey === 'start_date' || docKey === 'end_date') {
+          this[docKey] = moment(value);
+        } else {
+          this[docKey] = value;
+        }
+      }
     }
     this.getShiftColor();
     return this;
@@ -466,7 +481,7 @@ export class Shift {
       let out = sprintf("%02d:%02d", hrs, min);
       // let duration = moment.duration(hours, 'hours');
       // debugString += `   ADD: ${duration.hours()}:${duration.minutes()}\n`
-      debugString += `    ADD:             ${out}\n`
+      debugString += `    ADD:             ${out}\n`;
       begin.add(hours, 'hours');
       debugString += ` RESULT: ${begin.format("YYYY-MM-DDTHH:mm")}\n`;
     }
@@ -482,6 +497,7 @@ export class Shift {
     /* 2019-07-02 TODO */
     /* This might have been updated for Payroll in console, not sure if isNaN() should be in there */
 //    if(retVal == 0) {
+    // tslint:disable-next-line: triple-equals
     if(retVal == 0 || isNaN(retVal)) {
       return 'off';
     } else {
@@ -525,6 +541,7 @@ export class Shift {
     let nowXL = this.XL.today_XL;
     let weekXL = this.XL.shift_week;
     let prWeek = this.XL.current_payroll_week;
+    // tslint:disable-next-line: triple-equals
     if(dayXL == nowXL) {
       colorClass = "green";
     } else if(dayXL < prWeek) {
@@ -813,7 +830,7 @@ export class Shift {
       }
     }
     if(i > -1) {
-      Log.l(`removeOtherReport(): Removing report #${i} from shift ${this.getShiftSerial()}:\n`, others[i])
+      Log.l(`removeOtherReport(): Removing report #${i} from shift ${this.getShiftSerial()}:`, others[i]);
       window['onsitesplicedreport'] = others.splice(i, 1)[0];
     } else {
       Log.w(`SHIFT.removeOtherReport(): Report '${other._id}' not found in shift '${this.shift_serial}'.`);
@@ -867,7 +884,7 @@ export class Shift {
       }
     }
     if(i > -1) {
-      Log.l(`removeLogisticsReport(): Removing report #${i} from shift ${this.getShiftSerial()}:\n`, reports[i])
+      Log.l(`removeLogisticsReport(): Removing report #${i} from shift ${this.getShiftSerial()}:`, reports[i]);
       window['onsitesplicedreportlogistics'] = reports.splice(i, 1)[0];
     } else {
       Log.w(`SHIFT.removeLogisticsReport(): Report '${report._id}' not found in shift '${this.shift_serial}'.`);
@@ -1091,13 +1108,14 @@ export class Shift {
         if(hours) {
           retVal = 'hoursComplete';
         } else {
-          retVal = 'hoursUnder'
+          retVal = 'hoursUnder';
         }
       } else {
         if(hours > total) {
           retVal = "hoursOver";
         } else if(hours < total) {
           retVal = "hoursUnder";
+        // tslint:disable-next-line: triple-equals
         } else if(hours == total) {
           retVal = "hoursComplete";
         } else {
@@ -1180,5 +1198,5 @@ export class Shift {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }

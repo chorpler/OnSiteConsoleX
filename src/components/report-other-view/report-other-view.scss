@@ -1,5 +1,6 @@
 report-other-view {
   --other-dropdown-width: 50%;
+  --flagged-background-color: rgba(255, 0, 0, 0.3);
   .svg-icon {
     width: 20px;
     height: 24px;
@@ -66,6 +67,77 @@ report-other-view {
     }
     .other-view-row {
       // width: 100%;
+      &.flagged-row {
+        border:1px solid red;
+        .label {
+          background-color: var(--flagged-background-color);
+        }
+      }
+      &.disabled {
+        .label {
+          color: rgba(128,128,128,0.999);
+        }
+      }
+      &.table-row {
+        &.flagged-row {
+          .data {
+            background-color: var(--flagged-background-color);
+          }
+        }
+        .label {
+          vertical-align: top;
+        }
+        .data {
+          background-color: transparent;
+          .scroller-cell {
+            @include fancy-scrollbar-skinny;
+            display: inline-block;
+            width: 100%;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid lightgrey;
+            background-color: transparent;
+            // padding: 2px;
+            .flagged-table {
+              width: 100%;
+              // border: 1px dotted lightgrey;
+              border-collapse: collapse;
+              thead {
+                tr {
+                  td {
+                    border: 1px dotted lightgrey;
+                    border-bottom: 2px solid black;
+                    font-weight: bold;
+                    text-align: center;
+                    &.field {
+                      width: 20%;
+                    }
+                    &.reason {
+                      width: 80%;
+                    }
+                  }
+                }
+              }
+              tbody {
+                tr {
+                  td {
+                    border: 1px dotted lightgrey;
+                    &.field {
+                      width: 20%;
+                    }
+                    &.reason {
+                      width: 80%;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        &.flagged {
+
+        }
+      }
     }
     .label {
       width: 20%;

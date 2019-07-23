@@ -239,7 +239,7 @@ export class Report {
           } else if(typeof doc[docKey] === 'string') {
             let xl = Number(doc[docKey]);
             if(!isNaN(xl)) {
-              this[thisKey] = moment().fromExcel(xl).format("YYYY-MM-DD")
+              this[thisKey] = moment().fromExcel(xl).format("YYYY-MM-DD");
             } else {
               this[thisKey] = doc[docKey] ? doc[docKey] : this[thisKey];
             }
@@ -615,11 +615,11 @@ export class Report {
         this.adjustEndTime();
       }
     } else if(isMoment(start) && typeof time === 'number') {
-      let end = moment(start).add(time, 'hours');
-      this.time_end = end;
+      let timeEnd = moment(start).add(time, 'hours');
+      this.time_end = timeEnd;
     } else if(isMoment(end) && typeof time === 'number') {
-      let start = moment(end).subtract(time, 'hours');
-      this.time_start = start;
+      let timeStart = moment(end).subtract(time, 'hours');
+      this.time_start = timeStart;
     } else if(isMoment(start) && isMoment(end)) {
       let hours = moment(end).diff(start, 'hours', true);
       this.repair_hours = hours;

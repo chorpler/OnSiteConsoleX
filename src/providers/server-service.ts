@@ -2439,37 +2439,77 @@ export class ServerService {
   //   });
   // }
 
-  public getSchedules(archives?:boolean, employees?:Employee[]):Promise<Schedule[]> {
-    Log.l("getSchedules(): Firing up …");
-    return new Promise((resolve, reject) => {
+  // public getSchedules(archives?:boolean, employees?:Employee[]):Promise<Schedule[]> {
+  //   Log.l("getSchedules(): Firing up …");
+  //   return new Promise((resolve, reject) => {
+  //     let dbname:string = this.prefs.getDB('scheduling');
+  //     let rdb1:Database = this.addRDB(dbname);
+  //     rdb1.allDocs(GETDOCS).then((res:AllDocsResponse) => {
+  //       Log.l("getSchedules(): Got initial schedule results:\n", res);
+  //       let schedules:Schedule[] = [];
+  //       for(let row of res.rows) {
+  //         let doc:any = row.doc;
+  //         if(!archives && doc.archive) {
+  //           continue;
+  //         } else {
+  //           if(doc && row.id[0] !== '_' && doc.schedule) {
+  //             let schedule = new Schedule();
+  //             schedule.readFromDoc(doc);
+  //             if(employees) {
+  //               schedule.loadTechs(employees);
+  //             }
+  //             schedules.push(schedule);
+  //           }
+  //         }
+  //       }
+  //       Log.l("getSchedules(): Final result array is:\n", schedules);
+  //       resolve(schedules);
+  //     }).catch((err) => {
+  //       Log.l("getSchedules(): Error retrieving schedule list!");
+  //       Log.e(err);
+  //       resolve(null);
+  //     });
+  //   });
+  // }
+
+  public async getSchedules(archives?:boolean, employees?:Employee[], spinnerID?:string):Promise<Schedule[]> {
+    try {
+      Log.l("ServerService.getSchedules(): Firing up, spinnerID is:", spinnerID);
       let dbname:string = this.prefs.getDB('scheduling');
-      let rdb1:Database = this.addRDB(dbname);
-      rdb1.allDocs(GETDOCS).then((res:AllDocsResponse) => {
-        Log.l("getSchedules(): Got initial schedule results:\n", res);
-        let schedules:Schedule[] = [];
+      let db1 = this.addDB(dbname);
+      let now = moment().startOf('day');
+      let weeks = this.prefs.getPastScheduleWeeksCount();
+      let startDate:Moment = moment(now).subtract(weeks, 'weeks').startOf('week');
+      let endDate:Moment = moment(now).add(10, 'years').startOf('week');
+      let start:string = startDate.format("YYYY-MM-DD");
+      let end:string = endDate.format("YYYY-MM-DD");
+      let res:any = await db1.allDocs({ include_docs: true, startkey: start, endkey: end});
+      Log.l("ServerService.getSchedules(): Got initial schedule results:", res);
+      let schedules:Schedule[] = [];
+      if(res && res.rows && Array.isArray(res.rows)) {
         for(let row of res.rows) {
-          let doc:any = row.doc;
-          if(!archives && doc.archive) {
+          let doc = row.doc;
+          if(!archives && (doc.archive || doc.backup)) {
             continue;
           } else {
-            if(doc && row.id[0] !== '_' && doc.schedule) {
-              let schedule = new Schedule();
-              schedule.readFromDoc(doc);
-              if(employees) {
+            if(doc && row.id && row.id[0] !== '_' && doc.schedule) {
+              let schedule = new Schedule(doc);
+              if(employees && employees.length) {
                 schedule.loadTechs(employees);
               }
               schedules.push(schedule);
             }
           }
         }
-        Log.l("getSchedules(): Final result array is:\n", schedules);
-        resolve(schedules);
-      }).catch((err) => {
-        Log.l("getSchedules(): Error retrieving schedule list!");
-        Log.e(err);
-        resolve(null);
-      });
-    });
+        Log.l("ServerService.getSchedules(): Final result array is:", schedules);
+      }
+      return schedules;
+    } catch(err) {
+      Log.l("ServerService.getSchedules(): Error retrieving schedule list!");
+      Log.e(err);
+      return null;
+      // resolve(null);
+    }
   }
 
   public getSchedulesAsBetas(archives?:boolean):Promise<ScheduleBeta[]> {

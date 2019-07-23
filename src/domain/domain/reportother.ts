@@ -1,8 +1,9 @@
 /**
  * Name: ReportOther domain class
- * Vers: 5.0.1
- * Date: 2019-03-06
+ * Vers: 5.1.1
+ * Date: 2019-07-23
  * Auth: David Sargeant
+ * Logs: 5.1.1 2019-07-23: Added setTravelDestination(),isType() methods; added error check and .trim() for serialize() method
  * Logs: 5.0.1 2019-03-06: Changed Moment types to string, added AsMoment() methods
  * Logs: 4.1.1 2018-12-13: Refactored imports to remove circular dependencies; added standard OnSite methods
  * Logs: 4.0.5 2018-12-04: Added isTest property
@@ -112,7 +113,7 @@ export class ReportOther {
     // this.timestamp         = this.timestampM.toExcel();
   }
 
-  public readFromDoc(doc:any) {
+  public readFromDoc(doc:any):ReportOther {
     let len = fields.length;
     for(let i = 0; i < len; i++) {
       let key  = fields[i];
@@ -123,17 +124,17 @@ export class ReportOther {
     return this;
   }
 
-  public deserialize(doc:any) {
+  public deserialize(doc:any):ReportOther {
     return this.readFromDoc(doc);
   }
 
-  public static deserialize(doc:any) {
+  public static deserialize(doc:any):ReportOther {
     let other = new ReportOther();
     other.deserialize(doc);
     return other;
   }
 
-  public serialize() {
+  public serialize():any {
     // Log.l("ReportOther.serialize(): Now serializing report …");
     // let ts = moment(this.timestamp);
     // Log.l("Report.serialize(): timestamp moment is now:\n", ts);
@@ -143,6 +144,12 @@ export class ReportOther {
     let newReport:any = {};
     // this._id = this._id || this.genReportID(tech);
     let len = fields.length;
+    if(!this.isType('training')) {
+      this.training_type = "";
+    }
+    if(!this.isType('travel')) {
+      this.travel_location = "";
+    }
     for(let i = 0; i < len; i++) {
       let key = fields[i];
       if(key === 'report_date') {
@@ -153,7 +160,7 @@ export class ReportOther {
         } else if(typeof date === 'string') {
           newReport[key] = this[key];
         } else {
-          Log.w("ReportOther.serialize() called with 'report_date' that isn't a Moment or a string:\n", this);
+          Log.w("ReportOther.serialize() called with 'report_date' that isn't a Moment or a string:", this);
           newReport[key] = this[key];
         }
       } else if(key === 'timestampM') {
@@ -170,12 +177,20 @@ export class ReportOther {
         // }
       }
     //   newReport['username'] = tech['avatarName'];
+      if(typeof newReport[key] === 'string') {
+        newReport[key] = newReport[key].trim();
+        this[key] = newReport[key];
+      }
     }
     let hrs = Number(newReport['time']);
     if(!isNaN(hrs)) {
       newReport['time'] = hrs;
+      this.time = hrs;
     }
-    newReport['notes'] = newReport['type'] + "";
+    if(!newReport['notes']) {
+      newReport['notes'] = newReport['type'] + "";
+      this.notes = newReport['notes'];
+    }
     return newReport;
   }
 
@@ -203,6 +218,17 @@ export class ReportOther {
     let docID = tech.avatarName + '_' + idDateTime;
     Log.l("genReportID(): Generated ID:\n", docID);
     return docID;
+  }
+
+  public isType(type:string):boolean {
+    if(typeof type === 'string') {
+      type = type.toLowerCase();
+      let myType = this.type.toLowerCase();
+      if(type === myType) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public getReportDate():Moment {
@@ -319,6 +345,18 @@ export class ReportOther {
     return this;
   }
 
+  public setTravelDestination(site:Jobsite) {
+    if(site instanceof Jobsite) {
+      let siteName = site.getSiteSelectName();
+      this.travel_location = siteName;
+    } else {
+      let text = `Jobsite.setTravelDestination(): Parameter must be Jobsite object`;
+      Log.w(text + ":", site);
+      let err = new Error(text);
+      throw err;
+    }
+  }
+
   public get flags():number {
     return this.flagged_fields && this.flagged_fields.length ? this.flagged_fields.length : 0;
   }
@@ -412,6 +450,5 @@ export class ReportOther {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
-
+  }
 }

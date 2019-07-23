@@ -105,5 +105,5 @@ export class DatabaseStatus implements IDatabaseStatus {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }
