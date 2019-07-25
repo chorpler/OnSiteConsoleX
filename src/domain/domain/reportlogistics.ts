@@ -1,8 +1,9 @@
 /**
  * Name: ReportLogistics domain class
- * Vers: 1.8.2
- * Date: 2019-07-18
+ * Vers: 2.0.0
+ * Date: 2019-07-24
  * Auth: David Sargeant
+ * Logs: 2.0.0 2019-07-24: Changed genReportID() method to use English locale for current Moment string
  * Logs: 1.8.2 2019-07-18: Minor corrections to fix TSLint errors
  * Logs: 1.8.1 2018-12-13: Refactored imports to remove circular dependencies; added standard OnSite methods
  * Logs: 1.7.2 2018-11-29: Added isTest property; added
@@ -243,29 +244,24 @@ export class ReportLogistics {
     return this._id ? this._id : "";
   }
 
-  // public genReportID(tech:Employee):string {
-  //   let now = moment();
-  //   let idDateTime = now.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
-  //   let docID = tech.getUsername() + '_' + idDateTime;
-  //   Log.l("genReportID(): Generated ID:\n", docID);
-  //   return docID;
-  // }
-
-  public genReportID(tech?:Employee):string {
+  public genReportID(tech:Employee, lang?:string):string {
     let username:string = tech && tech instanceof Employee ? tech.getUsername() : this.username && typeof this.username === 'string' ? this.username : "";
     if(username) {
       let now:Moment = moment();
+      let i8nCode = typeof lang === 'string' ? lang : "en";
+      let localNow = moment(now).locale(i8nCode);
       // let idDateTime = now.format("dddDDMMMYYYYHHmmss");
-      let idDateTime:string = now.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
       // let idDateTime:string = now.format("YYYY-MM-DD");
+      // let idDateTime:string = now.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
+      let idDateTime = localNow.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
       let docID:string = `${username}_${idDateTime}`;
-      Log.l("ReportTimeCard.genReportID(): Generated ID:\n", docID);
+      Log.l("REPORTLOGISTICS.genReportID(): Generated ID:", docID);
       if(!this._id) {
         this._id = docID;
       }
       return docID;
     } else {
-      let errText:string = `ReportTimeCard.genReportID(): No username found and no Employee object provided as parameter 1, cannot generate ID!`;
+      let errText:string = `REPORTLOGISTICS.genReportID(): No username found and no Employee object provided as parameter 1, cannot generate ID!`;
       Log.e(errText);
       throw new Error(errText);
     }
@@ -304,7 +300,7 @@ export class ReportLogistics {
       let now:Moment = moment();
       report.setTimeStamp(now);
       // report.setTimeStamp(now);
-      this.genReportID();
+      this.genReportID(tech);
     } else {
       Log.w(`ReportLogistics.initializeReportLogistics(): Must be provided valid Employee and Jobsite objects. These were:`);
       Log.l(tech);

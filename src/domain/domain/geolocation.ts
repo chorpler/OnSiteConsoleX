@@ -1,8 +1,11 @@
 /**
  * Name: Geolocation domain class and related interfaces/classes
- * Vers: 5.2.2
- * Date: 2019-07-18
+ * Vers: 5.3.3
+ * Date: 2019-07-25
  * Auth: David Sargeant
+ * Logs: 5.3.3 2019-07-25: Changed fromLatLon() to accept ILatLng input; changed OnSiteGeolocation to call OnSiteGeoposition static fromLatLon(),fromLatLng() methods
+ * Logs: 5.3.2 2019-07-25: Added default property to OnSiteGeoposition
+ * Logs: 5.3.1 2019-07-24: Added fromLatLon() and static fromLatLon(),fromLatLng() methods to OnSiteGeoposition and OnSiteGeolocation
  * Logs: 5.2.2 2019-07-18: Minor corrections to fix TSLint errors; changed OnSiteGeoposition getClass() to return OnSiteGeoposition instead of OnSiteGeolocation
  * Logs: 5.2.1 2019-06-04: Added isEmpty() method for OnSiteGeoposition/OnSiteLocation
  * Logs: 5.1.1 2018-11-14: Added getCoordinatesAsString() method; imported isNumeric() function; added isOnSite() to OnSiteGeoposition class
@@ -15,7 +18,11 @@
 
 import { sprintf                        } from 'sprintf-js'                ;
 import { moment, Moment, oo, isNumeric, } from '../config'                 ;
+import { Log,                           } from '../config/config.log'      ;
 // import { ILatLng                        } from '@ionic-native/google-maps' ;
+
+const DEFAULT_LATITUDE  = 27.176248;
+const DEFAULT_LONGITUDE = -97.964025;
 
 export interface ILatLng {
   lat: number;
@@ -195,6 +202,7 @@ class OnSiteCoordinates implements ICoordinates {
 }
 
 class OnSiteGeoposition implements IPosition {
+  public static default:ILatLng = { lat: DEFAULT_LATITUDE, lng: DEFAULT_LONGITUDE };
   public coords    : OnSiteCoordinates = new OnSiteCoordinates();
   public timestamp : DOMTimeStamp      = Number(moment().format('x'));
 
@@ -216,12 +224,52 @@ class OnSiteGeoposition implements IPosition {
     return out;
   }
 
+  public static fromLatLng(latlng:ILatLng|{lat:any,lng:any}):OnSiteGeoposition {
+    let lat:number = latlng && latlng.lat && typeof latlng.lat === 'number' ? latlng.lat : typeof latlng.lat === 'function' ? latlng.lat() : 0;
+    let lng:number = latlng && latlng.lng && typeof latlng.lng === 'number' ? latlng.lng : typeof latlng.lng === 'function' ? latlng.lng() : 0;
+    let newloc = new OnSiteGeoposition();
+    newloc.coords.latitude = lat;
+    newloc.coords.longitude = lng;
+    return newloc;
+  }
+
   public fromLatLng(latlng:ILatLng|{lat:any,lng:any}):OnSiteGeoposition {
-    let lat:number = latlng.lat && typeof latlng.lat === 'number' ? latlng.lat : typeof latlng.lat === 'function' ? latlng.lat() : 0;
-    let lng:number = latlng.lng && typeof latlng.lng === 'number' ? latlng.lng : typeof latlng.lng === 'function' ? latlng.lng() : 0;
-    this.coords.latitude = lat;
-    this.coords.longitude = lng;
-    return this;
+    return OnSiteGeoposition.fromLatLng(latlng);
+  }
+
+  public static fromLatLon(lat?:number|string|Function|ILatLng,lon?:number|string|Function):OnSiteGeoposition {
+    // let lat1 = Number(lat), lon1 = Number(lon);
+    let lat1:number, lng1:number;
+    if(typeof lat === 'object') {
+      let lat2:number, lng2:number;
+      if(lat.lat != undefined) {
+        lat2 = lat.lat;
+      }
+      if(lat.lng != undefined) {
+        lng2 = lat.lng;
+      }
+      lat1 = typeof lat2 === 'number' ? Number(lat2) : typeof lat2 === 'string' ? Number(lat2) : DEFAULT_LATITUDE;
+      lng1 = typeof lng2 === 'number' ? Number(lng2) : typeof lng2 === 'string' ? Number(lng2) : DEFAULT_LONGITUDE;
+    } else {
+      lat1 = typeof lat === 'number' ? Number(lat) : typeof lat === 'string' ? Number(lat) : typeof lat === 'function' ? lat() : DEFAULT_LATITUDE;
+      lng1 = typeof lon === 'number' ? Number(lon) : typeof lon === 'string' ? Number(lon) : typeof lon === 'function' ? lon() : DEFAULT_LONGITUDE;
+    }
+    if(isNaN(lat1) || isNaN(lng1)) {
+      let myClass = this.getClassName();
+      let text = `${myClass}.fromLatLon(): Latitude and longitude parameters must be numeric, or number-returning functions. Invalid types`;
+      Log.w(text + ":", lat, lon);
+      let err = new Error(text);
+      throw err;
+    } else {
+      let newloc = new OnSiteGeoposition();
+      newloc.coords.latitude = lat1;
+      newloc.coords.longitude = lng1;
+      return newloc;
+    }
+  }
+
+  public fromLatLon(lat:number|string|Function,lon:number|string|Function):OnSiteGeoposition {
+    return OnSiteGeoposition.fromLatLon(lat,lon);
   }
 
   public isEmpty():boolean {
@@ -241,6 +289,9 @@ class OnSiteGeoposition implements IPosition {
   }
   public isOnSite():boolean {
     return true;
+  }
+  public static getClass():typeof OnSiteGeoposition {
+    return OnSiteGeoposition;
   }
   public getClass():any {
     return OnSiteGeoposition;
@@ -285,6 +336,61 @@ class OnSiteGeolocation extends OnSiteGeoposition {
     return out;
   }
 
+  public static fromLatLng(latlng:ILatLng|{lat:any,lng:any}):OnSiteGeolocation {
+    let position = super.fromLatLng(latlng);
+    let loc1 = new OnSiteGeolocation(position);
+    return loc1;
+    // let lat:number = latlng.lat && typeof latlng.lat === 'number' ? latlng.lat : typeof latlng.lat === 'function' ? latlng.lat() : 0;
+    // let lng:number = latlng.lng && typeof latlng.lng === 'number' ? latlng.lng : typeof latlng.lng === 'function' ? latlng.lng() : 0;
+    // let newloc = new OnSiteGeolocation();
+    // newloc.coords.latitude = lat;
+    // newloc.coords.longitude = lng;
+    // return newloc;
+  }
+
+  public fromLatLng(latlng:ILatLng|{lat:any,lng:any}):OnSiteGeolocation {
+    return OnSiteGeolocation.fromLatLng(latlng);
+  }
+
+  public static fromLatLon(lat?:number|string|Function|ILatLng,lon?:number|string|Function):OnSiteGeolocation {
+    let position = super.fromLatLon(lat, lon);
+    let loc1 = new OnSiteGeolocation(position);
+    return loc1;
+    // // let lat1 = Number(lat), lon1 = Number(lon);
+    // let lat1:number, lng1:number;
+    // if(typeof lat === 'object') {
+    //   let lat2:number, lng2:number;
+    //   if(lat.lat != undefined) {
+    //     lat2 = lat.lat;
+    //   }
+    //   if(lat.lng != undefined) {
+    //     lng2 = lat.lng;
+    //   }
+    //   lat1 = typeof lat2 === 'number' ? Number(lat2) : typeof lat2 === 'string' ? Number(lat2) : DEFAULT_LATITUDE;
+    //   lng1 = typeof lng2 === 'number' ? Number(lng2) : typeof lng2 === 'string' ? Number(lng2) : DEFAULT_LONGITUDE;
+    // } else {
+    //   lat1 = typeof lat === 'number' ? lat : typeof lat === 'string' ? Number(lat) : typeof lat === 'function' ? lat() : DEFAULT_LATITUDE;
+    //   lng1 = typeof lon === 'number' ? lon : typeof lon === 'string' ? Number(lon) : typeof lon === 'function' ? lon() : DEFAULT_LONGITUDE;
+
+    // }
+    // if(isNaN(lat1) || isNaN(lng1)) {
+    //   let myClass = this.getClassName();
+    //   let text = `${myClass}.fromLatLon(): Latitude and longitude parameters must be numeric, or number-returning functions. Invalid types`;
+    //   Log.w(text + ":", lat, lon);
+    //   let err = new Error(text);
+    //   throw err;
+    // } else {
+    //   let newloc = new OnSiteGeolocation();
+    //   newloc.coords.latitude = lat1;
+    //   newloc.coords.longitude = lng1;
+    //   return newloc;
+    // }
+  }
+
+  public fromLatLon(lat:number|string|Function,lon:number|string|Function):OnSiteGeolocation {
+    return OnSiteGeolocation.fromLatLon(lat,lon);
+  }
+
   public toString():string {
     let out:string = JSON.stringify(this);
     return out;
@@ -294,6 +400,9 @@ class OnSiteGeolocation extends OnSiteGeoposition {
   }
   public isOnSite():boolean {
     return true;
+  }
+  public static getClass():typeof OnSiteGeolocation {
+    return OnSiteGeolocation;
   }
   public getClass():any {
     return OnSiteGeolocation;

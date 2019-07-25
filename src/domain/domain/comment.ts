@@ -1,8 +1,9 @@
 /**
  * Name: Comment domain class
- * Vers: 2.1.1
- * Date: 2019-01-23
+ * Vers: 2.2.1
+ * Date: 2019-07-25
  * Auth: David Sargeant
+ * Logs: 2.2.1 2019-07-25: Changed type of CordovaPhoneInfo to make virtual property boolean
  * Logs: 2.1.1 2019-01-23: Adjusted getCommentDateAsString() method to allow format parameter; also added
  * Logs: 2.0.1 2018-12-06: Refactored to add better serializing/deserializing/cloning; changed Moment properties to string
  * Logs: 1.1.2 2017-12-12: Initial model
@@ -11,17 +12,17 @@
 import { Log, moment, Moment, isMoment, oo } from '../config';
 
 export interface CordovaPhoneInfo {
-  cordova     : string;
-  model       : string;
-  platform    : string;
-  uuid        : string;
-  version     : string;
-  manufacturer: string;
-  virtual     : string;
-  serial      : string;
-  uniqueID    : string;
-  appName     : string;
-  appVersion  : string;
+  cordova     : string  ;
+  model       : string  ;
+  platform    : string  ;
+  uuid        : string  ;
+  version     : string  ;
+  manufacturer: string  ;
+  virtual     : boolean ;
+  serial      : string  ;
+  uniqueID    : string  ;
+  appName     : string  ;
+  appVersion  : string  ;
 }
 
 export class Comment {
@@ -34,17 +35,17 @@ export class Comment {
   // public timestamp :Moment = null;
   public timestamp :string = ""  ;
   public phone     :CordovaPhoneInfo    = {
-    cordova     : "",
-    model       : "",
-    platform    : "",
-    uuid        : "",
-    version     : "",
-    manufacturer: "",
-    virtual     : "",
-    serial      : "",
-    uniqueID    : "",
-    appName     : "",
-    appVersion  : "",
+    cordova     : ""    ,
+    model       : ""    ,
+    platform    : ""    ,
+    uuid        : ""    ,
+    version     : ""    ,
+    manufacturer: ""    ,
+    virtual     : false ,
+    serial      : ""    ,
+    uniqueID    : ""    ,
+    appName     : ""    ,
+    appVersion  : ""    ,
   };
 
   constructor(doc?:any) {
@@ -179,54 +180,12 @@ export class Comment {
       return this.timestamp;
     } else {
       let text:string = `Comment.setTimestamp(): Error, parameter must be empty or Moment-able value`;
-      Log.l(`${text}, was:\n`, timestamp);
+      Log.l(`${text}, was:`, timestamp);
       let err:Error = new Error(text);
       Log.e(err);
       throw err;
     }
   }
-
-
-  // public checkPhoneInfo() {
-  //   this.readPhoneInfo().then(res => {
-  //     Log.l("checkPhoneInfo(): Phone info is fine.");
-  //   }).catch(err => {
-  //     Log.l("checkPhoneInfo(): Nope.");
-  //     Log.e(err);
-  //   });
-  // }
-
-  // public readPhoneInfo() {
-  //   return new Promise((resolve,reject) => {
-  //     let cordova      = this.device.cordova      ;
-  //     let model        = this.device.model        ;
-  //     let platform     = this.device.platform     ;
-  //     let uuid         = this.device.uuid         ;
-  //     let version      = this.device.version      ;
-  //     let manufacturer = this.device.manufacturer ;
-  //     let virtual      = this.device.isVirtual    ;
-  //     let serial       = this.device.serial       ;
-  //     let uniqueID     = ""                       ;
-  //     this.unique.get().then(res => {
-  //       uniqueID = res;
-  //       this.phone = {
-  //         cordova     : cordova      ,
-  //         model       : model        ,
-  //         platform    : platform     ,
-  //         uuid        : uuid         ,
-  //         version     : version      ,
-  //         manufacturer: manufacturer ,
-  //         virtual     : virtual      ,
-  //         serial      : serial       ,
-  //         uniqueID    : uniqueID     ,
-  //       };
-  //       resolve(this.phone);
-  //     }).catch(err => {
-  //       Log.l("readPhoneInfo(): Error reading phone info!");
-  //       Log.e(err);
-  //     });
-  //   });
-  // }
 
   public toJSON():any {
     return this.serialize();

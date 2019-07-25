@@ -1,8 +1,9 @@
 /**
  * Name: Shift domain class
- * Vers: 7.1.1
- * Date: 2019-07-18
+ * Vers: 7.1.2
+ * Date: 2019-07-25
  * Auth: David Sargeant
+ * Logs: 7.1.2 2019-07-25: Changed how removeLogisticsReport() finds index, and added types
  * Logs: 7.1.1 2019-07-18: Changed how readFromDoc() method works, although this method is so far unused since Shift is not serialized to database at all
  * Logs: 7.0.1 2019-07-17: Changed all instances of "bonus" hours to "premium" hours; now using Report class's premium property
  * Logs: 6.7.2 2019-07-01: Added SiteScheduleType import; minor TSLint error fixes
@@ -759,11 +760,11 @@ export class Shift {
     return this.shift_reports;
   }
 
-  public getShiftReports():Array<Report> {
+  public getShiftReports():Report[] {
     return this.shift_reports;
   }
 
-  public getShiftOtherReports():Array<ReportOther> {
+  public getShiftOtherReports():ReportOther[] {
     return this.other_reports;
   }
 
@@ -785,11 +786,11 @@ export class Shift {
     return output;
   }
 
-  public getOtherReports():Array<ReportOther> {
+  public getOtherReports():ReportOther[] {
     return this.other_reports;
   }
 
-  public setOtherReports(others:Array<ReportOther>) {
+  public setOtherReports(others:ReportOther[]):ReportOther[] {
     this.other_reports = [];
     for(let other of others) {
       this.other_reports.push(other);
@@ -797,7 +798,7 @@ export class Shift {
     return this.other_reports;
   }
 
-  public addOtherReport(other:ReportOther) {
+  public addOtherReport(other:ReportOther):ReportOther[] {
     let j = 0, i = -1;
     let others = this.getShiftOtherReports();
     for(let oth of others) {
@@ -818,7 +819,7 @@ export class Shift {
     return this.other_reports;
   }
 
-  public removeOtherReport(other:ReportOther) {
+  public removeOtherReport(other:ReportOther):ReportOther[] {
     let others = this.getShiftOtherReports();
     let j = 0, i = -1;
     for(let oth of others) {
@@ -839,11 +840,11 @@ export class Shift {
     return this.other_reports;
   }
 
-  public getLogisticsReports():Array<ReportLogistics> {
+  public getLogisticsReports():ReportLogistics[] {
     return this.logistics_reports;
   }
 
-  public setLogisticsReports(reports:Array<ReportLogistics>) {
+  public setLogisticsReports(reports:ReportLogistics[]):ReportLogistics[] {
     this.logistics_reports = [];
     for(let report of reports) {
       this.logistics_reports.push(report);
@@ -851,7 +852,7 @@ export class Shift {
     return this.logistics_reports;
   }
 
-  public addLogisticsReport(report:ReportLogistics) {
+  public addLogisticsReport(report:ReportLogistics):ReportLogistics[] {
     let j = 0, i = -1;
     let reports:ReportLogistics[] = this.getShiftLogisticsReports();
     for(let rpt of reports) {
@@ -872,19 +873,21 @@ export class Shift {
     return this.logistics_reports;
   }
 
-  public removeLogisticsReport(report:ReportLogistics) {
+  public removeLogisticsReport(report:ReportLogistics):ReportLogistics[] {
     let reports:ReportLogistics[] = this.getShiftLogisticsReports();
-    let j = 0, i = -1;
-    for(let rpt of reports) {
-      if(rpt === report || (rpt._id && report._id && rpt._id === report._id)) {
-        i = j;
-        break;
-      } else {
-        j++;
-      }
-    }
+    let i = reports.findIndex(rpt => {
+      return report === rpt || (rpt._id && report._id && rpt._id === report._id);
+    });
+    // for(let rpt of reports) {
+    //   if(rpt === report || (rpt._id && report._id && rpt._id === report._id)) {
+    //     i = j;
+    //     break;
+    //   } else {
+    //     j++;
+    //   }
+    // }
     if(i > -1) {
-      Log.l(`removeLogisticsReport(): Removing report #${i} from shift ${this.getShiftSerial()}:`, reports[i]);
+      Log.l(`Shift.removeLogisticsReport(): Removing report #${i} from shift ${this.getShiftSerial()}:`, reports[i]);
       window['onsitesplicedreportlogistics'] = reports.splice(i, 1)[0];
     } else {
       Log.w(`SHIFT.removeLogisticsReport(): Report '${report._id}' not found in shift '${this.shift_serial}'.`);

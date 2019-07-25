@@ -1,8 +1,9 @@
 /**
  * Name: ReportOther domain class
- * Vers: 5.1.1
- * Date: 2019-07-23
+ * Vers: 6.0.0
+ * Date: 2019-07-24
  * Auth: David Sargeant
+ * Logs: 6.0.0 2019-07-24: Changed genReportID() method to use English locale for current Moment string
  * Logs: 5.1.1 2019-07-23: Added setTravelDestination(),isType() methods; added error check and .trim() for serialize() method
  * Logs: 5.0.1 2019-03-06: Changed Moment types to string, added AsMoment() methods
  * Logs: 4.1.1 2018-12-13: Refactored imports to remove circular dependencies; added standard OnSite methods
@@ -212,11 +213,14 @@ export class ReportOther {
     return this._id ? this._id : "";
   }
 
-  public genReportID(tech:Employee):string {
+  public genReportID(tech:Employee, lang?:string):string {
     let now = moment();
-    let idDateTime = now.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
+    let i8nCode = typeof lang === 'string' ? lang : "en";
+    let localNow = moment(now).locale(i8nCode);
+    // let idDateTime = now.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
+    let idDateTime = localNow.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
     let docID = tech.avatarName + '_' + idDateTime;
-    Log.l("genReportID(): Generated ID:\n", docID);
+    Log.l("REPORTOTHER.genReportID(): Generated ID:", docID);
     return docID;
   }
 

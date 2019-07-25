@@ -1,8 +1,9 @@
 /**
  * Name: Report domain class
- * Vers: 7.8.3
- * Date: 2019-07-17
+ * Vers: 8.0.0
+ * Date: 2019-07-24
  * Auth: David Sargeant
+ * Logs: 8.0.0 2019-07-24: Changed genReportID() method to use English locale for current Moment string
  * Logs: 7.8.3 2019-07-17: Modified setPremiumStatus() method to throw error if not given Jobsite object; added billable property and isBillable(),setBillableStatus() methods
  * Logs: 7.8.2 2019-07-17: Added matchesCLL(),matchesOneCLL(),matchesClient(),matchesLocation(),matchesLocID() methods
  * Logs: 7.8.1 2019-06-27: Changed StatusUpdateType to ReportStatusUpdateType; minor TSLint errors fixed
@@ -677,12 +678,15 @@ export class Report {
     return !(this.date_error || this.times_error);
   }
 
-  public genReportID(tech:Employee):string {
+  public genReportID(tech:Employee, lang?:string):string {
     let now = moment();
+    let i8nCode = typeof lang === 'string' ? lang : "en";
+    let localNow = moment(now).locale(i8nCode);
     // let idDateTime = now.format("dddDDMMMYYYYHHmmss");
-    let idDateTime = now.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
+    // let idDateTime = now.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
+    let idDateTime = localNow.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
     let docID = tech.avatarName + '_' + idDateTime;
-    Log.l("genReportID(): Generated ID:\n", docID);
+    Log.l("REPORT.genReportID(): Generated ID:", docID);
     return docID;
   }
 

@@ -1,8 +1,9 @@
 /**
  * Name: ReportTimeCard domain class
- * Vers: 1.2.2
- * Date: 2017-07-18
+ * Vers: 2.0.0
+ * Date: 2017-07-24
  * Auth: David Sargeant
+ * Logs: 2.0.0 2019-07-24: Changed genReportID() method to use English locale for current Moment string
  * Logs: 1.2.2 2019-07-18: Minor corrections to fix TSLint errors
  * Logs: 1.2.1 2018-12-13: Refactored imports to remove circular dependencies; added standard OnSite methods
  * Logs: 1.1.2 2018-12-04: Added isTest property
@@ -150,7 +151,7 @@ export class ReportTimeCard {
 
   public serialize(tech?:Employee):ReportTimeCardDoc {
     if(!this._id) {
-      this._id = this.genReportID();
+      this._id = this.genReportID(tech);
     }
     if(!this.report_date) {
       let now:Moment = moment();
@@ -203,23 +204,28 @@ export class ReportTimeCard {
     }
   }
 
-  public genReportID(tech?:Employee):string {
+  public genReportID(tech:Employee, lang?:string):string {
     let username:string = tech && tech instanceof Employee ? tech.getUsername() : this.username && typeof this.username === 'string' ? this.username : "";
     if(username) {
       let now:Moment = moment();
+      let i8nCode = typeof lang === 'string' ? lang : "en";
+      let localNow = moment(now).locale(i8nCode);
       // let idDateTime = now.format("dddDDMMMYYYYHHmmss");
       // let idDateTime:string = now.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
-      let idDateTime:string = now.format("YYYY-MM-DD");
+      // let idDateTime:string = now.format("YYYY-MM-DD");
+      // let idDateTime = localNow.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
+      let idDateTime = localNow.format("YYYY-MM-DD");
       let docID:string = `${username}_${idDateTime}`;
-      Log.l("ReportTimeCard.genReportID(): Generated ID:\n", docID);
+      Log.l("REPORTTIMECARD.genReportID(): Generated ID:", docID);
       if(!this._id) {
         this._id = docID;
       }
       return docID;
     } else {
       let errText:string = `ReportTimeCard.genReportID(): No username found to generate ID!`;
-      Log.e(errText);
-      throw new Error(errText);
+      let err = new Error(errText);
+      Log.e(err);
+      throw err;
     }
   }
 
@@ -254,6 +260,7 @@ export class ReportTimeCard {
   }
 
   public initializeTimeCard(tech:Employee, site:Jobsite):ReportTimeCard {
+    Log.l(`ReportTimeCard(): Called with tech and site:`, tech, site);
     let report:ReportTimeCard = this;
     if(tech && tech instanceof Employee && site && site instanceof Jobsite) {
       this.setUser(tech);
@@ -261,7 +268,7 @@ export class ReportTimeCard {
       let now:Moment = moment();
       report.setReportDate(now);
       report.setTimeStamp(now);
-      this.genReportID();
+      this.genReportID(tech);
     } else {
       Log.w(`ReportTimeCard.initializeTimeCard(): Must be provided valid Employee and Jobsite objects. These were:`);
       Log.l(tech);
@@ -496,7 +503,7 @@ export class ReportTimeCard {
    * startTimer() starts the timer running
    *
    * @returns {ReportTimes} The current ReportTimes array (an array of objects with start and optional end properties, both of which are ISO8601-formatted strings representing times)
-   * @memberof ReportLogistics
+   * @memberof ReportTimeCard
    */
   public startTimer():ReportTimeEntries {
     if(this.timer_running) {
