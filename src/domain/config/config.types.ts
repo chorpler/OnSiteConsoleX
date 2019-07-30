@@ -836,11 +836,12 @@ export enum Pages {
 }
 
 export enum Icons {
-  'box-check-no'   = 0,
-  'box-check-yes'  = 1,
-  'flag-blank'     = 2,
-  'flag-checkered' = 3,
-  'unknown'        = 4,
+  'box-check-no'       = 0,
+  'box-check-yes'      = 1,
+  'flag-blank'         = 2,
+  'flag-checkered'     = 3,
+  'flag-checkered-box' = 4,
+  'unknown'            = 5,
 }
 
 export const enum ReportType {

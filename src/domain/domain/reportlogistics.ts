@@ -836,7 +836,7 @@ export class ReportLogistics {
       } else if(type === 'final') {
         this.finalLocation = location;
       } else {
-        Log.w(`ReportLogistics.setLocation(): Location is not a valid type:\n`, type);
+        Log.w(`ReportLogistics.setLocation(): Location is not a valid type:`, type);
       }
     }
     return null;

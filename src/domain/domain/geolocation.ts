@@ -1,8 +1,10 @@
 /**
  * Name: Geolocation domain class and related interfaces/classes
- * Vers: 5.3.3
- * Date: 2019-07-25
+ * Vers: 5.4.2
+ * Date: 2019-07-30
  * Auth: David Sargeant
+ * Logs: 5.4.2 2019-07-30: Added equals() methods to OnSiteCoordinates, OnSiteGeoposition, OnSiteGeolocation
+ * Logs: 5.4.1 2019-07-29: Added default() getter to OnSiteGeoposition; Added clone() methods to OnSiteGeoposition,OnSiteGeolocation
  * Logs: 5.3.3 2019-07-25: Changed fromLatLon() to accept ILatLng input; changed OnSiteGeolocation to call OnSiteGeoposition static fromLatLon(),fromLatLng() methods
  * Logs: 5.3.2 2019-07-25: Added default property to OnSiteGeoposition
  * Logs: 5.3.1 2019-07-24: Added fromLatLon() and static fromLatLon(),fromLatLng() methods to OnSiteGeoposition and OnSiteGeolocation
@@ -176,17 +178,36 @@ class OnSiteCoordinates implements ICoordinates {
   public altitude         ?: number = null;
   public altitudeAccuracy ?: number = null;
   public heading          ?: number = null;
-  public speed            ?: number = null;
+  public speed            ?: number = 0;
 
   constructor(doc?:ICoordinates|Coordinates|OnSiteCoordinates|any) {
     if(doc) {
-      this.latitude         = doc.latitude         ? doc.latitude         : this.latitude         ;
-      this.longitude        = doc.longitude        ? doc.longitude        : this.longitude        ;
-      this.accuracy         = doc.accuracy         ? doc.accuracy         : this.accuracy         ;
-      this.altitude         = doc.altitude         ? doc.altitude         : this.altitude         ;
-      this.altitudeAccuracy = doc.altitudeAccuracy ? doc.altitudeAccuracy : this.altitudeAccuracy ;
-      this.heading          = doc.heading          ? doc.heading          : this.heading          ;
-      this.speed            = doc.speed            ? doc.speed            : this.speed            ;
+      this.latitude         = doc.latitude         != undefined ? doc.latitude         : this.latitude         ;
+      this.longitude        = doc.longitude        != undefined ? doc.longitude        : this.longitude        ;
+      this.accuracy         = doc.accuracy         != undefined ? doc.accuracy         : this.accuracy         ;
+      this.altitude         = doc.altitude         != undefined ? doc.altitude         : this.altitude         ;
+      this.altitudeAccuracy = doc.altitudeAccuracy != undefined ? doc.altitudeAccuracy : this.altitudeAccuracy ;
+      this.heading          = doc.heading          != undefined ? doc.heading          : this.heading          ;
+      this.speed            = doc.speed            != undefined ? doc.speed            : this.speed            ;
+    }
+  }
+
+  public equals(position:OnSiteCoordinates|ILatLng):boolean {
+    let coords:ILatLng;
+    let pos:any = position;
+    if(this === position) {
+      return true;
+    }
+    if(pos.latitude != undefined && pos.longitude != undefined) {
+      // tslint:disable-next-line: triple-equals
+      return this.latitude == pos.latitude && this.longitude == pos.longitude;
+    } else if(pos.lat != undefined && pos.lng != undefined) {
+      // tslint:disable-next-line: triple-equals
+      return this.latitude == pos.lat && this.longitude == pos.lng;
+    } else {
+      let className = this.getClassName();
+      Log.w(`${className}(): parameter must be OnSiteCoordinates or ILatLng object. Invalid parameter provided:`, position);
+      return false;
     }
   }
 
@@ -203,6 +224,7 @@ class OnSiteCoordinates implements ICoordinates {
 
 class OnSiteGeoposition implements IPosition {
   public static default:ILatLng = { lat: DEFAULT_LATITUDE, lng: DEFAULT_LONGITUDE };
+  public get default():ILatLng { return OnSiteGeoposition.default; }
   public coords    : OnSiteCoordinates = new OnSiteCoordinates();
   public timestamp : DOMTimeStamp      = Number(moment().format('x'));
 
@@ -212,6 +234,33 @@ class OnSiteGeoposition implements IPosition {
       this.coords = doc.coords ? new OnSiteCoordinates(doc.coords) : this.coords;
       this.timestamp = doc.timestamp ? doc.timestamp : this.timestamp;
     }
+  }
+
+  public equals(position:OnSiteGeoposition|OnSiteCoordinates|ILatLng):boolean {
+    let coords:ILatLng;
+    let pos:any = position;
+    if(this === position) {
+      return true;
+    } else if(pos.coords && pos.coords.latitude != undefined) {
+      coords = pos.coords;
+      return this.coords.equals(coords);
+    } else if(pos.latitude != undefined && pos.longitude != undefined) {
+      return this.coords.equals(pos);
+    } else if(pos.lat != undefined && pos.lng != undefined) {
+      return this.coords.equals(pos);
+    } else {
+      let className = this.getClassName();
+      Log.w(`${className}(): parameter must be OnSiteGeoposition, OnSiteCoordinates, or ILatLng object. Invalid parameter provided:`, position);
+      return false;
+    }
+  }
+
+  public clone():OnSiteGeoposition {
+    let coords = new OnSiteCoordinates(this.coords);
+    let ts     = Number(this.timestamp);
+    let doc    = { coords: coords, timestamp: ts };
+    let newpos = new OnSiteGeoposition(doc);
+    return newpos;
   }
 
   public toLatLng():ILatLng {
@@ -315,8 +364,8 @@ class OnSiteGeolocation extends OnSiteGeoposition {
     super(doc);
     if(doc) {
       if(doc.coords) {
-        this.coords = doc.coords ? new OnSiteCoordinates(doc.coords) : this.coords;
-        this.timestamp = doc.timestamp ? doc.timestamp : this.timestamp;
+        this.coords    = doc.coords    != undefined ? new OnSiteCoordinates(doc.coords) : this.coords;
+        this.timestamp = doc.timestamp != undefined ? doc.timestamp : this.timestamp;
       } else {
         if(doc.latitude) {
           let coords:OnSiteCoordinates = new OnSiteCoordinates(doc);
@@ -324,6 +373,33 @@ class OnSiteGeolocation extends OnSiteGeoposition {
         }
       }
     }
+  }
+
+  public equals(position:OnSiteGeolocation|OnSiteGeoposition|OnSiteCoordinates|ILatLng):boolean {
+    let coords:ILatLng;
+    let pos:any = position;
+    if(this === position) {
+      return true;
+    } else if(pos.coords && pos.coords.latitude != undefined) {
+      coords = pos.coords;
+      return this.coords.equals(coords);
+    } else if(pos.latitude != undefined && pos.longitude != undefined) {
+      return this.coords.equals(pos);
+    } else if(pos.lat != undefined && pos.lng != undefined) {
+      return this.coords.equals(pos);
+    } else {
+      let className = this.getClassName();
+      Log.w(`${className}(): parameter must be OnSite position, coordinates, or ILatLng object. Invalid parameter provided:`, position);
+      return false;
+    }
+  }
+
+  public clone():OnSiteGeolocation {
+    let coords = new OnSiteCoordinates(this.coords);
+    let ts     = Number(this.timestamp);
+    let doc    = { coords: coords, timestamp: ts };
+    let newloc = new OnSiteGeolocation(doc);
+    return newloc;
   }
 
   public getCoordinatesAsString(decimalPlaces?:number):string {
@@ -340,12 +416,6 @@ class OnSiteGeolocation extends OnSiteGeoposition {
     let position = super.fromLatLng(latlng);
     let loc1 = new OnSiteGeolocation(position);
     return loc1;
-    // let lat:number = latlng.lat && typeof latlng.lat === 'number' ? latlng.lat : typeof latlng.lat === 'function' ? latlng.lat() : 0;
-    // let lng:number = latlng.lng && typeof latlng.lng === 'number' ? latlng.lng : typeof latlng.lng === 'function' ? latlng.lng() : 0;
-    // let newloc = new OnSiteGeolocation();
-    // newloc.coords.latitude = lat;
-    // newloc.coords.longitude = lng;
-    // return newloc;
   }
 
   public fromLatLng(latlng:ILatLng|{lat:any,lng:any}):OnSiteGeolocation {
@@ -356,35 +426,6 @@ class OnSiteGeolocation extends OnSiteGeoposition {
     let position = super.fromLatLon(lat, lon);
     let loc1 = new OnSiteGeolocation(position);
     return loc1;
-    // // let lat1 = Number(lat), lon1 = Number(lon);
-    // let lat1:number, lng1:number;
-    // if(typeof lat === 'object') {
-    //   let lat2:number, lng2:number;
-    //   if(lat.lat != undefined) {
-    //     lat2 = lat.lat;
-    //   }
-    //   if(lat.lng != undefined) {
-    //     lng2 = lat.lng;
-    //   }
-    //   lat1 = typeof lat2 === 'number' ? Number(lat2) : typeof lat2 === 'string' ? Number(lat2) : DEFAULT_LATITUDE;
-    //   lng1 = typeof lng2 === 'number' ? Number(lng2) : typeof lng2 === 'string' ? Number(lng2) : DEFAULT_LONGITUDE;
-    // } else {
-    //   lat1 = typeof lat === 'number' ? lat : typeof lat === 'string' ? Number(lat) : typeof lat === 'function' ? lat() : DEFAULT_LATITUDE;
-    //   lng1 = typeof lon === 'number' ? lon : typeof lon === 'string' ? Number(lon) : typeof lon === 'function' ? lon() : DEFAULT_LONGITUDE;
-
-    // }
-    // if(isNaN(lat1) || isNaN(lng1)) {
-    //   let myClass = this.getClassName();
-    //   let text = `${myClass}.fromLatLon(): Latitude and longitude parameters must be numeric, or number-returning functions. Invalid types`;
-    //   Log.w(text + ":", lat, lon);
-    //   let err = new Error(text);
-    //   throw err;
-    // } else {
-    //   let newloc = new OnSiteGeolocation();
-    //   newloc.coords.latitude = lat1;
-    //   newloc.coords.longitude = lng1;
-    //   return newloc;
-    // }
   }
 
   public fromLatLon(lat:number|string|Function,lon:number|string|Function):OnSiteGeolocation {
