@@ -78,7 +78,6 @@ export class PayrollPage implements OnInit,OnDestroy {
   public periodList: SelectItem[]        = []         ;
   public loading  : any                               ;
   public moment   : any                  = moment     ;
-  public sprintf  : any                  = sprintf    ;
   public scheduleMissing:boolean         = false      ;
   public spinnerLabel:string = "Initializing payroll page …";
   public dataReady: boolean              = false      ;
@@ -1252,6 +1251,10 @@ export class PayrollPage implements OnInit,OnDestroy {
 
   public toggleFlags(evt?:any) {
     this.prefs.CONSOLE.payroll.showAlerts = !this.prefs.CONSOLE.payroll.showAlerts;
+  }
+
+  public printf(...params):string {
+    return sprintf(...params);
   }
 
 }

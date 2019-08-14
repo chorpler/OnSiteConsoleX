@@ -672,7 +672,7 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
       // let rotation = this.data.getTechRotationForDate(this.employee, now);
       let rotation = this.employee.rotation || "CONTN WEEK";
       let payPeriodStartDate = this.data.getPayrollPeriodStartDate(now);
-      let shiftLength = site.getShiftLengthForDate(rotation, shiftTime, payPeriodStartDate);
+      let shiftLength = site.getShiftLengthForDate(payPeriodStartDate, rotation, shiftTime);
       if(isNaN(Number(shiftLength))) {
         shiftLength = 11;
       }

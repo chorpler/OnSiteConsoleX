@@ -1,8 +1,9 @@
 /**
  * Name: Jobsite domain class
- * Vers: 7.4.3
- * Date: 2019-07-18
+ * Vers: 8.0.0
+ * Date: 2019-08-13
  * Auth: David Sargeant
+ * Logs: 8.0.0 2019-08-13: Changed parameter order and add types for getHoursList(),getShiftLengthForDate(),getSiteShiftLength() methods
  * Logs: 7.4.3 2019-07-18: Added matchesClient(),matchesLocation(),matchesLocID(),matchesOneCLL(),matchesCLL methods; fixed small TSLint errors
  * Logs: 7.4.2 2019-07-17: Added isValidForReports() method
  * Logs: 7.4.1 2019-07-17: Added billable property, isBillable() method
@@ -555,46 +556,50 @@ export class Jobsite {
   }
 
 //  public getHoursList(shiftRotation:string|object, shiftTime?:string):{AM:string[],PM:string[]} {
-  public getHoursList(shiftRotation:string|object, shiftTime?:string):SiteRotationStartTimes {
+  public getHoursList(rotation:string, shift_type?:SiteScheduleType):SiteRotationStartTimes {
     let match = "", oneHourList = null, singleShiftList = null;
-    if(typeof shiftRotation === 'string') {
-      match = shiftRotation;
-    } else if(shiftRotation && typeof shiftRotation === 'object' && typeof shiftRotation['name'] === 'string') {
-      match = shiftRotation['name'];
+    if(typeof rotation === 'string') {
+      match = rotation;
+    } else if(rotation && typeof rotation === 'object' && typeof rotation['name'] === 'string') {
+      match = rotation['name'];
     }
     if(this.hoursList[match] !== undefined) {
       oneHourList = this.hoursList[match];
     } else {
       // if (shiftRotation === 'UNASSIGNED' || shiftRotation === 'DAYS OFF') {
-      if(shiftRotation === 'UNASSIGNED') {
+      if(rotation === 'UNASSIGNED') {
         oneHourList = { AM: ["0", "0", "0", "0", "0", "0", "0"], PM: ["0", "0", "0", "0", "0", "0", "0"] };
         return oneHourList;
       } else if(this.site_number === 1) {
         oneHourList = { AM: ["0", "0", "0", "0", "0", "0", "0"], PM: ["0", "0", "0", "0", "0", "0", "0"] };
         return oneHourList;
       } else {
-        Log.e("Jobsite.getHoursList('%s', '%s'): Index not found!", match, shiftTime);
+        Log.e("Jobsite.getHoursList('%s', '%s'): Index not found!", match, shift_type);
         Log.l(this);
         return null;
       }
     }
-    if(shiftTime) {
-      singleShiftList = oneHourList[shiftTime];
+    if(shift_type) {
+      singleShiftList = oneHourList[shift_type];
       return singleShiftList;
     } else {
       return oneHourList;
     }
   }
 
-  public getShiftLengthForDate(shiftRotation:string|object, shiftTime:string, date:Moment|Date):number {
+  public getShiftLengthForDate(date:Moment|Date|string, rotation:string, shift_type:SiteScheduleType):number {
     // Log.l(`Jobsite.getShiftLengthForDate(): Called with shift '${shiftTime}' and shiftRotation:\n`, shiftRotation);
+    let day = moment(date);
+    if(!isMoment(day)) {
+      Log.w(`Jobsite.getShiftLengthForDate(): Not provided with valid date to check shift length on!`);
+      return null;
+    }
     let list;
     if(this.site_number === 1) {
       list = [ "0", "0", "0", "0", "0", "0", "0" ];
     } else {
-      list = this.getHoursList(shiftRotation, shiftTime);
+      list = this.getHoursList(rotation, shift_type);
     }
-    let day = moment(date);
     let dayIndex = day.isoWeekday();
     let hoursIndex = (dayIndex + 4) % 7;
     let shiftLength;
@@ -607,8 +612,8 @@ export class Jobsite {
     return output;
   }
 
-  public getSiteShiftLength(shiftType: string | object, shiftTime: string, date: Moment | Date) {
-    return this.getShiftLengthForDate(shiftType, shiftTime, date);
+  public getSiteShiftLength(rotation:string, shiftTime:SiteScheduleType, date:Moment|Date|string) {
+    return this.getShiftLengthForDate(date, rotation, shiftTime);
   }
 
   public getSiteNumber() {

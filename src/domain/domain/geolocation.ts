@@ -1,8 +1,10 @@
 /**
  * Name: Geolocation domain class and related interfaces/classes
- * Vers: 5.4.2
- * Date: 2019-07-30
+ * Vers: 5.5.1
+ * Date: 2019-08-06
  * Auth: David Sargeant
+ * Logs: 5.5.1 2019-08-06: Default latitude and longitude is now pulled from DEFAULT_LATITUDE and DEFAULT_LONGITUDE
+ * Logs: 5.4.3 2019-08-02: Added isLocation() function after classes; changed negative speed to 0
  * Logs: 5.4.2 2019-07-30: Added equals() methods to OnSiteCoordinates, OnSiteGeoposition, OnSiteGeolocation
  * Logs: 5.4.1 2019-07-29: Added default() getter to OnSiteGeoposition; Added clone() methods to OnSiteGeoposition,OnSiteGeolocation
  * Logs: 5.3.3 2019-07-25: Changed fromLatLon() to accept ILatLng input; changed OnSiteGeolocation to call OnSiteGeoposition static fromLatLon(),fromLatLng() methods
@@ -159,26 +161,16 @@ interface IPosition {
 }
 
 class OnSiteCoordinates implements ICoordinates {
-  public getClass():any {
-    return OnSiteCoordinates;
-  }
-  public static getClassName():string {
-    return 'OnSiteCoordinates';
-  }
-  public getClassName():string {
-    return OnSiteCoordinates.getClassName();
-  }
-  public get [Symbol.toStringTag]():string {
-    return this.getClassName();
-  }
+  public static default:ILatLng = { lat: DEFAULT_LATITUDE, lng: DEFAULT_LONGITUDE };
+  public get default():ILatLng { return OnSiteCoordinates.default; }
 
-  public latitude          : number = 0 ;
-  public longitude         : number = 0 ;
-  public accuracy          : number = 0 ;
+  public latitude          : number = OnSiteCoordinates.default.lat;
+  public longitude         : number = OnSiteCoordinates.default.lng;
+  public accuracy          : number = 0   ;
   public altitude         ?: number = null;
   public altitudeAccuracy ?: number = null;
   public heading          ?: number = null;
-  public speed            ?: number = 0;
+  public speed            ?: number = 0   ;
 
   constructor(doc?:ICoordinates|Coordinates|OnSiteCoordinates|any) {
     if(doc) {
@@ -189,6 +181,9 @@ class OnSiteCoordinates implements ICoordinates {
       this.altitudeAccuracy = doc.altitudeAccuracy != undefined ? doc.altitudeAccuracy : this.altitudeAccuracy ;
       this.heading          = doc.heading          != undefined ? doc.heading          : this.heading          ;
       this.speed            = doc.speed            != undefined ? doc.speed            : this.speed            ;
+    }
+    if(typeof this.speed === 'number' && this.speed < 0) {
+      this.speed = 0;
     }
   }
 
@@ -211,14 +206,36 @@ class OnSiteCoordinates implements ICoordinates {
     }
   }
 
+  public clone():OnSiteCoordinates {
+    let newCoordinates = new OnSiteCoordinates(this);
+    return newCoordinates;
+  }
+
   public toString():string {
     let out:string = "";
     return JSON.stringify(this);
   }
 
-  public clone():OnSiteCoordinates {
-    let newCoordinates = new OnSiteCoordinates(this);
-    return newCoordinates;
+  public toJSON() {
+    return oo.clone(this);
+  }
+  public isOnSite():boolean {
+    return true;
+  }
+  public static getClass():typeof OnSiteCoordinates {
+    return OnSiteCoordinates;
+  }
+  public getClass():any {
+    return OnSiteCoordinates;
+  }
+  public static getClassName():string {
+    return 'OnSiteCoordinates';
+  }
+  public getClassName():string {
+    return OnSiteCoordinates.getClassName();
+  }
+  public get [Symbol.toStringTag]():string {
+    return this.getClassName();
   }
 }
 
@@ -356,6 +373,7 @@ class OnSiteGeoposition implements IPosition {
   }
 }
 
+// class OnSiteGeolocation {
 class OnSiteGeolocation extends OnSiteGeoposition {
   public coords    : OnSiteCoordinates = new OnSiteCoordinates();
   public timestamp : DOMTimeStamp      = Number(moment().format('x'));
@@ -367,7 +385,7 @@ class OnSiteGeolocation extends OnSiteGeoposition {
         this.coords    = doc.coords    != undefined ? new OnSiteCoordinates(doc.coords) : this.coords;
         this.timestamp = doc.timestamp != undefined ? doc.timestamp : this.timestamp;
       } else {
-        if(doc.latitude) {
+        if(doc.latitude != undefined || doc.lat != undefined) {
           let coords:OnSiteCoordinates = new OnSiteCoordinates(doc);
           this.coords = coords;
         }
@@ -459,8 +477,24 @@ class OnSiteGeolocation extends OnSiteGeoposition {
   }
 }
 
+function isLocation(position:OnSiteGeolocation|OnSiteGeoposition|OnSiteCoordinates|ILatLng):boolean {
+  let pos:any = position;
+  let res:boolean = false;
+  if(typeof pos !== 'object') {
+    return res;
+  } else if(pos.coords && pos.coords.latitude != undefined && pos.coords.longitude != undefined) {
+    res = true;
+  } else if(pos.latitude != undefined && pos.longitude != undefined) {
+    res = true;
+  } else if(pos.lat != undefined && pos.lng != undefined) {
+    res = true;
+  }
+  return res;
+}
+
+
 // const OnSiteLocation = OnSiteGeolocation;
 const OnSiteLocation = OnSiteGeolocation;
 const Position = OnSiteGeoposition;
 
-export { DOMTimeStamp, LatLonLiteral, LatLng, ICoordinates, IPosition, OnSiteCoordinates, OnSiteGeoposition, OnSiteGeolocation, OnSiteLocation };
+export { DOMTimeStamp, LatLonLiteral, LatLng, ICoordinates, IPosition, OnSiteCoordinates, OnSiteGeoposition, OnSiteGeolocation, OnSiteLocation, isLocation };

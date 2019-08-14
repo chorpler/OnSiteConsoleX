@@ -1,8 +1,12 @@
 /**
  * Name: Report domain class
- * Vers: 8.0.0
- * Date: 2019-07-24
+ * Vers: 8.0.4
+ * Date: 2019-08-13
  * Auth: David Sargeant
+ * Logs: 8.0.4 2019-08-13: Fixed unreachable code in getReportDate() method
+ * Logs: 8.0.3 2019-08-11: Added setUser() method; Added some JSDoc comments
+ * Logs: 8.0.2 2019-08-08: Added type property and getType() method
+ * Logs: 8.0.1 2019-08-07: Added some JSDoc comments
  * Logs: 8.0.0 2019-07-24: Changed genReportID() method to use English locale for current Moment string
  * Logs: 7.8.3 2019-07-17: Modified setPremiumStatus() method to throw error if not given Jobsite object; added billable property and isBillable(),setBillableStatus() methods
  * Logs: 7.8.2 2019-07-17: Added matchesCLL(),matchesOneCLL(),matchesClient(),matchesLocation(),matchesLocID() methods
@@ -469,20 +473,40 @@ export class Report {
     return out;
   }
 
-  public getReportDate(asString?:boolean):Moment|string {
-    if(asString) {
-      return this.getReportDateAsString();
+  /**
+   * Return report date as a Moment.js object or a string
+   *
+   * @param {(string|boolean)} [format] Either a Moment.js format string to use, or a boolean indicating default format will be used
+   * @returns {(Moment|string)} Report date as either a Moment.js object or string
+   * @memberof Report
+   */
+  public getReportDate(format?:boolean|string):Moment|string {
+    if(format != undefined) {
+      if(typeof format === 'string') {
+        return this.getReportDateAsString(format);
+      } else {
+        return this.getReportDateAsString();
+      }
     } else {
+      return this.getReportDateAsMoment();
       // let date = moment(this.report_date, "YYYY-MM-DD");
       // return date;
-      if(typeof this.report_date === 'string') {
-        return moment(this.report_date, "YYYY-MM-DD");
-      } else {
-        return moment(this.report_date);
-      }
+      // if(typeof this.report_date === 'string') {
+      //   return moment(this.report_date, "YYYY-MM-DD");
+      // } else {
+      //   return moment(this.report_date);
+      // }
     }
   }
 
+  /**
+   * Return report date as a string.
+   * Default format is "YYYY-MM-DD".
+   *
+   * @param {string} [format] Optional Moment.js-style format string to use
+   * @returns {string} Report date formatted as a string
+   * @memberof Report
+   */
   public getReportDateAsString(format?:string):string {
     let date:any = this.report_date;
     if(typeof format !== 'string') {
@@ -501,6 +525,12 @@ export class Report {
     }
   }
 
+  /**
+   * Return report date as a Moment.js object
+   *
+   * @returns {Moment} The report date as a Moment.js object (time is midnight local)
+   * @memberof Report
+   */
   public getReportDateAsMoment():Moment {
     let reportDate:any = this.report_date;
     if(isMoment(reportDate) || reportDate instanceof Date) {
@@ -765,13 +795,50 @@ export class Report {
     }
   }
 
+  /**
+   * Sets Jobsite-related fields in the report
+   *
+   * @param {Jobsite} site A Jobsite object
+   * @returns {Report} The entire report
+   * @memberof Report
+   */
   public setSite(site:Jobsite):Report {
-    this.client      = site.client.name;
-    this.location    = site.location.name;
-    this.location_id = site.locID.name;
-    this.workSite    = site.getSiteSelectName();
-    this.site_number = site.site_number;
-    return this;
+    if(site instanceof Jobsite) {
+      this.client      = site.client.name;
+      this.location    = site.location.name;
+      this.location_id = site.locID.name;
+      this.workSite    = site.getSiteSelectName();
+      this.site_number = site.site_number;
+      this.setPremiumStatus(site);
+      this.setBillableStatus(site);
+      return this;
+    } else {
+      Log.w(`Report.setSite(): Parameter 1 must be Jobsite object. Invalid parameter:`, site);
+    }
+  }
+
+  /**
+   * Sets user-related fields in the report
+   *
+   * @param {Employee} tech The Employee object to use
+   * @returns {Report} The entire report
+   * @memberof Report
+   */
+  public setUser(tech:Employee):Report {
+    if(tech instanceof Employee) {
+      let username:string = tech.getUsername();
+      let first:string = tech.getFirstName();
+      let last:string = tech.getLastName();
+      let fullName:string = tech.getTechName();
+      this.username = username;
+      this.first_name = first;
+      this.last_name = last;
+      this.technician = fullName;
+      return this;
+    } else {
+      Log.w(`Report.setUser(): Parameter 1 must be Employee object. Invalid parameter:`, tech);
+      return null;
+    }
   }
 
   public get flags():number {
@@ -930,6 +997,10 @@ export class Report {
       throw err;
     }
     return this.billable;
+  }
+
+  public getType():WorkReportType {
+    return this.type;
   }
 
   // public splitReportID(reportID?:string) {

@@ -2,7 +2,7 @@ import { sprintf                                                            } fr
 import { Subscription                                                       } from 'rxjs'                 ;
 import { Injectable                                                         } from '@angular/core'        ;
 import { Loading                                                            } from 'ionic-angular'        ;
-import { Log, moment, Moment, isMoment, dec, Decimal, _matchCLL, _matchSite } from 'domain/onsitexdomain' ;
+import { Log, moment, Moment, isMoment, dec, Decimal, _matchCLL, _matchSite, SiteScheduleType } from 'domain/onsitexdomain' ;
 import { PouchDBService, PDBChangeEvent,                                    } from './pouchdb-service'    ;
 import { AlertService                                                       } from './alert-service'      ;
 import { StorageService                                                     } from './storage-service'    ;
@@ -1252,6 +1252,7 @@ export class OSData {
     }
   }
 
+  // public getTechRotationForDate(tech:Employee, dateInQuestion:Moment|Date):string {
   public getTechRotationForDate(tech:Employee, dateInQuestion:Moment|Date):string {
     let name           = tech.getUsername();
     let date           = moment(dateInQuestion);
@@ -1294,6 +1295,22 @@ export class OSData {
     } else {
       Log.w(`getTechRotationForDate(): Unable to find a schedule for '${tech.getUsername()}', date '${date.format("YYYY-MM-DD")}'`);
       return "UNASSIGNED";
+    }
+  }
+
+  public getTechShiftTypeForDate(tech:Employee, dateInQuestion:Moment|Date|string):SiteScheduleType {
+    // let date           = moment(dateInQuestion);
+    // let schedule = this.getUserScheduleFor(date);
+    // if(schedule) {
+    //   return schedule.shift;
+    // } else {
+    //   Log.w(`UserData.getTechShiftTypeForDate(): Unable to find a shift type for date '${date.format("YYYY-MM-DD")}'`);
+    //   return "AM";
+    // }
+    if(tech.shift) {
+      return tech.shift;
+    } else {
+      return "AM";
     }
   }
 
@@ -1392,6 +1409,7 @@ export class OSData {
     // OSData.periods = payp.splice(0, len);
     let sites = this.getData('sites');
     let site:Jobsite = this.getTechLocationForDate(tech, moment(date));
+    let shift_type = this.getTechShiftTypeForDate(tech, moment(date));
     let rotation = this.getTechRotationForDate(tech, moment(date));
 
     if (site instanceof Jobsite) {
@@ -1402,7 +1420,7 @@ export class OSData {
       let start = PayrollPeriod.getPayrollPeriodDateForShiftDate(moment(date));
       let pp    = new PayrollPeriod();
       pp.setStartDate(start);
-      pp.createConsolePayrollPeriodShiftsForTech(tech, site, rotation);
+      pp.createConsolePayrollPeriodShiftsForTech(tech, site, shift_type, rotation);
       return pp;
       // }
       // return OSData.periods;

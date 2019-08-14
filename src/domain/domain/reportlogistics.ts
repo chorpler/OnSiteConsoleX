@@ -1,8 +1,10 @@
 /**
  * Name: ReportLogistics domain class
- * Vers: 2.0.0
- * Date: 2019-07-24
+ * Vers: 2.0.2
+ * Date: 2019-08-08
  * Auth: David Sargeant
+ * Logs: 2.0.2 2019-08-08: Added getType() method
+ * Logs: 2.0.1 2019-08-07: Added optional formatting to getReportDateString() method
  * Logs: 2.0.0 2019-07-24: Changed genReportID() method to use English locale for current Moment string
  * Logs: 1.8.2 2019-07-18: Minor corrections to fix TSLint errors
  * Logs: 1.8.1 2018-12-13: Refactored imports to remove circular dependencies; added standard OnSite methods
@@ -437,12 +439,21 @@ export class ReportLogistics {
     return this.report_date;
   }
 
-  public getReportDateString():string {
-    return this.getReportDate();
+  /**
+   * Returns report date as a YYYY-MM-DD string (or with optional formatting)
+   *
+   * @param {string} [format] Optional Moment.js formatting string to use
+   * @returns {string} Report date as string
+   * @memberof ReportLogistics
+   */
+  public getReportDateString(format?:string):string {
+    let fmt = format && typeof format === 'string' ? format : "YYYY-MM-DD";
+    let date = this.getReportDateMoment();
+    return date.format(fmt);
   }
 
   public getReportDateMoment():Moment {
-    let date:string = this.getReportDateString();
+    let date:string = this.getReportDate();
     let mo:Moment = moment(date, "YYYY-MM-DD", true);
     if(isMoment(mo)) {
       // this.report_dateM = moment(mo);
@@ -455,7 +466,7 @@ export class ReportLogistics {
 
 
   /**
-   *getStartTime() returns a string representing a particular date and time, corresponding to the Logistics report's startTime property
+   * Returns a string representing a particular date and time, corresponding to the Logistics report's startTime property
    *
    * @returns {string} A string representing a date and time, corresponding to the Logistics report's startTime property
    * @memberof ReportLogistics
@@ -465,7 +476,7 @@ export class ReportLogistics {
   }
 
   /**
-   *getStartTimeMoment() returns a Moment object corresponding to the Logistics report's startTime property
+   * Returns a Moment object corresponding to the Logistics report's startTime property
    *
    * @returns {Moment} A Moment object corresponding to the report's startTime property
    * @memberof ReportLogistics
@@ -485,7 +496,7 @@ export class ReportLogistics {
   }
 
   /**
-   *getEndTime() returns a string representing a particular date and time, corresponding to the Logistics report's endTime property
+   * Returns a string representing a particular date and time, corresponding to the Logistics report's endTime property
    *
    * @returns {string} A string representing a date and time, corresponding to the Logistics report's endTime property
    * @memberof ReportLogistics
@@ -495,7 +506,7 @@ export class ReportLogistics {
   }
 
   /**
-   *getEndTimeMoment() returns a Moment object corresponding to the Logistics report's endTime property
+   * Returns a Moment object corresponding to the Logistics report's endTime property
    *
    * @returns {Moment} A Moment object corresponding to the report's endTime property
    * @memberof ReportLogistics
@@ -515,7 +526,7 @@ export class ReportLogistics {
   }
 
   /**
-   *getFinalTime() returns a string representing a particular date and time, corresponding to the Logistics report's finalTime property
+   * Returns a string representing a particular date and time, corresponding to the Logistics report's finalTime property
    *
    * @returns {string} A string representing a date and time, corresponding to the Logistics report's finalTime property
    * @memberof ReportLogistics
@@ -525,7 +536,7 @@ export class ReportLogistics {
   }
 
   /**
-   *getFinalTimeMoment() returns a Moment object corresponding to the Logistics report's finalTime property
+   * Returns a Moment object corresponding to the Logistics report's finalTime property
    *
    * @returns {Moment} A Moment object corresponding to the report's finalTime property
    * @memberof ReportLogistics
@@ -545,7 +556,7 @@ export class ReportLogistics {
   }
 
   /**
-   *setTime() sets the Logistics report startTime or endTime properties to the provided Moment-appropriate input (string, Date, or Moment)
+   * Sets the Logistics report startTime or endTime properties to the provided Moment-appropriate input (string, Date, or Moment)
    *
    * @param {MileageType} type Must be 'start' or 'end' or 'final'
    * @param {(string|Date|Moment)} value A properly Moment-able string, or a Date or Moment object
@@ -576,7 +587,7 @@ export class ReportLogistics {
 
 
   /**
-   *setStartTime() sets the Logistics report startTime property
+   * Sets the Logistics report startTime property
    *
    * @param {(string|Date|Moment)} value A properly Moment-able string, or a Date/Moment object
    * @returns {string} The ISO8601-formatted value corresponding to the provided input value
@@ -587,7 +598,7 @@ export class ReportLogistics {
   }
 
   /**
-   * setEndTime() sets the Logistics report endTime property
+   * Sets the Logistics report endTime property
    *
    * @param {(string|Date|Moment)} value A properly Moment-able string, or a Date/Moment object
    * @returns {string} The ISO8601-formatted value corresponding to the provided input value
@@ -598,7 +609,7 @@ export class ReportLogistics {
   }
 
   /**
-   * setFinalTime() sets the Logistics report finalTime property
+   * Sets the Logistics report finalTime property
    *
    * @param {(string|Date|Moment)} value A properly Moment-able string, or a Date/Moment object
    * @returns {string} The ISO8601-formatted value corresponding to the provided input value
@@ -609,7 +620,7 @@ export class ReportLogistics {
   }
 
   /**
-   * startTimer() starts the timer running
+   * Starts the timer running
    *
    * @returns {ReportTimes} The current ReportTimes array (an array of objects with start and optional end properties, both of which are ISO8601-formatted strings representing times)
    * @memberof ReportLogistics
@@ -640,7 +651,7 @@ export class ReportLogistics {
   }
 
   /**
-   * stopTimer() starts the timer running
+   * Starts the timer running
    *
    * @returns {ReportTimes} The current ReportTimes array (an array of objects with start and optional end properties, both of which are ISO8601-formatted strings representing times)
    * @memberof ReportLogistics
@@ -774,7 +785,7 @@ export class ReportLogistics {
           let hrs:number = endTime.diff(startTime, units, true);
           hours += hrs;
         } else {
-          Log.w(`ReportLogistics.getTotalTime(): Invalid endTime found:\n`, time.end);
+          Log.w(`ReportLogistics.getTotalTime(): Invalid endTime found:`, time.end);
           return null;
         }
       } else {
@@ -787,8 +798,6 @@ export class ReportLogistics {
 
   public getTotalTimeString(seconds?:number):string {
     let total:number = seconds != undefined ? seconds : this.getTotalTime('seconds');
-
-
     let hrs:number = Math.trunc(total / 3600);
     let min:number = Math.trunc((total/60) - (hrs*60));
     let sec:number = Math.round(total - (hrs * 3600) - (min * 60));
@@ -899,6 +908,11 @@ export class ReportLogistics {
     }
     return out;
   }
+
+  public getType():string {
+    return this.type;
+  }
+
 
   public getKeys():string[] {
     let keys:string[] = Object.keys(this);

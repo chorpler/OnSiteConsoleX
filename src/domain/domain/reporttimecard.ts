@@ -1,8 +1,9 @@
 /**
  * Name: ReportTimeCard domain class
- * Vers: 2.0.0
- * Date: 2017-07-24
+ * Vers: 2.0.1
+ * Date: 2017-08-08
  * Auth: David Sargeant
+ * Logs: 2.0.1 2019-08-08: Added type property and getType() method
  * Logs: 2.0.0 2019-07-24: Changed genReportID() method to use English locale for current Moment string
  * Logs: 1.2.2 2019-07-18: Minor corrections to fix TSLint errors
  * Logs: 1.2.1 2018-12-13: Refactored imports to remove circular dependencies; added standard OnSite methods
@@ -51,6 +52,7 @@ export type ReportTimeEntries = ReportTimeEntry[];
 export class ReportTimeCardDoc {
   public _id              : string = "";
   public _rev             : string = "";
+  public type             : string = "timecard";
   public report_date      : string = "";
   public notes            : string = "";
   public username         : string = "";
@@ -76,6 +78,7 @@ export class ReportTimeCard {
   public timecard:ReportTimeCardDoc = new ReportTimeCardDoc();
   public get _id               (): string                  { return this.timecard._id                      ; }
   public get _rev              (): string                  { return this.timecard._rev                     ; }
+  public get type              (): string                  { return this.timecard.type                     ; }
   public get notes             (): string                  { return this.timecard.notes                    ; }
   public get report_date       (): string                  { return this.timecard.report_date              ; }
   public get last_name         (): string                  { return this.timecard.last_name                ; }
@@ -97,6 +100,7 @@ export class ReportTimeCard {
 
   public set _id               (val: string                )  { this.timecard._id                     = val ; }
   public set _rev              (val: string                )  { this.timecard._rev                    = val ; }
+  public set type              (val: string                )  { this.timecard.type                    = val ; }
   public set notes             (val: string                )  { this.timecard.notes                   = val ; }
   public set report_date       (val: string                )  { this.timecard.report_date             = val ; }
   public set last_name         (val: string                )  { this.timecard.last_name               = val ; }
@@ -705,6 +709,10 @@ export class ReportTimeCard {
     // }
     return true;
 
+  }
+
+  public getType():string {
+    return this.type;
   }
 
   public getKeys():string[] {

@@ -1,8 +1,11 @@
 /**
  * Name: ReportOther domain class
- * Vers: 6.0.0
- * Date: 2019-07-24
+ * Vers: 6.0.3
+ * Date: 2019-08-13
  * Auth: David Sargeant
+ * Logs: 6.0.3 2019-08-13: Added broken types detection to isType() method
+ * Logs: 6.0.2 2019-08-11: Added setTech() method
+ * Logs: 6.0.1 2019-08-08: Added getType() method
  * Logs: 6.0.0 2019-07-24: Changed genReportID() method to use English locale for current Moment string
  * Logs: 5.1.1 2019-07-23: Added setTravelDestination(),isType() methods; added error check and .trim() for serialize() method
  * Logs: 5.0.1 2019-03-06: Changed Moment types to string, added AsMoment() methods
@@ -230,6 +233,8 @@ export class ReportOther {
       let myType = this.type.toLowerCase();
       if(type === myType) {
         return true;
+      } else if(myType === '' && (type === 'none' || type === 'invalid' || type === 'broken' || type === '')) {
+        return true;
       }
     }
     return false;
@@ -349,6 +354,28 @@ export class ReportOther {
     return this;
   }
 
+  /**
+   * Sets user-related fields in the report
+   *
+   * @param {Employee} tech The Employee object to use
+   * @returns {ReportOther} The entire report
+   * @memberof ReportOther
+   */
+  public setUser(tech:Employee):ReportOther {
+    if(!(tech instanceof Employee)) {
+      Log.w(`ReportOther.setUser(): Parameter 1 must be Employee object. Invalid parameter:`, tech);
+      return null;
+    } else {
+      let username:string = tech.getUsername();
+      let first:string = tech.getFirstName();
+      let last:string = tech.getLastName();
+      this.username = username;
+      this.first_name = first;
+      this.last_name = last;
+      return this;
+    }
+  }
+
   public setTravelDestination(site:Jobsite) {
     if(site instanceof Jobsite) {
       let siteName = site.getSiteSelectName();
@@ -428,6 +455,10 @@ export class ReportOther {
   public clearFlags() {
     this.flagged_fields = [];
     this.flagged = false;
+  }
+
+  public getType():string {
+    return this.type;
   }
 
   public getKeys():string[] {
