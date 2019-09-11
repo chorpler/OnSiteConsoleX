@@ -54,7 +54,7 @@ export const roundMaxDecimals = function(value:number, decimals?:number):number 
   let string1:string = value.toFixed(places);
   let num1:number = Number(string1);
   return num1;
-}
+};
 
 export const roundToNearest = function(value:number, roundTo:number):number {
   let toRound:number = Number(value);
@@ -65,7 +65,7 @@ export const roundToNearest = function(value:number, roundTo:number):number {
   }
   console.warn(`roundToNearest(): Must supply numbers as parameters.`);
   return null;
-}
+};
 
 export const roundUpToNearest = function(value:number, roundUpTo:number):number {
   let toRound:number = Number(value);
@@ -76,7 +76,7 @@ export const roundUpToNearest = function(value:number, roundUpTo:number):number 
   }
   console.warn(`roundToNearest(): Must supply numbers as parameters.`);
   return null;
-}
+};
 
 export const roundDownToNearest = function(value:number, roundUpTo:number):number {
   let toRound:number = Number(value);
@@ -87,7 +87,7 @@ export const roundDownToNearest = function(value:number, roundUpTo:number):numbe
   }
   console.warn(`roundToNearest(): Must supply numbers as parameters.`);
   return null;
-}
+};
 
 export const rounded     = roundToNearest   ;
 export const roundedUp   = roundUpToNearest ;
@@ -99,17 +99,18 @@ export const round = function(value:number, decimals:number):number {
   let secondString:string = `${firstNum}e-${decimals}`;
   let secondNum:number = Number(secondString);
   return secondNum;
-}
+};
 
 export const matchesCI = function(str1:string, str2:string):boolean {
   let lc1:string = typeof str1 === 'string' ? str1.toLowerCase() : "";
   let lc2:string = typeof str2 === 'string' ? str2.toLowerCase() : "";
   let out:boolean = false;
+  // tslint:disable-next-line: triple-equals
   if(lc1 == lc2) {
-    out = true;;
+    out = true;
   }
   return out;
-}
+};
 
 export const capitalize = function(str1:string):string {
   let out:string = "";
@@ -120,7 +121,7 @@ export const capitalize = function(str1:string):string {
     out = first + rest;
   }
   return out;
-}
+};
 
 export const isNumeric = function(value:number):boolean {
   let out:boolean = false;
@@ -133,7 +134,7 @@ export const isNumeric = function(value:number):boolean {
     }
   }
   return out;
-}
+};
 
 export const isNumber = function(value:number):boolean {
   if(typeof value === 'number') {
@@ -141,7 +142,7 @@ export const isNumber = function(value:number):boolean {
   } else {
     return false;
   }
-}
+};
 
 window['roundToNearest'] = roundToNearest;
 window['roundUpToNearest'] = roundUpToNearest;
@@ -150,6 +151,7 @@ window['matchesCI'] = matchesCI;
 window['capitalize'] = capitalize;
 window['isNumeric'] = isNumeric;
 window['isNumber'] = isNumber;
+window['validateVIN'] = validateVIN;
 
 export function _dedupe<T>(array:Array<T>, propertyThatMustBeUnique?:string):Array<T> {
   // let property:string;
@@ -227,9 +229,9 @@ export const _matchReportSite = (report:Report, site:Jobsite) => {
   return Boolean(_matchCLL(cli, client) && _matchCLL(loc, location) && _matchCLL(lid, locID));
 };
 
-export const _matchSiteFromSchedule = (tech:Employee, sites:Array<Jobsite>) => {
+export const _matchSiteFromSchedule = (tech:Employee, sites:Jobsite[]) => {
 
-}
+};
 
 export const _sortReportsByDate = (a:Report, b:Report):number => {
   let dateA:Moment, dateB:Moment, startA:Moment, startB:Moment;
@@ -265,7 +267,7 @@ export const _sortReportsByStartTime = (a:Report, b:Report):number => {
     timeB = now;
   }
   return timeA.isBefore(timeB) ? -1 : timeA.isAfter(timeB) ? 1 : 0;
-}
+};
 
 export const _sortReports = _sortReportsByDate;
 
@@ -280,7 +282,7 @@ export const _sortTechsByFullName = (a:Employee, b:Employee):number => {
     fB = b.getFirstName();
   }
   return lA > lB ? 1 : lA < lB ? -1 : fA > fB ? 1 : fA < fB ? -1 : 0;
-}
+};
 
 export const _sortTechsByUsername = (a:Employee, b:Employee):number => {
   let uA:string = "", uB:string = "";
@@ -291,7 +293,7 @@ export const _sortTechsByUsername = (a:Employee, b:Employee):number => {
     uB = b.getUsername();
   }
   return uA > uB ? 1 : uA < uB ? -1 : 0;
-}
+};
 
 export const _sortTechs = _sortTechsByFullName;
 
@@ -306,7 +308,7 @@ export const sizeOf = function (val:any) {
     size = Object.keys(val).length;
   }
   return size;
-}
+};
 
 export const XLDay0 = moment([1900, 0, 1]).startOf('day');
 
@@ -320,17 +322,17 @@ export const date2xl = function (date: Moment | Date | string): number {
   let mDate = moment(date).startOf('day');
   let xlDate = mDate.diff(XLDay0, 'days', true) + 2;
   return xlDate;
-}
+};
 
 export const xl2date = function (xlDate: number): Moment {
   let date = moment(XLDay0).add(xlDate - 2, 'days').startOf('day');
   return date;
-}
+};
 
 export const xl2datetime = function (xlDate: number): Moment {
   let datetime = moment(XLDay0).add(xlDate - 2, 'days');
   return datetime;
-}
+};
 
 
 /**
@@ -344,21 +346,56 @@ export const s2ab = function(s:string):ArrayBuffer {
   const view:Uint8Array = new Uint8Array(buf);
   let len = s.length;
   for(let i = 0; i !== len; ++i) {
+    // tslint:disable-next-line: no-bitwise
     view[i] = s.charCodeAt(i) & 0xFF;
   }
   return buf;
-}
+};
 
 window['s2ab'] = s2ab;
 
 
-export var CONSOLE = {
+export const CONSOLE = {
   t1: function (res) { console.log("Success"); console.log(res); window["res1"] = res; return res; },
   c1: function (err) { console.log("Failure"); console.error(err); window["err1"] = err; return err; },
   runInZone: function() { },
   round: round,
   roundToNearest: roundToNearest,
+};
+
+export function validateVIN(vin:string):boolean {
+  if(typeof vin !== 'string') {
+    return false;
+  }
+  if(vin === "11111111111111111") {
+    return false;
+  }
+  if(!vin.match("^([0-9a-hj-npr-zA-HJ-NPR-Z]{10,17})+$")) {
+    return false;
+  }
+  const letters:{k:string,v:number}[] = [
+    { k: "A", v: 1 }, { k: "B", v: 2 }, { k: "C", v: 3 },
+    { k: "D", v: 4 }, { k: "E", v: 5 }, { k: "F", v: 6 }, { k: "G", v: 7 },
+    { k: "H", v: 8 }, { k: "J", v: 1 }, { k: "K", v: 2 }, { k: "L", v: 3 },
+    { k: "M", v: 4 }, { k: "N", v: 5 }, { k: "P", v: 7 }, { k: "R", v: 9 },
+    { k: "S", v: 2 }, { k: "T", v: 3 }, { k: "U", v: 4 }, { k: "V", v: 5 },
+    { k: "W", v: 6 }, { k: "X", v: 7 }, { k: "Y", v: 8 }, { k: "Z", v: 9 }
+  ];
+  let weights:number[] = [8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2];
+  let exclude:string[] = ["I", "O", "Q"];
+  let val = 0;
+  for(let idx = 0; idx < vin.length; idx++) {
+    let item:string = vin.charAt(idx).toUpperCase();
+    if(exclude.includes(item)) {
+      return false;
+    }
+    let pos = (item.match("^[0-9]+$") != null) ? Number(item) : letters.filter(letter => letter.k === item)[0].v;
+    val += (pos * weights[idx]);
+  }
+  let checksum = (val % 11);
+  return (vin.charAt(8) === (checksum < 10 ? String(checksum) : "X"));
 }
+
 /* Use this to get all current functions from console */
 /*
 var doit = function () { var out = [], nonfn = []; for (let i in console) { if (typeof console[i] == 'function') { out.push(i); } else { nonfn.push(i); } } console.log("console functions, then non-functions:"); console.log(out); console.log(nonfn); var vals = { 'functions': out, 'nonfunctions': nonfn }; window['res1'] = vals; return vals; }

@@ -24,7 +24,8 @@ import   * as moTimer         from 'moment-timer'       ;
 import   * as momentRange         from 'moment-range'       ;
 import { PreciseRange, preciseDiff, staticPreciseDiff } from './moment-precise-range';
 import { extendMoment } from 'moment-range';
-// import * as momentDurationFormat from 'moment-duration-format';
+// import {momentDurationFormatSetup} from 'moment-duration-format';
+import 'moment-duration-format';
 // import 'moment-precise-range-plugin';
 // import   * as momentPreciseRange  from 'moment-precise-range-plugin'       ;
 
@@ -75,9 +76,9 @@ declare module "moment" {
   function preciseDiff(d1:Date|Moment, d2:Date|Moment, returnValueObject:boolean):PreciseRange|string;
   function range(start: Date, end: Date): momentRange.DateRange;
   function range(start: Moment, end: Moment): momentRange.DateRange;
-  function range(range: [Date, Date]): momentRange.DateRange;
-  function range(range: [Moment, Moment]): momentRange.DateRange;
-  function range(range: string): momentRange.DateRange;
+  // function range(range: [Date, Date]): momentRange.DateRange;
+  function range(range: [Date, Date] | [Moment, Moment] | string): momentRange.DateRange;
+  // function range(range: string): momentRange.DateRange;
 
   function rangeFromInterval(interval: unitOfTime.Diff, count?: number, date?: Date | Moment): momentRange.DateRange;
   function rangeFromISOString(isoTimeInterval: string): momentRange.DateRange;
@@ -135,7 +136,7 @@ const momentRound = function(precision:number, key:string, roundDirection?:"roun
   } else if(direction === 'down') {
     direction = 'floor';
   }
-  let _this:any = this; //cache of this
+  let _this:any = this; // cache of this
   let methods = {
     hours:        { 'name': 'Hours',        'maxValue': 24   },
     minutes:      { 'name': 'Minutes',      'maxValue': 60   },
@@ -175,13 +176,13 @@ const momentRound = function(precision:number, key:string, roundDirection?:"roun
   }
   key = keys[key].toLowerCase();
 
-  //control
+  // control
   if(!methods[key]) {
     throw new Error('The value to round is not valid. Possibles ["hours", "minutes", "seconds", "milliseconds"]');
   }
 
-  var getMethodName:string = 'get' + methods[key].name;
-  var setMethodName:string = 'set' + methods[key].name;
+  let getMethodName:string = 'get' + methods[key].name;
+  let setMethodName:string = 'set' + methods[key].name;
 
   for(let k in methods) {
     if(k === key) {
@@ -200,21 +201,21 @@ const momentRound = function(precision:number, key:string, roundDirection?:"roun
   _this._d[setMethodName](value);
 
   return _this;
-}
+};
 
 const momentCeil = function(precision, key):moment.Moment {
   let self = this;
   return self.round(precision, key, 'ceil');
-}
+};
 
 const momentFloor = function(precision, key):moment.Moment {
   let self = this;
   return self.round(precision, key, 'floor');
-}
+};
 
 export const isMoment = function(val:any):boolean {
   return (moment.isMoment(val) && moment(val).isValid());
-}
+};
 
 export const isDuration = function(val:any):boolean {
   return (moment.isDuration(val) && val['isValid'] && typeof val['isValid'] === 'function' && (val as any).isValid());
@@ -391,7 +392,7 @@ export const moment2excel = function(mo?: Date | moment.Moment | string | boolea
 
 export const Moment2excel = function(dayOnly?:boolean):number {
   return moment2excel(dayOnly);
-}
+};
 
 export const excel2moment = function(days:number|string, sourceIsMacExcel?:boolean) {
   let value:number;
@@ -441,11 +442,11 @@ export const excel2moment = function(days:number|string, sourceIsMacExcel?:boole
   let OADateString:string = moment(OADate).format("YYYY-MM-DDTHH:mm:ss.SSS");
   let CorrectedOADate:Moment = moment(OADateString);
   return CorrectedOADate;
-}
+};
 
 // (<any>moment).fromExcel = excel2moment;
 
-var momentFnObject:any = moment.fn || {};
+let momentFnObject:any = moment.fn || {};
 (<any>moment).fn = momentFnObject;
 // .toExcel = moment2excel;
 (<any>moment).fn.round        = momentRound       ;
@@ -471,6 +472,8 @@ var momentFnObject:any = moment.fn || {};
 // export type Moment = momentRange.MomentRange;
 export type Moment = moment.Moment;
 export type Duration = moment.Duration;
+export type Locale = moment.Locale;
+export type LocaleSpecification = moment.LocaleSpecification;
 export type MomentInput = moment.MomentInput;
 export type MomentRange = momentRange.DateRange;
 export type DateRange = momentRange.DateRange;

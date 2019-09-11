@@ -1,8 +1,11 @@
 /**
  * Name: ReportTimeCard domain class
- * Vers: 2.0.1
- * Date: 2017-08-08
+ * Vers: 2.1.2
+ * Date: 2017-08-26
  * Auth: David Sargeant
+ * Logs: 2.1.2 2019-08-26: Changed getTotalTime() method to have optional roundToNearest parameter; Added getTotalWorkHours() method for compatibility with other report classes
+ * Logs: 2.1.1 2019-08-22: Added getTotalTimeStringHoursMinutes() method
+ * Logs: 2.1.0 2019-08-20: Added getLastTimeBlocked() method
  * Logs: 2.0.1 2019-08-08: Added type property and getType() method
  * Logs: 2.0.0 2019-07-24: Changed genReportID() method to use English locale for current Moment string
  * Logs: 1.2.2 2019-07-18: Minor corrections to fix TSLint errors
@@ -17,7 +20,7 @@
 // import { Shift         } from './shift'                ;
 // import { PayrollPeriod } from './payroll-period'       ;
 import { sprintf       } from 'sprintf-js'             ;
-import { Log           } from '../config'              ;
+import { Log, roundUpToNearest           } from '../config'              ;
 import { Moment        } from '../config'              ;
 import { moment        } from '../config'              ;
 import { isMoment      } from '../config'              ;
@@ -567,14 +570,19 @@ export class ReportTimeCard {
   }
 
   /**
-   * getTotalTime() Gets the total time for this report, in specified units ('hours' by default)
-   * @param unitOfTime A string that is part of the Moment.unitOfTime.Diff type ('hours', 'minutes', 'seconds', etc.)
+   * Gets the total time for this report, in specified units ('hours' by default)
+   *
+   * @param {moment.unitOfTime.Diff} [unitOfTime] A string that is part of the Moment.unitOfTime.Diff type ('hours', 'minutes', 'seconds', etc.)
+   * @param {number} [roundToNearest] If provided, rounds to this number of minutes (1h10m would round to 1.25 hours). Defaults to 1.
+   * @returns {number} The number of specified time units (default hours) in this timecard report
    * @memberof ReportTimeCard
    */
-  public getTotalTime(unitOfTime?:moment.unitOfTime.Diff):number {
+  public getTotalTime(unitOfTime?:moment.unitOfTime.Base, roundToNearest?:number):number {
     let now:Moment = moment();
     let hours:number = 0;
-    let units:moment.unitOfTime.Diff = unitOfTime || ('hours' as moment.unitOfTime.Diff);
+    let roundTo:number = typeof roundToNearest === 'number' ? roundToNearest : 1;
+    let units:moment.unitOfTime.Base = unitOfTime || ('hours' as moment.unitOfTime.Base);
+    let mins:number = 0;
     for(let time of this.times) {
       let startTime:Moment = moment(time.start);
       let endTime:Moment = now;
@@ -583,20 +591,27 @@ export class ReportTimeCard {
         if(isMoment(endTime)) {
           let hrs:number = endTime.diff(startTime, units, true);
           hours += hrs;
+          let oneMins = endTime.diff(startTime, 'minutes', true);
+          mins += oneMins;
         } else {
-          Log.w(`ReportTimeCard.getTotalTime(): Invalid endTime found:\n`, time.end);
+          Log.w(`ReportTimeCard.getTotalTime(): Invalid endTime found:`, time.end);
           return null;
         }
       } else {
         let hrs:number = endTime.diff(startTime, units, true);
+        let oneMins = endTime.diff(startTime, 'minutes', true);
+        mins += oneMins;
         hours += hrs;
       }
     }
+    let roundedMinutes = roundUpToNearest(mins, roundTo);
+    let duration = moment.duration(roundedMinutes, 'minutes');
+    let out = duration.as(units);
     return hours;
   }
 
   /**
-   * getTotalTimeString() Gets the total time for this report as a string. HH:mm:ss format (i.e. 1 hour, 1 minute, 1 second is 01:01:01). Seconds can be specified as a static method for straight-up conversion
+   * Gets the total time for this report as a string. HH:mm:ss format (i.e. 1 hour, 1 minute, 1 second is 01:01:01). Seconds can be specified as a static method for straight-up conversion
    * @param seconds Number of seconds, which will convert them to a time string (in HH:mm:ss format)
    * @memberof ReportTimeCard
    */
@@ -606,6 +621,20 @@ export class ReportTimeCard {
     let min:number = Math.trunc((total/60) - (hrs*60));
     let sec:number = Math.round(total - (hrs * 3600) - (min * 60));
     let out:string = sprintf("%02d:%02d:%02d", hrs, min, sec);
+    return out;
+  }
+
+  /**
+   * Gets the total time for this report as a string. HH:mm format (i.e. 1 hour, 1 minute is 01:01). Seconds can be specified as a static method for straight-up conversion
+   * @param seconds Number of seconds, which will convert them to a time string (in HH:mm format)
+   * @memberof ReportTimeCard
+   */
+  public getTotalTimeStringHoursMinutes(seconds?:number):string {
+    let total:number = seconds != undefined ? seconds : this.getTotalTime('seconds');
+    let hrs:number = Math.trunc(total / 3600);
+    let min:number = Math.trunc((total/60) - (hrs*60));
+    // let sec:number = Math.round(total - (hrs * 3600) - (min * 60));
+    let out:string = sprintf("%02d:%02d", hrs, min);
     return out;
   }
 
@@ -646,6 +675,11 @@ export class ReportTimeCard {
       out = sprintf("%0.2f", hours);
     }
     return out;
+  }
+
+  public getTotalWorkHours(roundToNearest?:number):number {
+    let hrs = this.getTotalTime('hours', roundToNearest);
+    return hrs;
   }
 
   public getClockStatus():string {
@@ -708,8 +742,41 @@ export class ReportTimeCard {
 
     // }
     return true;
-
   }
+
+  /**
+   * Returns last time this report occupies, if any
+   *
+   * @returns {string} ISO8601 string representing the latest time this report has a record of
+   * @memberof ReportTimeCard
+   */
+  public getLastTimeBlocked():string {
+    let times = this.times.slice(0);
+    let lastTime:Moment;
+    for(let record of times) {
+      if(!record.end) {
+        continue;
+      } else {
+        let currentTaskEndTime = moment(record.end);
+        if(isMoment(currentTaskEndTime)) {
+          if(!lastTime) {
+            lastTime = moment(currentTaskEndTime);
+          } else if(lastTime.isBefore(currentTaskEndTime)) {
+            lastTime = moment(currentTaskEndTime);
+          }
+        }
+      }
+    }
+    if(isMoment(lastTime)) {
+      return lastTime.format();
+    } else {
+      Log.w(`ReportTimeCard.getLastTimeBlocked(): Could not find last time, apparently this report does not have any time recorded`);
+      return null;
+    }
+  }
+
+
+
 
   public getType():string {
     return this.type;

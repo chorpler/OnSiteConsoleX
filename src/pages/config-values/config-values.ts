@@ -31,16 +31,20 @@ export class ConfigValuesPage implements OnInit,OnDestroy {
 
   public title:string = "Configuration";
   public config:any;
-  public training_types:Array<any> = [];
-  public report_types:Array<any> = [];
-  public locIDs:Array<SESALocID> = [];
-  public clients:Array<SESAClient> = [];
-  public locations:Array<SESALocation> = [];
-  public rt_fields   :Array<any> = [];
-  public tt_fields   :Array<any> = [];
-  public locID_fields:Array<any> = [];
-  public client_fields:Array<any> = [];
-  public location_fields:Array<any> = [];
+  public training_types:any[] = [];
+  public report_types:any[] = [];
+  public locIDs:SESALocID[] = [];
+  public clients:SESAClient[] = [];
+  public locations:SESALocation[] = [];
+  public mwords:string[] = [];
+  public enouns:string[] = [];
+  public mnouns:string[] = [];
+  public rt_fields   :any[] = [];
+  public tt_fields   :any[] = [];
+  public locID_fields:any[] = [];
+  public client_fields:any[] = [];
+  public location_fields:any[] = [];
+  public word_fields:any[] = [];
   public numberColumnStyle:any = {'max-width': '50px', 'width': '40px', 'text-align': 'right'};
   public buttonColumnStyle:any = {'max-width': '50px', 'width': '40px', 'text-align': 'center'};
   public globalSearchReportType   : string = "";
@@ -83,11 +87,12 @@ export class ConfigValuesPage implements OnInit,OnDestroy {
   public async runWhenReady() {
     try {
       if(this.navParams.get('modalMode') != undefined) { this.modalMode = this.navParams.get('modalMode'); }
-      let training_types:Array<any> = this.data.getData('training_types');
-      let report_types:Array<any> = this.data.getData('report_types');
-      let locIDs:Array<SESALocID> = this.data.getConfigData('locIDs');
-      let clients:Array<SESAClient> = this.data.getConfigData('clients');
-      let locations:Array<SESALocation> = this.data.getConfigData('locations');
+      let training_types:any[] = this.data.getData('training_types');
+      let report_types:any[] = this.data.getData('report_types');
+      let locIDs:SESALocID[] = this.data.getConfigData('locIDs');
+      let clients:SESAClient[] = this.data.getConfigData('clients');
+      let locations:SESALocation[] = this.data.getConfigData('locations');
+      // let mverbs = this.data.getConfigData('')
       if(training_types && training_types.length > 0) {
         this.training_types = training_types;
         this.report_types = report_types;
@@ -293,6 +298,23 @@ export class ConfigValuesPage implements OnInit,OnDestroy {
       Log.l(`rowSelected(): Error `);
       Log.e(err);
       throw new Error(err);
+    }
+  }
+
+  public async deleteRow(table:any[], idx:number, evt?:Event) {
+    try {
+      // let event:MouseEvent = evt.originalEvent;
+      // let data  = evt.data;
+      // let index = evt.index;
+      // let dt:DataTable = datatable;
+      Log.l(`deleteRow(): event is:`, evt);
+      let item = table.splice(idx, 1);
+      window['onsiteconfigdeletedrow'] = item;
+      // return res;
+    } catch(err) {
+      Log.l(`deleteRow(): Error `);
+      Log.e(err);
+      throw err;
     }
   }
 

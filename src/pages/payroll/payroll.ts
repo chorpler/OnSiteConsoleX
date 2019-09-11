@@ -15,6 +15,9 @@ import { DispatchService                                                        
 import { Log, Moment, moment, _matchCLL, _matchSite                             } from 'domain/onsitexdomain'                       ;
 import { Jobsite, Employee, Report, ReportOther, PayrollPeriod, Shift, Schedule } from 'domain/onsitexdomain'                       ;
 import { ReportLogistics                                                        } from 'domain/onsitexdomain'                       ;
+import { ReportDriving                                                          } from 'domain/onsitexdomain'                       ;
+import { ReportMaintenance                                                      } from 'domain/onsitexdomain'                       ;
+import { ReportAny, ReportReal,                                                 } from 'domain/onsitexdomain'                       ;
 import { OSData                                                                 } from 'providers/data-service'                     ;
 import { Preferences                                                            } from 'providers/preferences'                      ;
 import { SelectItem, MenuItem                                                   } from 'primeng/api'                                ;
@@ -55,6 +58,8 @@ export class PayrollPage implements OnInit,OnDestroy {
   public reports  : Report[]        = []         ;
   public others   : ReportOther[]   = []         ;
   public logistics: ReportLogistics[] = []       ;
+  public maintenances: ReportMaintenance[] = []       ;
+  public drivings : ReportDriving[] = []       ;
   public periods  : PayrollPeriod[] = []         ;
   public sites    : Jobsite[]       = []         ;
   public schedules: Schedule[]      = []         ;
@@ -73,7 +78,7 @@ export class PayrollPage implements OnInit,OnDestroy {
   public ePeriod  : Map<Employee,PayrollPeriod>       ;
   public eSite    : Map<Employee,Jobsite>             ;
   public alerts   : Map<Employee,Boolean>             ;
-  public allData  : any = {employees: [], reports: [], others: [], logistics: [], periods: [], sites: [] };
+  public allData  : any = {employees: [], reports: [], others: [], logistics: [], drivings: [], maintenances: [], periods: [], sites: [] };
   public eRot     : Map<Employee,string> = new Map()  ;
   public periodList: SelectItem[]        = []         ;
   public loading  : any                               ;
@@ -160,7 +165,7 @@ export class PayrollPage implements OnInit,OnDestroy {
     });
     // this.dsSubscription = this.dispatch.datastoreUpdated().subscribe(async (data:{type:string, payload:any}) => {
     this.dsSubscription = this.dispatch.datastoreUpdated().subscribe(async (data:{type:string, payload:any}) => {
-      Log.l("PayrollPage: Received datastoreUpdated() event from dispatch service:\n", data);
+      Log.l("PayrollPage: Received datastoreUpdated() event from dispatch service:", data);
       try {
         let key = data.type;
         let payload = data.payload;
@@ -272,7 +277,19 @@ export class PayrollPage implements OnInit,OnDestroy {
         return date >= start && date <= end;
       }
     });
-    let counts:number[] = [this.reports.length, this.others.length, this.logistics.length];
+    this.drivings = this.allData.drivings.filter((a:ReportDriving) => {
+      if(a instanceof ReportDriving) {
+        let date:string = a.report_date;
+        return date >= start && date <= end;
+      }
+    });
+    this.maintenances = this.allData.maintenances.filter((a:ReportMaintenance) => {
+      if(a instanceof ReportMaintenance) {
+        let date:string = a.report_date;
+        return date >= start && date <= end;
+      }
+    });
+    let counts:number[] = [this.reports.length, this.others.length, this.logistics.length, this.drivings.length, this.maintenances.length];
     Log.l(`updateReportMatches(): Matches: ${counts[0]} reports, ${counts[1]} others, ${counts[2]} logistics.`);
   }
 
@@ -403,7 +420,7 @@ export class PayrollPage implements OnInit,OnDestroy {
         let rsB = (rotB === 'UNASSIGNED') ? 5 : (rotB === 'FIRST WEEK') ? 1 : (rotB === 'CONTN WEEK') ? 2 : (rotB === 'FINAL WEEK') ? 3 : (rotB === 'DAYS OFF') ? 4 : 6;
         return cliA < cliB ? -1 : cliA > cliB ? 1 : locA < locB ? -1 : locA > locB ? 1 : lidA < lidB ? -1 : lidA > lidB ? 1 : rsA < rsB ? -1 : rsA > rsB ? 1 : usrA < usrB ? -1 : usrA > usrB ? 1 : 0;
       }
-      let _sortReports = (a:Report|ReportOther|ReportLogistics, b:Report|ReportOther|ReportLogistics) => {
+      let _sortReports = (a:ReportReal, b:ReportReal) => {
         if(a instanceof Report && b instanceof Report) {
           return a.report_date > b.report_date ? 1 : a.report_date < b.report_date ? -1 : 0;
         } else if(a instanceof ReportOther && b instanceof ReportOther) {
@@ -413,6 +430,10 @@ export class PayrollPage implements OnInit,OnDestroy {
           let dB:string = b.getReportDateAsString();
           return dA > dB ? 1 : dA < dB ? -1 : 0;
         } else if(a instanceof ReportLogistics && b instanceof ReportLogistics) {
+          return a.report_date > b.report_date ? 1 : a.report_date < b.report_date ? -1 : 0;
+        } else if(a instanceof ReportDriving && b instanceof ReportDriving) {
+          return a.report_date > b.report_date ? 1 : a.report_date < b.report_date ? -1 : 0;
+        } else if(a instanceof ReportMaintenance && b instanceof ReportMaintenance) {
           return a.report_date > b.report_date ? 1 : a.report_date < b.report_date ? -1 : 0;
         } else {
           return 0;
@@ -437,7 +458,9 @@ export class PayrollPage implements OnInit,OnDestroy {
 
       this.reports   = this.allData.reports.sort(_sortReports);
       this.others    = this.allData.others.sort(_sortReports);
-      this.logistics = this.allData.others.sort(_sortReports);
+      this.logistics = this.allData.logistics.sort(_sortReports);
+      this.drivings = this.allData.drivings.sort(_sortReports);
+      this.maintenances = this.allData.maintenances.sort(_sortReports);
       this.sites     = this.allData.sites.slice(0);
       this.schedules = this.allData.schedules.sort((a:Schedule, b:Schedule) => {
         return a.startXL < b.startXL ? 1 : a.startXL > b.startXL ? -1 : 0;
@@ -643,9 +666,17 @@ export class PayrollPage implements OnInit,OnDestroy {
         let logistics:ReportLogistics[] = this.logistics.filter((a:ReportLogistics) => {
           return a.report_date === shiftDate && a.username === tech.username;
         });
+        let drivings:ReportDriving[] = this.drivings.filter((a:ReportDriving) => {
+          return a.report_date === shiftDate && a.username === tech.username;
+        });
+        let maintenances:ReportMaintenance[] = this.maintenances.filter((a:ReportMaintenance) => {
+          return a.report_date === shiftDate && a.username === tech.username;
+        });
         shift.setShiftReports([]);
         shift.setOtherReports([]);
         shift.setLogisticsReports([]);
+        shift.setDrivingReports([]);
+        shift.setMaintenanceReports([]);
         for(let report of reports) {
           shift.addShiftReport(report);
         }
@@ -654,6 +685,12 @@ export class PayrollPage implements OnInit,OnDestroy {
         }
         for(let report of logistics) {
           shift.addLogisticsReport(report);
+        }
+        for(let report of drivings) {
+          shift.addDrivingReport(report);
+        }
+        for(let report of maintenances) {
+          shift.addMaintenanceReport(report);
         }
       }
 

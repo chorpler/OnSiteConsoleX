@@ -1,8 +1,10 @@
 /**
  * Name: ReportLogistics domain class
- * Vers: 2.0.2
- * Date: 2019-08-08
+ * Vers: 2.1.1
+ * Date: 2019-08-22
  * Auth: David Sargeant
+ * Logs: 2.1.1 2019-08-22: Added getTotalTimeStringHoursMinutes() method
+ * Logs: 2.1.0 2019-08-20: Added getLastTimeBlocked() method
  * Logs: 2.0.2 2019-08-08: Added getType() method
  * Logs: 2.0.1 2019-08-07: Added optional formatting to getReportDateString() method
  * Logs: 2.0.0 2019-07-24: Changed genReportID() method to use English locale for current Moment string
@@ -805,6 +807,15 @@ export class ReportLogistics {
     return out;
   }
 
+  public getTotalTimeStringHoursMinutes(seconds?:number):string {
+    let total:number = seconds != undefined ? seconds : this.getTotalTime('seconds');
+    let hrs:number = Math.trunc(total / 3600);
+    let min:number = Math.trunc((total/60) - (hrs*60));
+    // let sec:number = Math.round(total - (hrs * 3600) - (min * 60));
+    let out:string = sprintf("%02d:%02d", hrs, min);
+    return out;
+  }
+
   public static getLocationAsString(location:OnSiteGeolocation):string {
     if(location) {
       let lat:number = location.coords.latitude;
@@ -866,7 +877,7 @@ export class ReportLogistics {
         let newVal:OnSiteGeolocation = new OnSiteGeolocation(value);
         out.push(newVal);
       } else {
-        Log.w(`ReportLogistics.getLocations(): Location '${key}' is not an OnSiteGeolocation or anything similar:\n`, value);
+        Log.w(`ReportLogistics.getLocations(): Location '${key}' is not an OnSiteGeolocation or anything similar:`, value);
       }
     }
     return out;
@@ -885,7 +896,7 @@ export class ReportLogistics {
       if(typeof value === 'string') {
         out.push(value);
       } else {
-        Log.w(`ReportLogistics.getTimes(): Time '${key}' is not a datetime string:\n`, value);
+        Log.w(`ReportLogistics.getTimes(): Time '${key}' is not a datetime string:`, value);
       }
     }
     return out;
@@ -909,10 +920,30 @@ export class ReportLogistics {
     return out;
   }
 
+  /**
+   * Returns last time this report occupies, if any
+   *
+   * @returns {string} ISO8601 string representing the latest time this report has a record of
+   * @memberof ReportLogistics
+   */
+  public getLastTimeBlocked():string {
+    let lastTime:Moment;
+    if(this.finalTime) {
+      lastTime = moment(this.finalTime);
+    } else if(this.endTime) {
+      lastTime = moment(this.endTime);
+    }
+    if(isMoment(lastTime)) {
+      return lastTime.format();
+    } else {
+      Log.w(`ReportLogistics.getLastTimeBlocked(): Could not find last time, apparently this report does not have any time recorded`);
+      return null;
+    }
+  }
+
   public getType():string {
     return this.type;
   }
-
 
   public getKeys():string[] {
     let keys:string[] = Object.keys(this);

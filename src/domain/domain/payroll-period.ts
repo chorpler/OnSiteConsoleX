@@ -1,8 +1,13 @@
 /**
  * Name: PayrollPeriod domain class
- * Vers: 6.0.0
- * Date: 2019-08-07
+ * Vers: 7.0.0
+ * Date: 2019-08-27
  * Auth: David Sargeant
+ * Logs: 7.0.0 2019-08-27: Changed createPayrollPeriodShiftsForTech() to always generate all 7 shifts; display will be handled elsewhere
+ * Logs: 6.1.3 2019-08-26: Added ReportTimeCard functionality
+ * Logs: 6.1.2 2019-08-25: Added includesDate() method
+ * Logs: 6.1.1 2019-08-25: Added getDescriptionString() method
+ * Logs: 6.1.0 2019-08-19: Added ReportMaintenance methods
  * Logs: 6.0.0 2019-08-07: Added methods to add different Report types to period
  * Logs: 5.8.1 2019-07-18: Changed how readFromDoc() method works, although this method is so far unused since PayrollPeriod is not serialized to database at all
  * Logs: 5.7.1 2019-07-17: Deleted empty getPayrollPeriodPremiumHours() method; changed all occurrences of "bonus" to "premium" for premium hours
@@ -20,23 +25,26 @@
  * Logs: 4.0.1 2017-10-16, added site_number data field
  */
 
-// import { oo               } from '../config'         ;
-// import { reportType       } from '../config'         ;
-import { Moment,          } from '../config'         ;
-import { moment           } from '../config'         ;
-import { Log              } from '../config'         ;
-import { isMoment         } from '../config'         ;
-import { _matchCLL        } from '../config'         ;
-import { _matchSite       } from '../config'         ;
-import { _sortReports     } from '../config'         ;
-import { Shift            } from './shift'           ;
-import { Employee         } from './employee'        ;
-import { Jobsite          } from './jobsite'         ;
-import { SiteScheduleType } from './jobsite'         ;
-import { Report           } from './report'          ;
-import { ReportOther      } from './reportother'     ;
-import { ReportLogistics  } from './reportlogistics' ;
-import { ReportDriving    } from './reportdriving'   ;
+// import { oo                } from '../config'           ;
+// import { reportType        } from '../config'           ;
+import { Moment,           } from '../config'           ;
+import { moment            } from '../config'           ;
+import { Log               } from '../config'           ;
+import { isMoment          } from '../config'           ;
+import { _matchCLL         } from '../config'           ;
+import { _matchSite        } from '../config'           ;
+import { _sortReports      } from '../config'           ;
+import { Shift             } from './shift'             ;
+import { Employee          } from './employee'          ;
+import { Jobsite           } from './jobsite'           ;
+import { SiteScheduleType  } from './jobsite'           ;
+import { Report            } from './report'            ;
+import { ReportOther       } from './reportother'       ;
+import { ReportLogistics   } from './reportlogistics'   ;
+import { ReportDriving     } from './reportdriving'     ;
+import { ReportMaintenance } from './reportmaintenance' ;
+import { ReportTimeCard    } from './reporttimecard'    ;
+import { ReportAny         } from './reportany'         ;
 
 export class PayrollPeriod {
   public start_date              : Moment             ;
@@ -334,7 +342,7 @@ export class PayrollPeriod {
   }
 
   public getEndDate():Moment {
-    return moment(this.end_date).startOf('day');
+    return moment(this.end_date).endOf('day');
   }
 
   public getStartDateString(format?:string):string {
@@ -349,12 +357,35 @@ export class PayrollPeriod {
     return date.format(fmt);
   }
 
+  public getDescriptionString(format?:string):string {
+    let fmt:string = typeof format === 'string' ? format : "MMM D";
+    let start:Moment = this.getStartDate();
+    let end:Moment = this.getEndDate();
+    let out:string = `${start.format(fmt)} — ${end.format(fmt)}`;
+    return out;
+  }
+
   public updateLocale(language:string) {
     this.start_date.locale(language);
     this.end_date.locale(language);
     let shifts:Shift[] = this.getPayrollShifts();
     for(let shift of shifts) {
       shift.updateLocale(language);
+    }
+  }
+
+  public includesDate(date?:Moment|Date|string):boolean {
+    let day:Moment = moment(date);
+    if(isMoment(day)) {
+      let start:Moment = this.getStartDate();
+      let end:Moment = this.getEndDate();
+      return day.isBetween(start, end, null, '[]');
+    } else {
+      let text = `PAYROLLPERIOD.includesDate(): Parameter 1 must be Date, Moment, or Moment-able string! Invalid parameter provided`;
+      Log.w(text + `:`, date);
+      let err = new Error(text);
+      throw err;
+      // return false;
     }
   }
 
@@ -409,9 +440,9 @@ export class PayrollPeriod {
       let shifts:Shift[] = [];
       for(let i = 0; i < 7; i++) {
         let tmpDay = moment(day).subtract(i, 'days');
-        if(tmpDay.isAfter(today)) {
-          continue;
-        } else {
+        // if(tmpDay.isAfter(today)) {
+        //   continue;
+        // } else {
           let techShift:SiteScheduleType = tech.shift && typeof tech.shift === 'string' ? (tech.shift.toUpperCase().trim() as SiteScheduleType) : "AM";
           // let ampm:SiteScheduleType = techShift ? techShift.trim() : "AM";
           // let ampm:SiteScheduleType = (techShift as SiteScheduleType);
@@ -441,7 +472,7 @@ export class PayrollPeriod {
           thisShift.setStartTime(shift_start_time);
           shifts.push(thisShift);
           // Log.l(`createPayrollPeriodShiftsForTech(): Now adding day ${i}: ${moment(shift_day).format()} `);
-        }
+        // }
       }
       this.shifts = shifts;
       return this.shifts;
@@ -561,7 +592,7 @@ export class PayrollPeriod {
   /**
    * Add this Report or array of Reports to the appropriate shift(s)
    *
-   * @param {(Report|Report[])} reports Report or array of Reports to add to the appropriat shift
+   * @param {(Report|Report[])} reports Report or array of Reports to add to the appropriate shift
    * @memberof PayrollPeriod
    */
   public setPeriodReports(reports:Report|Report[]) {
@@ -581,7 +612,7 @@ export class PayrollPeriod {
   /**
    * Add this ReportOther or array of ReportOthers to the appropriate shift(s)
    *
-   * @param {(ReportOther|ReportOther[])} reports ReportOther or array of ReportOthers to add to the appropriat shift
+   * @param {(ReportOther|ReportOther[])} reports ReportOther or array of ReportOthers to add to the appropriate shift
    * @memberof PayrollPeriod
    */
   public setPeriodOthers(reports:ReportOther|ReportOther[]) {
@@ -601,7 +632,7 @@ export class PayrollPeriod {
   /**
    * Add this ReportLogistics or array of ReportLogistics to the appropriate shift(s)
    *
-   * @param {(ReportLogistics|ReportLogistics[])} reports ReportLogistics or array of ReportLogistics to add to the appropriat shift
+   * @param {(ReportLogistics|ReportLogistics[])} reports ReportLogistics or array of ReportLogistics to add to the appropriate shift
    * @memberof PayrollPeriod
    */
   public setPeriodLogistics(reports:ReportLogistics|ReportLogistics[]) {
@@ -621,7 +652,7 @@ export class PayrollPeriod {
   /**
    * Add this ReportDriving or array of ReportDrivings to the appropriate shift(s)
    *
-   * @param {(ReportDriving|ReportDriving[])} reports ReportDriving or array of ReportDrivings to add to the appropriat shift
+   * @param {(ReportDriving|ReportDriving[])} reports ReportDriving or array of ReportDrivings to add to the appropriate shift
    * @memberof PayrollPeriod
    */
   public setPeriodDrivings(reports:ReportDriving|ReportDriving[]) {
@@ -637,6 +668,47 @@ export class PayrollPeriod {
       }
     }
   }
+
+  /**
+   * Add this ReportMaintenance or array of ReportMaintenances to the appropriate shift(s)
+   *
+   * @param {(ReportMaintenance|ReportMaintenance[])} reports ReportMaintenance or array of ReportMaintenances to add to the appropriate shift
+   * @memberof PayrollPeriod
+   */
+  public setPeriodMaintenances(reports:ReportMaintenance|ReportMaintenance[]) {
+    if(reports instanceof ReportMaintenance) {
+      reports = [ reports ];
+    }
+    // let shifts = this.getPayrollShifts();
+    for(let report of reports) {
+      let report_date = report.getReportDateString();
+      let shift = this.getShiftForDate(report_date);
+      if(shift) {
+        shift.addMaintenanceReport(report);
+      }
+    }
+  }
+
+  /**
+   * Add this ReportTimeCard or array of ReportTimeCards to the appropriate shift(s)
+   *
+   * @param {(ReportTimeCard|ReportTimeCard[])} reports ReportTimeCard or array of ReportTimeCards to add to the appropriate shift
+   * @memberof PayrollPeriod
+   */
+  public setPeriodTimeCards(reports:ReportTimeCard|ReportTimeCard[]) {
+    if(reports instanceof ReportTimeCard) {
+      reports = [ reports ];
+    }
+    // let shifts = this.getPayrollShifts();
+    for(let report of reports) {
+      let report_date = report.getReportDateString();
+      let shift = this.getShiftForDate(report_date);
+      if(shift) {
+        shift.addTimeCardReport(report);
+      }
+    }
+  }
+
 
   public getKeys():string[] {
     return Object.keys(this);

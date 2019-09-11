@@ -1,8 +1,9 @@
 /**
  * Name: Geolocation domain class and related interfaces/classes
- * Vers: 5.5.1
- * Date: 2019-08-06
+ * Vers: 5.6.0
+ * Date: 2019-08-22
  * Auth: David Sargeant
+ * Logs: 5.6.0 2019-08-22: Changed OnSiteCoordinates() to work from ILatLng also; added updateTo() method to OnSiteGeolocation,OnSiteGeoposition
  * Logs: 5.5.1 2019-08-06: Default latitude and longitude is now pulled from DEFAULT_LATITUDE and DEFAULT_LONGITUDE
  * Logs: 5.4.3 2019-08-02: Added isLocation() function after classes; changed negative speed to 0
  * Logs: 5.4.2 2019-07-30: Added equals() methods to OnSiteCoordinates, OnSiteGeoposition, OnSiteGeolocation
@@ -174,8 +175,8 @@ class OnSiteCoordinates implements ICoordinates {
 
   constructor(doc?:ICoordinates|Coordinates|OnSiteCoordinates|any) {
     if(doc) {
-      this.latitude         = doc.latitude         != undefined ? doc.latitude         : this.latitude         ;
-      this.longitude        = doc.longitude        != undefined ? doc.longitude        : this.longitude        ;
+      this.latitude         = doc.latitude         != undefined ? doc.latitude         : doc.lat != undefined ? doc.lat : this.latitude         ;
+      this.longitude        = doc.longitude        != undefined ? doc.longitude        : doc.lon != undefined ? doc.lon : doc.lng != undefined ? doc.lng : this.longitude        ;
       this.accuracy         = doc.accuracy         != undefined ? doc.accuracy         : this.accuracy         ;
       this.altitude         = doc.altitude         != undefined ? doc.altitude         : this.altitude         ;
       this.altitudeAccuracy = doc.altitudeAccuracy != undefined ? doc.altitudeAccuracy : this.altitudeAccuracy ;
@@ -267,7 +268,7 @@ class OnSiteGeoposition implements IPosition {
       return this.coords.equals(pos);
     } else {
       let className = this.getClassName();
-      Log.w(`${className}(): parameter must be OnSiteGeoposition, OnSiteCoordinates, or ILatLng object. Invalid parameter provided:`, position);
+      Log.w(`${className}.equals(): parameter must be OnSite position, coordinates, or ILatLng object. Invalid parameter provided:`, position);
       return false;
     }
   }
@@ -278,6 +279,35 @@ class OnSiteGeoposition implements IPosition {
     let doc    = { coords: coords, timestamp: ts };
     let newpos = new OnSiteGeoposition(doc);
     return newpos;
+  }
+
+  public updateTo(position:OnSiteGeoposition|OnSiteCoordinates|ILatLng):OnSiteGeoposition {
+    let coords:ILatLng;
+    let pos:any = position;
+    if(pos.coords && pos.coords.latitude != undefined) {
+      coords = pos.coords;
+      this.coords = new OnSiteCoordinates(coords);
+    } else if(pos.latitude != undefined && pos.longitude != undefined) {
+      coords = pos;
+      this.coords = new OnSiteCoordinates(coords);
+    } else if(pos.lat != undefined && pos.lng != undefined) {
+      coords = pos;
+      this.coords = new OnSiteCoordinates(coords);
+    } else {
+      let className = this.getClassName();
+      Log.w(`${className}.updateTo(): parameter must be OnSite position, coordinates, or ILatLng object. Invalid parameter provided:`, position);
+      return null;
+    }
+    if(pos.timestamp != undefined) {
+      let ts = Number(pos.timestamp);
+      this.timestamp = ts;
+    }
+    return this;
+    // let coords = new OnSiteCoordinates(this.coords);
+    // let ts     = Number(this.timestamp);
+    // let doc    = { coords: coords, timestamp: ts };
+    // let newloc = new OnSiteGeolocation(doc);
+    // return newloc;
   }
 
   public toLatLng():ILatLng {
@@ -407,7 +437,7 @@ class OnSiteGeolocation extends OnSiteGeoposition {
       return this.coords.equals(pos);
     } else {
       let className = this.getClassName();
-      Log.w(`${className}(): parameter must be OnSite position, coordinates, or ILatLng object. Invalid parameter provided:`, position);
+      Log.w(`${className}.equals(): parameter must be OnSite position, coordinates, or ILatLng object. Invalid parameter provided:`, position);
       return false;
     }
   }
@@ -418,6 +448,35 @@ class OnSiteGeolocation extends OnSiteGeoposition {
     let doc    = { coords: coords, timestamp: ts };
     let newloc = new OnSiteGeolocation(doc);
     return newloc;
+  }
+
+  public updateTo(position:OnSiteGeolocation|OnSiteGeoposition|OnSiteCoordinates|ILatLng):OnSiteGeolocation {
+    let coords:ILatLng;
+    let pos:any = position;
+    if(pos.coords && pos.coords.latitude != undefined) {
+      coords = pos.coords;
+      this.coords = new OnSiteCoordinates(coords);
+    } else if(pos.latitude != undefined && pos.longitude != undefined) {
+      coords = pos;
+      this.coords = new OnSiteCoordinates(coords);
+    } else if(pos.lat != undefined && pos.lng != undefined) {
+      coords = pos;
+      this.coords = new OnSiteCoordinates(coords);
+    } else {
+      let className = this.getClassName();
+      Log.w(`${className}.updateTo(): parameter must be OnSite position, coordinates, or ILatLng object. Invalid parameter provided:`, position);
+      return null;
+    }
+    if(pos.timestamp != undefined) {
+      let ts = Number(pos.timestamp);
+      this.timestamp = ts;
+    }
+    return this;
+    // let coords = new OnSiteCoordinates(this.coords);
+    // let ts     = Number(this.timestamp);
+    // let doc    = { coords: coords, timestamp: ts };
+    // let newloc = new OnSiteGeolocation(doc);
+    // return newloc;
   }
 
   public getCoordinatesAsString(decimalPlaces?:number):string {

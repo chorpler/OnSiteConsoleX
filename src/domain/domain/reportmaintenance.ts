@@ -1,17 +1,14 @@
 /**
- * Name: ReportDriving domain class
- * Vers: 1.2.2
+ * Name: ReportMaintenance domain class
+ * Vers: 1.1.2
  * Date: 2019-08-30
  * Auth: David Sargeant
- * Logs: 1.2.2 2019-08-30: Added check at end of deserialize() method to add notes fields to trip portions if they don't exist
- * Logs: 1.2.1 2019-08-22: Added getTotalTimeStringHoursMinutes() method
- * Logs: 1.2.0 2019-08-20: Added getLastTimeBlocked() method
- * Logs: 1.1.1 2019-08-13: Added getLatestTripPortion(),getLatestTrip(),getLatestEngineHours(),getLatestMiles() methods
- * Logs: 1.1.0 2019-08-13: Added getTripCount(),getTripCountExact() methods; fixed bug in deserialize() where JSON locations were not getting re-created as OnSiteGeolocation objects
- * Logs: 1.0.3 2019-08-08: Added getType() method, non-static createTripPoint() method
- * Logs: 1.0.2 2019-08-06: Added isTripActive() method
- * Logs: 1.0.1 2019-08-05: Added getTotalRunningTime(),getTotalRunningTimeString() methods
- * Logs: 1.0.0 2019-08-01: Initial creation, copied from ReportLogistics
+ * Logs: 1.1.2 2019-08-30: Added check at end of deserialize() method to add a notes field if one does not exist
+ * Logs: 1.1.1 2019-08-22: Added getTotalTimeStringHoursMinutes() method
+ * Logs: 1.1.0 2019-08-20: Added getLastTimeBlocked() method
+ * Logs: 1.0.2 2019-08-19: Added optional time parameter to endTask() method
+ * Logs: 1.0.1 2019-08-19: Added startTask(),endTask() methods; Added more types; Added static properties for words
+ * Logs: 1.0.0 2019-08-16: Initial creation, derived from ReportMaintenance
  */
 
 // import { roundToNearest    } from '../config'              ;
@@ -21,10 +18,10 @@
 import { sprintf           } from 'sprintf-js'             ;
 import { Log               } from '../config'              ;
 import { Moment            } from '../config'              ;
-import { Duration          } from '../config'              ;
 import { isMoment          } from '../config'              ;
 import { moment            } from '../config'              ;
 import { roundUpToNearest  } from '../config'              ;
+import { validateVIN       } from '../config'              ;
 import { isNumber          } from '../config'              ;
 import { oo                } from '../config'              ;
 import { Employee          } from './employee'             ;
@@ -38,65 +35,46 @@ import { isLocation        } from './geolocation'          ;
 // export type LogisticsLocationType = "from"|"to"|"final";
 // export type LogisticsAllType = LogisticsType | LogisticsLocationType;
 
-export interface DrivingTripMiles {
-  start : number;
-  end  ?: number;
+export type MaintenanceTaskType = "mechanical"|"electronic";
+export type MechanicalWord = string;
+export type ElectronicWord = string;
+export type MaintenanceVerb = string;
+export type NounAny = MechanicalWord|ElectronicWord;
+export type WordAny = MechanicalWord|ElectronicWord|MaintenanceVerb;
+export type MechanicalWords = MechanicalWord[];
+export type ElectronicWords = ElectronicWord[];
+export type MaintenanceNouns = Array<MechanicalWord|ElectronicWord>;
+export type MaintenanceVerbs = MaintenanceVerb[];
+export type TaskNouns = MechanicalWords|ElectronicWords;
+export type TaskVerbs = MaintenanceVerbs;
+export type WordsAny = Array<MechanicalWord|ElectronicWord|MaintenanceVerb>;
+
+export interface MaintenanceTask {
+  type   : MaintenanceTaskType;
+  noun   : NounAny;
+  verb   : MaintenanceVerb;
+  start  : string;
+  end    : string;
+  techs  : string[];
+  notes ?: string;
 }
-export type DrivingTripMilesList = DrivingTripMiles[];
 
-export interface DrivingTimes {
-  start : string ;
-  end  ?: string ;
-}
-export type DrivingTimesList = DrivingTimes[];
+export type MaintenanceTasks = MaintenanceTask[];
 
-export interface DrivingTripLocations {
-  start : OnSiteGeolocation;
-  end  ?: OnSiteGeolocation;
-}
-export type DrivingTripLocationsList = DrivingTripLocations[];
-
-export interface DrivingTripPart {
-  miles: DrivingTripMiles;
-  times: DrivingTripMiles;
-  locations: DrivingTripLocations;
-}
-
-export interface DrivingTripPoint {
-  miles    ?: number;
-  hours    ?: number;
-  time     ?: string;
-  location ?: OnSiteGeolocation;
-}
-export type DrivingTripPoints = DrivingTripPoint[];
-
-export interface DrivingTripPortion {
-  start : DrivingTripPoint;
-  end  ?: DrivingTripPoint;
-  notes?: string;
-}
-export type DrivingTripPortions = DrivingTripPortion[];
-
-// const createTripPoint = ({miles = 0, time = "", location = new OnSiteGeolocation()}:DrivingTripPoint={}):DrivingTripPoint => {
-// const createTripPoint = (miles?:number, hours?:number, time?:string|Moment|Date, location?:OnSiteGeolocation):DrivingTripPoint => {
-//   let mil = typeof miles === 'number' ? miles : 0;
-//   let hrs = typeof hours === 'number' ? hours : 0;
-//   let tim = typeof time === 'string' ? time : time instanceof Date || isMoment(time) ? moment(time).format() : "";
-//   let loc = isLocation(location) ? new OnSiteGeolocation(location) : new OnSiteGeolocation();
-//   let trip:DrivingTripPoint = {
-//     miles: mil,
-//     hours: hrs,
-//     time: tim,
-//     location: loc,
-//   };
-//   return trip;
-// }
-
-export class ReportDriving {
-  public static VIN_SAMPLE="2GNAXMEV5J6113339";
+export class ReportMaintenance {
+  public static MWORDS : MechanicalWords;
+  public static EWORDS : ElectronicWords;
+  public static VERBS  : MaintenanceVerbs;
+  public get MWORDS():MechanicalWords { return ReportMaintenance.MWORDS; }
+  public get EWORDS():ElectronicWords { return ReportMaintenance.EWORDS; }
+  public get VERBS():MaintenanceVerbs { return ReportMaintenance.VERBS; }
+  public set MWORDS(val:MechanicalWords) { ReportMaintenance.MWORDS = val; }
+  public set EWORDS(val:ElectronicWords) { ReportMaintenance.EWORDS = val; }
+  public set VERBS(val:MaintenanceVerbs) { ReportMaintenance.VERBS = val; }
+  // public get NOUNS():MechanicalWords|ElectronicWords { if(this.type ==)}
   public _id              : string = "";
   public _rev             : string = "";
-  public type             : string = "driving";
+  public type             : string = "maintenance";
   public notes            : string = "";
   public report_date      : string = "";
   public username         : string = "";
@@ -110,39 +88,46 @@ export class ReportDriving {
   public locID            : string = "";
   public locAux           : string = "";
 
-  public trips            : DrivingTripPortions = [];
+  public vin              : string = "";
+  public unit_number      : string = "";
+  public mileage          : number = 0;
+  public engine_hours     : number = 0;
+
+  public tasks            : MaintenanceTasks = [];
 
   public flagged          : boolean = false;
   public flagged_fields   : ReportFlag[] = [];
-
-  public vin              : string = "";
-  public unit_number      : string = "";
-
   public isTest           : boolean = false;
 
   constructor(possibleDoc?:any) {
+    if(!Array.isArray(ReportMaintenance.MWORDS)) {
+      ReportMaintenance.MWORDS = [];
+    }
+    if(!Array.isArray(ReportMaintenance.EWORDS)) {
+      ReportMaintenance.EWORDS = [];
+    }
+    if(!Array.isArray(ReportMaintenance.VERBS)) {
+      ReportMaintenance.VERBS = [];
+    }
     if(possibleDoc) {
       return this.deserialize(possibleDoc);
     }
   }
 
-  public static createTripPoint(miles?:number, hours?:number, time?:string|Moment|Date, location?:OnSiteGeolocation):DrivingTripPoint {
-    let mil = typeof miles === 'number' ? miles : 0;
-    let hrs = typeof hours === 'number' ? hours : 0;
-    let tim = typeof time === 'string' ? time : time instanceof Date || isMoment(time) ? moment(time).format() : "";
-    let loc = isLocation(location) ? new OnSiteGeolocation(location) : new OnSiteGeolocation();
-    let point:DrivingTripPoint = {
-      miles: mil,
-      hours: hrs,
-      time: tim,
-      location: loc,
+  public static createMaintenanceTask({type="mechanical",noun="",verb="",start="", end="",notes="",techs=[]}:MaintenanceTask|null|undefined):MaintenanceTask {
+    let record:MaintenanceTask = {
+      type  : type   ,
+      noun  : noun   ,
+      verb  : verb   ,
+      start : start  ,
+      end   : end    ,
+      notes : notes  ,
+      techs : techs  ,
     };
-    return point;
+    return record;
   }
 
-  public createTripPoint(miles?:number, hours?:number, time?:string|Moment|Date, location?:OnSiteGeolocation):DrivingTripPoint {
-    return ReportDriving.createTripPoint(miles, hours, time, location);
-  }
+  public createMaintenanceTask = ReportMaintenance.createMaintenanceTask;
 
   // public static roundToNearest(value:number, roundToNearest?:number):number {
   //   let RTN = !isNaN(Number(roundToNearest)) ? Number(roundToNearest) : 1;
@@ -153,22 +138,14 @@ export class ReportDriving {
   //   return out;
   // }
 
-  public deserialize(doc:any):ReportDriving {
-    // let len = fields.length;
-    // for(let i = 0; i < len; i++) {
-      // let key  = fields[i];
-      // this[key] = doc[key] ? doc[key] : this[key];
-    // }
+  public deserialize(doc:any):ReportMaintenance {
     let docKeys = Object.keys(doc);
     let classKeys = Object.keys(this);
     for(let key of docKeys) {
       let lcKey:string = key.toLowerCase();
       let value:any = doc[key];
       if(classKeys.indexOf(key) > -1) {
-        if(key === 'futureSpecialKey') {
-        // } else if(key === 'report_dateM') {
-        // } else if(key === 'timestampM') {
-        } else if(lcKey === 'trips') {
+        if(lcKey === 'tasks') {
           this[key] = doc[key];
         } else if(lcKey.includes('location')) {
           if(value && value.coords != undefined && value.timestamp != undefined) {
@@ -177,44 +154,31 @@ export class ReportDriving {
           } else {
             this[key] = value;
           }
+        } else if(key === 'futureSpecialKey') {
         } else {
           this[key] = doc[key];
         }
       }
     }
-    // this.report_dateM = moment(this.report_date, "YYYY-MM-DD");
-    // let tsM:Moment = moment.fromExcel(this.timestamp);
-    // let strTS =
-    // this.timestampM = moment(tsM);
-    // this.report_date = moment(this.report_date, "YYYY-MM-DD");
-    // this.timestampM  = moment(this.timestampM);
-    if(Array.isArray(this.trips) && this.trips.length > 0) {
-      for(let portion of this.trips) {
-        if(typeof portion.notes === 'undefined') {
-          portion.notes = "";
-        }
-        let start = portion.start;
-        let end = portion.end;
-        if(start && start.location) {
-          start.location = new OnSiteGeolocation(start.location);
-        }
-        if(end && end.location) {
-          end.location = new OnSiteGeolocation(end.location);
+    if(Array.isArray(this.tasks)) {
+      for(let task of this.tasks) {
+        if(typeof task.notes === 'undefined') {
+          task.notes = "";
         }
       }
     }
     return this;
   }
 
-  public static deserialize(doc:any):ReportDriving {
-    let report:ReportDriving = new ReportDriving(doc);
+  public static deserialize(doc:any):ReportMaintenance {
+    let report:ReportMaintenance = new ReportMaintenance(doc);
     return report;
   }
 
   public serialize():any {
-    Log.l("ReportDriving.serialize(): Now serializing report …");
+    Log.l("ReportMaintenance.serialize(): Now serializing report …");
     // let ts = moment(this.timestamp);
-    // Log.l("ReportDriving.serialize(): timestamp moment is now:\n", ts);
+    // Log.l("ReportMaintenance.serialize(): timestamp moment is now:\n", ts);
     // let XLDate = moment([1900, 0, 1]);
     // let xlStamp = ts.diff(XLDate, 'days', true) + 2;
     // this.timestamp = xlStamp;
@@ -222,10 +186,13 @@ export class ReportDriving {
     // this._id = this._id || this.genReportID(tech);
     let keys:string[] = this.getKeys();
     for(let key of keys) {
+      let value = this[key];
       if(key === '_rev') {
         if(this[key]) {
           doc[key] = this[key];
         }
+      } else if(typeof value === 'function') {
+        continue;
       } else if(key === 'timestampM') {
         // doc[key] = this[key].format();
         doc[key] = this[key];
@@ -233,30 +200,29 @@ export class ReportDriving {
         // doc[key] = this[key].format();
         doc[key] = this[key];
       } else {
-        let value:any = this[key];
         if(value && typeof value.isOnSite === 'function' && value.isOnSite() && typeof value.toJSON === 'function' && value.toJSON()) {
           doc[key] = value.toJSON();
         } else if(value != undefined) {
           doc[key] = this[key];
         } else {
-          Log.w(`ReportDriving.serialize(): property '${key}' does not exist`);
+          Log.w(`ReportMaintenance.serialize(): property '${key}' does not exist`);
         }
       }
     }
     if(doc._rev === "") {
       delete doc._rev;
     }
-    Log.l(`ReportDriving.serialize(): Serialized report is:`, doc);
+    Log.l(`ReportMaintenance.serialize(): Serialized report is:`, doc);
     return doc;
   }
 
-  public clone():ReportDriving {
+  public clone():ReportMaintenance {
     // let doc:any = this.serialize();
     // let doc:any = this.serialize();
     let newDoc:any = oo.clone(this);
-    // return ReportDriving.deserialize(newDoc);
-    return new ReportDriving(newDoc);
-    // let newRL:ReportDriving = new ReportDriving();
+    // return ReportMaintenance.deserialize(newDoc);
+    return new ReportMaintenance(newDoc);
+    // let newRL:ReportMaintenance = new ReportMaintenance();
     // let keys:string[] = Object.keys(this);
     // for(let key of keys) {
     //   if(isMoment(this[key])) {
@@ -283,21 +249,23 @@ export class ReportDriving {
       let localNow = moment(now).locale(i8nCode);
       let idDateTime = localNow.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
       let docID:string = `${username}_${idDateTime}`;
-      Log.l("REPORTDRIVING.genReportID(): Generated ID:", docID);
+      Log.l("REPORTMAINTENANCE.genReportID(): Generated ID:", docID);
       if(!this._id) {
         this._id = docID;
       }
       return docID;
     } else {
-      let errText:string = `REPORTDRIVING.genReportID(): No username found and no Employee object provided as parameter 1, cannot generate ID!`;
+      let errText:string = `REPORTMAINTENANCE.genReportID(): No username found and no Employee object provided as parameter 1, cannot generate ID!`;
       Log.e(errText + ":", this);
       throw new Error(errText);
     }
   }
 
-  public setTimeStamp(datetime:string|Moment|Date):string {
+  public setTimeStamp(datetime?:string|Moment|Date):string {
     let ts:Moment, datetimeXL:number, strDateTime:string;
-    if(typeof datetime === 'string') {
+    if(!datetime) {
+      ts = moment();
+    } else if(typeof datetime === 'string') {
       ts = moment(datetime, "YYYY-MM-DDTHH:mm:ssZ", true);
     } else if(isMoment(datetime) || datetime instanceof Date) {
       ts = moment(datetime);
@@ -306,7 +274,7 @@ export class ReportDriving {
       datetimeXL = ts.toExcel(true);
       strDateTime = ts.format();
     } else {
-      Log.w(`ReportDriving.setTimeStamp(): Parameter 1 must be Moment, Date, or string in 'YYYY-MM-DDTHH:mm:ssZ' format. Invalid input:\n`, datetime);
+      Log.w(`ReportMaintenance.setTimeStamp(): Parameter 1 must be Moment, Date, or string in 'YYYY-MM-DDTHH:mm:ssZ' format, or empty. Invalid input:`, datetime);
       return null;
     }
     this.timestamp = datetimeXL;
@@ -314,11 +282,11 @@ export class ReportDriving {
     return strDateTime;
   }
 
-  public initializeReportDriving(tech:Employee, site:Jobsite, reportDate?:Date|Moment):ReportDriving {
-    let report:ReportDriving = this;
+  public initialize(tech:Employee, site:Jobsite, reportDate?:Date|Moment):ReportMaintenance {
+    let report:ReportMaintenance = this;
     let date:Moment = reportDate != undefined ? moment(reportDate) : moment();
     if(!isMoment(date)) {
-      Log.w(`ReportDriving.initializeReportDriving(): reportDate was provided but was not a valid Date or Moment:\n`, reportDate);
+      Log.w(`ReportMaintenance.initialize(): reportDate was provided but was not a valid Date or Moment:\n`, reportDate);
       return null;
     }
     if(tech instanceof Employee && site instanceof Jobsite) {
@@ -330,7 +298,7 @@ export class ReportDriving {
       // report.setTimeStamp(now);
       this.genReportID(tech);
     } else {
-      Log.w(`ReportDriving.initializeReportDriving(): Must be provided valid Employee and Jobsite objects. These were:`);
+      Log.w(`ReportMaintenance.initialize(): Must be provided valid Employee and Jobsite objects. These were:`);
       Log.l(tech);
       Log.l(site);
       /* Panic at the disco */
@@ -338,9 +306,9 @@ export class ReportDriving {
     return report;
   }
 
-  public setSite(site:Jobsite):ReportDriving {
+  public setSite(site:Jobsite):ReportMaintenance {
     if(!(site instanceof Jobsite)) {
-      Log.w(`ReportDriving.setSite(): Parameter 1 must be Jobsite object. This is:\n`, site);
+      Log.w(`ReportMaintenance.setSite(): Parameter 1 must be Jobsite object. Invalid parameter:`, site);
       return null;
     } else {
       let cli:string = site.client && typeof site.client.name === 'string' ? site.client.name.toUpperCase() : "";
@@ -364,12 +332,12 @@ export class ReportDriving {
    * Sets user-related fields in the report
    *
    * @param {Employee} tech The Employee object to use
-   * @returns {ReportDriving} The entire report
-   * @memberof ReportDriving
+   * @returns {ReportMaintenance} The entire report
+   * @memberof ReportMaintenance
    */
-  public setUser(tech:Employee):ReportDriving {
+  public setUser(tech:Employee):ReportMaintenance {
     if(!(tech instanceof Employee)) {
-      Log.w(`ReportDriving.setUser(): Parameter 1 must be Employee object. Invalid parameter:`, tech);
+      Log.w(`ReportMaintenance.setUser(): Parameter 1 must be Employee object. Invalid parameter:`, tech);
       return null;
     } else {
       let username:string = tech.getUsername();
@@ -382,6 +350,46 @@ export class ReportDriving {
     }
   }
 
+  public startTask(type:MaintenanceTaskType, noun:NounAny, verb:MaintenanceVerb, time?:Date|Moment|string):MaintenanceTasks {
+    if(this.isTaskActive()) {
+      Log.w(`ReportMaintenance.startTask(): Task already started and not ended. Please end current task first.`);
+      return null;
+    }
+    let datetime = moment(time);
+    if(!isMoment(time)) {
+      datetime = moment();
+    }
+    let techs:string[] = [
+      this.username,
+    ];
+    let task:MaintenanceTask = {
+      type: type,
+      noun: noun,
+      verb: verb,
+      start: datetime.format(),
+      end: "",
+      techs: techs,
+      notes: "",
+    };
+    let newTask = this.createMaintenanceTask(task);
+    this.tasks.push(newTask);
+    return this.tasks;
+  }
+
+  public endTask(time?:Date|Moment|string):MaintenanceTasks {
+    let datetime = moment(time);
+    if(!isMoment(datetime)) {
+      datetime = moment();
+    }
+    if(!this.isTaskActive()) {
+      Log.w(`ReportMaintenance.endTask(): No task is active, please start a task first.`);
+      return null;
+    }
+    let task = this.getLatestTask();
+    task.end = datetime.format();
+    return this.tasks;
+  }
+
   public get flags():number {
     return this.flagged_fields && this.flagged_fields.length ? this.flagged_fields.length : 0;
   }
@@ -390,7 +398,7 @@ export class ReportDriving {
     if(this.flagged_fields && this.flagged_fields.length > value) {
       return this.flagged_fields[value];
     } else {
-      Log.w(`ReportDriving.getFlagNumber(): Attempted to access flag '${value}' but flagged_fields has only ${this.flagged_fields.length} elements!`);
+      Log.w(`ReportMaintenance.getFlagNumber(): Attempted to access flag '${value}' but flagged_fields has only ${this.flagged_fields.length} elements!`);
       return null;
     }
   }
@@ -410,7 +418,7 @@ export class ReportDriving {
     }
     let keys = Object.keys(this);
     if(keys.indexOf(field) === -1 && field !== 'manual') {
-      Log.w(`ReportDriving.isFieldFlagged(): no such field '${field}'!`);
+      Log.w(`ReportMaintenance.isFieldFlagged(): no such field '${field}'!`);
     }
     return false;
   }
@@ -468,7 +476,7 @@ export class ReportDriving {
       // this.report_dateM = reportDate;
       return strDate;
     } else {
-      Log.w(`ReportDriving.setReportDate(): Parameter 1 must be a Moment, Date, or string with format 'YYYY-MM-DD'. Invalid input:\n`, date);
+      Log.w(`ReportMaintenance.setReportDate(): Parameter 1 must be a Moment, Date, or string with format 'YYYY-MM-DD'. Invalid input:`, date);
       return "";
     }
   }
@@ -482,7 +490,7 @@ export class ReportDriving {
    *
    * @param {string} [format] Optional Moment.js formatting string to use
    * @returns {string} Report date as string
-   * @memberof ReportDriving
+   * @memberof ReportMaintenance
    */
   public getReportDateString(format?:string):string {
     let fmt = format && typeof format === 'string' ? format : "YYYY-MM-DD";
@@ -490,6 +498,12 @@ export class ReportDriving {
     return date.format(fmt);
   }
 
+  /**
+   * Returns report date as a Moment.js object
+   *
+   * @returns {Moment} Report date as a new Moment.js object
+   * @memberof ReportMaintenance
+   */
   public getReportDateMoment():Moment {
     let date:string = this.getReportDate();
     let mo:Moment = moment(date, "YYYY-MM-DD", true);
@@ -497,87 +511,39 @@ export class ReportDriving {
       // this.report_dateM = moment(mo);
       return mo;
     } else {
-      Log.l(`ReportDriving.getReportDateMoment(): Could not find valid report date to return as Moment! Report date is:`, this.report_date);
+      Log.l(`ReportMaintenance.getReportDateMoment(): Could not find valid report date to return as Moment! Report date is:`, this.report_date);
       return null;
     }
   }
 
   /**
-   * Starts a trip
-   *
-   * @param {number} [miles=0]
-   * @param {(string|Moment|Date)} [time=""]
-   * @param {OnSiteGeolocation} [location=new OnSiteGeolocation()]
-   * @returns {DrivingTripPortions}
-   * @memberof ReportDriving
-   */
-  public startTrip(miles?:number, hours?:number, time?:string|Moment|Date, location?:OnSiteGeolocation):DrivingTripPortions {
-    let time1:string = moment(time).format();
-    Log.l(`ReportDriving.startTrip(): Trip started. Miles, hours, time, and location:`, miles, hours, time1, location);
-    let portion:DrivingTripPortion;
-    if(this.isTripActive()) {
-      Log.w(`ReportDriving.startTrip(): Trip already started and not ended. Please end current trip first.`);
-      return null;
-    }
-    portion = {
-      start: null,
-      notes: "",
-    };
-    let point = this.createTripPoint(miles, hours, time, location);
-    portion.start = point;
-    this.trips.push(portion);
-    Log.l(`ReportDriving.startTrip(): Trip started successfully, report is now:`, this.clone());
-    return this.trips;
-  }
-
-  /**
-   * Ends a trip
-   *
-   * @param {number} [miles=0]
-   * @param {(string|Moment|Date)} [time=""]
-   * @param {OnSiteGeolocation} [location=new OnSiteGeolocation()]
-   * @returns {DrivingTripPortions}
-   * @memberof ReportDriving
-   */
-  public endTrip(miles?:number, hours?:number, time?:string|Moment|Date, location?:OnSiteGeolocation):DrivingTripPortions {
-    let time1:string = moment(time).format();
-    Log.l(`ReportDriving.endTrip(): Trip ending. Miles, hours, time, and location:`, miles, hours, time1, location);
-    let portion:DrivingTripPortion;
-    let lastPortion = this.getLatestTrip();
-    if(lastPortion) {
-      portion = lastPortion;
-      if(portion.end != undefined) {
-        Log.w(`ReportDriving.endTrip(): Last trip has been ended already, please start a new trip first`);
-        return null;
-      } else {
-        let point = this.createTripPoint(miles, hours, time, location);
-        portion.end = point;
-        Log.l(`ReportDriving.endTrip(): Trip ended successfully, report is now:`, this.clone());
-        return this.trips;
-      }
-    } else {
-      Log.w(`ReportDriving.endTrip(): No trip has been started, cannot end trip`);
-      return null;
-    }
-  }
-
-  /**
-   * Get total miles for trips in this report
+   * Get total hours for a task
    *
    * @returns {number}
-   * @memberof ReportDriving
+   * @memberof ReportMaintenance
    */
-  public getTotalMiles():number {
+  public getTaskHours(task:MaintenanceTask):number {
+    let start = moment(task.start);
+    let end = moment(task.end);
+    if(isMoment(start) && isMoment(end)) {
+      return end.diff(start, 'hours', true);
+    } else {
+      Log.w(`ReportMaintenance.getTaskHours(): Could not get hours for task:`, task);
+      return 0;
+    }
+  }
+
+  /**
+   * Get total hours spent on this report
+   *
+   * @returns {number}
+   * @memberof ReportMaintenance
+   */
+  public getTotalWorkHours():number {
     let total = 0;
-    for(let portion of this.trips) {
-      if(portion.start == undefined || portion.end == undefined) {
-        continue;
-      } else {
-        let start = Number(portion.start.miles);
-        let end = Number(portion.end.miles);
-        let miles = end - start;
-        total += miles;
-      }
+    for(let task of this.tasks) {
+      let duration = this.getTaskHours(task);
+      total += duration;
     }
     return total;
   }
@@ -587,9 +553,9 @@ export class ReportDriving {
    * If a trip is currently started, includes current elapsed time.
    * @param unitOfTime A string that is part of the Moment.unitOfTime.Diff type ('hours', 'minutes', 'seconds', etc.)
    * @param [roundToNearest] Number of minutes to round to nearest; 15 will round to nearest quarter-hour
-   * @memberof ReportDriving
+   * @memberof ReportMaintenance
    */
-  public getTotalRunningTime(unitOfTime?:moment.unitOfTime.Diff|number, roundToNearest?:number):number {
+  public getTotalRunningWorkHours(unitOfTime?:moment.unitOfTime.Diff|number, roundToNearest?:number):number {
     let now:Moment = moment();
     let hours:number = 0;
     let units:moment.unitOfTime.Diff = 'hours' as moment.unitOfTime.Diff;
@@ -603,19 +569,19 @@ export class ReportDriving {
     if(typeof roundToNearest === 'number') {
       round = roundToNearest;
     }
-    for(let portion of this.trips) {
+    for(let task of this.tasks) {
       let start:Moment, end:Moment;
-      if(portion.end == undefined) {
+      if(task.end == undefined) {
         end = moment(now);
       } else {
-        end = moment(portion.end.time);
+        end = moment(task.end);
       }
-      start = moment(portion.start.time);
+      start = moment(task.start);
       if(isMoment(end) && isMoment(start)) {
         let hrs:number = end.diff(start, units, true);
         hours += hrs;
       } else {
-        Log.w(`ReportDriving.getTotalRunningTime(): Invalid time found in portion:`, portion);
+        Log.w(`ReportMaintenance.getTotalRunningWorkHours(): Invalid time found in task:`, task);
       }
     }
     return hours;
@@ -626,10 +592,10 @@ export class ReportDriving {
    *
    * @param {number} [seconds] If provided, format this number of seconds instead of the total time
    * @returns {string} Time string of the format HH:mm:ss
-   * @memberof ReportDriving
+   * @memberof ReportMaintenance
    */
-  public getTotalRunningTimeString(seconds?:number):string {
-    let total:number = seconds != undefined ? seconds : this.getTotalRunningTime('seconds');
+  public getTotalRunningWorkHoursString(seconds?:number):string {
+    let total:number = seconds != undefined ? seconds : this.getTotalRunningWorkHours('seconds');
     let hrs:number = Math.trunc(total / 3600);
     let min:number = Math.trunc((total/60) - (hrs*60));
     let sec:number = Math.round(total - (hrs * 3600) - (min * 60));
@@ -639,13 +605,12 @@ export class ReportDriving {
 
   /**
    * Gets the total recorded time for this report, in specified units ('hours' by default).
-   * Currently started trips not included.
-   * @param [unitOfTime] A string that is part of the Moment.unitOfTime.Diff type ('hours', 'minutes', 'seconds', etc.)
+   * Currently started (but not ended) tasks not included.
+   * @param unitOfTime A string that is part of the Moment.unitOfTime.Diff type ('hours', 'minutes', 'seconds', etc.)
    * @param [roundToNearest] Number of minutes to round to nearest; 15 will round to nearest quarter-hour
-   * @memberof ReportDriving
+   * @memberof ReportMaintenance
    */
   public getTotalTime(unitOfTime?:moment.unitOfTime.Diff|number, roundToNearest?:number):number {
-    // let now:Moment = moment();
     let hours:number = 0;
     let units:moment.unitOfTime.Diff = 'hours' as moment.unitOfTime.Diff;
     let round:number = 1;
@@ -658,24 +623,24 @@ export class ReportDriving {
     if(typeof roundToNearest === 'number') {
       round = roundToNearest;
     }
-    for(let portion of this.trips) {
+    for(let task of this.tasks) {
       let start:Moment, end:Moment;
-      if(portion.end == undefined) {
+      if(task.end == undefined) {
         continue;
       } else {
-        end = moment(portion.end.time);
+        end = moment(task.end);
       }
-      start = moment(portion.start.time);
+      start = moment(task.start);
       if(isMoment(end) && isMoment(start)) {
         let hrs:number = end.diff(start, units, true);
         hours += hrs;
       } else {
-        Log.w(`ReportDriving.getTotalTime(): Invalid time found in portion:`, portion);
+        Log.w(`ReportMaintenance.getTotalTime(): Invalid time found in portion:`, task);
       }
     }
     if(round) {
       let mins = hours * 60;
-      // mins = ReportDriving.roundToNearest(hours, round);
+      // mins = ReportMaintenance.roundToNearest(hours, round);
       mins = roundUpToNearest(mins, round);
       let hrs = mins / 60;
       hours = hrs;
@@ -684,11 +649,11 @@ export class ReportDriving {
   }
 
   /**
-   * Gets the total time for this report (or for the provided number of seconds) as a string of format hh:mm:ss
+   * Gets the total time for this report (or for the provided number of seconds) as a string of format HH:mm:ss
    *
    * @param {number} [seconds] If provided, format this number of seconds instead of the total time
    * @returns {string} Time string of the format HH:mm:ss
-   * @memberof ReportDriving
+   * @memberof ReportMaintenance
    */
   public getTotalTimeString(seconds?:number):string {
     let total:number = seconds != undefined ? seconds : this.getTotalTime('seconds');
@@ -700,11 +665,11 @@ export class ReportDriving {
   }
 
   /**
-   * Gets the total time for this report (or for the provided number of seconds) as a string of format hh:mm
+   * Gets the total time for this report (or for the provided number of seconds) as a string of format HH:mm
    *
    * @param {number} [seconds] If provided, format this number of seconds instead of the total time
    * @returns {string} Time string of the format HH:mm
-   * @memberof ReportDriving
+   * @memberof ReportMaintenance
    */
   public getTotalTimeStringHoursMinutes(seconds?:number):string {
     let total:number = seconds != undefined ? seconds : this.getTotalTime('seconds');
@@ -716,41 +681,41 @@ export class ReportDriving {
   }
 
   /**
-   * Checks to see if this report has an active trip (started but not finished)
+   * Checks to see if this report has an active task (started but not finished)
    *
-   * @returns {boolean} True if report has an active trip, false otherwise
-   * @memberof ReportDriving
+   * @returns {boolean} True if report has an active task, false otherwise
+   * @memberof ReportMaintenance
    */
-  public isTripActive():boolean {
-    let portion = this.getLatestTrip();
-    if(portion && portion.start && !portion.end) {
+  public isTaskActive():boolean {
+    let task = this.getLatestTask();
+    if(task && task.start && !task.end) {
       return true;
     }
     return false;
   }
 
   /**
-   * Returns number of trips started so far.
+   * Returns number of tasks started so far.
    *
-   * @returns {number} The number of trip portions started (completion doesn't matter). Basically just the length of this object's trips property.
-   * @memberof ReportDriving
+   * @returns {number} The number of tasks started (completion doesn't matter). Basically just the length of this object's tasks property.
+   * @memberof ReportMaintenance
    */
-  public getTripCount():number {
-    let count = Array.isArray(this.trips) ? this.trips.length : 0;
+  public getTaskCount():number {
+    let count = Array.isArray(this.tasks) ? this.tasks.length : 0;
     return count;
   }
 
   /**
-   * Returns number of trips started and completed so far. If a trip is started but not yet completed, add 0.5.
+   * Returns number of tasks started and completed so far. If a tasks is started but not yet completed, add 0.5.
    *
-   * @returns {number} 0 if no trips exist. 0.5 if one trip started but not completed. 1 for one trip completed. And so forth.
-   * @memberof ReportDriving
+   * @returns {number} 0 if no tasks exist. 0.5 if one tasks started but not completed. 1 for one tasks completed. And so forth.
+   * @memberof ReportMaintenance
    */
-  public getTripCountExact():number {
+  public getTaskCountExact():number {
     let count = 0;
-    let len = Array.isArray(this.trips) ? this.trips.length : 0;
+    let len = Array.isArray(this.tasks) ? this.tasks.length : 0;
     if(len > 0) {
-      for(let portion of this.trips) {
+      for(let portion of this.tasks) {
         if(portion.start) {
           count += 0.5;
         }
@@ -763,105 +728,37 @@ export class ReportDriving {
   }
 
   /**
-   * Get latest DrivingTripPortion, if one exists
+   * Get latest MaintenanceTask, if one exists
    *
-   * @returns {DrivingTripPortion} The last trip that was added to the trips array
-   * @memberof ReportDriving
+   * @returns {MaintenanceTask} The last task that was added to the tasks array
+   * @memberof ReportMaintenance
    */
-  public getLatestTrip():DrivingTripPortion {
-    let len = Array.isArray(this.trips) ? this.trips.length : 0;
+  public getLatestTask():MaintenanceTask {
+    let len = Array.isArray(this.tasks) ? this.tasks.length : 0;
     let idx = len - 1;
-    let portion = this.trips[idx];
-    if(portion) {
-      return portion;
+    let task = this.tasks[idx];
+    if(task) {
+      return task;
     } else {
-      // Log.w(`ReportDriving.getLatestTrip(): Could not find a trip portion to return from:`, this.trips);
+      // Log.w(`ReportMaintenance.getLatestTask(): Could not find a task to return for report:`, this.tasks);
       return null;
     }
-  }
-
-  /**
-   * Get the latest point added to this report (could be a start or end point for a trip)
-   *
-   * @returns {DrivingTripPoint} The last point added to report as either the start of a trip or end of a trip
-   * @memberof ReportDriving
-   */
-  public getLatestTripPoint():DrivingTripPoint {
-    let portion = this.getLatestTrip();
-    if(portion) {
-      if(portion.end) {
-        return portion.end;
-      } else if(portion.start) {
-        return portion.start;
-      }
-    }
-    Log.w(`ReportDriving.getLatestTripPoint(): Could not find a trip portion to return a point from:`, this.trips);
-    return null;
-  }
-
-  /**
-   * Get latest engine hours reading that was added to this report
-   *
-   * @returns {number} The last engine hours reading that was added to this report as part of a trip
-   * @memberof ReportDriving
-   */
-  public getLatestEngineHours():number {
-    let out = 0;
-    let point = this.getLatestTripPoint();
-    if(point) {
-      out = point.hours;
-    } else {
-      Log.w(`ReportDriving.getLatestEngineHours(): Could not find a trip portion to return latest engine hours from:`, this.trips);
-    }
-    return out;
-  }
-
-  /**
-   * Get latest mileage that was added to this report
-   *
-   * @returns {number} The last mileage record added to this report as part of a trip
-   * @memberof ReportDriving
-   */
-  public getLatestMiles():number {
-    let out = 0;
-    let point = this.getLatestTripPoint();
-    if(point) {
-      out = point.miles;
-    } else {
-      Log.w(`ReportDriving.getLatestMiles(): Could not find a trip portion to return latest miles from:`, this.trips);
-    }
-    return out;
-  }
-
-  /**
-   * Get latest OnSiteGeolocation that was added to this report
-   *
-   * @returns {OnSiteGeolocation} The last location added to the report as part of a trip
-   * @memberof ReportDriving
-   */
-  public getLatestLocation():OnSiteGeolocation {
-    let point = this.getLatestTripPoint();
-    if(point && point.location) {
-      return point.location;
-    }
-    Log.w(`ReportDriving.getLatestMiles(): Could not find a trip portion to return latest miles from:`, this.trips);
-    return null;
   }
 
   /**
    * Returns last time this report occupies, if any
    *
    * @returns {string} ISO8601 string representing the latest time this report has a record of
-   * @memberof ReportDriving
+   * @memberof ReportMaintenance
    */
   public getLastTimeBlocked():string {
-    let trips = this.trips.slice(0);
+    let tasks = this.tasks.slice(0);
     let lastTime:Moment;
-    for(let trip of trips) {
-      if(!(trip.end && trip.end.time)) {
+    for(let task of tasks) {
+      if(!task.end) {
         continue;
       } else {
-        let currentTaskEndTime = moment(trip.end.time);
+        let currentTaskEndTime = moment(task.end);
         if(isMoment(currentTaskEndTime)) {
           if(!lastTime) {
             lastTime = moment(currentTaskEndTime);
@@ -874,7 +771,51 @@ export class ReportDriving {
     if(isMoment(lastTime)) {
       return lastTime.format();
     } else {
-      Log.w(`ReportDriving.getLastTimeBlocked(): Could not find last time, apparently this report does not have any time recorded`);
+      Log.w(`ReportMaintenance.getLastTimeBlocked(): Could not find last time, apparently this report does not have any time recorded`);
+      return null;
+    }
+  }
+
+  public getTaskNouns(task:MaintenanceTask|MaintenanceTaskType):TaskNouns {
+    let taskType:MaintenanceTaskType;
+    if(task && typeof task === 'string') {
+      taskType = task;
+    } else if(task && typeof task === 'object' && typeof task.type === 'string') {
+      taskType = task.type;
+    } else {
+      let text = `ReportMaintenance.getTaskNouns(): Parameter 1 must be task or task type. Invalid parameter`;
+      Log.w(text + ":", task);
+      return null;
+    }
+    if(taskType === 'mechanical') {
+      return this.MWORDS;
+    } else if(taskType === 'electronic') {
+      return this.EWORDS;
+    } else {
+      let text = `ReportMaintenance.getTaskNouns(): Invalid task type, must be 'mechanical'|'electronic'`;
+      Log.w(text + ":", task);
+      return null;
+    }
+  }
+
+  public getTaskVerbs(task:MaintenanceTask|MaintenanceTaskType):TaskVerbs {
+    let taskType:MaintenanceTaskType;
+    if(task && typeof task === 'string') {
+      taskType = task;
+    } else if(task && typeof task === 'object' && typeof task.type === 'string') {
+      taskType = task.type;
+    } else {
+      let text = `ReportMaintenance.getTaskVerbs(): Parameter 1 must be task or task type. Invalid parameter`;
+      Log.w(text + ":", task);
+      return null;
+    }
+    if(taskType === 'mechanical') {
+      return this.VERBS;
+    } else if(taskType === 'electronic') {
+      return this.VERBS;
+    } else {
+      let text = `ReportMaintenance.getTaskVerbs(): Invalid task type, must be 'mechanical'|'electronic'`;
+      Log.w(text + ":", task);
       return null;
     }
   }
@@ -893,17 +834,17 @@ export class ReportDriving {
   public toJSON() {
     return this.serialize();
   }
-  public static fromJSON(doc:any):ReportDriving {
-    return ReportDriving.deserialize(doc);
+  public static fromJSON(doc:any):ReportMaintenance {
+    return ReportMaintenance.deserialize(doc);
   }
   public getClass():any {
-    return ReportDriving;
+    return ReportMaintenance;
   }
   public static getClassName():string {
-    return 'ReportDriving';
+    return 'ReportMaintenance';
   }
   public getClassName():string {
-    return ReportDriving.getClassName();
+    return ReportMaintenance.getClassName();
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();

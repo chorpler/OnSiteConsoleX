@@ -19,6 +19,7 @@ export * from './reportother'       ;
 export * from './reportlogistics'   ;
 export * from './reportdriving'     ;
 export * from './reporttimecard'    ;
+export * from './reportmaintenance' ;
 export * from './schedule'          ;
 export * from './schedulebeta'      ;
 export * from './schedules'         ;

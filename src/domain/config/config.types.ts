@@ -1,8 +1,9 @@
 /**
  * Name: Various TypeScript types for OnSiteX/OnSiteConsoleX apps
- * Vers: 5.5.0
- * Date: 2018-12-13
+ * Vers: 5.6.0
+ * Date: 2019-08-19
  * Auth: David Sargeant
+ * Logs: 5.6.0 2019-08-19: Added VIN functions from vin-lib and vin-generator
  * Logs: 5.5.0 2018-12-13: Refactored imports to remove circular dependencies; added standard OnSite methods
  * Logs: 5.4.0 2018-08-01: Added Symbol.toStringTag properties to all classes
  * Logs: 5.3.0 2018-04-25: Added constructor options to SESAShiftLength and SESAShiftStartTime classes
@@ -26,9 +27,20 @@ import   * as JSON8Patch     from 'json8-patch'   ;
 import   * as JSON8Pointer   from 'json8-pointer' ;
 import   * as UUID0          from 'uuid'          ;
 import   * as FILE_SAVER     from 'file-saver'    ;
-import { sprintf           } from 'sprintf-js'    ;
-import { BigNumber         } from 'bignumber.js'  ;
-import { Log               } from './config.log'  ;
+import { sprintf            } from 'sprintf-js'    ;
+import { BigNumber          } from 'bignumber.js'  ;
+import { Log                } from './config.log'  ;
+// import * as VINLIB from 'vin-lib';
+import { getVinDetails      } from '@onsite/vin-lib-ts' ;
+import { isValidVin         } from '@onsite/vin-lib-ts' ;
+import { getModelYear       } from '@onsite/vin-lib-ts' ;
+import { getCountry         } from '@onsite/vin-lib-ts' ;
+import { getManufacturer    } from '@onsite/vin-lib-ts' ;
+import { getVinModelYear    } from '@onsite/vin-lib-ts' ;
+import { getVinCountry      } from '@onsite/vin-lib-ts' ;
+import { getVinManufacturer } from '@onsite/vin-lib-ts' ;
+
+import * as VINGEN from 'vin-generator';
 // import { roundMaxDecimals             } from './config.functions';
 
 // export const XLSX = XLSX0;
@@ -38,6 +50,18 @@ export const blobUtil      = blobsUtil    ;
 export const oo            = JSON8        ;
 export const json8         = JSON8        ;
 export const dec           = BigNumber    ;
+export const vinlib        = {
+  getModelYear: getModelYear,
+  getCountry: getCountry,
+  getManufacturer: getManufacturer,
+  getVinDetails: getVinDetails,
+  isValidVin: isValidVin,
+  generateVin: VINGEN.generateVin,
+  getVinModelYear: getVinModelYear,
+  getVinCountry: getVinCountry,
+  getVinManufacturer: getVinManufacturer,
+};
+// export const vingen        = VINGEN       ;
 // export const JSONPath      = JSONPathLib  ;
 export type  Decimal       = BigNumber;
 export type  DecimalConfig = BigNumber.Config;
@@ -125,6 +149,16 @@ export const FileSaverSaveAs = FILE_SAVER.saveAs;
 
 // export const moment = momentous;
 
+export type JSON8Operation = "replace"|"remove"|"add"|"move"|"test";
+export type JSON8Path = string;
+
+export interface JSON8DiffElement {
+  op: JSON8Operation;
+  path: JSON8Path;
+  value: any;
+}
+export type JSON8Diff = JSON8DiffElement[];
+
 export type Spinners = Map<string,any>;
 
 export interface SpinnerRecord {
@@ -133,15 +167,16 @@ export interface SpinnerRecord {
 }
 
 export interface Tab {
-  name     : string ;
-  fullName : string ;
-  url      : string ;
-  icon     : string ;
-  waiting ?: boolean;
-  active  ?: boolean;
-  badges  ?: number ;
-  show     : boolean;
-  role     : string ;
+  name         : string  ;
+  fullName     : string  ;
+  url          : string  ;
+  icon         : string  ;
+  waiting     ?: boolean ;
+  active      ?: boolean ;
+  badges      ?: number  ;
+  show         : boolean ;
+  role         : string  ;
+  is_settings ?: boolean ;
 }
 
 export interface SelectString {

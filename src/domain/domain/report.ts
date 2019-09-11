@@ -1,8 +1,9 @@
 /**
  * Name: Report domain class
- * Vers: 8.0.4
- * Date: 2019-08-13
+ * Vers: 8.1.0
+ * Date: 2019-08-20
  * Auth: David Sargeant
+ * Logs: 8.1.0 2019-08-20: Added getLastTimeBlocked() method
  * Logs: 8.0.4 2019-08-13: Fixed unreachable code in getReportDate() method
  * Logs: 8.0.3 2019-08-11: Added setUser() method; Added some JSDoc comments
  * Logs: 8.0.2 2019-08-08: Added type property and getType() method
@@ -117,6 +118,8 @@ export class Report {
     ["wONum"           , "work_order_number" , 0 ] ,
     ["notes"           , "notes"             , 1 ] ,
     ["rprtDate"        , "report_date"       , 0 ] ,
+    ["timeStarts"      , "time_start"        , 0 ] ,
+    ["timeEnds"        , "time_end"          , 0 ] ,
     ["lastName"        , "last_name"         , 0 ] ,
     ["firstName"       , "first_name"        , 0 ] ,
     ["client"          , "client"            , 1 ] ,
@@ -262,34 +265,40 @@ export class Report {
       let timestart = doc['timeStarts'];
       let timeend   = doc['timeEnds'];
 
-      if(typeof timestart === 'string' && timestart.length === 5) {
-        let startTime = timestart.slice(0, 5).split(":");
-        let hour : number  = Number(startTime[0]);
-        let min  : number  = Number(startTime[1]);
-        let ts:Moment = moment(report_date).startOf('day').hour(hour).minute(min);
-        this.time_start = ts;
-      } else if(typeof timestart === 'string') {
-        this.time_start = moment(timestart);
-      } else {
-        let start = moment(timestart);
-        this.time_start = start;
+      if(typeof timestart === 'string' && timestart) {
+        if(timestart.length === 5) {
+          let startTime = timestart.slice(0, 5).split(":");
+          let hour : number  = Number(startTime[0]);
+          let min  : number  = Number(startTime[1]);
+          let ts:Moment = moment(report_date).startOf('day').hour(hour).minute(min);
+          this.time_start = ts;
+        } else {
+          this.time_start = moment(timestart);
+        }
       }
+      // else {
+      //   let start = moment(timestart);
+      //   this.time_start = start;
+      // }
 
-      if(typeof timeend === 'string' && timeend.length === 5) {
-        let endTime = doc['timeEnds'].slice(0, 5).split(":");
-        let hour = Number(endTime[0]);
-        let min = Number(endTime[1]);
-        let te = moment(report_date).startOf('day').hour(hour).minute(min);
-        // this.time_end = te.format("HH:mm");
-        this.time_end = te;
-      } else if(typeof timeend === 'string') {
-        this.time_end = moment(timeend);
-      } else {
-        let end = moment(timeend);
-        this.time_end = end;
+      if(typeof timeend === 'string' && timeend) {
+        if(timeend.length === 5) {
+          let endTime = doc['timeEnds'].slice(0, 5).split(":");
+          let hour = Number(endTime[0]);
+          let min = Number(endTime[1]);
+          let te = moment(report_date).startOf('day').hour(hour).minute(min);
+          // this.time_end = te.format("HH:mm");
+          this.time_end = te;
+        } else {
+          this.time_end = moment(timeend);
+        }
       }
+      // else {
+      //   let end = moment(timeend);
+      //   this.time_end = end;
+      // }
 
-      let repair_hours = doc['repairHrs'] !== undefined ? doc['repairHrs'] : doc['repair_hours'] !== undefined ? doc['repair_hours'] : 0;
+      let repair_hours = doc['repairHrs'] != undefined ? doc['repairHrs'] : doc['repair_hours'] != undefined ? doc['repair_hours'] : 0;
       let hr1 = Number(repair_hours);
       if(!isNaN(hr1)) {
         this.repair_hours = hr1;
@@ -1001,6 +1010,22 @@ export class Report {
 
   public getType():WorkReportType {
     return this.type;
+  }
+
+  /**
+   * Returns last time this report occupies, if any
+   *
+   * @returns {string} ISO8601 string representing the latest time this report has a record of
+   * @memberof Report
+   */
+  public getLastTimeBlocked():string {
+    let lastTime = this.getEndTime();
+    if(isMoment(lastTime)) {
+      return lastTime.format();
+    } else {
+      Log.w(`Report.getLastTimeBlocked(): Could not find last time, apparently this report does not have any time recorded`);
+      return null;
+    }
   }
 
   // public splitReportID(reportID?:string) {

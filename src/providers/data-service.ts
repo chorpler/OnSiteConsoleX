@@ -40,7 +40,7 @@ export type DBDATA = {
   logistics   ?: ReportLogistics[] ,
   timecards   ?: ReportTimeCard[]  ,
   periods     ?: PayrollPeriod[]   ,
-  shifts      ?: Shift[]           ,
+  shifts      ?: Shift[]           ,  
   schedules   ?: Schedules         ,
   // comments    ?: Comment[]         ,
   oldreports  ?: Report[]          ,
@@ -1412,7 +1412,7 @@ export class OSData {
     let shift_type = this.getTechShiftTypeForDate(tech, moment(date));
     let rotation = this.getTechRotationForDate(tech, moment(date));
 
-    if (site instanceof Jobsite) {
+    if(site instanceof Jobsite) {
       // let periodCount = count || 2;
       // for (let i = 0; i < periodCount; i++) {
       // Log.l(`createPeriodForTech(): Now creating period for tech '${tech}' at site '${site.getScheduleName()}'...`);
@@ -1420,7 +1420,8 @@ export class OSData {
       let start = PayrollPeriod.getPayrollPeriodDateForShiftDate(moment(date));
       let pp    = new PayrollPeriod();
       pp.setStartDate(start);
-      pp.createConsolePayrollPeriodShiftsForTech(tech, site, shift_type, rotation);
+      // pp.createConsolePayrollPeriodShiftsForTech(tech, site, shift_type, rotation);
+      pp.createPayrollPeriodShiftsForTech(tech, site, shift_type, rotation);
       return pp;
       // }
       // return OSData.periods;

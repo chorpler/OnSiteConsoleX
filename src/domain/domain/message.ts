@@ -1,8 +1,9 @@
 /**
  * Name: Message domain class
- * Vers: 4.4.1
- * Date: 2019-07-08
+ * Vers: 4.4.2
+ * Date: 2019-09-04
  * Auth: David Sargeant
+ * Logs: 4.4.2 2019-09-04: Added isDirectedToUser() method
  * Logs: 4.4.1 2019-07-08: Added check for existence of value during serialization (caused problem with texts property if it was undefined)
  * Logs: 4.3.1 2019-07-01: Added isTest property, setDate(),setMessageDate() methods; minor TSLint error fixes
  * Logs: 4.2.1 2018-12-14: Refactored imports, added sentAt property
@@ -329,6 +330,14 @@ export class Message {
     // } else {
       // return true;
     // }
+  }
+
+  public isDirectedToUser(username:string):boolean {
+    let recipients = this.to;
+    if(username && typeof username === 'string' && Array.isArray(recipients) && recipients.length && recipients.includes(username)) {
+      return true;
+    }
+    return false;
   }
 
   public toJSON():any {
