@@ -150,6 +150,9 @@ export class ConfigValuesPage implements OnInit,OnDestroy {
       {field: "fullName", header: "Value" },
       {field: "id", header: "ID" },
     ];
+    let words = [
+      {field: ""}
+    ];
     this.rt_fields = rt;
     this.tt_fields = tt;
     // this.locID_fields = lid;
@@ -271,7 +274,7 @@ export class ConfigValuesPage implements OnInit,OnDestroy {
     } catch(err) {
       Log.l(`saveConfig(): Error saving config type '${type}'`);
       Log.e(err);
-      throw new Error(err);
+      throw err;
     }
   }
 
@@ -297,7 +300,7 @@ export class ConfigValuesPage implements OnInit,OnDestroy {
     } catch(err) {
       Log.l(`rowSelected(): Error `);
       Log.e(err);
-      throw new Error(err);
+      throw err;
     }
   }
 

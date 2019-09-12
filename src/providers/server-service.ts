@@ -60,6 +60,7 @@ import { DatabaseProgress                                       } from 'domain/o
 import { SESAClient, SESALocation, SESALocID, SESACLL,          } from 'domain/onsitexdomain' ;
 import { Preferences                                            } from './preferences'        ;
 import { DispatchService                                        } from './dispatch-service'   ;
+import { TranslationDocument, TranslationTable } from './db-service';
 // import * as WorkerLoader from "worker-loader!workers/test.worker";
 // import * as Defiant from 'defiant.js';
 
@@ -3407,6 +3408,52 @@ export class ServerService {
       return reports;
     } catch(err) {
       Log.l(`Server.getReportsFromDB(): Error retrieving reports from db '${dbname}'.`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public async loadTranslations():Promise<TranslationTable> {
+    try {
+      let dbname = this.prefs.getDB('translations');
+      let rdb1 = this.addRDB(dbname);
+      let res:any = await rdb1.get('onsitex');
+      let out:TranslationTable = [];
+      Log.l("Server.loadTranslations(): Got translations result:", res);
+      if(res && res.keys && res.translations) {
+        // let keys = res.keys;
+        // let translations = res.translations;
+        // return res;
+        let keys = res.keys;
+        let translations = res.translations;
+        let translateKeys = Object.keys(translations);
+        let allTranslations:any = {};
+        for(let translateKey of translateKeys) {
+          let values = translations[translateKey];
+          let record:any = {
+            key: translateKey,
+          };
+          for(let langKey of keys) {
+            let idx = keys.indexOf(langKey);
+            record[langKey] = values[idx];
+          }
+          out.push(record);
+        }
+        // for(let langKey of keys) {
+        //   let idx = keys.indexOf(langKey);
+        //   let langTranslations:any = {};
+        //   for(let key of translateKeys) {
+        //     langTranslations[key] = translations[key][idx];
+        //   }
+        //   allTranslations[langKey] = langTranslations;
+        // }
+      } else {
+        Log.w("Server.loadTranslations(): Invalid translation document");
+        // return null;
+      }
+      return out;
+    } catch(err) {
+      Log.l(`Server.loadTranslations(): Error loading translations`);
       Log.e(err);
       throw err;
     }

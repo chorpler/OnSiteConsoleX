@@ -2044,4 +2044,32 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
     }
     return this.findVisible;
   }
+
+  public async loadTranslations():Promise<any> {
+    try {
+      Log.l(`OnSiteConsole.loadTranslations(): Called …`);
+      let res = await this.server.loadTranslations();
+      let keys = res.keys;
+      // let translations = res.translations;
+      // let translateKeys = Object.keys(translations);
+      // let allTranslations:any = {};
+      // for(let langKey of keys) {
+      //   let idx = keys.indexOf(langKey);
+      //   let langTranslations:any = {};
+      //   for(let key of translateKeys) {
+      //     langTranslations[key] = translations[key][idx];
+      //   }
+      //   this.translate.setTranslation(langKey, langTranslations);
+      //   allTranslations[langKey] = langTranslations;
+      // }
+      // let currentLang = this.translate.currentLang;
+      // this.ud.translations = allTranslations[currentLang];
+      // return res;
+    } catch(err) {
+      Log.l(`OnSiteConsole.loadTranslations(): Error loading translations`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
 }

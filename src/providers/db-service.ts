@@ -31,6 +31,25 @@ const delay = (ms:number):Promise<boolean> => {
   });
 };
 
+export type TranslationLanguage = 'en'|'es';
+export type TranslationTableRecordKey = TranslationLanguage|'key';
+export interface TranslationRecord {
+  [propName:string]:string[];
+}
+export type TranslationLanguageRecord = {
+  [propName in TranslationLanguage]?:string
+};
+export type TranslationTableRecord = {
+  [propName in TranslationTableRecordKey]: string;
+};
+export type TranslationTable = TranslationTableRecord[];
+export interface TranslationDocument {
+  _id?:string;
+  _rev?:string;
+  keys?:string[];
+  translations?:TranslationRecord;
+}
+
 @Injectable()
 export class DBService {
   // public db            : any                                                ;

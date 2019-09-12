@@ -76,6 +76,7 @@ var preauths          = 'sesa-preauths'            ;
 var worksites         = 'sesa-worksites'           ;
 var timesheets        = 'sesa-timesheets'          ;
 var timecards         = 'sesa-timecards'           ;
+var translations      = 'sesa-translations'        ;
 var reports_old01     = 'sesa-reports-2017-09'     ;
 var reports_old02     = 'sesa-reports-2017-12'     ;
 var logistics         = 'sesa-reports-logistics'   ;
@@ -110,6 +111,7 @@ export class Preferences {
     'worksites'         : worksites         ,
     'timesheets'        : timesheets        ,
     'timecards'         : timecards         ,
+    'translations'      : translations      ,
     'reports_old01'     : reports_old01     ,
     'reports_old02'     : reports_old02     ,
     'reports_old'       : reports_old       ,
