@@ -60,7 +60,7 @@ import { DatabaseProgress                                       } from 'domain/o
 import { SESAClient, SESALocation, SESALocID, SESACLL,          } from 'domain/onsitexdomain' ;
 import { Preferences                                            } from './preferences'        ;
 import { DispatchService                                        } from './dispatch-service'   ;
-import { TranslationDocument, TranslationTable } from './db-service';
+import { TranslationDocument, TranslationTable, TranslationRecord, TranslationTableRecord } from './db-service';
 // import * as WorkerLoader from "worker-loader!workers/test.worker";
 // import * as Defiant from 'defiant.js';
 
@@ -1736,20 +1736,114 @@ export class ServerService {
     });
   }
 
-  public getAllConfigData() {
-    Log.l("getAllConfigData(): Retrieving clients, locations, locIDs, loc2nd's, shiftRotations, and shiftTimes …");
+  public async getAllConfigData():Promise<any> {
+    try {
+      Log.l("Server.getAllConfigData(): Retrieving clients, locations, locIDs, loc2nd's, shiftRotations, and shiftTimes …");
+      let configKeys = [
+        'client',
+        'location',
+        'locid',
+        'rotation',
+        'shift',
+        'shiftlength',
+        'shiftstarttime',
+        'other_reports',
+        'maintenance_enouns',
+        'maintenance_mnouns',
+        'maintenance_verbs',
+      ];
+      let dbname = this.prefs.getDB('config');
+      let rdb1 = this.addRDB(dbname);
+      // return new Promise((resolve, reject) => {
+        // rdb1.allDocs({ keys: ['client', 'location', 'locid', 'loc2nd', 'rotation', 'shift', 'shiftlength', 'shiftstarttime', 'other_reports'], include_docs: true }).then((records) => {
+      let records:any = await rdb1.allDocs({ keys: configKeys, include_docs: true });
+      Log.l("Server.getAllConfigData(): Retrieved documents:", records);
+      let results = { clients: [], locations: [], locids: [], loc2nds: [], rotations: [], shifts: [], shiftlengths: [], shiftstarttimes: [], report_types: [], training_types: [], maintenance_enouns: [], maintenance_mnouns: [], maintenance_verbs: [], };
+      for(let record of records.rows) {
+        let type = record.id;
+        let types = record.id + "s";
+        if(type.includes('maintenance')) {
+          types = type;
+        }
+        if(type === 'other_reports') {
+          let doc                = record.doc         ;
+          let report_types       = doc.report_types   ;
+          let training_types     = doc.training_types ;
+          results.report_types   = report_types       ;
+          results.training_types = training_types     ;
+        } else {
+          Log.l(`Server.getAllConfigData(): Now retrieving type '${type}'...`);
+          let doc = record.doc;
+          if(doc) {
+            if(doc[types]) {
+              for(let result of doc[types]) {
+                results[types].push(result);
+              }
+            } else {
+              for(let result of doc.list) {
+                results[type].push(result);
+              }
+            }
+          }
+        }
+      }
+      let clients:SESAClient[] = [];
+      let locations:SESALocation[] = [];
+      let locIDs:SESALocID[] = [];
+      for(let row of results.clients) {
+        let item:SESAClient = new SESAClient(row);
+        clients.push(item);
+      }
+      for(let row of results.locations) {
+        let item:SESALocation = new SESALocation(row);
+        locations.push(item);
+      }
+      for(let row of results.locids) {
+        let item:SESALocID = new SESALocID(row);
+        locIDs.push(item);
+      }
+      results.clients = clients;
+      results.locations = locations;
+      results.locids = locIDs;
+      Log.l("Server.getAllConfigData(): Final config data retrieved is:", results);
+      return results;
+    } catch(err) {
+      Log.l(`Server.getAllConfigData(): Error getting config data!`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public getAllConfigDataOld() {
+    Log.l("Server.getAllConfigData(): Retrieving clients, locations, locIDs, loc2nd's, shiftRotations, and shiftTimes …");
+    let configKeys = [
+      'client',
+      'location',
+      'locid',
+      'rotation',
+      'shift',
+      'shiftlength',
+      'shiftstarttime',
+      'other_reports',
+      'maintenance_enouns',
+      'maintenance_mnouns',
+      'maintenance_verbs',
+    ];
     let rdb1:Database = this.addRDB('sesa-config');
     return new Promise((resolve, reject) => {
-      rdb1.allDocs({ keys: ['client', 'location', 'locid', 'loc2nd', 'rotation', 'shift', 'shiftlength', 'shiftstarttime'], include_docs: true }).then((records) => {
-        Log.l("getAllConfigData(): Retrieved documents:\n", records);
-        let results = { clients: [], locations: [], locids: [], loc2nds: [], rotations: [], shifts: [], shiftlengths: [], shiftstarttimes: [] };
+      rdb1.allDocs({ keys: configKeys, include_docs: true }).then((records) => {
+        Log.l("Server.getAllConfigData(): Retrieved documents:", records);
+        let results = { clients: [], locations: [], locids: [], loc2nds: [], rotations: [], shifts: [], shiftlengths: [], shiftstarttimes: [], report_types: [], training_types: [], maintenance_enouns: [], maintenance_mnouns: [], maintenance_verbs: [], };
         for(let record of records.rows) {
           // let record = records[i];
           let doc:any = record.doc;
-          // let type = record.id;
-          let types = record.id + "s";
+          let type = record.id;
+          let types = type + "s";
+          if(type.includes('maintenance')) {
+
+          }
           if(doc) {
-            Log.l("getAllConfigData(): Found doc, looking for type '%s'", types);
+            Log.l("Server.getAllConfigData(): Found doc, looking for type '%s'", types);
             Log.l(doc);
             if (doc[types]) {
               for (let result of doc[types]) {
@@ -1762,10 +1856,10 @@ export class ServerService {
             }
           }
         }
-        Log.l("getAllConfigData(): Final config data retrieved is:", results);
+        Log.l("Server.getAllConfigData(): Final config data retrieved is:", results);
         resolve(results);
       }).catch((err) => {
-        Log.l("getAllConfig(): Error getting all config docs!");
+        Log.l("Server.getAllConfig(): Error getting all config docs!");
         Log.e(err);
         // resolve([]);
         reject(err);
@@ -2814,7 +2908,7 @@ export class ServerService {
 
   public async syncFromServerViaSelector(dbname:string, spinnerID?:string) {
     try {
-      Log.l(`syncFromServerViaSelector(): About to attempt replication of remote->'${dbname}' with options:`, this.prefs.SERVER.repopts);
+      Log.l(`Server.syncFromServerViaSelector(): About to attempt replication of remote->'${dbname}' with options:`, this.prefs.SERVER.repopts);
       // let ev2 = function(b) { Log.l(b.status); Log.l(b);};
       let db1:Database = this.addDB(dbname);
       let db2:Database = this.addRDB(dbname);
@@ -2828,7 +2922,7 @@ export class ServerService {
       let u:string = this.auth.getUsername();
       let p:string = this.auth.getPassword();
       let res:any = await this.loginToDatabase(u, p, dbname);
-      Log.l(`syncFromServerViaSelector(): Successfully logged in to remote->'${dbname}'`);
+      Log.l(`Server.syncFromServerViaSelector(): Successfully logged in to remote->'${dbname}'`);
       if(dbname === 'reports_ver101100' || dbname === 'sesa-reports-other' || dbname === 'aaa001_reports_ver101100') {
         // let now = moment();
         // let startDate = moment(now).subtract(5, 'weeks');
@@ -2845,7 +2939,7 @@ export class ServerService {
         opts.filter = 'ref/allRecent';
         opts.query_params = { fromDate: fromDate.format("YYYY-MM-DD"), toDate: now.format("YYYY-MM-DD") };
       }
-      Log.l(`syncFromServerViaSelector(): Now replicating '${dbname}' with options:\n`, opts);
+      Log.l(`Server.syncFromServerViaSelector(): Now replicating '${dbname}' with options:\n`, opts);
       res = db1.replicate.from(db2, opts).on('change', (info) => {
         Log.l(`Replication '${dbname}': Change event:\n`, info);
         let progress = this.getProgress(info);
@@ -2858,11 +2952,11 @@ export class ServerService {
         // throw err;
         throw err;
       });
-      Log.l(`syncFromServerViaSelector(): Successfully replicated remote->'${dbname}'`);
+      Log.l(`Server.syncFromServerViaSelector(): Successfully replicated remote->'${dbname}'`);
       Log.l(res);
       return res;
     } catch(err) {
-      Log.l(`syncFromServerViaSelector(): Failure replicating remote->'${dbname}'`);
+      Log.l(`Server.syncFromServerViaSelector(): Failure replicating remote->'${dbname}'`);
       Log.e(err);
       throw err;
     }
@@ -2871,7 +2965,7 @@ export class ServerService {
   // public async replicateFromServer(dbname:string, batchSize:number, spinnerID?:string) {
   public async replicateFromServer(dbname:string, batchSize:number, progress:DatabaseProgress) {
     try {
-      Log.l(`replicateFromServer(): About to attempt replication of remote->'${dbname}' with options:\n`, this.prefs.SERVER.repopts);
+      Log.l(`Server.replicateFromServer(): About to attempt replication of remote->'${dbname}' with options:\n`, this.prefs.SERVER.repopts);
       // let ev2 = function(b) { Log.l(b.status); Log.l(b);};
       let db1:Database = this.addDB(dbname);
       let db2:Database = this.addRDB(dbname);
@@ -2885,7 +2979,7 @@ export class ServerService {
       let u:string = this.auth.getUsername();
       let p:string = this.auth.getPassword();
       let res:any = await this.loginToDatabase(u, p, dbname);
-      Log.l(`replicateFromServer(): Successfully logged in to remote->'${dbname}'`);
+      Log.l(`Server.replicateFromServer(): Successfully logged in to remote->'${dbname}'`);
       // if(dbname === 'reports_ver101100' || dbname === 'sesa-reports-other' || dbname === 'aaa001_reports_ver101100') {
       //   // let now = moment();
       //   // let startDate = moment(now).subtract(5, 'weeks');
@@ -2904,7 +2998,7 @@ export class ServerService {
       // }
       // let dbURL = this.prefs.getDBURL(dbname);
       // let pendingMax = 0;
-      Log.l(`replicateFromServer(): Now replicating '${dbname}' with options:\n`, opts);
+      Log.l(`Server.replicateFromServer(): Now replicating '${dbname}' with options:\n`, opts);
       // let loading;
       // if(spinnerID) {
       //   loading = this.alert.getSpinner(spinnerID);
@@ -2936,20 +3030,20 @@ export class ServerService {
         this.dispatch.triggerAppEvent('replicationerror', dbname);
         // throw err;
       });
-      Log.l(`replicateFromServer(): Successfully started replication from remote->'${dbname}'`);
+      Log.l(`Server.replicateFromServer(): Successfully started replication from remote->'${dbname}'`);
       // this.dispatch.triggerAppEvent('starttime', {});
       Log.l(res);
       this.addInitialSync(dbname, res);
       return res;
     } catch(err) {
-      Log.l(`replicateFromServer(): Failure replicating remote->'${dbname}'`);
+      Log.l(`Server.replicateFromServer(): Failure replicating remote->'${dbname}'`);
       Log.e(err);
       throw err;
     }
   }
 
   public getProgress(info:PDBChangeEvent):DatabaseProgress {
-    Log.l(`getProgress(): received change event:\n`, info);
+    Log.l(`Server.getProgress(): received change event:\n`, info);
     let processed:number = info.docs_written === undefined ? 0 : info.docs_written;
     let remaining:number = info.pending === undefined ? 0 : info.pending;
     let total:number = processed + remaining;
@@ -2963,12 +3057,12 @@ export class ServerService {
     let percent:number = fraction * 100;
     let out:DatabaseProgress = new DatabaseProgress({done: processed, total: total, percent: percent});
     out.getPercent();
-    Log.l(`getProgress(): output is:\n`, out);
+    Log.l(`Server.getProgress(): output is:\n`, out);
     return out;
   }
 
   public updateProgress(info:PDBChangeEvent, progress:DatabaseProgress):DatabaseProgress {
-    Log.l(`updateProgress(): received change event:\n`, info);
+    Log.l(`Server.updateProgress(): received change event:\n`, info);
     let processed:number = info.docs_written === undefined ? 0 : info.docs_written;
     let remaining:number = info.pending === undefined ? 0 : info.pending;
     let total:number = processed + remaining;
@@ -2986,7 +3080,7 @@ export class ServerService {
     // progress.percent = percent;
     progress.touched = true;
     progress.getPercent();
-    Log.l(`updateProgress(): output is:\n`, progress);
+    Log.l(`Server.updateProgress(): output is:\n`, progress);
     return progress;
   }
 
@@ -3023,12 +3117,12 @@ export class ServerService {
           limit: 100000,
         };
       }
-      Log.l(`queryDatabase(): About to query database '${dbname}' with query:\n`, opts);
+      Log.l(`Server.queryDatabase(): About to query database '${dbname}' with query:\n`, opts);
       let res:FindResponse = await rdb1.find(opts);
-      Log.l(`queryDatabase(): Query result is:\n`, res);
+      Log.l(`Server.queryDatabase(): Query result is:\n`, res);
       return res;
     } catch(err) {
-      Log.l(`queryDatabase(): Error querying database!`);
+      Log.l(`Server.queryDatabase(): Error querying database!`);
       Log.e(err);
       throw err;
     }
@@ -3040,7 +3134,7 @@ export class ServerService {
     let msgs:Message[] = [];
     return new Promise((resolve,reject) => {
       rdb1.allDocs(GETDOCS).then((res:AllDocsResponse) => {
-        Log.l("getMessages(): Raw doc input list read from server is:\n", res);
+        Log.l("Server.getMessages(): Raw doc input list read from server is:\n", res);
         for(let row of res.rows) {
           if(row.doc && row.id[0] !== '_') {
             let doc:any = row.doc;
@@ -3049,10 +3143,10 @@ export class ServerService {
             msgs.push(msg);
           }
         }
-        Log.l("getMessages(): Final output is:\n", msgs);
+        Log.l("Server.getMessages(): Final output is:\n", msgs);
         resolve(msgs);
       }).catch(err => {
-        Log.l("getMessages(): Error getting messages!");
+        Log.l("Server.getMessages(): Error getting messages!");
         Log.e(err);
         reject(err);
       });
@@ -3061,7 +3155,7 @@ export class ServerService {
 
   public async saveMessage(message:Message, tech:Employee):Promise<UpsertResponse> {
     try {
-      Log.l(`Server.saveMessage(): Called with arguments:\n`, arguments);
+      Log.l(`Server.saveMessage(): Called with arguments:`, arguments);
       let dbname:string = this.prefs.getDB('messages');
       let rdb1:Database = this.addRDB(dbname);
       if(!message._id) {
@@ -3211,9 +3305,10 @@ export class ServerService {
 
   public saveInvoice(type:string, invoice: Invoice) {
     return new Promise((resolve, reject) => {
-      let db = this.prefs.getDB();
-      let dbname = `invoices_${type.toLowerCase()}`;
-      let rdb1:Database = this.addRDB(db[dbname]);
+      let invoiceType = type.toLowerCase();
+      let dbkey = `invoices_${invoiceType}`;
+      let dbname = this.prefs.getDB(dbkey);
+      let rdb1 = this.addRDB(dbname);
       let ts = moment().format();
       // let user = username ? username : window['onsiteconsoleusername'] ? window['onsiteconsoleusername'] : "unknown_user";
       let inv:any = invoice.serialize();
@@ -3413,6 +3508,56 @@ export class ServerService {
     }
   }
 
+  public async saveReportLogistics(report:ReportLogistics):Promise<any> {
+    try {
+      Log.l(`Server.saveReportLogistics(): Now attempting to save report:\n`, report);
+      let reportDoc:any = report.serialize();
+      Log.l(`Server.saveReportLogistics(): Now attempting to save serialized report:\n`, reportDoc);
+      let dbname:string = this.prefs.getDB('logistics');
+      let db1 = this.addDB(dbname);
+      let res:any = await db1.upsert(reportDoc._id, (doc:any) => {
+        if(doc && doc._rev) {
+          let rev = doc._rev;
+          doc = reportDoc;
+          doc._rev = rev;
+        } else {
+          doc = reportDoc;
+          delete doc._rev;
+        }
+        return doc;
+      });
+      if(!res.ok && !res.updated) {
+        let text:string = `Server.saveReportLogistics(): Upsert error for report '${report._id}'`;
+        throw new Error(text);
+      } else {
+        return res;
+      }
+    } catch(err) {
+      Log.l(`Server.saveReportLogistics(): Error saving report '${report._id}'`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public isStringHTML(text:string):boolean {
+    let doc = new DOMParser().parseFromString(text, "text/html");
+    return Array.from(doc.body.childNodes).some(node => node.nodeType === 1);
+  }
+
+  public stripTrivialHTML(text:string):string {
+    if(text.startsWith('<p>') && text.endsWith('</p>')) {
+      let len = text.length;
+      let stripped = text.slice(3, len - 4);
+      if(this.isStringHTML(stripped)) {
+        return text;
+      } else {
+        return stripped;
+      }
+    } else {
+      return text;
+    }
+  }
+
   public async loadTranslations():Promise<TranslationTable> {
     try {
       let dbname = this.prefs.getDB('translations');
@@ -3454,6 +3599,70 @@ export class ServerService {
       return out;
     } catch(err) {
       Log.l(`Server.loadTranslations(): Error loading translations`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public cleanTranslationHTML(translationsTable:TranslationTable):TranslationTable {
+    for(let row of translationsTable) {
+      let rowKeys = Object.keys(row);
+      for(let key of rowKeys) {
+        if(key !== 'key') {
+          let value = row[key];
+          let cleanedString = this.stripTrivialHTML(value);
+          row[key] = cleanedString;
+        }
+      }
+    }
+    return translationsTable;
+  }
+
+  public async saveTranslations(translationsTable:TranslationTable):Promise<any> {
+    try {
+      Log.l(`Server.saveTranslations(): Called, saving translation table:`, translationsTable);
+      let table = this.cleanTranslationHTML(translationsTable);
+      let document:TranslationDocument = new Object();
+      let translationRecord:TranslationRecord = {};
+      let row:TranslationTableRecord = table[0];
+      let langKeys = Object.keys(row);
+      for(let record of table) {
+        let key = record.key;
+        let transArray = [];
+        for(let key of langKeys) {
+          let oneTranslatedString = record[key];
+          let cleanedString = this.stripTrivialHTML(oneTranslatedString);
+          transArray.push(cleanedString);
+        }
+        translationRecord[key] = transArray;
+      }
+      document._id = 'onsitex';
+      document.keys = langKeys;
+      document.translations = translationRecord;
+      Log.l(`Server.saveTranslations(): Now attempting to save translation document:`, document);
+      let dbname:string = this.prefs.getDB('translations');
+      let rdb1 = this.addRDB(dbname);
+      let res:any = await rdb1.upsert(document._id, (doc:any) => {
+        if(doc && doc._rev) {
+          let rev = doc._rev;
+          doc = document;
+          doc._rev = rev;
+        } else {
+          doc = document;
+          delete doc._rev;
+        }
+        return doc;
+      });
+      if(!res.ok && !res.updated) {
+        let text:string = `Server.saveTranslations(): Upsert error for translation table`;
+        Log.w(text + ":", res);
+        let err = new Error(text);
+        throw err;
+      } else {
+        return res;
+      }
+    } catch(err) {
+      Log.l(`Server.saveTranslations(): Error saving translation table:`, translationsTable);
       Log.e(err);
       throw err;
     }

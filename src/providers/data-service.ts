@@ -17,6 +17,8 @@ import { Employee, Jobsite, Shift,                                          } fr
 import { Report,                                                            } from 'domain/onsitexdomain' ;
 import { ReportOther,                                                       } from 'domain/onsitexdomain' ;
 import { ReportLogistics,                                                   } from 'domain/onsitexdomain' ;
+import { ReportDriving,                                                     } from 'domain/onsitexdomain' ;
+import { ReportMaintenance,                                                 } from 'domain/onsitexdomain' ;
 import { ReportTimeCard,                                                    } from 'domain/onsitexdomain' ;
 import { PayrollPeriod, Schedule, Schedules, DPS, ScheduleBeta,             } from 'domain/onsitexdomain' ;
 import { SESACLL                                                            } from 'domain/newdomain'     ;
@@ -33,47 +35,53 @@ import { SESATrainingType,                                                  } fr
 // import { WebWorkerService                                                   } from 'angular2-web-worker'  ;
 
 export type DBDATA = {
-  sites       ?: Jobsite[]         ,
-  employees   ?: Employee[]        ,
-  reports     ?: Report[]          ,
-  others      ?: ReportOther[]     ,
-  logistics   ?: ReportLogistics[] ,
-  timecards   ?: ReportTimeCard[]  ,
-  periods     ?: PayrollPeriod[]   ,
-  shifts      ?: Shift[]           ,  
-  schedules   ?: Schedules         ,
-  // comments    ?: Comment[]         ,
-  oldreports  ?: Report[]          ,
+  sites        ?: Jobsite[]         ,
+  employees    ?: Employee[]        ,
+  reports      ?: Report[]          ,
+  others       ?: ReportOther[]     ,
+  logistics    ?: ReportLogistics[] ,
+  drivings     ?: ReportDriving[]   ,
+  maintenances ?: ReportMaintenance[] ,
+  timecards    ?: ReportTimeCard[]  ,
+  periods      ?: PayrollPeriod[]   ,
+  shifts       ?: Shift[]           ,  
+  schedules    ?: Schedules         ,
+  // comments     ?: Comment[]         ,
+  oldreports   ?: Report[]          ,
 }
 export type DATAQUEUE = {
-  sites       ?: any[] ,
-  employees   ?: any[] ,
-  reports     ?: any[] ,
-  others      ?: any[] ,
-  logistics   ?: any[] ,
-  timecards   ?: any[] ,
-  periods     ?: any[] ,
-  shifts      ?: any[] ,
-  schedules   ?: any[] ,
-  // comments    ?: any[] ,
-  oldreports  ?: any[] ,
+  sites        ?: any[] ,
+  employees    ?: any[] ,
+  reports      ?: any[] ,
+  others       ?: any[] ,
+  logistics    ?: any[] ,
+  drivings     ?: any[] ,
+  maintenances ?: any[] ,
+  timecards    ?: any[] ,
+  periods      ?: any[] ,
+  shifts       ?: any[] ,
+  schedules    ?: any[] ,
+  // comments     ?: any[] ,
+  oldreports   ?: any[] ,
 }
 
 export type CONFIGDATA = {
-  clients        : SESAClient[],
-  locations      : SESALocation[],
-  locIDs         : SESALocID[],
-  rotations      : SESAShiftRotation[],
-  shifts         : SESAShift[],
-  shiftLengths   : SESAShiftLength[],
-  // shiftTypes     : any[],
-  shiftStartTimes: SESAShiftStartTime[],
-  report_types   : SESAReportType[],
-  training_types : SESATrainingType[],
+  clients            : SESAClient[]         ,
+  locations          : SESALocation[]       ,
+  locIDs             : SESALocID[]          ,
+  rotations          : SESAShiftRotation[]  ,
+  shifts             : SESAShift[]          ,
+  shiftLengths       : SESAShiftLength[]    ,
+  // shiftTypes         : any[]                ,
+  shiftStartTimes    : SESAShiftStartTime[] ,
+  report_types       : SESAReportType[]     ,
+  training_types     : SESATrainingType[]   ,
+  maintenance_enouns : string[]             ,
+  maintenance_mnouns : string[]             ,
+  maintenance_verbs  : string[]             ,
 };
 
-export type CONFIGKEY = "clients" | "locations" | "locIDs" | "rotations" | "shifts" | "shiftLengths" | "shiftTypes" | "shiftStartTimes" | "report_types" | "training_types" | "employee_types";
-
+export type CONFIGKEY = "clients" | "locations" | "locIDs" | "rotations" | "shifts" | "shiftLengths" | "shiftTypes" | "shiftStartTimes" | "report_types" | "training_types" | "employee_types" | 'maintenance_enouns' | 'maintenance_mnouns' | 'maintenance_verbs';
 @Injectable()
 export class OSData {
   // public static PREFS    : any                  = new Preferences();
@@ -83,28 +91,33 @@ export class OSData {
   public training_types: any[]      = []               ;
   public ePeriod:Map<Employee,PayrollPeriod> = new Map()    ;
   public config   : CONFIGDATA                  = {
-    clients        : [],
-    locations      : [],
-    locIDs         : [],
-    rotations      : [],
-    shifts         : [],
-    shiftLengths   : [],
-    // shiftTypes     : [],
-    shiftStartTimes: [],
-    report_types   : [],
-    training_types : [],
+    clients            : [],
+    locations          : [],
+    locIDs             : [],
+    rotations          : [],
+    shifts             : [],
+    shiftLengths       : [],
+    // shiftTypes         : [],
+    shiftStartTimes    : [],
+    report_types       : [],
+    training_types     : [],
+    maintenance_enouns : [],
+    maintenance_mnouns : [],
+    maintenance_verbs  : [],
   };
   public dbdata:DBDATA = {
-    sites     : []   ,
-    employees : []   ,
-    reports   : []   ,
-    others    : []   ,
-    logistics : []   ,
-    timecards : []   ,
-    periods   : []   ,
-    shifts    : []   ,
-    schedules : null ,
-    oldreports: []   ,
+    sites        : []   ,
+    employees    : []   ,
+    reports      : []   ,
+    others       : []   ,
+    logistics    : []   ,
+    drivings     : []   ,
+    maintenances : []   ,
+    timecards    : []   ,
+    periods      : []   ,
+    shifts       : []   ,
+    schedules    : null ,
+    oldreports   : []   ,
   };
   public loaded = {
     sites       : false ,
@@ -122,16 +135,18 @@ export class OSData {
     techphones  : false ,
   };
   public dataqueue:DATAQUEUE = {
-    sites      : [],
-    employees  : [],
-    reports    : [],
-    others     : [],
-    logistics  : [],
-    timecards  : [],
-    periods    : [],
-    shifts     : [],
-    schedules  : [],
-    oldreports : [],
+    sites        : [] ,
+    employees    : [] ,
+    reports      : [] ,
+    others       : [] ,
+    logistics    : [] ,
+    drivings     : [] ,
+    maintenances : [] ,
+    timecards    : [] ,
+    periods      : [] ,
+    shifts       : [] ,
+    schedules    : [] ,
+    oldreports   : [] ,
   };
   // public get dbdata():DBDATA { return this.dbdata; };
   public get sites():Jobsite[] { return this.dbdata.sites; };
@@ -139,6 +154,8 @@ export class OSData {
   public get reports():Report[] { return this.dbdata.reports; };
   public get others():ReportOther[] { return this.dbdata.others; };
   public get logistics():ReportLogistics[] { return this.dbdata.logistics; };
+  public get drivings():ReportDriving[] { return this.dbdata.drivings; };
+  public get maintenances():ReportMaintenance[] { return this.dbdata.maintenances; };
   public get timecards():ReportTimeCard[] { return this.dbdata.timecards; };
   public get periods():PayrollPeriod[] { return this.dbdata.periods; };
   public get shifts():Shift[] { return this.dbdata.shifts; };
@@ -149,6 +166,8 @@ export class OSData {
   public set reports(value:Report[]) { this.dbdata.reports = value; };
   public set others(value:ReportOther[]) { this.dbdata.others = value; };
   public set logistics(val:ReportLogistics[]) { this.dbdata.logistics = val; };
+  public set drivings(val:ReportDriving[]) { this.dbdata.drivings = val; };
+  public set maintenances(val:ReportMaintenance[]) { this.dbdata.maintenances = val; };
   public set timecards(val:ReportTimeCard[])  { this.dbdata.timecards = val; };
   public set periods(value:PayrollPeriod[]) { this.dbdata.periods = value; };
   public set shifts(value:Shift[]) { this.dbdata.shifts = value; };
@@ -526,18 +545,21 @@ export class OSData {
       // loading.setContent("Retrieving data from:<br>\nsesa-config …");
       updateLoaderStatus("sesa-config");
       res = await this.db.getAllConfigData();
-      this.config.clients         = res['clients']         ;
-      this.config.locations       = res['locations']       ;
-      this.config.locIDs          = res['locids']          ;
-      this.config.rotations       = res['rotations']       ;
-      this.config.shifts          = res['shifts']          ;
-      this.config.shiftLengths    = res['shiftlengths']    ;
-      // this.config.shiftTypes      = res['shifttypes']      ;
-      this.config.shiftStartTimes = res['shiftstarttimes'] ;
-      this.config.report_types    = res['report_types']    ;
-      this.config.training_types  = res['training_types']  ;
-      this.report_types           = res['report_types']    ;
-      this.training_types         = res['training_types']  ;
+      this.config.clients            = res['clients']            ;
+      this.config.locations          = res['locations']          ;
+      this.config.locIDs             = res['locids']             ;
+      this.config.rotations          = res['rotations']          ;
+      this.config.shifts             = res['shifts']             ;
+      this.config.shiftLengths       = res['shiftlengths']       ;
+      // this.config.shiftTypes         = res['shifttypes']         ;
+      this.config.shiftStartTimes    = res['shiftstarttimes']    ;
+      this.config.report_types       = res['report_types']       ;
+      this.config.training_types     = res['training_types']     ;
+      this.report_types              = res['report_types']       ;
+      this.training_types            = res['training_types']     ;
+      this.config.maintenance_enouns = res['maintenance_enouns'] ;
+      this.config.maintenance_mnouns = res['maintenance_mnouns'] ;
+      this.config.maintenance_verbs  = res['maintenance_verbs']  ;
       // return this.db.getDPSSettings();
       this.loaded.config = true;
       updateLoaderStatus("sesa-dps-config");
@@ -692,8 +714,8 @@ export class OSData {
       this.dispatch.updateDatastore('logistics', this.dbdata.logistics);
       // let change = this.syncChanges(dbname);
       // this.pouchChanges[dbname] = change;
-      Log.l("getReportLogistics(): Final ReportLogistics array is:", dbname);
-      return dbname;
+      Log.l("OSData.getReportLogistics(): Final ReportLogistics array is:", dbname);
+      return logistics;
     } catch(err) {
       if(!hideSpinner) {
         let out:any = await this.alert.hideSpinnerPromise(spinnerID);
@@ -723,8 +745,8 @@ export class OSData {
       this.dispatch.updateDatastore('logistics', this.dbdata.logistics);
       // let change = this.syncChanges(dbname);
       // this.pouchChanges[dbname] = change;
-      Log.l("getTimeCards(): Final ReportTimeCard array is:\n", dbname);
-      return dbname;
+      Log.l("getTimeCards(): Final ReportTimeCard array is:", dbname);
+      return timecards;
     } catch(err) {
       if(!hideSpinner) {
         let out:any = await this.alert.hideSpinnerPromise(spinnerID);
@@ -1074,30 +1096,30 @@ export class OSData {
     return this.ready();
   }
 
-  public getAllData(type?:string) {
-    this.db.getAllData(true).then(res => {
-      this.dbdata.employees = [];
-      this.dbdata.sites     = [];
-      this.dbdata.reports   = [];
-      this.dbdata.others    = [];
-      for(let employee of res.employees) {
-        this.dbdata.employees.push(employee);
-      }
-      for(let site of res.sites) {
-        this.dbdata.sites.push(site);
-      }
-      for(let report of res.reports) {
-        this.dbdata.reports.push(report);
-      }
-      // for(let other of res.otherReports) {
-      for(let other of res.others) {
-        this.dbdata.others.push(other);
-      }
-    }).catch(err => {
-      Log.l("getData(): Error retrieving all data.");
-      Log.e(err);
-    });
-  }
+  // public getAllData(type?:string) {
+  //   this.db.getAllData(true).then(res => {
+  //     this.dbdata.employees = [];
+  //     this.dbdata.sites     = [];
+  //     this.dbdata.reports   = [];
+  //     this.dbdata.others    = [];
+  //     for(let employee of res.employees) {
+  //       this.dbdata.employees.push(employee);
+  //     }
+  //     for(let site of res.sites) {
+  //       this.dbdata.sites.push(site);
+  //     }
+  //     for(let report of res.reports) {
+  //       this.dbdata.reports.push(report);
+  //     }
+  //     // for(let other of res.otherReports) {
+  //     for(let other of res.others) {
+  //       this.dbdata.others.push(other);
+  //     }
+  //   }).catch(err => {
+  //     Log.l("getData(): Error retrieving all data.");
+  //     Log.e(err);
+  //   });
+  // }
 
   public getData(type:string) {
     return this.dbdata[type];

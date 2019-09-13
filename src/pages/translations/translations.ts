@@ -5,7 +5,7 @@ import { Component, OnInit, OnDestroy, NgZone, ViewChild, ElementRef } from '@an
 import { IonicPage, NavController, NavParams                         } from 'ionic-angular'                      ;
 import { ViewController, ModalController, Content, Scroll,           } from 'ionic-angular'                      ;
 import { OSData                                                      } from 'providers/data-service'             ;
-import { DBService                                                   } from 'providers/db-service'               ;
+import { DBService, TranslationTableRecordKey, TranslationLanguage                                                   } from 'providers/db-service'               ;
 import { TranslationDocument, TranslationRecord                      } from 'providers/db-service'               ;
 import { TranslationTable, TranslationTableRecord                    } from 'providers/db-service'               ;
 import { ServerService                                               } from 'providers/server-service'           ;
@@ -16,6 +16,7 @@ import { SpinnerService                                              } from 'pro
 import { Table                                                       } from 'primeng/table'                      ;
 import { Panel                                                       } from 'primeng/panel'                      ;
 import { MultiSelect                                                 } from 'primeng/multiselect'                ;
+import { TranslationEditor                                           } from 'components/translation-editor'     ;
 
 @IonicPage({name: 'Translations'})
 @Component({
@@ -26,12 +27,15 @@ export class TranslationsPage implements OnInit,OnDestroy {
   @ViewChild('dt') dt:Table;
   @ViewChild('translationsPanel') translationsPanel:Panel;
   @ViewChild('columnSelect') columnSelect:MultiSelect;
-  public title         : string    = "Translations"            ;
-  public mode          : string    = 'page'                    ;
-  public modalMode     : boolean   = false                     ;
+  @ViewChild('columnSelectMaint') columnSelectMaint:MultiSelect;
+  public title              : string    = "Translations"            ;
+  public mode               : string    = 'page'                    ;
+  public modalMode          : boolean   = false                     ;
+  public visibleEditor      : boolean   = false                     ;
+  public visibleMaintEditor : boolean   = false                     ;
 
-  public pageSizeOptions:number[]  = [50,100,200,500,1000,2000];
-  public dateFormat    : string    = "DD MMM YYYY HH:mm"      ;
+  public pageSizeOptions:number[]  = [5, 10, 20, 25, 30, 40, 50,100,200,500,1000,2000];
+  public dateFormat       : string    = "DD MMM YYYY HH:mm"   ;
   public prefsSub         : Subscription                      ;
 
   public autoLayout       : boolean            = true         ;
@@ -40,14 +44,29 @@ export class TranslationsPage implements OnInit,OnDestroy {
   public cols             : any[]         = []           ;
   public selectedColumns  : any[]         = []           ;
   public selectedLabel    : string             = "{0} columns shown";
+  public colsMaint            : any[]   = []           ;
+  public selectedColumnsMaint : any[]   = []           ;
+  public selectedLabelMaint   : string       = "{0} columns shown";
+
   public showFilterRow    : boolean         = true            ;
   public showButtonCol    : boolean         = true            ;
   public showTableHead    : boolean         = true            ;
   public showTableFoot    : boolean         = true            ;
   public styleColIndex    : any                               ;
   public styleColEdit     : any                               ;
+  public multiSortMetaTrans : any = {};
+  public multiSortMetaMaint : any = {};
+
+  public langKeys     : TranslationLanguage[] = ['en', 'es'];
 
   public translations : TranslationTable = [];
+  public editRecord   : TranslationTableRecord;
+
+  public maint_words  : TranslationTable = [];
+  public maint_enouns : TranslationTable = [];
+  public maint_mnouns : TranslationTable = [];
+  public maint_verbs  : TranslationTable = [];
+  public editMaint    : TranslationTableRecordKey;
 
   public dataReady     : boolean            = false ;
 
@@ -72,7 +91,6 @@ export class TranslationsPage implements OnInit,OnDestroy {
 
   ngOnInit() {
     Log.l('TranslationsPage: ngOnInit() fired');
-    this.getFields();
     // this.cols = this.getFields();
     if(this.data.isAppReady()) {
       this.runWhenReady();
@@ -89,10 +107,10 @@ export class TranslationsPage implements OnInit,OnDestroy {
     try {
       this.initializeSubscriptions();
       this.getFields();
-      let translationTable = await this.server.loadTranslations();
-      this.translations = translationTable;
+      this.resetTablesSort();
       // this.colsOthers = this.getOthersFields();
       // let out:any = await this.alert.hideSpinnerPromise(spinnerID);
+      let res:any = await this.loadTranslationData();
       this.dataReady = true;
       this.setPageLoaded();
       return true;
@@ -133,71 +151,168 @@ export class TranslationsPage implements OnInit,OnDestroy {
     ];
     this.cols = fields;
     this.selectedColumns = this.cols.filter((a:any) => {
-      // let field:string = a.field ? a.field : "";
-      // if(field && initialColumns.indexOf(field) > -1) {
-      //   return true;
-      // } else {
-      //   return false;
-      // }
+      return a.show;
+    });
+    let maint_fields:any[] = [
+      { field: 'key' , header: 'Key'     , filter: true , filterPlaceholder: "Key"     , order:  1 , show: true , style: "", class: "col-nowrap col-00 col-key"   , format: "" , tooltip: "Key", },
+      { field: 'maint_type', header: 'Maintenance Type', filter: true , filterPlaceholder: "Maintenance Word Type", order:  2 , show: true , style: "", class: "col-nowrap col-01 col-maint-type", format: "" , tooltip: "Maintenance Word type (such as mechanical noun, electronic noun, verb)", },
+      { field: 'en'  , header: 'English' , filter: true , filterPlaceholder: "English" , order:  3 , show: true , style: "", class: "col-wrap   col-02 col-value" , format: "" , tooltip: "English translation", },
+      { field: 'es'  , header: 'Spanish' , filter: true , filterPlaceholder: "Spanish" , order:  4 , show: true , style: "", class: "col-wrap   col-03 col-value" , format: "" , tooltip: "Spanish translation", },
+    ];
+    this.colsMaint = maint_fields;
+    this.selectedColumnsMaint = this.colsMaint.filter((a:any) => {
       return a.show;
     });
     // this.selectedColumns = initialColumns;
     return fields;
   }
 
+  public resetTablesSort() {
+    this.resetTableSorted(1);
+    this.resetTableSorted(2);
+  }
+
+  public resetTableSorted(tableNumber:number, dt?:Table) {
+    let sortMeta = [
+      { field: 'key', order: 1 },
+    ];
+    if(tableNumber === 1) {
+      this.multiSortMetaTrans = sortMeta.slice(0);
+    } else if(tableNumber === 2) {
+      this.multiSortMetaMaint = sortMeta.slice(0);
+    } else {
+      let text:string = `TranslationsPage.resetTableSorted(): Could not find table at index '${tableNumber}' to reset it with sorting`;
+      Log.w(text);
+      this.notify.addWarning("TABLE RESET ERROR", text, 5000);
+      return;
+    }
+  }
+
+  public async loadTranslationData():Promise<any> {
+    try {
+      let translationTable = await this.server.loadTranslations();
+      this.translations = translationTable;
+      let enouns = this.data.getConfigData('maintenance_enouns');
+      let mnouns = this.data.getConfigData('maintenance_mnouns');
+      let verbs  = this.data.getConfigData('maintenance_verbs');
+      this.maint_enouns = [];
+      this.maint_mnouns = [];
+      this.maint_verbs  = [];
+      let record:TranslationTableRecord;
+      // let row:any = {};
+      for(let word of enouns) {
+        let translationRecord = this.translations.find(a => a.key === word);
+        if(translationRecord) {
+          record = translationRecord;
+          record.maint_type = 'electronic_noun';
+          this.maint_enouns.push(record);
+          // for(let langKey of this.langKeys) {
+            //   // let value = translationRecord[langKey];
+            // }
+        } else {
+          Log.w(`TranslationsPage.loadTranslationData(): Error loading '${word}' translation record`);
+        }
+      }
+      for(let word of mnouns) {
+        let translationRecord = this.translations.find(a => a.key === word);
+        if(translationRecord) {
+          record = translationRecord;
+          record.maint_type = 'mechanical_noun';
+          this.maint_mnouns.push(record);
+          // for(let langKey of this.langKeys) {
+            //   // let value = translationRecord[langKey];
+            // }
+          } else {
+          Log.w(`TranslationsPage.loadTranslationData(): Error loading '${word}' translation record`);
+        }
+      }
+      for(let word of verbs) {
+        let translationRecord = this.translations.find(a => a.key === word);
+        if(translationRecord) {
+          record = translationRecord;
+          record.maint_type = 'verb';
+          this.maint_verbs.push(record);
+          // for(let langKey of this.langKeys) {
+          //   // let value = translationRecord[langKey];
+          // }
+        } else {
+          Log.w(`TranslationsPage.loadTranslationData(): Error loading '${word}' translation record`);
+        }
+      }
+      this.maint_words = [ ...this.maint_enouns, ...this.maint_mnouns, ...this.maint_verbs, ];
+    } catch(err) {
+      Log.l(`TranslationsPage.loadTranslations(): Error loading translation data`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
   public selectionChanged(evt?:Event) {
-    Log.l(`selectionChanged(): Event is:\n`, evt);
+    Log.l(`TranslationsPage.selectionChanged(): Event is:\n`, evt);
     this.dataReady = false;
     this.columnsChanged();
     this.dataReady = true;
   }
 
+  public selectionChangedMaint(evt?:Event) {
+    Log.l(`TranslationsPage.selectionChangedMaint(): Event is:\n`, evt);
+    this.dataReady = false;
+    this.columnsChangedMaint();
+    this.dataReady = true;
+  }
+
   public columnsChanged(colList?:string[]) {
     let vCols = colList ? colList : this.selectedColumns;
-    // // let cols = this.cols;
-    // Log.l("columnsChanged(): Items now selected:\n", vCols);
-    // // let sel = [];
-    // // let sel = this.allFields.filter((a:any) => {
-    // //   return (vCols.indexOf(a.field) > -1);
-    // // }).sort((a: any, b: any) => {
-    // //   return a.order > b.order ? 1 : a.order < b.order ? -1 : 0;
-    // // });
-    // // Log.l("columnsChanged(): Items selected via string:\n", sel);
-    // // // this.displayColumns = [];
-    // // // this.displayColumns = oo.clone(sel);
-    // // // this.cols = oo.clone(sel);
-    // // this.cols = sel;
-    // // this.displayColumns = [];
-    // // for(let item of sel) {
-    // //   // this.displayColumns = [...this.displayColumns, oo.clone(item)];
-    // //   this.displayColumns.push(oo.clone(item));
-    // //   // let i = dc.findIndex((a:any) => {
-    // //   //   return (a.field === item['field']);
-    // //   // });
-    // //   // if(i === -1) {
-    // //   //   dc = [...dc, item];
-    // //   // }
-    // // }
     this.selectedColumns = vCols.sort((a:any, b:any) => {
       return a.order > b.order ? 1 : a.order < b.order ? -1 : 0;
     });
-    // Log.l("columnsChanged(): Now field list is:\n", this.cols);
+    // Log.l("TranslationsPage.columnsChanged(): Now field list is:\n", this.cols);
     if(this.columnSelect) {
       this.columnSelect.updateLabel();
     }
-    // this.displayColumns = this.displayColumns.sort((a: any, b: any) => {
-    //   return a.order > b.order ? 1 : a.order < b.order ? -1 : 0;
-    // });
-    // Log.l("columnsChanged(): Now field list is:\n", this.displayColumns);
-    // Log.l("columnsChanged(): Have now updated displayColumns to:\n", sel);
-    // this.displayColumns = sel;
+  }
+
+  public columnsChangedMaint(colList?:string[]) {
+    let vCols = colList ? colList : this.selectedColumns;
+    this.selectedColumnsMaint = vCols.sort((a:any, b:any) => {
+      return a.order > b.order ? 1 : a.order < b.order ? -1 : 0;
+    });
+    // Log.l("TranslationsPage.columnsChanged(): Now field list is:\n", this.cols);
+    if(this.columnSelectMaint) {
+      this.columnSelectMaint.updateLabel();
+    }
   }
 
   public async editTranslation(row:TranslationTableRecord, evt?:Event):Promise<any> {
     try {
       Log.l(`TranslationsPage.editTranslation(): Called for row:`, row);
+      this.editRecord = row;
+      this.visibleEditor = true;
     } catch(err) {
       Log.l(`TranslationsPage.editTranslation(): Error editing translation:`, row);
+      Log.e(err);
+      throw err;
+    }
+  }
+  
+  public async editMaintenance(row:TranslationTableRecord, evt?:Event):Promise<any> {
+    try {
+      Log.l(`TranslationsPage.editMaintenance(): Called for row:`, row);
+      this.editRecord = row;
+      this.visibleMaintEditor = true;
+    } catch(err) {
+      Log.l(`TranslationsPage.editMaintenance(): Error editing translation:`, row);
+      Log.e(err);
+      throw err;
+    }
+  }
+  
+  public async editorClosed(evt?:any):Promise<any> {
+    try {
+      Log.l(`TranslationsPage.editorClosed(): Called with event:`, evt);
+      this.visibleEditor = false;
+    } catch(err) {
+      Log.l(`TranslationsPage.editorClosed(): Error closing editor component`);
       Log.e(err);
       throw err;
     }

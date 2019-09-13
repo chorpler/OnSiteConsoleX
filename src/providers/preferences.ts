@@ -50,73 +50,120 @@ var adapter:string   = 'idb'    ;
 
 // var server            = "db.cellar.sesa.us"        ;
 // var server            = "mars.sesa.us"             ;
-var server            = "pico.sesa.us"             ;
-var port              = 443                        ;
-var howlerPort        = 3000                       ;
-var protocol          = "https"                    ;
-var login             = '_session'                 ;
-var reports           = 'reports_ver101100'        ;
-var reports_other     = 'sesa-reports-other'       ;
-var employees         = 'sesa-employees'           ;
-var config            = 'sesa-config'              ;
-var jobsites          = 'sesa-jobsites'            ;
-var scheduling        = 'sesa-scheduling'          ;
-var schedulingbeta    = 'sesa-scheduling-beta'     ;
-var invoices          = 'sesa-invoices'            ;
-var invoices_be       = 'sesa-invoices-be'         ;
-var invoices_hb       = 'sesa-invoices-hb'         ;
-var invoices_kn       = 'sesa-invoices-kn'         ;
-var technicians       = 'sesa-technicians'         ;
-var messages          = 'sesa-messages'            ;
-var comments          = 'sesa-comments'            ;
-var phoneInfo         = 'sesa-tech-phones'         ;
-var sounds            = 'sesa-sounds'              ;
-var geolocation       = 'sesa-geolocation'         ;
-var preauths          = 'sesa-preauths'            ;
-var worksites         = 'sesa-worksites'           ;
-var timesheets        = 'sesa-timesheets'          ;
-var timecards         = 'sesa-timecards'           ;
-var translations      = 'sesa-translations'        ;
-var reports_old01     = 'sesa-reports-2017-09'     ;
-var reports_old02     = 'sesa-reports-2017-12'     ;
-var logistics         = 'sesa-reports-logistics'   ;
-var reports_old       = [
+export let server         = "pico.sesa.us"             ;
+export let port           = 443                        ;
+export let howlerPort     = 3000                       ;
+export let protocol       = "https"                    ;
+export let reports        = 'reports_ver101100'        ;
+export let reports_other  = 'sesa-reports-other'       ;
+export let employees      = 'sesa-employees'           ;
+export let config         = 'sesa-config'              ;
+export let jobsites       = 'sesa-jobsites'            ;
+export let scheduling     = 'sesa-scheduling'          ;
+export let schedulingbeta = 'sesa-scheduling-beta'     ;
+export let invoices       = 'sesa-invoices'            ;
+export let invoices_be    = 'sesa-invoices-be'         ;
+export let invoices_hb    = 'sesa-invoices-hb'         ;
+export let invoices_kn    = 'sesa-invoices-kn'         ;
+export let technicians    = 'sesa-technicians'         ;
+export let messages       = 'sesa-messages'            ;
+export let comments       = 'sesa-comments'            ;
+export let phoneInfo      = 'sesa-tech-phones'         ;
+export let sounds         = 'sesa-sounds'              ;
+export let login          = '_session'                 ;
+// export let geolocation    = 'sesa-geolocation'         ;
+export let locations      = 'sesa-reports-geolocation' ;
+export let preauths       = 'sesa-preauths'            ;
+export let worksites      = 'sesa-worksites'           ;
+export let timesheets     = 'sesa-timesheets'          ;
+export let reports_old01  = 'sesa-reports-2017-09'     ;
+export let reports_old02  = 'sesa-reports-2017-12'     ;
+export let logistics      = 'sesa-reports-logistics'   ;
+export let timecards      = 'sesa-timecards'           ;
+export let translations   = 'sesa-translations'        ;
+export let drivings       = 'sesa-reports-driving'     ;
+export let maintenances   = 'sesa-reports-maintenance' ;
+export let preferences    = 'sesa-preferences'         ;
+export let reports_old    = [
   'reports_old01',
   // 'reports_old02',
  ];
 // var reports_old    = ['reports_old01', 'reports_old02', ]
 
+export type DatabaseKey = "reports" | "reports_other" | "logistics" | "drivings" | "maintenances" | "employees" | "config" | "jobsites" | "scheduling" | "invoices" | "invoices_be" | "invoices_hb" | "invoices_kn" | "technicians" | "messages" | "comments" | "phoneInfo" | "sounds" | "login" | "preauths" | "preferences" | "worksites" | "timesheets" | "timecards" | "translations" | "locations" | "reports_old01" | "reports_old02" | "reports_old";
+export type DatabaseKeys = DatabaseKey[];
+export type DatabaseTypeToName = {
+  [propName in DatabaseKey]:string|string[];
+};
+
+export interface PreferencesDoc {
+  DB        : DatabaseTypeToName;
+  CONSOLE   : any;
+  USER      : any;
+  CAMERA    : any;
+  DEVELOPER : any;
+  SERVER    : any;
+}
+
+export type ProtocolType = "http"|"https";
+export interface ServerParameters {
+  protocol: ProtocolType;
+  hostname: string;
+  port: number;
+  database: string;
+  url?: string;
+}
+
 @Injectable()
 export class Preferences {
-  public static DB: any = {
-    'reports'           : reports           ,
-    'reports_other'     : reports_other     ,
-    'logistics'         : logistics         ,
-    'employees'         : employees         ,
-    'config'            : config            ,
-    'jobsites'          : jobsites          ,
-    'scheduling'        : scheduling        ,
-    'invoices'          : invoices          ,
-    'invoices_be'       : invoices_be       ,
-    'invoices_hb'       : invoices_hb       ,
-    'invoices_kn'       : invoices_kn       ,
-    'technicians'       : technicians       ,
-    'messages'          : messages          ,
-    'comments'          : comments          ,
-    'phoneInfo'         : phoneInfo         ,
-    'sounds'            : sounds            ,
-    'login'             : login             ,
-    'geolocation'       : geolocation       ,
-    'preauths'          : preauths          ,
-    'worksites'         : worksites         ,
-    'timesheets'        : timesheets        ,
-    'timecards'         : timecards         ,
-    'translations'      : translations      ,
-    'reports_old01'     : reports_old01     ,
-    'reports_old02'     : reports_old02     ,
-    'reports_old'       : reports_old       ,
-  };
-  public static CONSOLE: any = {
+  public static DB:DatabaseTypeToName;
+  public static CONSOLE:any;
+  public static USER:any;
+  public static CAMERA:any;
+  public static DEVELOPER:any;
+  public static SERVER:any;
+  public static defaultPrefs:any;
+  public get DB():DatabaseTypeToName { return Preferences.DB; }
+  public set DB(value:DatabaseTypeToName) { Preferences.DB = value;}
+  public get SERVER() { return Preferences.SERVER;}
+  public set SERVER(value:any) { Preferences.SERVER = value;}
+  public get USER() { return Preferences.USER;}
+  public set USER(value:any) { Preferences.USER = value;}
+  public get DEVELOPER() { return Preferences.DEVELOPER;}
+  public set DEVELOPER(value:any) { Preferences.DEVELOPER = value;}
+  public get CONSOLE() { return Preferences.CONSOLE; }
+  public set CONSOLE(value:any) { Preferences.CONSOLE = value; }
+  public get defaultPrefs():PreferencesDoc { return Preferences.defaultPrefs; }
+  public set defaultPrefs(value:PreferencesDoc) { Preferences.defaultPrefs = value; }
+  // public static DB: any = {
+  //   'reports'           : reports           ,
+  //   'reports_other'     : reports_other     ,
+  //   'logistics'         : logistics         ,
+  //   'employees'         : employees         ,
+  //   'config'            : config            ,
+  //   'jobsites'          : jobsites          ,
+  //   'scheduling'        : scheduling        ,
+  //   'invoices'          : invoices          ,
+  //   'invoices_be'       : invoices_be       ,
+  //   'invoices_hb'       : invoices_hb       ,
+  //   'invoices_kn'       : invoices_kn       ,
+  //   'technicians'       : technicians       ,
+  //   'messages'          : messages          ,
+  //   'comments'          : comments          ,
+  //   'phoneInfo'         : phoneInfo         ,
+  //   'sounds'            : sounds            ,
+  //   'login'             : login             ,
+  //   'geolocation'       : geolocation       ,
+  //   'preauths'          : preauths          ,
+  //   'worksites'         : worksites         ,
+  //   'timesheets'        : timesheets        ,
+  //   'timecards'         : timecards         ,
+  //   'translations'      : translations      ,
+  //   'reports_old01'     : reports_old01     ,
+  //   'reports_old02'     : reports_old02     ,
+  //   'reports_old'       : reports_old       ,
+  // };
+  public static CONSOLE2: any = {
     scripts: {
       maps         : `https://maps.google.com/maps/api/js?key=${gmkey}` ,
       charts       : "https://www.gstatic.com/charts/loader.js"         ,
@@ -204,7 +251,7 @@ export class Preferences {
       techphones: [5,10,20,25,30,40,50,75,100,200,500,1000],
     },
   };
-  public static USER: any = {
+  public static USER2: any = {
     preferencesVersion: version,
     language: 'en',
     shifts: 7,
@@ -214,13 +261,13 @@ export class Preferences {
     spinnerSpeed: 10,
     messageCheckInterval: 15,
   };
-  public static DEVELOPER: any = {
+  public static DEVELOPER2: any = {
     showDocID: false,
     showDocRev: false,
     showReportTimes: false,
     showReportSite: false,
   };
-  public static SERVER: any = {
+  public static SERVER2: any = {
     localAdapter: adapter,
     server: server,
     port: port,
@@ -261,20 +308,21 @@ export class Preferences {
       // set opts(value:any) { Preferences.SERVER.ropts = value;},
     }
   };
-  public get DB() { return Preferences.DB; };
-  public set DB(value:any) { Preferences.DB = value;};
-  public get SERVER() { return Preferences.SERVER;};
-  // public set SERVER(value:any) { Preferences.SERVER = value;};
-  public get USER() { return Preferences.USER;};
-  public set USER(value:any) { Preferences.USER = value;};
-  public get DEVELOPER() { return Preferences.DEVELOPER;};
-  public set DEVELOPER(value:any) { Preferences.DEVELOPER = value;};
-  public get CONSOLE() { return Preferences.CONSOLE; };
-  public set CONSOLE(value:any) { Preferences.CONSOLE = value; };
+  // public get DB() { return Preferences.DB; };
+  // public set DB(value:any) { Preferences.DB = value;};
+  // public get SERVER() { return Preferences.SERVER;};
+  // // public set SERVER(value:any) { Preferences.SERVER = value;};
+  // public get USER() { return Preferences.USER;};
+  // public set USER(value:any) { Preferences.USER = value;};
+  // public get DEVELOPER() { return Preferences.DEVELOPER;};
+  // public set DEVELOPER(value:any) { Preferences.DEVELOPER = value;};
+  // public get CONSOLE() { return Preferences.CONSOLE; };
+  // public set CONSOLE(value:any) { Preferences.CONSOLE = value; };
   constructor() {
     window["onsiteprefs"] = this;
     window["onsitedebug"] = window["onsitedebug"] || [];
     window["onsitedebug"]["Preferences"] = Preferences;
+    this.initializePrefs();
   }
 
   public getPreferencesVersion():number {
@@ -330,26 +378,389 @@ export class Preferences {
     return url;
   }
 
-  public getRemoteDBURL(dbtype:string):string {
-    let S = Preferences.SERVER;
-    let D = Preferences.DB;
-    let types = Object.keys(D);
-    if(types.indexOf(dbtype) > -1) {
-      let dbname = D[dbtype];
-      let url = `${S.protocol}://${S.server}:${S.port}/${dbname}`;
+  // public getRemoteDBURL(dbtype:string):string {
+  //   let S = Preferences.SERVER;
+  //   let D = Preferences.DB;
+  //   let types = Object.keys(D);
+  //   if(types.indexOf(dbtype) > -1) {
+  //     let dbname = D[dbtype];
+  //     let url = `${S.protocol}://${S.server}:${S.port}/${dbname}`;
+  //     return url;
+  //   } else {
+  //     Log.w(`getRemoteDBURL(): Could not find database type '${dbtype}'!`);
+  //     return null;
+  //   }
+  // }
+
+  // public getDBURL(dbname:string):string {
+  //   let S = Preferences.SERVER;
+  //   let D = Preferences.DB;
+  //   let url = `${S.protocol}://${S.server}:${S.port}/${dbname}`;
+  //   return url;
+  // }
+
+
+  public static getKeys():string[] {
+    let keys:string[] = [
+      'DB',
+      'CONSOLE',
+      'USER',
+      'CAMERA',
+      'DEVELOPER',
+      'SERVER',
+    ];
+    return keys;
+  }
+
+  public getKeys():string[] {
+    return Preferences.getKeys();
+  }
+
+  public static initializePrefs():any {
+    Preferences.DB = {
+      'reports'       : reports       ,
+      'reports_other' : reports_other ,
+      'employees'     : employees     ,
+      'config'        : config        ,
+      'jobsites'      : jobsites      ,
+      'scheduling'    : scheduling    ,
+      'invoices'      : invoices      ,
+      'invoices_be'   : invoices_be   ,
+      'invoices_hb'   : invoices_hb   ,
+      'invoices_kn'   : invoices_kn   ,
+      'technicians'   : technicians   ,
+      'messages'      : messages      ,
+      'comments'      : comments      ,
+      'phoneInfo'     : phoneInfo     ,
+      'sounds'        : sounds        ,
+      'login'         : login         ,
+      // 'geolocation'   : geolocation   ,
+      'preauths'      : preauths      ,
+      'worksites'     : worksites     ,
+      'timesheets'    : timesheets    ,
+      'logistics'     : logistics     ,
+      'timecards'     : timecards     ,
+      'drivings'      : drivings      ,
+      'maintenances'  : maintenances  ,
+      'preferences'   : preferences   ,
+      'translations'  : translations  ,
+      'locations'     : locations     ,
+      'reports_old01' : reports_old01 ,
+      'reports_old02' : reports_old02 ,
+      'reports_old'   : reports_old   ,
+    };
+    Preferences.SERVER = {
+      localAdapter: adapter,
+      server: server,
+      port: port,
+      protocol: protocol,
+      database: login,
+      opts: { auto_compaction: true, get adapter():string { return Preferences.SERVER.protocol; }, set adapter(val:string) {Preferences.SERVER.protocol = val;}, skip_setup: true },
+      // ropts: {
+      //   get adapter() {return Preferences.SERVER.opts.adapter; },
+      //   set adapter(value:string) {Preferences.SERVER.opts.adapter = value;},
+      //   skip_setup: true
+      // },
+      // ropts: {
+      //   get adapter() {return Preferences.SERVER.opts.adapter; },
+      //   set adapter(value:string) {Preferences.SERVER.opts.adapter = value;},
+      //   skip_setup: true,
+      //   auth: {
+      //     username: '',
+      //     password: '',
+      //   },
+      //   ajax: {
+      //     headers: {
+      //       Authorization: '',
+      //     },
+      //     withCredentials: true,
+      //   },
+      // },
+      ropts: {
+        skip_setup: true,
+        auth: {
+          username: '',
+          password: '',
+        },
+      },
+      cropts: {
+        get adapter() { return Preferences.SERVER.opts.adapter; },
+        set adapter(value: string) { Preferences.SERVER.opts.adapter = value; },
+      },
+      repopts: { live: false, retry: false, continuous: false, complete: false },
+      ajaxOpts: { headers: { Authorization: '' } },
+      remoteDBInfo: {},
+      rdbServer: {
+        get protocol() { return Preferences.SERVER.opts.adapter; },
+        set protocol(value: string) { Preferences.SERVER.opts.adapter = value; },
+        get server() { return Preferences.SERVER.server;},
+        set server(value:string) { Preferences.SERVER.server = value;},
+        get opts() { return Preferences.SERVER.ropts;},
+        set opts(value:any) { Preferences.SERVER.ropts = value;},
+      }
+    };
+    Preferences.USER = {
+      preferencesVersion: version,
+      language: 'en',
+      shifts: 7,
+      gpsTimeout: 5000,
+      showTimeCardsInHistory: false,
+      payroll_periods: 2,
+      audio: false,
+      stayInReports: false,
+      spinnerSpeed: 10,
+      messageCheckInterval: 15,
+      time24Hour: false,
+      dateTimeCustom: false,
+      timeFormat: "HH:mm",
+      timeFormat12: "h:mm A",
+      timeFormat24: "HH:mm",
+      dateFormatLong: "YYYY-MM-DD",
+      dateFormatShort: "MMM D",
+      timeFormatShort: "HH:mm",
+      timeFormatShort12: "h:mm A",
+      timeFormatShort24: "HH:mm",
+      timeFormatLong: "HH:mm:ss",
+      timeFormatLong12: "h:mm:ss A",
+      timeFormatLong24: "HH:mm:ss",
+      userDateFormatLong: "YYYY-MM-DD",
+      userDateFormatShort: "MMM D",
+      userTimeFormat: "",
+      userTimeFormatLong: "HH:mm:ss",
+      userTimeFormatShort: "HH:mm",
+      lastReportType: "",
+      showReportTypeIcons: true,
+      showReportDates: false,
+      showReportTimes: false,
+      showOfficeReportTimes: true,
+      debounceTime: 1500,
+      vibration: true,
+      readMessageList: [],
+      minAutosizeRows: 1,
+      maxAutosizeRows: 10,
+    };
+    Preferences.CAMERA = {
+      quality            : 50   ,
+      destinationType    : 2    ,
+      encodingType       : 0    ,
+      mediaType          : 0    ,
+      correctOrientation : true ,
+    };
+    Preferences.CONSOLE = {
+      global: {
+        payroll_periods: 4,
+        loadEmployees: true,
+        loadSites: true,
+        loadReports: false,
+        loadMiscReports: false,
+        loadOldReports: false,
+        weekStartDay: 3,
+      },
+      employeeView: {
+        showAllSites: false,
+      },
+      scheduling: {
+        persistTechChanges: false,
+        showAllSites: true,
+        showOffice: false,
+        showTestSites: false,
+        allDatesAvailable: false,
+        lastScheduleUsed: "",
+      },
+      payroll: {
+        payroll_periods: 4,
+        showColors: true,
+        showShiftLength: true,
+        showAlerts: false,
+        exportUseQuickbooksName: true,
+        minHoursWhenOn: 20,
+        maxHoursWhenOff: 15,
+      },
+      techshiftreports: {
+        showAllSites: false,
+        showAllTechs: false,
+        payroll_periods: 4,
+      },
+      hbpreauth: {
+        showAllSites: false,
+        payroll_periods: 4,
+      },
+      jobsites: {
+        autoLayoutTable: false,
+        tableResizeMode: 'fit',
+      },
+      techphones: {
+        autoLayoutTable: false,
+        tableResizeMode: 'fit',
+      },
+      pages: {
+        reports: 100,
+        reports_other: 100,
+        employees: 200,
+        jobsites: 50,
+        techphones: 100,
+      },
+      pageSizes: {
+        reports: [50,100,200,500,1000,2000],
+        reports_other: [50,100,200,500,1000,2000],
+        employees: [30,50,100,150,200,250,300,400,500],
+        jobsites: [5,10,20,30,40,50,100],
+        techphones: [50,100,200,500,1000],
+      },
+    };
+    Preferences.DEVELOPER = {
+      showDocID: false,
+      showDocRev: false,
+      showReportTimes: false,
+      showReportSite: false,
+    };
+    let defaultPreferences:PreferencesDoc = {
+      DB: oo.clone(Preferences.DB),
+      CONSOLE: oo.clone(Preferences.CONSOLE),
+      USER: oo.clone(Preferences.USER),
+      CAMERA: oo.clone(Preferences.CAMERA),
+      DEVELOPER: oo.clone(Preferences.DEVELOPER),
+      SERVER: oo.clone(Preferences.SERVER),
+    };
+    this.defaultPrefs = defaultPreferences;
+    return defaultPreferences;
+  }
+
+  public initializePrefs():PreferencesDoc {
+    return Preferences.initializePrefs();
+  }
+
+  public static getDefaultPrefs():PreferencesDoc {
+    return Preferences.defaultPrefs;
+  }
+
+  public getDefaultPrefs():PreferencesDoc {
+    return Preferences.defaultPrefs;
+  }
+
+  public static getRemoteURL():string {
+    let prot = Preferences.getProtocol();
+    let host = Preferences.getHostname();
+    let portnum = Preferences.getPort();
+    let out:string = "";
+    out += `${prot}://${host}`;
+    // tslint:disable-next-line: triple-equals
+    if(!((prot === 'http' && portnum == 80) || (prot === 'https' && portnum == 443))) {
+      out += `:${portnum}`;
+    }
+    return out;
+  }
+
+  public getRemoteURL():string {
+    return Preferences.getRemoteURL();
+  }
+
+  public static getRemoteDBURL(dbtype:string):string {
+    // let S = Preferences.SERVER;
+    let dbname:string = Preferences.getDB(dbtype);
+    let url = Preferences.getRemoteURL();
+    if(dbname) {
+      url += `/${dbname}`;
+      // let url:string = `${S.protocol}://${S.server}:${S.port}/${dbname}`;
       return url;
     } else {
-      Log.w(`getRemoteDBURL(): Could not find database type '${dbtype}'!`);
+      Log.w(`Preferences.getRemoteDBURL(): Could not find database type '${dbtype}'!`);
       return null;
     }
   }
 
-  public getDBURL(dbname:string):string {
-    let S = Preferences.SERVER;
-    let D = Preferences.DB;
-    let url = `${S.protocol}://${S.server}:${S.port}/${dbname}`;
+  public getRemoteDBURL(dbtype:string):string {
+    return Preferences.getRemoteDBURL(dbtype);
+  }
+
+  public static getRemoteDBNameURL(dbname:string):string {
+    // let S = Preferences.SERVER;
+    let url = Preferences.getRemoteURL();
+    // let D = Preferences.DB;
+    // let dbname:string = Preferences.getDB(dbtype);
+    if(dbname) {
+      // let url:string = `${S.protocol}://${S.server}:${S.port}/${dbname}`;
+      url += `/${dbname}`;
+      return url;
+    } else {
+      Log.w(`getRemoteDBNameURL(): Could not find database name '${dbname}'!`);
+      return null;
+    }
+  }
+
+  public getRemoteDBNameURL(dbname:string):string {
+    return Preferences.getRemoteDBNameURL(dbname);
+  }
+
+  public static getDBURL(dbname:string):string {
+    // let S = Preferences.SERVER;
+    // let D = Preferences.DB;
+    // let url = `${S.protocol}://${S.server}:${S.port}/${dbname}`;
+    let url = "";
+    url += Preferences.getRemoteURL();
+    if(dbname) {
+      url += `/${dbname}`;
+    }
     return url;
   }
+
+  public getDBURL(dbname:string):string {
+    return Preferences.getDBURL(dbname);
+  }
+
+  public static getProtocol():ProtocolType {
+    return Preferences.SERVER.protocol;
+  }
+
+  public getProtocol():ProtocolType {
+    return Preferences.getProtocol();
+  }
+
+  public static getHostname():string {
+    return Preferences.SERVER.server;
+  }
+
+  public getHostname():string {
+    return Preferences.getHostname();
+  }
+
+  public static getPort():number {
+    return Preferences.SERVER.port;
+  }
+
+  public getPort():number {
+    return Preferences.getPort();
+  }
+
+  public static getLoginDatabase():string {
+    return Preferences.SERVER.database;
+  }
+
+  public getLoginDatabase():string {
+    return Preferences.getLoginDatabase();
+  }
+
+  public setProtocol(prot:string) {
+    Preferences.SERVER.protocol = prot;
+    return Preferences.SERVER.protocol;
+  }
+
+  public setHostname(host:string) {
+    Preferences.SERVER.server = host;
+    return Preferences.SERVER.server;
+  }
+
+  public setPort(portnumber:number) {
+    Preferences.SERVER.port = portnumber;
+    return Preferences.SERVER.port;
+  }
+
+  public setLoginDatabase(database:string) {
+    Preferences.SERVER.database = database;
+    return Preferences.SERVER.database;
+  }
+
+
 
   public getLocalAdapter():string {
     return Preferences.SERVER.localAdapter;
@@ -363,7 +774,7 @@ export class Preferences {
     return Preferences.getConsole();
   }
 
-  public getPrefs():any {
+  public getPrefs():PreferencesDoc {
     return Preferences.getPrefs();
   }
 
@@ -401,7 +812,7 @@ export class Preferences {
     return Preferences.getDBKeys(onlySyncableDatabases);
   }
 
-  public getDB(key?:string):any {
+  public getDB(key?:string):string {
     return Preferences.getDB(key);
   }
 
@@ -538,16 +949,8 @@ export class Preferences {
     return Preferences.getRemoteOptions();
   }
 
-  public static getProtocol():string {
-    return Preferences.SERVER.protocol;
-  }
-
-  public getProtocol():string {
-    return Preferences.getProtocol();
-  }
-
-  public static getPrefs():any {
-    return { DB: Preferences.DB, SERVER: Preferences.SERVER, USER: Preferences.USER, DEVELOPER: Preferences.DEVELOPER, CONSOLE: Preferences.CONSOLE };
+  public static getPrefs():PreferencesDoc {
+    return { DB: Preferences.DB, CAMERA: Preferences.CAMERA, SERVER: Preferences.SERVER, USER: Preferences.USER, DEVELOPER: Preferences.DEVELOPER, CONSOLE: Preferences.CONSOLE };
   }
 
   public static getDBKeys(onlySyncableDatabases?:boolean):Array<string> {
@@ -606,53 +1009,69 @@ export class Preferences {
     return Preferences.getSyncableDBList();
   }
 
-  public static getDB(dbkeys?:string|Array<string>, onlySyncableDatabases?:boolean):string|string[] {
-    let keys:string[] = Preferences.getDBKeys();
+  public static getDB(dbkeys?:string|string[], onlySyncableDatabases?:boolean):string {
+    let keys = Preferences.getDBKeys();
     let out:string[] = [];
-    let DB:any = Preferences.getDBRecords();
+    let DB = Preferences.getDBRecords();
+    if(Array.isArray(dbkeys)) {
+      Log.w(`Preferences.getDB(): No longer allowed to specify an array of strings as parameter 1:`, dbkeys);
+      return null;
+    }
     if(typeof dbkeys === 'string') {
-      if(DB[dbkeys] != undefined) {
+      if(DB[dbkeys] != undefined && dbkeys !== 'reports_old') {
         return DB[dbkeys];
       } else {
         return null;
       }
-    } else if(Array.isArray(dbkeys) && dbkeys.length) {
-      // for(let dbKey of keys) {
-      //   for(let newKey of dbkeys) {
-      //     out.push(newKey);
-      //   }
-      // }
-      for(let key of dbkeys) {
-        if(key && typeof key === 'string') {
-          let dbname:string = DB[key];
-          if(dbname) {
-            out.push(dbname);
-          }
-        }
-      }
-      if(out.length) {
-        return out;
-      }
-      return null;
-    } else {
-      return DB;
     }
-    //     if(DB[key] !== undefined) {
-    //       let dbname = Preferences.DB[key];
-    //       out.push(dbname);
-    //       return dbname;
-    //     } else {
-    //       Log.w(`Preferences.getDB('${key}'): No such key in Preferences.DB list:\n`, Preferences.DB);
-    //       return null;
-    //     }
-    //   } else {
-    //     Log.w(`Preferences.getDB('${key}'): Can't even figure out the type of key that is key:\n`, key);
-    //     out.push(String(key));
-    //   }
-    //   return out;
-    // } else {
-    //   return this.;
-    // }
+
+    // public static getDB(dbkeys?:string|Array<string>, onlySyncableDatabases?:boolean):string|string[] {
+  //   let keys:string[] = Preferences.getDBKeys();
+  //   let out:string[] = [];
+  //   let DB:any = Preferences.getDBRecords();
+  //   if(typeof dbkeys === 'string') {
+  //     if(DB[dbkeys] != undefined) {
+  //       return DB[dbkeys];
+  //     } else {
+  //       return null;
+  //     }
+  //   } else if(Array.isArray(dbkeys) && dbkeys.length) {
+  //     // for(let dbKey of keys) {
+  //     //   for(let newKey of dbkeys) {
+  //     //     out.push(newKey);
+  //     //   }
+  //     // }
+  //     for(let key of dbkeys) {
+  //       if(key && typeof key === 'string') {
+  //         let dbname:string = DB[key];
+  //         if(dbname) {
+  //           out.push(dbname);
+  //         }
+  //       }
+  //     }
+  //     if(out.length) {
+  //       return out;
+  //     }
+  //     return null;
+  //   } else {
+  //     return DB;
+  //   }
+  //   //     if(DB[key] !== undefined) {
+  //   //       let dbname = Preferences.DB[key];
+  //   //       out.push(dbname);
+  //   //       return dbname;
+  //   //     } else {
+  //   //       Log.w(`Preferences.getDB('${key}'): No such key in Preferences.DB list:\n`, Preferences.DB);
+  //   //       return null;
+  //   //     }
+  //   //   } else {
+  //   //     Log.w(`Preferences.getDB('${key}'): Can't even figure out the type of key that is key:\n`, key);
+  //   //     out.push(String(key));
+  //   //   }
+  //   //   return out;
+  //   // } else {
+  //   //   return this.;
+  //   // }
   }
 
   public static getServer():any {
@@ -859,11 +1278,15 @@ export class Preferences {
     return this.DEVELOPER.showReportSite;
   }
 
-  public static getOldReportsKeys():Array<string> {
-    return Preferences.DB.reports_old;
+  public static getOldReportsKeys():string[] {
+    if(Array.isArray(Preferences.DB.reports_old)) {
+      return Preferences.DB.reports_old;
+    } else {
+      return [Preferences.DB.reports_old];
+    }
   }
 
-  public static getOldReportsDBList():Array<string> {
+  public static getOldReportsDBList():string[] {
     let out:string[] = [];
     let keys = Preferences.getOldReportsKeys();
     for(let key of Preferences.DB.reports_old) {
@@ -873,11 +1296,11 @@ export class Preferences {
     return out;
   }
 
-  public getOldReportsKeys():Array<string> {
-    return Preferences.DB.reports_old;
+  public getOldReportsKeys():string[] {
+    return Preferences.getOldReportsKeys();
   }
 
-  public getOldReportsDBList():Array<string> {
+  public getOldReportsDBList():string[] {
     return Preferences.getOldReportsDBList();
   }
 
@@ -975,161 +1398,160 @@ export class Preferences {
     return count;
   }
 
-
-  public reinitializePrefs():any {
-    Preferences.DB = {
-      'reports'           : reports           ,
-      'reports_other'     : reports_other     ,
-      'logistics'         : logistics         ,
-      'employees'         : employees         ,
-      'config'            : config            ,
-      'jobsites'          : jobsites          ,
-      'scheduling'        : scheduling        ,
-      'invoices'          : invoices          ,
-      'invoices_be'       : invoices_be       ,
-      'invoices_hb'       : invoices_hb       ,
-      'invoices_kn'       : invoices_kn       ,
-      'technicians'       : technicians       ,
-      'messages'          : messages          ,
-      'comments'          : comments          ,
-      'phoneInfo'         : phoneInfo         ,
-      'sounds'            : sounds            ,
-      'login'             : login             ,
-      'geolocation'       : geolocation       ,
-      'preauths'          : preauths          ,
-      'worksites'         : worksites         ,
-      'timecards'         : timecards         ,
-      'timesheets'        : timesheets        ,
-      'reports_old01'     : reports_old01     ,
-      'reports_old02'     : reports_old02     ,
-      'reports_old'       : reports_old       ,
-    };
-    Preferences.SERVER = {
-      localAdapter: adapter,
-      server: server,
-      port: port,
-      protocol: protocol,
-      howerPort: howlerPort,
-      replicationBatchSize: 200,
-      opts: { auto_compaction: true, get adapter() { return Preferences.SERVER.protocol; }, set adapter(val:string) {Preferences.SERVER.protocol = val}, skip_setup: true },
-      ropts: {
-        get adapter() {return Preferences.SERVER.opts.adapter; },
-        set adapter(value:string) {Preferences.SERVER.opts.adapter = value;},
-        skip_setup: true
-      },
-      cropts: {
-        get adapter() { return Preferences.SERVER.opts.adapter; },
-        set adapter(value: string) { Preferences.SERVER.opts.adapter = value; },
-      },
-      repopts: { live: false, retry: false, continuous: false },
-      // ajaxOpts: { headers: { Authorization: '' } },
-      ajaxOpts: {},
-      remoteDBInfo: {},
-      rdbServer: {
-        get protocol() { return Preferences.SERVER.opts.adapter; },
-        set protocol(value: string) { Preferences.SERVER.opts.adapter = value; },
-        get server() { return Preferences.SERVER.server;},
-        set server(value:string) { Preferences.SERVER.server = value;},
-        // get opts() { return Preferences.SERVER.ropts;},
-        // set opts(value:any) { Preferences.SERVER.ropts = value;},
-      }
-    };
-    Preferences.USER = {
-      preferencesVersion: version,
-      language: 'en',
-      shifts: 7,
-      payroll_periods: 2,
-      audio: false,
-      stayInReports: false,
-      spinnerSpeed: 10,
-      messageCheckInterval: 15,
-    };
-    Preferences.CONSOLE = {
-      scripts: {
-        maps         : `https://maps.google.com/maps/api/js?key=${gmkey}` ,
-        charts       : "https://www.gstatic.com/charts/loader.js"         ,
-        quill        : "build/quill.js"                                   ,
-        fullcalendar : "build/fullcalendar.min.js"                        ,
-      },
-      global: {
-        payroll_periods: 4,
-        loadEmployees: true,
-        loadSites: true,
-        loadReports: false,
-        loadMiscReports: false,
-        loadOldReports: false,
-        weekStartDay: 3,
-        reportsToLoad: 20000,
-        goToLastPage: true,
-        lastPage: '',
-        timeFormat24: false,
-        timeFormat: "hh:mm A",
-        dateFormatShort: "MMM DD",
-        dateFormatMed: "DD MMM YYYY",
-        dateFormatLong: "ddd DD MMM YYYY",
-        dateFormatSort: "YYYY-MM-DD",
-        dateTimeFormat: "YYYY-MM-DD HH:mm",
-      },
-      employeeView: {
-        showAllSites: false,
-      },
-      scheduling: {
-        persistTechChanges: false,
-        showAllSites: true,
-        showOffice: false,
-        showTestSites: false,
-        allDatesAvailable: false,
-        lastScheduleUsed: "",
-        showUnassigned: true,
-        showLegrave: true,
-        showEmptyClients: true,
-        showNonSESA: false,
-        },
-      payroll: {
-        payroll_periods: 4,
-        showColors: true,
-        showShiftLength: true,
-        showAlerts: false,
-        exportUseQuickbooksName: true,
-        minHoursWhenOn: 20,
-        maxHoursWhenOff: 15,
-        showLineNumbers: false,
-        showExTechs: false,
-        showUnassignedTechs: true,
-      },
-      techshiftreports: {
-        showAllSites: false,
-        showAllTechs: false,
-        payroll_periods: 4,
-      },
-      hbpreauth: {
-        showAllSites: false,
-        payroll_periods: 4,
-      },
-      jobsites: {
-        autoLayoutTable: false,
-        tableResizeMode: 'fit',
-        showAllSites: true,
-        colorSitesByStatus: true,
-      },
-      techphones: {
-        autoLayoutTable: false,
-        tableResizeMode: 'fit',
-      },
-      pages: {
-        reports: 100,
-        reports_other: 100,
-        employees: 200,
-        jobsites: 50,
-        techphones: 100,
-      },
-      pageSizes: {
-        reports: [50,100,200,500,1000,2000],
-        reports_other: [50,100,200,500,1000,2000],
-        employees: [30,50,100,150,200,250,300,400,500],
-        jobsites: [5,10,20,30,40,50,100],
-        techphones: [50,100,200,500,1000],
-      },
-    };
-  }
+  // public reinitializePrefs():any {
+  //   Preferences.DB = {
+  //     'reports'           : reports           ,
+  //     'reports_other'     : reports_other     ,
+  //     'logistics'         : logistics         ,
+  //     'employees'         : employees         ,
+  //     'config'            : config            ,
+  //     'jobsites'          : jobsites          ,
+  //     'scheduling'        : scheduling        ,
+  //     'invoices'          : invoices          ,
+  //     'invoices_be'       : invoices_be       ,
+  //     'invoices_hb'       : invoices_hb       ,
+  //     'invoices_kn'       : invoices_kn       ,
+  //     'technicians'       : technicians       ,
+  //     'messages'          : messages          ,
+  //     'comments'          : comments          ,
+  //     'phoneInfo'         : phoneInfo         ,
+  //     'sounds'            : sounds            ,
+  //     'login'             : login             ,
+  //     'geolocation'       : geolocation       ,
+  //     'preauths'          : preauths          ,
+  //     'worksites'         : worksites         ,
+  //     'timecards'         : timecards         ,
+  //     'timesheets'        : timesheets        ,
+  //     'reports_old01'     : reports_old01     ,
+  //     'reports_old02'     : reports_old02     ,
+  //     'reports_old'       : reports_old       ,
+  //   };
+  //   Preferences.SERVER = {
+  //     localAdapter: adapter,
+  //     server: server,
+  //     port: port,
+  //     protocol: protocol,
+  //     howerPort: howlerPort,
+  //     replicationBatchSize: 200,
+  //     opts: { auto_compaction: true, get adapter() { return Preferences.SERVER.protocol; }, set adapter(val:string) {Preferences.SERVER.protocol = val}, skip_setup: true },
+  //     ropts: {
+  //       get adapter() {return Preferences.SERVER.opts.adapter; },
+  //       set adapter(value:string) {Preferences.SERVER.opts.adapter = value;},
+  //       skip_setup: true
+  //     },
+  //     cropts: {
+  //       get adapter() { return Preferences.SERVER.opts.adapter; },
+  //       set adapter(value: string) { Preferences.SERVER.opts.adapter = value; },
+  //     },
+  //     repopts: { live: false, retry: false, continuous: false },
+  //     // ajaxOpts: { headers: { Authorization: '' } },
+  //     ajaxOpts: {},
+  //     remoteDBInfo: {},
+  //     rdbServer: {
+  //       get protocol() { return Preferences.SERVER.opts.adapter; },
+  //       set protocol(value: string) { Preferences.SERVER.opts.adapter = value; },
+  //       get server() { return Preferences.SERVER.server;},
+  //       set server(value:string) { Preferences.SERVER.server = value;},
+  //       // get opts() { return Preferences.SERVER.ropts;},
+  //       // set opts(value:any) { Preferences.SERVER.ropts = value;},
+  //     }
+  //   };
+  //   Preferences.USER = {
+  //     preferencesVersion: version,
+  //     language: 'en',
+  //     shifts: 7,
+  //     payroll_periods: 2,
+  //     audio: false,
+  //     stayInReports: false,
+  //     spinnerSpeed: 10,
+  //     messageCheckInterval: 15,
+  //   };
+  //   Preferences.CONSOLE = {
+  //     scripts: {
+  //       maps         : `https://maps.google.com/maps/api/js?key=${gmkey}` ,
+  //       charts       : "https://www.gstatic.com/charts/loader.js"         ,
+  //       quill        : "build/quill.js"                                   ,
+  //       fullcalendar : "build/fullcalendar.min.js"                        ,
+  //     },
+  //     global: {
+  //       payroll_periods: 4,
+  //       loadEmployees: true,
+  //       loadSites: true,
+  //       loadReports: false,
+  //       loadMiscReports: false,
+  //       loadOldReports: false,
+  //       weekStartDay: 3,
+  //       reportsToLoad: 20000,
+  //       goToLastPage: true,
+  //       lastPage: '',
+  //       timeFormat24: false,
+  //       timeFormat: "hh:mm A",
+  //       dateFormatShort: "MMM DD",
+  //       dateFormatMed: "DD MMM YYYY",
+  //       dateFormatLong: "ddd DD MMM YYYY",
+  //       dateFormatSort: "YYYY-MM-DD",
+  //       dateTimeFormat: "YYYY-MM-DD HH:mm",
+  //     },
+  //     employeeView: {
+  //       showAllSites: false,
+  //     },
+  //     scheduling: {
+  //       persistTechChanges: false,
+  //       showAllSites: true,
+  //       showOffice: false,
+  //       showTestSites: false,
+  //       allDatesAvailable: false,
+  //       lastScheduleUsed: "",
+  //       showUnassigned: true,
+  //       showLegrave: true,
+  //       showEmptyClients: true,
+  //       showNonSESA: false,
+  //       },
+  //     payroll: {
+  //       payroll_periods: 4,
+  //       showColors: true,
+  //       showShiftLength: true,
+  //       showAlerts: false,
+  //       exportUseQuickbooksName: true,
+  //       minHoursWhenOn: 20,
+  //       maxHoursWhenOff: 15,
+  //       showLineNumbers: false,
+  //       showExTechs: false,
+  //       showUnassignedTechs: true,
+  //     },
+  //     techshiftreports: {
+  //       showAllSites: false,
+  //       showAllTechs: false,
+  //       payroll_periods: 4,
+  //     },
+  //     hbpreauth: {
+  //       showAllSites: false,
+  //       payroll_periods: 4,
+  //     },
+  //     jobsites: {
+  //       autoLayoutTable: false,
+  //       tableResizeMode: 'fit',
+  //       showAllSites: true,
+  //       colorSitesByStatus: true,
+  //     },
+  //     techphones: {
+  //       autoLayoutTable: false,
+  //       tableResizeMode: 'fit',
+  //     },
+  //     pages: {
+  //       reports: 100,
+  //       reports_other: 100,
+  //       employees: 200,
+  //       jobsites: 50,
+  //       techphones: 100,
+  //     },
+  //     pageSizes: {
+  //       reports: [50,100,200,500,1000,2000],
+  //       reports_other: [50,100,200,500,1000,2000],
+  //       employees: [30,50,100,150,200,250,300,400,500],
+  //       jobsites: [5,10,20,30,40,50,100],
+  //       techphones: [50,100,200,500,1000],
+  //     },
+  //   };
+  // }
 }

@@ -1,9 +1,9 @@
 // import { FormGroup, FormControl, FormArray, Validators } from "@angular/forms"                ;
 import { sprintf                                       } from 'sprintf-js'                    ;
-import { Log, moment, Moment, oo                       } from 'domain/onsitexdomain' ;
+import { Log, moment, Moment, oo                       } from 'domain/onsitexdomain'          ;
 import { Component, OnInit, OnDestroy, Input, Output,  } from '@angular/core'                 ;
 import { ElementRef, NgZone, EventEmitter,             } from '@angular/core'                 ;
-import { OSData                                        } from '../../providers/data-service'  ;
+import { OSData                                        } from 'providers/data-service'        ;
 import { Jobsite                                       } from 'domain/onsitexdomain'          ;
 import { Dropdown, SelectItem                          } from 'primeng/primeng'               ;
 
@@ -15,7 +15,7 @@ export class WorkSiteHoursComponent implements OnInit,OnDestroy {
   @Input('jobsite') jobsite:Jobsite;
   @Output('jobsiteUpdated') jobsiteUpdated = new EventEmitter<Jobsite>();
   public title          : string        = "Edit Site Hours" ;
-  public weekdays       : Array<string> ;
+  public weekdays       : string[] ;
   // public locIDHoursForm : FormGroup     ;
   // public hoursForm      : FormGroup     ;
   // public jobsite        : Jobsite       ;
@@ -24,28 +24,28 @@ export class WorkSiteHoursComponent implements OnInit,OnDestroy {
 
   public startTimeSelect : SelectItem[] = [];
   public locIDHours      : any           ;
-  public hoursData       : Array<any>    ;
+  public hoursData       : any[]    ;
   public siteLocationID  : string        ;
   public siteLocation2nd : string        ;
-  public shiftRotations  : Array<any>    ;
+  public shiftRotations  : any[]    ;
   public siteDivisions   : any           ;
   public defaultHours    : number        = 12                ;
   public dataReady       : boolean       = false             ;
-  public grid            : {AM:Array<any>, PM:Array<any>}    ;
+  public grid            : {AM:any[], PM:any[]}    ;
   public hourKeys        : any           ;
   public timeKeys        : any           ;
   public dayKeys         : any           ;
   public locIDKeys       : any           ;
   public timeOptions     = []            ;
-  public startOptions    : Array<string> = []                ;
+  public startOptions    : string[] = []                ;
   public startAM         : string        = ""                ;
   public startPM         : string        = ""                ;
   public shiftStartTimes : any           = {AM: "00:00", PM: "00:00"} ;
   public selectedStartAM : string        = ""                ;
   public selectedStartPM : string        = ""                ;
-  public defaultShifts   : Array<string> = ["AM", "PM"]      ;
+  public defaultShifts   : string[] = ["AM", "PM"]      ;
   public originalHours   : any                               ;
-  public defaultRotations: Array<{name:string,fullName:string}> = [
+  public defaultRotations: {name:string,fullName:string}[] = [
     { name: "FIRST WEEK", fullName: "First Week"      },
     { name: "CONTN WEEK", fullName: "Continuing Week" },
     { name: "FINAL WEEK", fullName: "Final Week"      },
@@ -53,8 +53,8 @@ export class WorkSiteHoursComponent implements OnInit,OnDestroy {
     { name: "VACATION"  , fullName: "Vacation"        },
     { name: "UNASSIGNED", fullName: "Unassigned"      },
   ];
-  public shifts          : Array<string> = [          ]      ;
-  public rotations       : Array<{name:string,fullName:string}> = []
+  public shifts          : string[] = [          ]      ;
+  public rotations       : {name:string,fullName:string}[] = []
   public dropdownHeight  : number = 200;
   public dropdownUnits   : string = "px";
   public get dropdownScroll():string { return this.dropdownHeight + this.dropdownUnits; };

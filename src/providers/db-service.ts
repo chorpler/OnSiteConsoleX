@@ -32,7 +32,7 @@ const delay = (ms:number):Promise<boolean> => {
 };
 
 export type TranslationLanguage = 'en'|'es';
-export type TranslationTableRecordKey = TranslationLanguage|'key';
+export type TranslationTableRecordKey = TranslationLanguage|'key'|'maint_type';
 export interface TranslationRecord {
   [propName:string]:string[];
 }
@@ -270,17 +270,33 @@ export class DBService {
 
   public async getAllConfigData():Promise<any> {
     try {
-      Log.l("getAllConfigData(): Retrieving clients, locations, locIDs, loc2nd's, shiftRotations, and shiftTimes …");
+      Log.l("DB.getAllConfigData(): Retrieving clients, locations, locIDs, loc2nd's, shiftRotations, and shiftTimes …");
+      let configKeys = [
+        'client',
+        'location',
+        'locid',
+        'rotation',
+        'shift',
+        'shiftlength',
+        'shiftstarttime',
+        'other_reports',
+        'maintenance_enouns',
+        'maintenance_mnouns',
+        'maintenance_verbs',
+      ];
       let dbname = this.prefs.getDB('config');
       let db1 = this.addDB(dbname);
       // return new Promise((resolve, reject) => {
         // rdb1.allDocs({ keys: ['client', 'location', 'locid', 'loc2nd', 'rotation', 'shift', 'shiftlength', 'shiftstarttime', 'other_reports'], include_docs: true }).then((records) => {
-      let records:any = await db1.allDocs({ keys: ['client', 'location', 'locid', 'rotation', 'shift', 'shiftlength', 'shiftstarttime', 'other_reports'], include_docs: true });
-      Log.l("getAllConfigData(): Retrieved documents:\n", records);
-      let results = { clients: [], locations: [], locids: [], loc2nds: [], rotations: [], shifts: [], shiftlengths: [], shiftstarttimes: [], report_types: [], training_types: [] };
+      let records:any = await db1.allDocs({ keys: configKeys, include_docs: true });
+      Log.l("DB.getAllConfigData(): Retrieved documents:", records);
+      let results = { clients: [], locations: [], locids: [], loc2nds: [], rotations: [], shifts: [], shiftlengths: [], shiftstarttimes: [], report_types: [], training_types: [], maintenance_enouns: [], maintenance_mnouns: [], maintenance_verbs: [], };
       for(let record of records.rows) {
         let type = record.id;
         let types = record.id + "s";
+        if(type.includes('maintenance')) {
+          types = type;
+        }
         if(type === 'other_reports') {
           let doc                = record.doc         ;
           let report_types       = doc.report_types   ;
@@ -288,9 +304,9 @@ export class DBService {
           results.report_types   = report_types       ;
           results.training_types = training_types     ;
         } else {
-          Log.l(`getAllConfigData(): Now retrieving type '${type}'...`);
+          Log.l(`DB.getAllConfigData(): Now retrieving type '${type}'...`);
           let doc = record.doc;
-          if (doc) {
+          if(doc) {
             if(doc[types]) {
               for(let result of doc[types]) {
                 results[types].push(result);
@@ -321,7 +337,7 @@ export class DBService {
       results.clients = clients;
       results.locations = locations;
       results.locids = locIDs;
-      Log.l("getAllConfigData(): Final config data retrieved is:\n", results);
+      Log.l("DB.getAllConfigData(): Final config data retrieved is:", results);
       return results;
     } catch(err) {
       Log.l(`DB.getAllConfigData(): Error getting config data!`);
@@ -329,45 +345,6 @@ export class DBService {
       throw err;
     }
   }
-
-  // public getAllConfig() {
-  //   Log.l("getAllConfig(): Retrieving clients, locations, locIDs, loc2nd's, shiftRotations, shiftTimes, shiftLengths, shiftTypes, and shiftStartTimes …");
-  //   let db1 = this.addDB('sesa-config');
-  //   return new Promise((resolve, reject) => {
-  //     db1.allDocs({ keys: ['client', 'location', 'locid', 'loc2nd', 'rotation', 'shift', 'shiftlength', 'shifttype', 'shiftstarttime'], include_docs: true }).then((docs) => {
-  //       let results = { client: [], location: [], locid: [], loc2nd: [], rotation: [], shift: [], shiftlength: [], shifttype: [], shiftstarttime: [] };
-  //       for(let type in docs.rows[0].doc) {
-  //         let item = docs[type];
-  //         if (item.doc) {
-  //           results[type].push(item.doc);
-  //         }
-  //       }
-  //       let clients:SESAClient[] = [];
-  //       let locations:SESALocation[] = [];
-  //       let locIDs:SESALocID[] = [];
-  //       for(let row of results.client) {
-  //         let item:SESAClient = new SESAClient(row);
-  //         clients.push(item);
-  //       }
-  //       for(let row of results.location) {
-  //         let item:SESALocation = new SESALocation(row);
-  //         locations.push(item);
-  //       }
-  //       for(let row of results.locid) {
-  //         let item:SESALocID = new SESALocID(row);
-  //         locIDs.push(item);
-  //       }
-  //       results.client = clients;
-  //       results.location = locations;
-  //       results.locid = locIDs;
-  //       resolve(results);
-  //     }).catch((err) => {
-  //       Log.l("getAllConfig(): Error getting all config docs!");
-  //       Log.e(err);
-  //       resolve([]);
-  //     });
-  //   });
-  // }
 
   public async getEmployees():Promise<Employee[]> {
     try {
@@ -415,7 +392,7 @@ export class DBService {
       let dbname = this.prefs.getDB('jobsites');
       let db1 = this.addDB(dbname);
       let res:any = await db1.allDocs({ include_docs: true })
-      Log.l("getJobsites(): Got allDocs for jobsites:\n", res);
+      Log.l("getJobsites(): Got allDocs for jobsites:", res);
       let sites:Jobsite[] = [];
       for(let row of res.rows) {
         let doc = row.doc;
@@ -424,7 +401,7 @@ export class DBService {
           sites.push(site);
         }
       }
-      Log.l("getJobsites(): Created jobsite array:\n", sites);
+      Log.l("getJobsites(): Created jobsite array:", sites);
       return sites;
     } catch(err) {
       Log.l(`getJobsites(): Error getting allDocs from jobsites!`);
@@ -436,13 +413,13 @@ export class DBService {
     //   let db1 = this.addDB('sesa-jobsites');
     //   db1.allDocs({ include_docs: true }).then((docs) => {
     //     let docArray = [];
-    //     Log.l("getJobsites(): Got allDocs for jobsites:\n", docs);
+    //     Log.l("getJobsites(): Got allDocs for jobsites:", docs);
     //     for (let item of docs.rows) {
     //       if (item.doc && item.id[0] !== '_') {
     //         docArray.push(item.doc);
     //       }
     //     }
-    //     Log.l("getJobsites(): Created docArray:\n", docArray);
+    //     Log.l("getJobsites(): Created docArray:", docArray);
     //     resolve(docArray);
     //   }).catch((err) => {
     //     Log.l("getJobsites(): Error getting allDocs from jobsites!");
@@ -497,7 +474,7 @@ export class DBService {
       db1.createIndex(query).then(res => {
         return db1.find(query);
       }).then((res:any) => {
-        Log.l("DB.getReports(): Got documents:\n", res);
+        Log.l("DB.getReports(): Got documents:", res);
         let docArray:Report[] = [];
         for (let row of res.rows) {
           if (row.id[0] !== "_" && row['doc'] !== undefined) {
@@ -507,7 +484,7 @@ export class DBService {
             docArray.push(tmpReport);
           }
         }
-        Log.l("DB.getReports(): Got reports:\n", docArray);
+        Log.l("DB.getReports(): Got reports:", docArray);
         resolve(docArray);
       }).catch(err => {
         Log.l("DB.getReports(): Error getting all work reports!");
@@ -523,7 +500,7 @@ export class DBService {
     if(elem) {
       elem.innerHTML = loadText + text + " …";
     } else {
-      Log.l("updateStatusSync(): Fake loading controller text:\n", text);
+      Log.l("updateStatusSync(): Fake loading controller text:", text);
     }
   }
 
@@ -532,29 +509,29 @@ export class DBService {
     if(loading && typeof loading.setContent === 'function') {
       loading.setContent(loadText + text + " …");
     } else {
-      Log.l("updateStatus(): Fake loading controller text:\n", text);
+      Log.l("updateStatus(): Fake loading controller text:", text);
     }
   }
 
   public updateStatusTick(text:string, loading:Loading) {
     let loadText:string = "Retrieving data from:<br>\n";
     // if(loading && typeof loading.setContent === 'function') {
-    // Log.l("updateStatusTick(): Fake loading controller text:\n", text);
+    // Log.l("updateStatusTick(): Fake loading controller text:", text);
     loading.setContent(loadText + text + " …");
     this.thisApp.tick();
     // } else {
-      // Log.l("updateStatus(): Fake loading controller text:\n", text);
+      // Log.l("updateStatus(): Fake loading controller text:", text);
     // }
   }
 
   public async updateStatusTickAsync(text:string, loading:Loading):Promise<any> {
     let loadText:string = "Retrieving data from:<br>\n";
     // if(loading && typeof loading.setContent === 'function') {
-    // Log.l("updateStatusTick(): Fake loading controller text:\n", text);
+    // Log.l("updateStatusTick(): Fake loading controller text:", text);
     loading.setContent(loadText + text + " …");
     this.thisApp.tick();
     // } else {
-      // Log.l("updateStatus(): Fake loading controller text:\n", text);
+      // Log.l("updateStatus(): Fake loading controller text:", text);
     // }
   }
 
@@ -572,7 +549,7 @@ export class DBService {
         if(loading && typeof loading.setContent === 'function') {
           loading.setContent(loadText + text + "…");
         } else {
-          Log.l("Fake loading controller text:\n", text);
+          Log.l("Fake loading controller text:", text);
         }
       }
 
@@ -749,7 +726,7 @@ export class DBService {
           i++;
         // }
       }
-      // Log.l("getAllReports(): Got reports:\n", docArray);
+      // Log.l("getAllReports(): Got reports:", docArray);
       let newCount = docArray.length;
       Log.l(`DB.getAllReports(): Created array of ${newCount} reports.`);
       return docArray;
@@ -819,7 +796,7 @@ export class DBService {
           }
         }
       }
-      Log.l("DB.getReportLogistics(): Returning array of logistics reports:\n", logistics);
+      Log.l("DB.getReportLogistics(): Returning array of logistics reports:", logistics);
       return logistics;
     } catch(err) {
       Log.l(`DB.getReportLogistics(): Error retrieving ReportLogistics list!`);
@@ -849,7 +826,7 @@ export class DBService {
           }
         }
       }
-      Log.l("DB.getReportTimeCards(): Returning array of timecard reports:\n", reports);
+      Log.l("DB.getReportTimeCards(): Returning array of timecard reports:", reports);
       return reports;
       // let u:string = this.ud.getUsername();
       // let p:string = this.ud.getPassword();
@@ -871,7 +848,7 @@ export class DBService {
       //   let report:ReportTimeCard = new ReportTimeCard(doc);
       //   reports.push(report);
       // }
-      // Log.l("getTimecardsForTech(): Returning final reports array:\n", reports);
+      // Log.l("getTimecardsForTech(): Returning final reports array:", reports);
       // return reports;
     } catch(err) {
       Log.l(`DB.getReportTimeCards(): Error retrieving TimeCard report list`);
@@ -982,7 +959,7 @@ export class DBService {
         if(loading && typeof loading.setContent === 'function') {
           loading.setContent(loadText + text + "…");
         } else {
-          Log.l("Fake loading controller text:\n", text);
+          Log.l("Fake loading controller text:", text);
         }
       }
       // let reportDate:Moment = moment().subtract(2, 'weeks');
@@ -1047,13 +1024,13 @@ export class DBService {
       // res = await this.getSchedules();
       // data.schedules = res;
       if(!getReports) {
-        Log.l("getAllNonScheduleData(): Success, final data to be returned is:\n", data);
+        Log.l("getAllNonScheduleData(): Success, final data to be returned is:", data);
         return data;
       } else {
         let fetchCount:number = this.prefs.CONSOLE.global.reportsToLoad || 1000000;
         updateLoaderStatus("sesa-reports");
         let rpts:Report[] = await this.getReportsData(fetchCount, spinnerID);
-        Log.l("getAllNonScheduleData(): Success plus reports, final data to be returned is:\n", data);
+        Log.l("getAllNonScheduleData(): Success plus reports, final data to be returned is:", data);
         data.reports = rpts;
         return data;
       }
@@ -1100,7 +1077,7 @@ export class DBService {
           let uB = b.username;
           return dA > dB ? -1 : dA < dB ? 1 : tA > tB ? -1 : tA < tB ? 1 : uA < uB ? -1 : uA > uB ? 1 : 0;
         });
-        // Log.l("getAllData(): Success, final data to be returned is:\n", data);
+        // Log.l("getAllData(): Success, final data to be returned is:", data);
         loading.setContent(loadText + "sesa-scheduling …");
         return this.getSchedules();
       }).then(res => {
@@ -1234,7 +1211,7 @@ export class DBService {
       // };
       Log.l("getSounds(): Now attempting to get sounds from server ….");
       let res:any = await db1.allDocs({ include_docs: true, attachments: true, binary:true });
-      Log.l("getSounds(): Successfully got sounds back from server:\n", res);
+      Log.l("getSounds(): Successfully got sounds back from server:", res);
       let out:any = {};
       let docs:any[] = res.rows.map((a:any) => {return a.doc;});
       // for(let row of res.rows) {
@@ -1311,7 +1288,7 @@ export class DBService {
   //     };
   //     Log.l("getSounds(): Now attempting to get sounds from server ….");
   //     db1.allDocs({ include_docs: true, attachments: true }).then(res => {
-  //       Log.l("getSounds(): Successfully got sounds back from server:\n", res);
+  //       Log.l("getSounds(): Successfully got sounds back from server:", res);
   //       let out = {};
   //       for (let row of res.rows) {
   //         let doc = row.doc;
@@ -1328,14 +1305,14 @@ export class DBService {
   //       for (let key of keys) {
   //         output[key] = [];
   //       }
-  //       Log.l("getSounds(): Calling data2blob with out and finalout:\n", out, JSON.stringify(output));
+  //       Log.l("getSounds(): Calling data2blob with out and finalout:", out, JSON.stringify(output));
   //       return data2blob(out, output);
   //     }).then(output => {
 
-  //       Log.l("getSounds(): Final output will be:\n", output);
+  //       Log.l("getSounds(): Final output will be:", output);
   //       resolve(output);
   //       // }).then(res => {
-  //       //   Log.l("getSounds(): Success! Got sounds:\n", res);
+  //       //   Log.l("getSounds(): Success! Got sounds:", res);
   //       //   resolve(res);
   //     }).catch(err => {
   //       Log.l("getSounds(): Error getting sounds back from server!");
@@ -1508,9 +1485,10 @@ export class DBService {
 
   public saveInvoice(type:string, invoice: Invoice) {
     return new Promise((resolve, reject) => {
-      let db = this.prefs.getDB();
-      let dbname = `invoices_${type.toLowerCase()}`;
-      let db1 = this.addDB(db[dbname]);
+      let invoiceType = type.toLowerCase();
+      let dbkey = `invoices_${invoiceType}`;
+      let dbname = this.prefs.getDB(dbkey);
+      let db1 = this.addDB(dbname);
       let ts = moment().format();
       // let user = username ? username : window['onsiteconsoleusername'] ? window['onsiteconsoleusername'] : "unknown_user";
       let inv:any = invoice.serialize();
@@ -1548,15 +1526,16 @@ export class DBService {
       let saveResult = await this.saveInvoice(type, invoice);
       results.push(saveResult);
     }
-    Log.l("saveInvoices(): Results are:\n", results);
+    Log.l("saveInvoices(): Results are:", results);
     return results;
   }
 
   public getInvoices(type:string, start:string, end:string) {
     return new Promise((resolve,reject) => {
-      let db = this.prefs.getDB();
-      let dbname = `invoices_${type.toLowerCase()}`;
-      let db1 = this.addDB(db[dbname]);
+      let invoiceType = type.toLowerCase();
+      let dbkey = `invoices_${invoiceType}`;
+      let dbname = this.prefs.getDB(dbkey);
+      let db1 = this.addDB(dbname);
       db1.allDocs({include_docs: true}).then(res => {
         Log.l(`getInvoices(): Successfully retrieved invoices, raw results are:\n`, res);
         let invoices:Invoice[] = [];
@@ -1618,14 +1597,14 @@ export class DBService {
       let saveResult = await this.savePreauth(preauth);
       results.push(saveResult);
     }
-    Log.l("savePreauths(): Results are:\n", results);
+    Log.l("savePreauths(): Results are:", results);
     return results;
   }
 
   public getPreauths(start:string, end:string):Promise<PreAuth[]> {
     return new Promise((resolve,reject) => {
-      let db = this.prefs.getDB();
-      let db1 = this.addDB(db.preauths);
+      let dbname = this.prefs.getDB('preauths');
+      let db1 = this.addDB(dbname);
       db1.allDocs({include_docs: true}).then(res => {
         Log.l(`getPreauths(): Successfully retrieved preauths, raw results are:\n`, res);
         let preauths:PreAuth[] = [];
@@ -1655,7 +1634,7 @@ export class DBService {
       db1.get(id).then(res => {
         let dps = new DPS();
         dps.deserialize(res);
-        Log.l("getDPSSettings(): Successfully retrieved DPS settings:\n", dps);
+        Log.l("getDPSSettings(): Successfully retrieved DPS settings:", dps);
         resolve(dps);
       }).catch(err => {
         Log.l("getDPSSettings(): Error getting DPS settings!");
@@ -1679,7 +1658,7 @@ export class DBService {
           doc = dpsDoc;
           doc._id = id;
         }
-        Log.l("saveDPSSettings(): Now upserting doc:\n", doc);
+        Log.l("saveDPSSettings(): Now upserting doc:", doc);
         return doc;
       }).then(res => {
         if(!res['ok'] && !res.updated) {
@@ -1701,7 +1680,7 @@ export class DBService {
     return new Promise((resolve, reject) => {
       let db1 = this.addDB('sesa-tech-phones');
       db1.allDocs({ include_docs: true }).then(res => {
-        Log.l("getTechPhones(): Got initial doc list:\n", res);
+        Log.l("getTechPhones(): Got initial doc list:", res);
         let techPhones: any[] = [];
         for (let row of res.rows) {
           if (row.id[0] !== '_' && row.doc) {
@@ -1709,7 +1688,7 @@ export class DBService {
             techPhones.push(doc);
           }
         }
-        Log.l("getTechPhones(): Final result array is:\n", techPhones);
+        Log.l("getTechPhones(): Final result array is:", techPhones);
         resolve(techPhones);
       }).catch((err) => {
         Log.l("getTechPhones(): Error retrieving tech phones list!");
@@ -2021,7 +2000,7 @@ export class DBService {
   //     let db1 = this.addDB(db.reports_old01);
   //     Log.l(`DB.getOldReports(): retrieving all reports from '${db.reports_old01}'...`)
   //     let res:any = await db1.allDocs({include_docs:true});
-  //     Log.l("getOldReports(): Successfully retrieved old reports, raw list is:\n", res);
+  //     Log.l("getOldReports(): Successfully retrieved old reports, raw list is:", res);
   //     let reports:Report[] = [];
   //     for (let row of res.rows) {
   //       if (row.id[0] !== '_' && row.doc) {
@@ -2031,7 +2010,7 @@ export class DBService {
   //         reports.push(rpt);
   //       }
   //     }
-  //     Log.l("getOldReports(): Final array of old reports is:\n", reports);
+  //     Log.l("getOldReports(): Final array of old reports is:", reports);
   //     return reports;
   //   } catch(err) {
   //     Log.l(`DB.getOldReports(): Error retrieving reports.`);
@@ -2046,7 +2025,7 @@ export class DBService {
   //     let db1 = this.addDB(db.reports_old01);
   //     Log.l(`DB.getOldReports(): retrieving all reports from '${db.reports_old01}'...`)
   //     let res = await db1.allDocs({include_docs:true});
-  //     Log.l("getOldReports(): Successfully retrieved old reports, raw list is:\n", res);
+  //     Log.l("getOldReports(): Successfully retrieved old reports, raw list is:", res);
   //     let reports:Report[] = [];
   //     for (let row of res.rows) {
   //       if (row.id[0] !== '_' && row.doc) {
@@ -2056,7 +2035,7 @@ export class DBService {
   //         reports.push(rpt);
   //       }
   //     }
-  //     Log.l("getOldReports(): Final array of old reports is:\n", reports);
+  //     Log.l("getOldReports(): Final array of old reports is:", reports);
   //     return reports;
   //   } catch (err) {
   //     Log.l("getOldReports(): Error retrieving reports.");

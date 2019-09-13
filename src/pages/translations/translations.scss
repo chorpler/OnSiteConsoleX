@@ -168,6 +168,12 @@ page-translations {
       min-width: 75px;
       max-width: 200px;
     }
+    .col-index {
+      max-width: 50px;
+      width: 45px;
+      text-align: right;
+
+    }
     .col-id {
 
     }
@@ -368,5 +374,12 @@ page-translations {
   }
   .icon-button-like {
 
+  }
+  .translations-col-filter {
+    width: 100%;
+    border-radius: 3px;
+    &::placeholder {
+      color: rgba(32, 32, 32, 0.3);
+    }
   }
 }
