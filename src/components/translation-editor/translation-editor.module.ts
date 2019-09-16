@@ -6,9 +6,10 @@ import { SharedModule        } from 'primeng/shared'        ;
 import { ButtonModule        } from 'primeng/button'        ;
 import { InputTextModule     } from 'primeng/inputtext'     ;
 import { InputTextareaModule } from 'primeng/inputtextarea' ;
-import { InputSwitchModule   } from 'primeng/inputswitch' ;
+import { InputSwitchModule   } from 'primeng/inputswitch'   ;
 import { EditorModule        } from 'primeng/editor'        ;
 import { DialogModule        } from 'primeng/dialog'        ;
+import { DropdownModule      } from 'primeng/dropdown'      ;
 
 @NgModule({
   declarations: [
@@ -24,6 +25,7 @@ import { DialogModule        } from 'primeng/dialog'        ;
     InputSwitchModule,
     EditorModule,
     DialogModule,
+    DropdownModule,
   ],
   exports: [
     TranslationEditor,

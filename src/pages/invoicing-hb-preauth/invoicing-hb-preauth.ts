@@ -10,7 +10,7 @@ import { AlertService                                                       } fr
 import { DBService                                                          } from 'providers/db-service'                         ;
 import { ServerService                                                      } from 'providers/server-service'                     ;
 import { OSData                                                             } from 'providers/data-service'                       ;
-import { Preferences                                                        } from 'providers/preferences'                        ;
+import { Preferences, DatabaseKey                                           } from 'providers/preferences'                        ;
 import { NotifyService                                                      } from 'providers/notify-service'                     ;
 import { DispatchService                                                    } from 'providers/dispatch-service'                   ;
 import { SelectItem,                                                        } from 'primeng/api'                                  ;
@@ -127,11 +127,12 @@ export class HBPreauthPage implements OnInit,OnDestroy {
   }
 
   public initializeSubscriptions() {
-    this.dataSub = this.dispatch.datastoreUpdated().subscribe((data:{type:string, payload:any}) => {
+    this.dataSub = this.dispatch.datastoreUpdated().subscribe((data:{type:DatabaseKey, payload:any}) => {
       Log.l("Home.subscriptions: Got updated data payload!\n", data);
       let key = data.type;
       let payload = data.payload;
-      if(key === 'reports' || key === 'reports_ver101100') {
+      // if(key === 'reports' || key === 'reports_ver101100') {
+      if(key === 'reports' || key.includes('ver101100')) {
         Log.l("HBPreauthPage: Updated data payload was for reports.")
         this.allReports = payload;
       }

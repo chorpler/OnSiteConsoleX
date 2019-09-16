@@ -13,7 +13,7 @@ import { ServerService                                                          
 import { DBService                                                                       } from 'providers/db-service'         ;
 import { AlertService                                                                    } from 'providers/alert-service'      ;
 import { OSData                                                                          } from 'providers/data-service'       ;
-import { DispatchService                                                                 } from 'providers'                    ;
+import { DispatchService, DatabaseKey                                                    } from 'providers'                    ;
 import { Log, Moment, moment, dec, Decimal, oo, _matchCLL, _matchSite                    } from 'domain/onsitexdomain'         ;
 import { Jobsite, Employee, Report, ReportOther, PayrollPeriod, Shift, Schedule, Invoice } from 'domain/onsitexdomain'         ;
 import { SESAClient                                                                      } from 'domain/onsitexdomain'         ;
@@ -122,11 +122,12 @@ export class HomePage implements OnInit,OnDestroy {
   }
 
   public initializeSubscriptions() {
-    this.dsSubscription = this.dispatch.datastoreUpdated().subscribe((data:{type:string, payload:any}) => {
-      Log.l("Home.subscriptions: Got updated data payload!\n", data);
+    this.dsSubscription = this.dispatch.datastoreUpdated().subscribe((data:{type:DatabaseKey, payload:any}) => {
+      Log.l("Home.subscriptions: Got updated data payload!", data);
       let key = data.type;
       let payload = data.payload;
-      if(key === 'reports' || key === 'reports_ver101100') {
+      // if(key === 'reports' || key === 'reports_ver101100') {
+      if(key === 'reports' || key.includes('ver101100')) {
         Log.l("Home.subscriptions: Updated data payload was for reports.")
         this.reports = payload;
       }
@@ -305,7 +306,7 @@ export class HomePage implements OnInit,OnDestroy {
   }
 
   public async viewReportOthers(event?:Event) {
-    Log.l("viewReportOthers(): Clicked.");
+    Log.l("HomePage.viewReportOthers(): Clicked.");
     // this.navCtrl.setRoot('Reports', {scrollTo: 'others'});
     this.goToPageDelay('Reports', {scrollTo: 'others'});
   }
@@ -319,43 +320,47 @@ export class HomePage implements OnInit,OnDestroy {
       // this.application.tick();
       // return res;
     } catch(err) {
-      Log.l(`loadReports(): Error updating data!`);
+      Log.l(`HomePage.loadReports(): Error updating data!`);
       Log.e(err);
       this.notify.addError("ERROR", `Error updating reports: '${err.message}'`, 10000);
     }
   }
 
   public async loadOldReports(event?:Event):Promise<Report[]> {
-    Log.l("loadOldReports() clicked.");
+    Log.l("HomePage.loadOldReports() clicked.");
     this.notify.addInfo("RETRIEVING", `Downloading old reports...`, 3000);
     try {
       // let res = await this.db.getOldReports();
-      let res:Report[] = await this.data.getOldReports();
+      // let res:Report[] = await this.data.getOldReports();
+      let res1 = await this.data.updateFromDB('reports_old');
+      let res:Report[] = res1.payload;
       this.oldreports = res;
       this.data.setData('oldreports', res);
       let len = res.length;
       this.notify.addSuccess("SUCCESS", `Loaded ${len} old reports.`, 3000);
       return res;
     } catch(err) {
-      Log.l(`loadOldReports(): Error loading reports!`);
+      Log.l(`HomePage.loadOldReports(): Error loading reports!`);
       Log.e(err);
       this.notify.addError("ERROR", `Error loading old reports: '${err.message}'`, 10000);
     }
   }
 
   public async loadReportOthers(event?:Event):Promise<ReportOther[]> {
-    Log.l("loadReportOthers() clicked.");
+    Log.l("HomePage.loadReportOthers() clicked.");
     // this.notify.addInfo("RETRIEVING", `Downloading non-work reports...`, 3000);
     try {
       // let res = await this.db.getOldReports();
-      let res:ReportOther[] = await this.data.getReportOthers();
+      // let res:ReportOther[] = await this.data.getReportOthers();
+      let res1 = await this.data.updateFromDB('reports_other');
+      let res:ReportOther[] = res1.payload;
       this.others = res;
       this.data.setData('others', res);
       let len = res.length;
       this.notify.addSuccess("SUCCESS", `Loaded ${len} non-work reports.`, 3000);
       return res;
     } catch(err) {
-      Log.l(`loadReportOthers(): Error loading non-work!`);
+      Log.l(`HomePage.loadReportOthers(): Error loading non-work!`);
       Log.e(err);
       this.notify.addError("ERROR", `Error loading non-work reports: '${err.message}'`, 10000);
     }

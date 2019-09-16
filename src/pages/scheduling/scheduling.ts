@@ -2554,23 +2554,23 @@ z
   }
 
   public showViewWorkSite(site:Jobsite, evt?:Event) {
-    Log.l(`showViewWorkSite(): Event is:`, evt);
+    Log.l(`Scheduling.showViewWorkSite(): Event is:`, evt);
     this.site = site;
     this.viewWorkSiteVisible = true;
   }
   public cancelViewWorkSite(evt?:Event) {
-    Log.l(`cancelViewWorkSite(): Event is:`, evt);
+    Log.l(`Scheduling.cancelViewWorkSite(): Event is:`, evt);
     this.viewWorkSiteVisible = false;
   }
   public saveViewWorkSite(evt?:Event) {
-    Log.l(`saveViewWorkSite(): Event is:`, evt);
+    Log.l(`Scheduling.saveViewWorkSite(): Event is:`, evt);
     this.viewWorkSiteVisible = false;
   }
 
   public async refreshSchedulesFromDatabase(evt?:MouseEvent):Promise<any> {
     let spinnerID;
     try {
-      Log.l(`refreshSchedulesFromDatabase(): Called with event:`, evt);
+      Log.l(`Scheduling.refreshSchedulesFromDatabase(): Called with event:`, evt);
       let useServer:boolean = false;
       if(evt && evt.shiftKey) {
         useServer = true;
@@ -2579,7 +2579,8 @@ z
       let source:string = useServer ? "server" : "local";
       spinnerID = await this.alert.showSpinnerPromise(`Retrieving schedules from ${source} database…`);
       // let schedules:Schedule[] = await this.data.getSchedulesFromDatabase(true);
-      await this.data.getSchedulesFromDatabase(useServer);
+      // await this.data.getSchedulesFromDatabase(useServer);
+      let res1 = await this.data.updateFromDB('scheduling', {server: useServer});
       let schedules = this.data.getSchedules().filter((a:Schedule) => {
         // let result = (a.creator === filtername);
         // if(name === 'Chorpler') {

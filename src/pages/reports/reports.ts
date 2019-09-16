@@ -9,10 +9,11 @@ import { Report, ReportOther,                                        } from 'dom
 import { ReportLogistics,                                            } from 'domain/onsitexdomain'               ;
 import { ReportTimeCard,                                             } from 'domain/onsitexdomain'               ;
 import { OSData                                                      } from 'providers/data-service'             ;
+import { DispatchService, AppEvents                                  } from 'providers/dispatch-service'         ;
 import { DBService                                                   } from 'providers/db-service'               ;
 import { ServerService                                               } from 'providers/server-service'           ;
 import { AlertService                                                } from 'providers/alert-service'            ;
-import { Preferences                                                 } from 'providers/preferences'              ;
+import { Preferences, DatabaseKey,                                   } from 'providers/preferences'              ;
 import { NotifyService                                               } from 'providers/notify-service'           ;
 import { SpinnerService                                              } from 'providers/spinner-service'          ;
 import { Calendar,                                                   } from 'primeng/calendar'                   ;
@@ -123,8 +124,9 @@ export class ReportsPage implements OnInit,OnDestroy {
   // public faLayerClass  : any = ['fa-fw', 'icon-layer-datadl']  ;
 
   public pageSizeOptions:number[]  = [50,100,200,500,1000,2000];
-  public dateFormat    : string    = "DD MMM YYYY HH:mm"      ;
+  public dateFormat       : string    = "DD MMM YYYY HH:mm"   ;
   public prefsSub         : Subscription                      ;
+  public dataSub          : Subscription                      ;
   public report           : Report                            ;
   public other            : ReportOther                       ;
   public logistic         : ReportLogistics                   ;
@@ -240,6 +242,7 @@ export class ReportsPage implements OnInit,OnDestroy {
     public zone      : NgZone           ,
     public prefs     : Preferences      ,
     public db        : DBService        ,
+    public dispatch  : DispatchService  ,
     public server    : ServerService    ,
     public data      : OSData           ,
     public alert     : AlertService     ,
@@ -348,7 +351,16 @@ export class ReportsPage implements OnInit,OnDestroy {
   }
 
   public initializeSubscriptions() {
-
+    // this.dataSub = this.dispatch.updatedFromDB().subscribe((eventdata:{type:string, payload?:any}) => {
+    //   // Log.l(`appSubscription: received event:\n`, data);
+    //   if(eventdata) {
+    //     let dbtype:string = eventdata.type;
+    //     let payload:any =  eventdata && eventdata.payload ? eventdata.payload : null;
+    //     if(dbtype === 'reports') {
+          
+    //     } else if(dbtype === '')
+    //   }
+    // });
   }
 
   public cancelSubscriptions() {
@@ -909,8 +921,11 @@ export class ReportsPage implements OnInit,OnDestroy {
       // this.dataReady = false;
       // this.resetReportsTable();
       this.resetTable(1);
-      let res:Report[] = await this.data.getReports(1000000, spinnerID);
-      Log.l("getReports(): Got reports:\n", res);
+      // this.dispatch.triggerAppEvent('updatefromdb', {db: 'reports', count: 1000000});
+      // let res:Report[] = await this.data.getReports(1000000, spinnerID);
+      let res1 = await this.data.updateFromDB('reports');
+      let res:Report[] = res1.payload;
+      Log.l("ReportsPage.getReports(): Got reports:", res);
       this.allReports = res;
       // this.data.setData('reports', res.slice(0));
       this.reports = this.allReports.slice(0);
@@ -935,8 +950,10 @@ export class ReportsPage implements OnInit,OnDestroy {
       let count:number = await this.db.getDBDocCount('reports_other');
       let text:string = `Retrieving ${count} misc reports from database …`;
       spinnerID = await this.alert.showSpinnerPromise(text);
-      let res:ReportOther[] = await this.data.getReportOthers(true);
-      Log.l("getOthers(): Got others:\n", res);
+      // let res:ReportOther[] = await this.data.getReportOthers(true);
+      let res1 = await this.data.updateFromDB('reports_other');
+      let res:ReportOther[] = res1.payload;
+      Log.l("ReportsPage.getOthers(): Got others:", res);
       this.allOthers = res;
       // this.data.setData('others', res.slice(0));
       this.others = this.allOthers.slice(0);
@@ -944,7 +961,7 @@ export class ReportsPage implements OnInit,OnDestroy {
       this.dataReady = true;
       return this.others;
     } catch (err) {
-      Log.l(`getOthers(): Error downloading others.`);
+      Log.l(`ReportsPage.getOthers(): Error downloading others.`);
       Log.e(err);
       let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       throw err;
@@ -958,11 +975,13 @@ export class ReportsPage implements OnInit,OnDestroy {
       // this.resetReportsTable();
       this.resetTable(3);
       // this.dataReady = false;
-      let count:number = await this.db.getDBDocCount('reports_other');
+      let count:number = await this.db.getDBDocCount('logistics');
       let text:string = `Retrieving ${count} logistics reports from database …`;
       spinnerID = await this.alert.showSpinnerPromise(text);
-      let res:ReportLogistics[] = await this.data.getReportLogistics(true);
-      Log.l("getLogistics(): Got logistics:\n", res);
+      // let res:ReportLogistics[] = await this.data.getReportLogistics(true);
+      let res1 = await this.data.updateFromDB('logistics');
+      let res:ReportLogistics[] = res1.payload;
+      Log.l("ReportsPage.getLogistics(): Got logistics:", res);
       this.allLogistics = res;
       // this.data.setData('logistics', res.slice(0));
       this.logistics = this.allLogistics.slice(0);
@@ -970,7 +989,7 @@ export class ReportsPage implements OnInit,OnDestroy {
       let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       return this.logistics;
     } catch (err) {
-      Log.l(`getLogistics(): Error downloading logistics reports.`);
+      Log.l(`ReportsPage.getLogistics(): Error downloading logistics reports.`);
       Log.e(err);
       let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       throw err;
@@ -984,9 +1003,13 @@ export class ReportsPage implements OnInit,OnDestroy {
       // this.resetReportsTable();
       this.resetTable(4);
       // this.dataReady = false;
-      spinnerID = await this.alert.showSpinnerPromise('Retrieving time cards from database...');
-      let res:ReportTimeCard[] = await this.data.getTimeCards(true);
-      Log.l("getTimeCards(): Got others:\n", res);
+      let count:number = await this.db.getDBDocCount('timecards');
+      let text:string = `Retrieving ${count} timecards from database …`;
+      spinnerID = await this.alert.showSpinnerPromise(text);
+      // let res:ReportTimeCard[] = await this.data.getTimeCards(true);
+      let res1 = await this.data.updateFromDB('timecards');
+      let res:ReportTimeCard[] = res1.payload;
+      Log.l("ReportsPage.getTimeCards(): Got timecards:", res);
       this.allTimeCards = res;
       // this.data.setData('others', res.slice(0));
       this.logistics = this.allLogistics.slice(0);
@@ -994,7 +1017,7 @@ export class ReportsPage implements OnInit,OnDestroy {
       let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       return this.timecards;
     } catch (err) {
-      Log.l(`getTimeCards(): Error downloading time cards.`);
+      Log.l(`ReportsPage.getTimeCards(): Error downloading time cards.`);
       Log.e(err);
       let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       throw err;
@@ -1010,14 +1033,14 @@ export class ReportsPage implements OnInit,OnDestroy {
       res1 = await this.downloadOldReports();
       return this.reports;
     } catch(err) {
-      Log.l(`refreshData(): Error downloading reports.`);
+      Log.l(`ReportsPage.refreshData(): Error downloading reports.`);
       Log.e(err);
       this.notify.addError("ERROR", `Error refreshing reports: '${err.message}'`, 10000);
     }
   }
 
   public async loadOldReports(event?: any):Promise<Report[]> {
-    Log.l("loadOldReports() clicked.");
+    Log.l("ReportsPage.loadOldReports() clicked.");
     this.notify.addInfo("RETRIEVING", `Downloading old reports...`, 3000);
     try {
       // let res = await this.db.getOldReports();
@@ -1028,7 +1051,7 @@ export class ReportsPage implements OnInit,OnDestroy {
       this.notify.addSuccess("SUCCESS", `Loadeded ${len} old reports.`, 3000);
       return res;
     } catch (err) {
-      Log.l(`loadOldReports(): Error loading reports!`);
+      Log.l(`ReportsPage.loadOldReports(): Error loading reports!`);
       Log.e(err);
       this.notify.addError("ERROR", `Error loading old reports: '${err.message}'`, 10000);
     }
@@ -1037,10 +1060,10 @@ export class ReportsPage implements OnInit,OnDestroy {
   public async downloadOldReports(event?:Event):Promise<Report[]> {
     try {
       this.notify.addInfo("RETRIEVING", "Starting download of old reports...", 3000);
-      Log.l("downloadOldReports(): Retrieving old reports...");
+      Log.l("ReportsPage.downloadOldReports(): Retrieving old reports...");
       // let res:Report[] = await this.db.getOldReports();
       let res:Report[] = await this.server.getOldReports();
-      Log.l("downloadOldReports(): Success!");
+      Log.l("ReportsPage.downloadOldReports(): Success!");
 
       this.data.setData('oldreports', res);
       for(let report of res) {
@@ -1058,23 +1081,23 @@ export class ReportsPage implements OnInit,OnDestroy {
       this.reports = allReports;
       this.allReports = allReports;
       let len:number = res.length;
-      Log.l(`downloadOldReports(): Done downloading ${len} old reports.`);;
+      Log.l(`ReportsPage.downloadOldReports(): Done downloading ${len} old reports.`);;
       this.notify.addSuccess("SUCCESS!", `Downloaded ${len} old reports.`, 3000);
       return res;
     } catch(err) {
-      Log.l(`downloadOldReports(): Error while getting old reports!`);
+      Log.l(`ReportsPage.downloadOldReports(): Error while getting old reports!`);
       Log.e(err);
       this.notify.addError("ERROR", `Error downloading old reports: '${err.message}'`, 10000);
     }
   }
 
   public onRowSelect(event:any) {
-    Log.l("onRowSelect(): Event passed is:\n", event);
+    Log.l("ReportsPage.onRowSelect(): Event passed is:\n", event);
     this.showReport(event.data);
   }
 
   public onRowSelectOther(event:any) {
-    Log.l("onRowSelectOther(): Event passed is:\n", event);
+    Log.l("ReportsPage.onRowSelectOther(): Event passed is:\n", event);
     this.showReportOther(event.data);
   }
 
@@ -1169,12 +1192,12 @@ export class ReportsPage implements OnInit,OnDestroy {
       dt = this.timecardsTable;
       dateRange = this.dateRanges[3];
     } else {
-      let text:string = `checkDateRange(): Could not find table at index '${tableNumber}' to reset it`;
+      let text:string = `ReportsPage.checkDateRange(): Could not find table at index '${tableNumber}' to reset it`;
       Log.w(text);
       // this.notify.addWarning("TABLE RESET ERROR", text, 5000);
       return;
     }
-    Log.l(`checkDateRange(): dateRange[${tableNumber}] is now:`, dateRange);
+    Log.l(`ReportsPage.checkDateRange(): dateRange[${tableNumber}] is now:`, dateRange);
     // let cal:Calendar = this.dateRangeCalendar;
     let dates:Date[] = dateRange;
     if(dates && Array.isArray(dates) && dates.length === 2) {
@@ -1205,12 +1228,12 @@ export class ReportsPage implements OnInit,OnDestroy {
       dt = this.timecardsTable;
       dateRange = this.dateRanges[3];
     } else {
-      let text:string = `checkDateRangeOnClose(): Could not find table at index '${tableNumber}' to check dates`;
+      let text:string = `ReportsPage.checkDateRangeOnClose(): Could not find table at index '${tableNumber}' to check dates`;
       Log.w(text);
       // this.notify.addWarning("TABLE RESET ERROR", text, 5000);
       return;
     }
-    Log.l(`checkDateRangeOnClose(): dateRange[${tableNumber}] is now:`, dateRange);
+    Log.l(`ReportsPage.checkDateRangeOnClose(): dateRange[${tableNumber}] is now:`, dateRange);
     // let cal:Calendar = this.dateRangeCalendar;
     // let dates:Date[] = this.dateRange;
     let dates:Date[] = dateRange;
@@ -1237,15 +1260,15 @@ export class ReportsPage implements OnInit,OnDestroy {
   }
 
   public updateDateRange(tableNumber:number, dateRange:Date[], cal:Calendar, table:Table, evt?:Event) {
-    // Log.l(`updateDateRange(): Arguments are:\n`, arguments);
-    Log.l(`updateDateRange(): provided date range is:`, dateRange);
+    // Log.l(`ReportsPage.updateDateRange(): Arguments are:\n`, arguments);
+    Log.l(`ReportsPage.updateDateRange(): provided date range is:`, dateRange);
     if(!(cal && cal instanceof Calendar)) {
-      let text:string = `updateDateRange(): Provided calendar is invalid`;
+      let text:string = `ReportsPage.updateDateRange(): Provided calendar is invalid`;
       Log.w(text, cal);
       return;
     }
     if(!(table && table instanceof Table)) {
-      let text:string = `updateDateRange(): Provided Table is invalid`;
+      let text:string = `ReportsPage.updateDateRange(): Provided Table is invalid`;
       Log.w(text, table);
       return;
     }
@@ -1258,7 +1281,7 @@ export class ReportsPage implements OnInit,OnDestroy {
       let to:Moment = moment(dEnd);
       let fromDate:string = from.format("YYYY-MM-DD");
       let toDate:string   = to.format("YYYY-MM-DD");
-      Log.l(`updateDateRange(): Now filtering from ${fromDate} - ${toDate}...`);
+      Log.l(`ReportsPage.updateDateRange(): Now filtering from ${fromDate} - ${toDate}...`);
       let dateRange:string[] = this.getDateRangeStrings(from, to);
       // this.minDate = from.toDate();
       // this.maxDate = to.toDate();
@@ -1279,17 +1302,17 @@ export class ReportsPage implements OnInit,OnDestroy {
   }
 
   public onRowSelectOthers(event:any) {
-    Log.l("onRowSelectOthers(): Event passed is:\n", event);
+    Log.l("ReportsPage.onRowSelectOthers(): Event passed is:\n", event);
     this.showReportOther(event.data);
   }
 
   public onRowSelectLogistics(event:any) {
-    Log.l("onRowSelectLogistics(): Event passed is:\n", event);
+    Log.l("ReportsPage.onRowSelectLogistics(): Event passed is:\n", event);
     this.showReportLogistics(event.data);
   }
 
   public onRowSelectTimeCards(event:any) {
-    Log.l("onRowSelectTimeCards(): Event passed is:\n", event);
+    Log.l("ReportsPage.onRowSelectTimeCards(): Event passed is:\n", event);
     this.showReportTimeCard(event.data);
   }
 

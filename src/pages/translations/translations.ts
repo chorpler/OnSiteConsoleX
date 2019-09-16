@@ -1,30 +1,34 @@
-import { Subscription                                                } from 'rxjs'                               ;
-import { Log, Moment, moment, isMoment,                              } from 'domain/onsitexdomain'               ;
-import { _matchCLL, _matchSite, _matchReportSite,                    } from 'domain/onsitexdomain'               ;
-import { Component, OnInit, OnDestroy, NgZone, ViewChild, ElementRef } from '@angular/core'                      ;
-import { IonicPage, NavController, NavParams                         } from 'ionic-angular'                      ;
-import { ViewController, ModalController, Content, Scroll,           } from 'ionic-angular'                      ;
-import { OSData                                                      } from 'providers/data-service'             ;
-import { DBService, TranslationTableRecordKey, TranslationLanguage                                                   } from 'providers/db-service'               ;
-import { TranslationDocument, TranslationRecord                      } from 'providers/db-service'               ;
-import { TranslationTable, TranslationTableRecord                    } from 'providers/db-service'               ;
-import { ServerService                                               } from 'providers/server-service'           ;
-import { AlertService                                                } from 'providers/alert-service'            ;
-import { Preferences                                                 } from 'providers/preferences'              ;
-import { NotifyService                                               } from 'providers/notify-service'           ;
-import { SpinnerService                                              } from 'providers/spinner-service'          ;
-import { Table                                                       } from 'primeng/table'                      ;
-import { Panel                                                       } from 'primeng/panel'                      ;
-import { MultiSelect                                                 } from 'primeng/multiselect'                ;
-import { TranslationEditor                                           } from 'components/translation-editor'     ;
+import { Subscription                                                } from 'rxjs'                          ;
+import { Log, Moment, moment, isMoment, _sortTechsByUsername,                              } from 'domain/onsitexdomain'          ;
+import { _matchCLL, _matchSite, _matchReportSite,                    } from 'domain/onsitexdomain'          ;
+import { Component, OnInit, OnDestroy, NgZone, ViewChild, ElementRef } from '@angular/core'                 ;
+import { IonicPage, NavController, NavParams                         } from 'ionic-angular'                 ;
+import { ViewController, ModalController, Content, Scroll,           } from 'ionic-angular'                 ;
+import { OSData                                                      } from 'providers/data-service'        ;
+import { DBService                                                   } from 'providers/db-service'          ;
+import { TranslationTableRecordKey                                   } from 'providers/db-service'          ;
+import { TranslationLanguage                                         } from 'providers/db-service'          ;
+import { TranslationDocument, TranslationRecord                      } from 'providers/db-service'          ;
+import { TranslationTable, TranslationTableRecord                    } from 'providers/db-service'          ;
+import { ServerService                                               } from 'providers/server-service'      ;
+import { AlertService                                                } from 'providers/alert-service'       ;
+import { Preferences                                                 } from 'providers/preferences'         ;
+import { NotifyService                                               } from 'providers/notify-service'      ;
+import { SpinnerService                                              } from 'providers/spinner-service'     ;
+import { Table                                                       } from 'primeng/table'                 ;
+import { Panel                                                       } from 'primeng/panel'                 ;
+import { MultiSelect                                                 } from 'primeng/multiselect'           ;
+import { TranslationEditor                                           } from 'components/translation-editor' ;
 
 @IonicPage({name: 'Translations'})
 @Component({
   selector: 'page-translations',
   templateUrl: 'translations.html',
+  // styleUrls: ['./translations.scss'],
 })
 export class TranslationsPage implements OnInit,OnDestroy {
   @ViewChild('dt') dt:Table;
+  @ViewChild('maintTable') maintTable:Table;
   @ViewChild('translationsPanel') translationsPanel:Panel;
   @ViewChild('columnSelect') columnSelect:MultiSelect;
   @ViewChild('columnSelectMaint') columnSelectMaint:MultiSelect;
@@ -57,10 +61,11 @@ export class TranslationsPage implements OnInit,OnDestroy {
   public multiSortMetaTrans : any = {};
   public multiSortMetaMaint : any = {};
 
-  public langKeys     : TranslationLanguage[] = ['en', 'es'];
+  public langKeys         : TranslationLanguage[] = ['en', 'es'];
 
-  public translations : TranslationTable = [];
-  public editRecord   : TranslationTableRecord;
+  public translations     : TranslationTable = [];
+  public editTranslations : TranslationTable = [];
+  public editRecord       : TranslationTableRecord;
 
   public maint_words  : TranslationTable = [];
   public maint_enouns : TranslationTable = [];
@@ -115,7 +120,7 @@ export class TranslationsPage implements OnInit,OnDestroy {
       this.setPageLoaded();
       return true;
     } catch(err) {
-      Log.l(`TranslationsPage.runWhenReady(): Error getting reports and initializing data!`);
+      Log.l(`TranslationsPage.runWhenReady(): Error getting translations and initializing data!`);
       Log.e(err);
       // let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       throw err;
@@ -167,27 +172,6 @@ export class TranslationsPage implements OnInit,OnDestroy {
     return fields;
   }
 
-  public resetTablesSort() {
-    this.resetTableSorted(1);
-    this.resetTableSorted(2);
-  }
-
-  public resetTableSorted(tableNumber:number, dt?:Table) {
-    let sortMeta = [
-      { field: 'key', order: 1 },
-    ];
-    if(tableNumber === 1) {
-      this.multiSortMetaTrans = sortMeta.slice(0);
-    } else if(tableNumber === 2) {
-      this.multiSortMetaMaint = sortMeta.slice(0);
-    } else {
-      let text:string = `TranslationsPage.resetTableSorted(): Could not find table at index '${tableNumber}' to reset it with sorting`;
-      Log.w(text);
-      this.notify.addWarning("TABLE RESET ERROR", text, 5000);
-      return;
-    }
-  }
-
   public async loadTranslationData():Promise<any> {
     try {
       let translationTable = await this.server.loadTranslations();
@@ -209,7 +193,7 @@ export class TranslationsPage implements OnInit,OnDestroy {
           // for(let langKey of this.langKeys) {
             //   // let value = translationRecord[langKey];
             // }
-        } else {
+          } else {
           Log.w(`TranslationsPage.loadTranslationData(): Error loading '${word}' translation record`);
         }
       }
@@ -223,8 +207,8 @@ export class TranslationsPage implements OnInit,OnDestroy {
             //   // let value = translationRecord[langKey];
             // }
           } else {
-          Log.w(`TranslationsPage.loadTranslationData(): Error loading '${word}' translation record`);
-        }
+            Log.w(`TranslationsPage.loadTranslationData(): Error loading '${word}' translation record`);
+          }
       }
       for(let word of verbs) {
         let translationRecord = this.translations.find(a => a.key === word);
@@ -233,7 +217,7 @@ export class TranslationsPage implements OnInit,OnDestroy {
           record.maint_type = 'verb';
           this.maint_verbs.push(record);
           // for(let langKey of this.langKeys) {
-          //   // let value = translationRecord[langKey];
+            //   // let value = translationRecord[langKey];
           // }
         } else {
           Log.w(`TranslationsPage.loadTranslationData(): Error loading '${word}' translation record`);
@@ -245,6 +229,108 @@ export class TranslationsPage implements OnInit,OnDestroy {
       Log.e(err);
       throw err;
     }
+  }
+
+  public resetTablesSort() {
+    this.resetTableSorted(1);
+    this.resetTableSorted(2);
+  }
+
+  public resetTableSorted(tableNumber:number, table?:Table) {
+    let sortMeta = [
+      { field: 'key', order: 1 },
+    ];
+    if(tableNumber === 1) {
+      this.multiSortMetaTrans = sortMeta.slice(0);
+    } else if(tableNumber === 2) {
+      this.multiSortMetaMaint = sortMeta.slice(0);
+    } else {
+      let text:string = `TranslationsPage.resetTableSorted(): Could not find table at index '${tableNumber}' to reset it with sorting`;
+      Log.w(text);
+      this.notify.addWarning("TABLE RESET ERROR", text, 5000);
+      return;
+    }
+  }
+
+  public resetAllTables(evt?:Event) {
+    this.resetTable(this.dt);
+    this.resetTable(this.maintTable);
+  }
+
+  public resetTable(table:Table, evt?:Event) {
+    table.reset();
+    this.clearTableSelection(table);
+    this.clearTableFilters(table);
+    let tableNumber = 1;
+    if(table === this.maintTable) {
+      tableNumber = 2;
+    }
+    this.resetTableSorted(tableNumber, table);
+    // this.clearDates(tableNumber, dt);
+  }
+
+  // public clearTableSelection(tableNumber:number, evt?:Event) {
+  public clearTableSelection(table:Table, evt?:Event) {
+    Log.l(`TranslationsPage.clearTableSelection(): Clearing selected rows for table:`, table);
+    // let dt:Table;
+    // if(tableNumber === 1) {
+    //   dt = this.dt;
+    // } else if(tableNumber === 2) {
+    //   dt = this.othersTable;
+    // } else if(tableNumber === 3) {
+    //   dt = this.logisticsTable;
+    // } else if(tableNumber === 4) {
+    //   dt = this.timecardsTable;
+    // } else {
+    //   let text:string = `clearTableSelection(): Could not find table at index '${tableNumber}' to reset it`;
+    //   Log.w(text);
+    //   this.notify.addWarning("CLEAR SELECTIONS ERROR", text, 5000);
+    //   return;
+    // }
+    if(!(table && table instanceof Table)) {
+      let text:string = `TranslationsPage.clearTableSelection(): Must provide a Table to clear selection of. Provided parameter was not a table`;
+      Log.w(text, table);
+      this.notify.addWarning("CLEAR SELECTIONS ERROR", text, 5000);
+      return;
+    }
+    table.selection = null;
+    return table;
+  }
+
+  public clearTableFilters(dt:Table, evt?:Event) {
+    Log.l(`TranslationsPage.clearTableFilters(): Clearing filters for table:`, dt);
+    if(!(dt && dt instanceof Table)) {
+      let text:string = `TranslationsPage.clearTableFilters(): Must provide a Table to clear filters of. Provided parameter was not a table`;
+      Log.w(text, dt);
+      this.notify.addWarning("CLEAR FILTERS ERROR", text, 5000);
+      return;
+    }
+    let elRef:ElementRef = dt.el;
+    if(!(elRef && elRef.nativeElement)) {
+      let text:string = `TranslationsPage.clearTableFilters(): Must provide a Table to clear filters of. Provided parameter was not a table`;
+      Log.w(text, dt);
+      this.notify.addWarning("CLEAR FILTERS ERROR", text, 5000);
+      return;
+    }
+    let el:HTMLElement = elRef.nativeElement;
+    // let filterInputElements:HTMLCollectionOf<Element> = el.getElementsByClassName('translations-col-filter');
+    // let filterInputElements:HTMLCollectionOf<HTMLInputElement> = el.getElementsByTagName('input');
+    let filterElements = el.querySelectorAll('input.translations-col-filter');
+    let filterInputElements:NodeListOf<HTMLInputElement> = (filterElements as NodeListOf<HTMLInputElement>);
+    Log.l(`TranslationsPage.clearTableFilters(): filter input elements are:`, filterInputElements);
+    if(filterInputElements && filterInputElements.length) {
+      let count = filterInputElements.length;
+      for(let i = 0; i < count; i++) {
+        let inputElement:HTMLInputElement = filterInputElements[i];
+        if(inputElement instanceof HTMLInputElement) {
+          inputElement.value = "";
+        }
+      }
+    }
+    // let globalFilterInput:HTMLInputElement = (el.querySelector('input.global-filter-input') as HTMLInputElement);
+    let globalFilterInput:HTMLInputElement = el.querySelector('input.global-filter-input');
+    globalFilterInput.value = "";
+    return dt;
   }
 
   public selectionChanged(evt?:Event) {
@@ -283,10 +369,38 @@ export class TranslationsPage implements OnInit,OnDestroy {
     }
   }
 
+  public async addTranslation(evt?:Event):Promise<any> {
+    try {
+      let record:TranslationTableRecord;
+      let tmpRecord:any = {
+        key: '',
+        maint_type: null,
+      };
+      for(let key of this.langKeys) {
+        tmpRecord[key] = '';
+      }
+      record = tmpRecord;
+      this.translations.push(record);
+      this.maint_words.push(record);
+      this.editRecord = record;
+      this.editTranslations = this.translations;
+      this.visibleEditor = true;
+      this.visibleMaintEditor = true;
+    } catch(err) {
+      Log.l(`TranslationsPage.addTranslation(): Error adding translation`);
+      Log.e(err);
+      let title = "ERROR ADDING";
+      let text = "Error while attempting to add a new translation";
+      await this.alert.showErrorMessage(title, text, err);
+      // throw err;
+    }
+  }
+
   public async editTranslation(row:TranslationTableRecord, evt?:Event):Promise<any> {
     try {
       Log.l(`TranslationsPage.editTranslation(): Called for row:`, row);
       this.editRecord = row;
+      this.editTranslations = this.translations;
       this.visibleEditor = true;
     } catch(err) {
       Log.l(`TranslationsPage.editTranslation(): Error editing translation:`, row);
@@ -299,6 +413,8 @@ export class TranslationsPage implements OnInit,OnDestroy {
     try {
       Log.l(`TranslationsPage.editMaintenance(): Called for row:`, row);
       this.editRecord = row;
+      this.editTranslations = this.maint_words;
+      this.visibleEditor = true;
       this.visibleMaintEditor = true;
     } catch(err) {
       Log.l(`TranslationsPage.editMaintenance(): Error editing translation:`, row);
@@ -311,6 +427,7 @@ export class TranslationsPage implements OnInit,OnDestroy {
     try {
       Log.l(`TranslationsPage.editorClosed(): Called with event:`, evt);
       this.visibleEditor = false;
+      this.visibleMaintEditor = false;
     } catch(err) {
       Log.l(`TranslationsPage.editorClosed(): Error closing editor component`);
       Log.e(err);

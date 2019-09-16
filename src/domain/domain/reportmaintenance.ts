@@ -1,8 +1,9 @@
 /**
  * Name: ReportMaintenance domain class
- * Vers: 1.1.2
- * Date: 2019-08-30
+ * Vers: 1.1.3
+ * Date: 2019-09-16
  * Auth: David Sargeant
+ * Logs: 1.1.3 2019-09-16: Added MaintenanceWordType type for translation records
  * Logs: 1.1.2 2019-08-30: Added check at end of deserialize() method to add a notes field if one does not exist
  * Logs: 1.1.1 2019-08-22: Added getTotalTimeStringHoursMinutes() method
  * Logs: 1.1.0 2019-08-20: Added getLastTimeBlocked() method
@@ -36,6 +37,7 @@ import { isLocation        } from './geolocation'          ;
 // export type LogisticsAllType = LogisticsType | LogisticsLocationType;
 
 export type MaintenanceTaskType = "mechanical"|"electronic";
+export type MaintenanceWordType = "mechanical_noun"|"electronic_noun"|"verb";
 export type MechanicalWord = string;
 export type ElectronicWord = string;
 export type MaintenanceVerb = string;

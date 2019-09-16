@@ -4,6 +4,10 @@
   <p-dialog #translationEditorDialog styleClass="translation-editor-dialog" [(visible)]="visible" [modal]="false" [responsive]="true" [draggable]="true" [resizable]="true" [closable]="panelClosable" [closeOnEscape]="panelESCable" (onHide)="cancelClicked($event)">
     <p-header>
       <div class="header-row">
+        <div class="header-buttons start">
+          <span class="header-button"          title="Delete this translation"  (click)="deleteTranslation($event)"><i class="fal fa-trash-alt"></i></span>
+
+        </div>
         <div class="header-title">{{header}}</div>
         <div class="header-buttons">
           <span class="header-button"          title="Add new translation"      (click)="addTranslation($event)"><i class="fal fa-plus-circle"></i></span>
@@ -26,6 +30,14 @@
           <input [class.key-input]="true" type="text" pInputText [(ngModel)]="record.key" (input)="textChanged('key', $event)" />
         </div>
       </div>
+      <!-- <div class="editor-key-row" *ngIf="record.maint_type != null"> -->
+      <div class="editor-key-row">
+        <div class="key-label">Maint. Type</div>
+        <div class="key-data">
+          <p-dropdown [options]="maint_types" [showClear]="true" [(ngModel)]="record.maint_type" (onChange)="updateMaintenanceType(record.maint_type, $event)"></p-dropdown>
+          <!-- <input [class.key-input]="true" type="text" pInputText [(ngModel)]="record.key" (input)="textChanged('key', $event)" /> -->
+        </div>
+      </div>
       <div class="editor-key-row">
         <div class="key-label">HTML</div>
         <div class="key-data"><p-inputSwitch [(ngModel)]="htmlMode"></p-inputSwitch></div>
@@ -45,7 +57,22 @@
             <!-- <textarea class="editor-textarea" #textareaEnglish pInputTextarea [(ngModel)]="record.en" placeholder="Enter English translation here" (ngModelChange)="textChanged('en', $event)" *ngIf="htmlModes.en !== true"></textarea>
             <p-editor #editorEnglish [(ngModel)]="record.en" [styleClass]="'translation-record-editor'" placeholder="Enter English translation here" (onTextChange)="textChanged('en', $event)" [style]="editorStyle" *ngIf="htmlModes.en === true"></p-editor> -->
             <textarea class="editor-textarea" #textareaEnglish pInputTextarea [(ngModel)]="record.en" placeholder="Enter English translation here" (ngModelChange)="textChanged('en', $event)" *ngIf="htmlMode !== true"></textarea>
-            <p-editor #editorEnglish [(ngModel)]="record.en" [styleClass]="'translation-record-editor'" placeholder="Enter English translation here" (onTextChange)="textChanged('en', $event)" [style]="editorStyle" *ngIf="htmlMode === true"></p-editor>
+            <p-editor #editorEnglish [(ngModel)]="record.en" [styleClass]="'translation-record-editor'" placeholder="Enter English translation here" (onTextChange)="textChanged('en', $event)" [style]="editorStyle" *ngIf="htmlMode === true">
+              <!-- <p-header>
+                <span class="ql-format-group">
+                  <span title="Bold" class="ql-format-button ql-bold"></span>
+                  <span class="ql-format-separator"></span>
+                  <span title="Italic" class="ql-format-button ql-italic"></span>
+                  <span class="ql-format-separator"></span>
+                  <span title="Underline" class="ql-format-button ql-underline"></span>
+                  <span class="ql-format-separator"></span>
+                  <span title="Strikethrough" class="ql-format-button ql-strike"></span>
+                  <span class="ql-format-separator"></span>
+                  <span title="Bullet list" class="ql-format-button ql-list-bullet"></span>
+                  <span title="Ordered list" class="ql-format-button ql-list-ordered"></span>
+                </span>
+              </p-header> -->
+            </p-editor>
           </div>
         </div>
       </div>

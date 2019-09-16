@@ -8,12 +8,13 @@ translation-editor {
       align-items     : center ;
       position: relative;
       .header-title {
-        flex: 0 1 50%;
+        flex: 1 1 33%;
         font-weight: bold;
+        // text-align: center;
         text-align: left;
       }
       .header-buttons {
-        flex: 0 1 50%;
+        flex: 0 1 33%;
         display         : flex        ;
         flex-flow       : row nowrap  ;
         justify-content : flex-end ;
@@ -21,6 +22,10 @@ translation-editor {
         align-items     : center ;
         font-size: 24px;
         padding-right: 16px;
+        &.start {
+          justify-content: flex-start;
+          flex: 0 1 16%;
+        }
         .header-button {
           // @include button-like-block;
           // @include button-like-block-shadow;

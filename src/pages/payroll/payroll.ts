@@ -19,7 +19,7 @@ import { ReportDriving                                                          
 import { ReportMaintenance                                                      } from 'domain/onsitexdomain'                       ;
 import { ReportAny, ReportReal,                                                 } from 'domain/onsitexdomain'                       ;
 import { OSData                                                                 } from 'providers/data-service'                     ;
-import { Preferences                                                            } from 'providers/preferences'                      ;
+import { Preferences, DatabaseKey,                                              } from 'providers/preferences'                      ;
 import { SelectItem, MenuItem                                                   } from 'primeng/api'                                ;
 import { Command, KeyCommandService                                             } from 'providers/key-command-service'              ;
 import { OptionsGenericComponent                                                } from 'components/options-generic/options-generic' ;
@@ -164,7 +164,7 @@ export class PayrollPage implements OnInit,OnDestroy {
       }
     });
     // this.dsSubscription = this.dispatch.datastoreUpdated().subscribe(async (data:{type:string, payload:any}) => {
-    this.dsSubscription = this.dispatch.datastoreUpdated().subscribe(async (data:{type:string, payload:any}) => {
+    this.dsSubscription = this.dispatch.datastoreUpdated().subscribe(async (data:{type:DatabaseKey, payload:any}) => {
       Log.l("PayrollPage: Received datastoreUpdated() event from dispatch service:", data);
       try {
         let key = data.type;
@@ -188,7 +188,8 @@ export class PayrollPage implements OnInit,OnDestroy {
             }
             this.updateView();
           }
-        } else if(key === 'reports' || key === 'reports_ver101100' || key.indexOf('reports') > -1) {
+        // } else if(key === 'reports' || key === 'reports_ver101100' || key.indexOf('reports') > -1) {
+        } else if(key === 'reports') {
           let tempReports = this.allData.reports;
           let oldReportCount:number = tempReports.length;
           if(Array.isArray(payload) && payload.length) {
@@ -1161,14 +1162,23 @@ export class PayrollPage implements OnInit,OnDestroy {
       let dbname1:string = this.prefs.getDB('reports');
       let dbname2:string = this.prefs.getDB('reports_other');
       let dbname3:string = this.prefs.getDB('logistics');
+      let dbname4:string = this.prefs.getDB('drivings');
+      let dbname5:string = this.prefs.getDB('maintenances');
       let count1:number = await this.db.getDocCount(dbname1);
       let count2:number = await this.db.getDocCount(dbname2);
       let count3:number = await this.db.getDocCount(dbname3);
-      let text:string = `Reading ${count1} work reports, ${count2} misc reports, and ${count3} logistics reports ...`;
+      let count4:number = await this.db.getDocCount(dbname4);
+      let count5:number = await this.db.getDocCount(dbname5);
+      let text:string = `Reading ${count1} work reports, ${count2} misc reports, ${count3} logistics reports, ${count4} driving reports, ${count5} maintenance reports …`;
       spinnerID = await this.alert.showSpinner(text);
-      let j = await this.data.getReports(1000000);
-      let k = await this.data.getReportOthers();
-      let n = await this.data.getReportLogistics();
+      this.dispatch.triggerAppEvent('updatefromdb', {db: 'reports'});
+      this.dispatch.triggerAppEvent('updatefromdb', {db: 'others'});
+      this.dispatch.triggerAppEvent('updatefromdb', {db: 'logistics'});
+      this.dispatch.triggerAppEvent('updatefromdb', {db: 'drivings'});
+      this.dispatch.triggerAppEvent('updatefromdb', {db: 'maintenances'});
+      // let j = await this.data.getReports(1000000);
+      // let k = await this.data.getReportOthers();
+      // let n = await this.data.getReportLogistics();
       // let M = await this.runWhenReady();
       let M:any;
       M = await this.alert.hideSpinnerPromise(spinnerID);
@@ -1200,9 +1210,12 @@ export class PayrollPage implements OnInit,OnDestroy {
         text = `Reading ${count} reports. Payroll must be recalculated after this is done.`;
       }
       spinnerID = await this.alert.showSpinnerPromise(text);
-      let j = await this.data.getReports(1000000);
+      
+      // let j = await this.data.getReports(1000000);
       // let k = await this.data.getReportOthers();
       // let M = await this.runWhenReady();
+      let j = await this.data.updateFromDB('reports');
+      let k = await this.data.updateFromDB('reports_other');
       let M:any;
       if(recalc) {
         M = await this.runWhenSubscriptionsAreAlreadyInitialized();
@@ -1211,7 +1224,7 @@ export class PayrollPage implements OnInit,OnDestroy {
       this.notify.addSuccess("SUCCESS", "Refreshed work reports", 3000);
       // }, 500);
     } catch (err) {
-      Log.l("refreshReports(): Error refreshing data!");
+      Log.l("Payroll.refreshReports(): Error refreshing data!");
       Log.e(err);
       await this.alert.hideSpinnerPromise(spinnerID);
       this.notify.addError("Error", `Error refreshing reports: '${err.message}'`, 10000);
@@ -1235,7 +1248,8 @@ export class PayrollPage implements OnInit,OnDestroy {
         text = `Reading ${count} misc reports. Payroll must be recalculated after this is done.`;
       }
       spinnerID = await this.alert.showSpinnerPromise(text);
-      let j = await this.data.getReportOthers();
+      // let j = await this.data.getReportOthers();
+      let j = await this.data.updateFromDB('reports_other');
       // let k = await this.runWhenReady();
       let M:any;
       if(recalc) {
@@ -1245,7 +1259,7 @@ export class PayrollPage implements OnInit,OnDestroy {
       this.notify.addSuccess("SUCCESS", "Refreshed misc reports", 3000);
       // }, 500);
     } catch (err) {
-      Log.l("refreshOthers(): Error refreshing misc reports!");
+      Log.l("Payroll.refreshOthers(): Error refreshing misc reports!");
       Log.e(err);
       await this.alert.hideSpinnerPromise(spinnerID);
       this.notify.addError("Error", `Error refreshing misc reports: '${err.message}'`, 10000);
@@ -1269,7 +1283,8 @@ export class PayrollPage implements OnInit,OnDestroy {
         text = `Reading ${count} logistics reports. Payroll must be recalculated after this is done.`;
       }
       spinnerID = await this.alert.showSpinnerPromise(text);
-      let j = await this.data.getReportLogistics();
+      // let j = await this.data.getReportLogistics();
+      let j = await this.data.updateFromDB('logistics');
       // let k = await this.runWhenReady();
       let M:any;
       if(recalc) {

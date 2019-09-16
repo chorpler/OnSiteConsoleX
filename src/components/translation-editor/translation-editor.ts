@@ -2,9 +2,14 @@ import { Component, ViewChild, OnInit, OnDestroy, ElementRef } from '@angular/co
 import { Input, Output, EventEmitter,                        } from '@angular/core'              ;
 import { IonicPage, NavController, NavParams                 } from 'ionic-angular'              ;
 import { ViewController                                      } from 'ionic-angular'              ;
-import { Log, Moment, moment, isMoment                       } from 'domain/onsitexdomain'       ;
+import { Log, Moment, moment, isMoment,                      } from 'domain/onsitexdomain'       ;
 import { Employee, Message                                   } from 'domain/onsitexdomain'       ;
-import { DBService, TranslationDocument, TranslationRecord, TranslationTableRecordKey, TranslationLanguage                                           } from 'providers/db-service'       ;
+import { MaintenanceTaskType                                 } from 'domain/onsitexdomain'       ;
+import { DBService                                           } from 'providers/db-service'       ;
+import { TranslationDocument                                 } from 'providers/db-service'       ;
+import { TranslationRecord                                   } from 'providers/db-service'       ;
+import { TranslationTableRecordKey                           } from 'providers/db-service'       ;
+import { TranslationLanguage                                 } from 'providers/db-service'       ;
 import { TranslationTable, TranslationTableRecord            } from 'providers/db-service'       ;
 import { ServerService                                       } from 'providers/server-service'   ;
 import { AlertService                                        } from 'providers/alert-service'    ;
@@ -12,6 +17,7 @@ import { OSData                                              } from 'providers/d
 import { Editor                                              } from 'primeng/editor'             ;
 import { Listbox                                             } from 'primeng/listbox'            ;
 import { SelectItem                                          } from 'primeng/api'                ;
+import { Dropdown                                            } from 'primeng/dropdown'           ;
 import { NotifyService                                       } from 'providers/notify-service'   ;
 import { DispatchService                                     } from 'providers/dispatch-service' ;
 
@@ -40,10 +46,13 @@ const _sortEmployees = (a:Employee, b:Employee) => {
 @Component({
   selector: 'translation-editor',
   templateUrl: 'translation-editor.html',
+  // styleUrls: ['./translation-editor.scss'],
 })
 export class TranslationEditor implements OnInit,OnDestroy {
   @Input('record') record:TranslationTableRecord;
-  @Input('translations') translations:TranslationTable;
+  @Input('translations') translations:TranslationTable = [];
+  @Input('maintTranslations') maintTranslations:TranslationTable = [];
+  @Input('allTranslations') allTranslations:TranslationTable = [];
   @Output('close') close:EventEmitter<any> = new EventEmitter();
   @Output('cancel') cancel:EventEmitter<any> = new EventEmitter();
   public title         : string = "Translation Editor"         ;
@@ -57,7 +66,13 @@ export class TranslationEditor implements OnInit,OnDestroy {
   public dirty         : boolean        = false                ;
   public modalMode     : boolean        = false                ;
   public dataReady     : boolean        = false                ;
-  public langKeys      : string[]       = ['en', 'es']         ;
+  public maint_types   : SelectItem[]   = [
+    { label: "(NONE)"          , value: null              , },
+    { label: "Mechanical Noun" , value: "mechanical_noun" , },
+    { label: "Electronic Noun" , value: "electronic_noun" , },
+    { label: "Verb (Action)"   , value: "verb"            , },
+  ];
+  public langKeys      : string[]       = ['en', 'es'];
   public htmlModes     : {
     [langKey in TranslationLanguage]:boolean;
   } = {
@@ -152,6 +167,29 @@ export class TranslationEditor implements OnInit,OnDestroy {
     Log.l(`TranslationEditor.textChanged(): Event is:`, event);
     this.dirty = true;
   }
+  
+  public updateMaintenanceType(type:MaintenanceTaskType, event?:any) {
+    Log.l(`TranslationEditor.updateMaintenanceType(): type is '${type}', event is:`, event);
+    if(!type) {
+      Log.l(`TranslationEditor.updateMaintenanceType(): Type was null.`);
+      // let idx1 = this.allTranslations.indexOf(this.record);
+      let idx = this.maintTranslations.indexOf(this.record);
+      if(idx > -1) {
+        Log.l(`TranslationEditor.updateMaintenanceType(): translation has to be removed from maintenance translations`);
+        this.maintTranslations.splice(idx, 1);
+      }
+    } else {
+      Log.l(`TranslationEditor.updateMaintenanceType(): Type was NOT null.`);
+      let idx2 = this.maintTranslations.indexOf(this.record);
+      if(idx2 === -1) {
+        Log.l(`TranslationEditor.updateMaintenanceType(): translation has to be added to maintenance translations`);
+        this.maintTranslations.push(this.record);
+      }
+      // if(idx1 === -1) {
+      //   this.allTranslations.push(this.record);
+      // }
+    }
+  }
 
   public isStringHTML(text:string):boolean {
     let doc = new DOMParser().parseFromString(text, "text/html");
@@ -192,6 +230,52 @@ export class TranslationEditor implements OnInit,OnDestroy {
       // return res;
     } catch(err) {
       Log.l(`TranslationEditor.addTranslation(): Error adding new translation`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public async deleteTranslation(evt?:Event):Promise<any> {
+    try {
+      Log.l(`TranslationEditor.deleteTranslation(): Called …`);
+      let title = "DELETE TRANSLATION";
+      let text = "Do you want to delete this translation record? This cannot be undone except by adding the translation again.";
+      let confirm = await this.alert.showConfirmYesNo(title, text);
+      if(confirm) {
+        let record:TranslationTableRecord = this.record;
+        let idx1:number = this.allTranslations.indexOf(record);
+        if(idx1 > -1) {
+          let deleted = this.allTranslations.splice(idx1, 1)[0];
+          window['onsitedeletedtranslation'] = deleted;
+        }
+        let idx2 = this.translations.indexOf(record);
+        if(idx2 > -1) {
+          let deleted2 = this.translations.splice(idx2, 1)[0];
+          window['onsitedeletedtranslation2'] = deleted2;
+        }
+        try {
+          await this.saveTranslations();
+        } catch(err) {
+          Log.l(`TranslationEditor.deleteTranslation(): Error saving deletion`);
+          Log.e(err);
+          let title = "DATABASE ERROR";
+          let text  = "Error while saving this deletion to the database";
+          await this.alert.showErrorMessage(title, text, err);
+          return;
+        }
+        if(this.recordIndex > 1) {
+          this.recordIndex = this.recordIndex--;
+          this.dirty = false;
+          this.record = this.translations[this.recordIndex - 1];
+          this.mode = 'Edit';
+          this.updateDisplay();
+        } else {
+          this.addTranslation();
+        }
+      }
+      // return res;
+    } catch(err) {
+      Log.l(`TranslationEditor.deleteTranslation(): Error deleting translation`);
       Log.e(err);
       throw err;
     }
@@ -238,8 +322,6 @@ export class TranslationEditor implements OnInit,OnDestroy {
     // this.alert.showAlert("END OF SITES", "Can't go to next work site. Already at end of list.");
   }
 
-
-
   public async cancelClicked(evt?:Event):Promise<any> {
     try {
       // let msg = this.message;
@@ -278,7 +360,8 @@ export class TranslationEditor implements OnInit,OnDestroy {
       //   translationRecord[key] = transArray;
       // }
       // document.translations = translationRecord;
-      let res = await this.server.saveTranslations(this.translations);
+      // let res = await this.server.saveTranslations(this.translations);
+      let res = await this.saveTranslations(evt);
       this.close.emit(this.translations);
       return res;
     } catch(err) {
@@ -305,12 +388,41 @@ export class TranslationEditor implements OnInit,OnDestroy {
       //   translationRecord[key] = transArray;
       // }
       // document.translations = translationRecord;
-      let res = await this.server.saveTranslations(this.translations);
+      // let res = await this.server.saveTranslations(this.translations);
+      let res = await this.saveTranslations(evt);
       this.mode = 'Edit';
       this.dirty = false;
       return res;
     } catch(err) {
       Log.l(`TranslationEditor.saveClicked(): Error during save of translation edit`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public async saveTranslations(evt?:Event):Promise<any> {
+    try {
+      let table = this.translations;
+      let maint = this.maintTranslations;
+      let allTable = this.allTranslations;
+      if(Array.isArray(table) && table.length && Array.isArray(maint) && maint.length) {
+        let res:any;
+        if(this.record && this.record.maint_type) {
+          // res = await this.server.saveTranslations(allTable, table);
+          res = await this.server.saveTranslations(allTable, maint);
+          this.mode = 'Edit';
+          this.dirty = false;
+          return res;
+        } else {
+          // res = await this.server.saveTranslations(table);
+          res = await this.server.saveTranslations(allTable, maint);
+          this.mode = 'Edit';
+          this.dirty = false;
+          return res;
+        }
+      }
+    } catch(err) {
+      Log.l(`TranslationEditor.saveTranslations(): Error during save of translation edit`);
       Log.e(err);
       throw err;
     }

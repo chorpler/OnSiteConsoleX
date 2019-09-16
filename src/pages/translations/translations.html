@@ -13,11 +13,14 @@
       <span class="page-title">{{title}}</span>
     </ion-title>
     <ion-buttons right>
-      <!-- <span class="menubar-buttons">
-        <span class="menubar-button" (click)="resetAllTables($event)" title="Reset all reports tables (clear filters, etc.)">
+      <span class="menubar-buttons">
+        <span class="menubar-button" (click)="resetAllTables($event)" title="Reset all translation tables (clear filters, sorting, etc.)">
           <i class="fa fa-ban clear-button"></i>
         </span>
-        <span class="menubar-button" title="Run Tech Shift Reports for visible reports" (click)="openTechShiftReports($event)">
+        <span class="menubar-button" (click)="addTranslation($event)" title="Add new translation">
+          <i class="fal fa-plus-square"></i>
+        </span>
+        <!-- <span class="menubar-button" title="Run Tech Shift Reports for visible reports" (click)="openTechShiftReports($event)">
           <i class="icomoon-shift-reports"></i>
         </span>
         <span class="menubar-button" title="Load old reports (can be slow)" (click)="downloadOldReports($event)">
@@ -34,8 +37,8 @@
         </span>
         <span class="menubar-button" title="Copy reports list to clipboard (to paste in Excel, etc.)" (click)="copyTable($event)">
           <i class="fa fa-clipboard"></i>
-        </span>
-      </span> -->
+        </span> -->
+      </span>
     </ion-buttons>
   </ion-navbar>
 </ion-header>
@@ -58,16 +61,16 @@
           OnSiteX Translations<span class="translation-count"> ({{translations?.length}} loaded<span class="translation-count-filtered" *ngIf="filteredCount">, {{filteredCount}} matches</span>)</span>
         </span> -->
         <span class="panel-title">OnSiteX Translations</span>
-        <!-- <span class="button-right">
-          <span class="panel-header-button right" title="Reset this table (clear filters, selected rows, etc.)" (click)="resetTable(1, $event)"><i class="fal fa-history"></i></span>
-        </span> -->
+        <span class="button-right">
+          <span class="panel-header-button right" title="Reset this table (clear filters, selected rows, etc.)" (click)="resetTable(dt, $event)"><i class="fal fa-history"></i></span>
+        </span>
       </span>
     </p-header>
 
     <div #printArea class="table-wrapper" id="print-area">
 
       <!-- Begin Translations table -->
-      <p-table #dt [styleClass]="'translations-table'" [columns]="selectedColumns" [value]="translations" [resizableColumns]="true" [autoLayout]="autoLayout" [rows]="rowCount" [paginator]="showTableFoot" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" sortMode="multiple" [multiSortMeta]="multiSortMetaTrans">
+      <p-table #dt [styleClass]="'translations-table'" [columns]="selectedColumns" [value]="translations" [resizableColumns]="true" [autoLayout]="autoLayout" [rows]="rowCount" [paginator]="showTableFoot" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" sortMode="multiple" [multiSortMeta]="multiSortMetaTrans" stateStorage="local" stateKey="onsiteconsolex-tablestate-translations-main">
 
         <!-- Caption area (column multiselect, date range filter, global search input) -->
         <ng-template pTemplate="caption">
@@ -103,7 +106,7 @@
           </tr>
         </ng-template>
 
-        <!-- Report table body rows and columns (actual data) -->
+        <!-- Translation table body rows and columns (actual data) -->
         <ng-template pTemplate="body" let-rowData let-columns="columns" let-rowIndex="rowIndex">
           <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex">
             <td [class.button-col]="true" title="View work report" (click)="editTranslation(rowData, $event)" *ngIf="showButtonCol">
@@ -141,16 +144,16 @@
           OnSiteX Translations<span class="translation-count"> ({{translations?.length}} loaded<span class="translation-count-filtered" *ngIf="filteredCount">, {{filteredCount}} matches</span>)</span>
         </span> -->
         <span class="panel-title">Maintenance Report Options</span>
-        <!-- <span class="button-right">
-          <span class="panel-header-button right" title="Reset this table (clear filters, selected rows, etc.)" (click)="resetTable(1, $event)"><i class="fal fa-history"></i></span>
-        </span> -->
+        <span class="button-right">
+          <span class="panel-header-button right" title="Reset this table (clear filters, selected rows, etc.)" (click)="resetTable(maintTable, $event)"><i class="fal fa-history"></i></span>
+        </span>
       </span>
     </p-header>
 
     <div #printAreaMaintenance class="table-wrapper" id="print-area">
 
       <!-- Begin Translations table -->
-      <p-table #maintTable [styleClass]="'translations-table'" [columns]="selectedColumnsMaint" [value]="maint_words" [resizableColumns]="true" [autoLayout]="autoLayout" [rows]="rowCount" [paginator]="showTableFoot" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" sortMode="multiple" [multiSortMeta]="multiSortMetaMaint">
+      <p-table #maintTable [styleClass]="'translations-table'" [columns]="selectedColumnsMaint" [value]="maint_words" [resizableColumns]="true" [autoLayout]="autoLayout" [rows]="rowCount" [paginator]="showTableFoot" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" sortMode="multiple" [multiSortMeta]="multiSortMetaMaint" stateStorage="local" stateKey="onsiteconsolex-tablestate-translations-maintenance">
 
         <!-- Caption area (column multiselect, date range filter, global search input) -->
         <ng-template pTemplate="caption">
@@ -181,7 +184,7 @@
             <th [class.header-col-button]="true" *ngIf="showButtonCol"></th>
             <th [class.header-col-index]="true" [ngStyle]="styleColIndex"></th>
             <th *ngFor="let col of columns" [class.filter-col]="true" [ngClass]="col?.class" [title]="col?.tooltip">
-              <input [class.translations-col-filter]="true" pInputText type="text" [placeholder]="col?.filterPlaceholder" (input)="dt.filter($event.target.value, col.field, 'contains')">
+              <input [class.translations-col-filter]="true" pInputText type="text" [placeholder]="col?.filterPlaceholder" (input)="maintTable.filter($event.target.value, col.field, 'contains')">
             </th>
           </tr>
         </ng-template>
@@ -211,4 +214,4 @@
 
 </ion-content>
 
-<translation-editor [translations]="translations" [record]="editRecord" (close)="editorClosed($event)" (cancel)="editorClosed($event)" *ngIf="visibleEditor"></translation-editor>
+<translation-editor [record]="editRecord" [translations]="editTranslations" [maintTranslations]="maint_words" [allTranslations]="translations" (close)="editorClosed($event)" (cancel)="editorClosed($event)" *ngIf="visibleEditor"></translation-editor>
