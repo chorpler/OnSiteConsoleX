@@ -27,7 +27,7 @@
       <div class="editor-key-row">
         <div class="key-label">Key</div>
         <div class="key-data">
-          <input [class.key-input]="true" type="text" pInputText [(ngModel)]="record.key" (input)="textChanged('key', $event)" />
+          <input #inputKey [class.key-input]="true" type="text" pInputText [(ngModel)]="record.key" (input)="textChanged('key', record.key, inputKey, $event)" />
         </div>
       </div>
       <!-- <div class="editor-key-row" *ngIf="record.maint_type != null"> -->
@@ -56,8 +56,8 @@
             <!-- <textarea class="editor-textarea" #textareaEnglish pInputTextarea [(ngModel)]="record.en" placeholder="Enter English translation here" [rows]="5" [autoResize]="autoResize" (ngModelChange)="textChanged('en', $event)" *ngIf="htmlMode.en !== true"></textarea> -->
             <!-- <textarea class="editor-textarea" #textareaEnglish pInputTextarea [(ngModel)]="record.en" placeholder="Enter English translation here" (ngModelChange)="textChanged('en', $event)" *ngIf="htmlModes.en !== true"></textarea>
             <p-editor #editorEnglish [(ngModel)]="record.en" [styleClass]="'translation-record-editor'" placeholder="Enter English translation here" (onTextChange)="textChanged('en', $event)" [style]="editorStyle" *ngIf="htmlModes.en === true"></p-editor> -->
-            <textarea class="editor-textarea" #textareaEnglish pInputTextarea [(ngModel)]="record.en" placeholder="Enter English translation here" (ngModelChange)="textChanged('en', $event)" *ngIf="htmlMode !== true"></textarea>
-            <p-editor #editorEnglish [(ngModel)]="record.en" [styleClass]="'translation-record-editor'" placeholder="Enter English translation here" (onTextChange)="textChanged('en', $event)" [style]="editorStyle" *ngIf="htmlMode === true">
+            <textarea class="editor-textarea" #textareaEnglish pInputTextarea [(ngModel)]="record.en" placeholder="Enter English translation here" (ngModelChange)="textChanged('en', record.en, textareaEnglish, $event)" *ngIf="htmlMode !== true"></textarea>
+            <p-editor #editorEnglish [(ngModel)]="record.en" [styleClass]="'translation-record-editor'" placeholder="Enter English translation here" (onTextChange)="textChanged('en', record.en, editorEnglish, $event)" [style]="editorStyle" *ngIf="htmlMode === true">
               <!-- <p-header>
                 <span class="ql-format-group">
                   <span title="Bold" class="ql-format-button ql-bold"></span>
@@ -90,8 +90,8 @@
             <!-- <textarea class="editor-textarea" #textareaSpanish pInputTextarea [(ngModel)]="record.es" placeholder="Enter Spanish translation here" [rows]="5" [autoResize]="autoResize" (ngModelChange)="textChanged('es', $event)" *ngIf="htmlMode.es !== true"></textarea> -->
             <!-- <textarea class="editor-textarea" #textareaSpanish pInputTextarea [(ngModel)]="record.es" placeholder="Enter Spanish translation here" (ngModelChange)="textChanged('es', $event)" *ngIf="htmlModes.es !== true"></textarea>
             <p-editor #editorSpanish [(ngModel)]="record.es" [styleClass]="'translation-record-editor'" placeholder="Enter Spanish translation here" (onTextChange)="textChanged('es', $event)" [style]="editorStyle" *ngIf="htmlModes.es === true"></p-editor> -->
-            <textarea class="editor-textarea" #textareaSpanish pInputTextarea [(ngModel)]="record.es" placeholder="Enter Spanish translation here" (ngModelChange)="textChanged('es', $event)" *ngIf="htmlMode !== true"></textarea>
-            <p-editor #editorSpanish [(ngModel)]="record.es" [styleClass]="'translation-record-editor'" placeholder="Enter Spanish translation here" (onTextChange)="textChanged('es', $event)" [style]="editorStyle" *ngIf="htmlMode === true"></p-editor>
+            <textarea class="editor-textarea" #textareaSpanish pInputTextarea [(ngModel)]="record.es" placeholder="Enter Spanish translation here" (ngModelChange)="textChanged('es', record.es, textareaSpanish, $event)" *ngIf="htmlMode !== true"></textarea>
+            <p-editor #editorSpanish [(ngModel)]="record.es" [styleClass]="'translation-record-editor'" placeholder="Enter Spanish translation here" (onTextChange)="textChanged('es', record.es, editorSpanish, $event)" [style]="editorStyle" *ngIf="htmlMode === true"></p-editor>
           </div>
         </div>
       </div>

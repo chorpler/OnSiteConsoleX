@@ -1,8 +1,12 @@
+import { Subject                                             } from 'rxjs'                       ;
+import { Subscription                                        } from 'rxjs'                       ;
+import { debounceTime, distinctUntilChanged                  } from 'rxjs/operators'             ;
 import { Component, ViewChild, OnInit, OnDestroy, ElementRef } from '@angular/core'              ;
 import { Input, Output, EventEmitter,                        } from '@angular/core'              ;
 import { IonicPage, NavController, NavParams                 } from 'ionic-angular'              ;
 import { ViewController                                      } from 'ionic-angular'              ;
-import { Log, Moment, moment, isMoment,                      } from 'domain/onsitexdomain'       ;
+import { Log,                                                } from 'domain/onsitexdomain'       ;
+import { Moment, moment, isMoment, MomentTimer,              } from 'domain/onsitexdomain'       ;
 import { Employee, Message                                   } from 'domain/onsitexdomain'       ;
 import { MaintenanceTaskType                                 } from 'domain/onsitexdomain'       ;
 import { DBService                                           } from 'providers/db-service'       ;
@@ -65,6 +69,8 @@ export class TranslationEditor implements OnInit,OnDestroy {
   public header        : string         = "Translation Editor" ;
   public dirty         : boolean        = false                ;
   public modalMode     : boolean        = false                ;
+  public debounceTime  : number         = 750                  ;
+  public timer         : MomentTimer                           ;
   public dataReady     : boolean        = false                ;
   public maint_types   : SelectItem[]   = [
     { label: "(NONE)"          , value: null              , },
@@ -80,6 +86,8 @@ export class TranslationEditor implements OnInit,OnDestroy {
     es: false,
   };
   public htmlMode      : boolean        = false                ;
+  public modelChanged  : Subject<string> = new Subject<string>();
+  public textSub       : Subscription;
   // public moment         : any            = moment              ;
   public editorStyle   : any = { height: '250px' }             ;
   public autoResize    : boolean        = true                 ;
@@ -111,10 +119,12 @@ export class TranslationEditor implements OnInit,OnDestroy {
 
   ngOnDestroy() {
     Log.l('TranslationEditor: ngOnDestroy() fired');
+    this.cancelSubscriptions();
   }
 
   public async runWhenReady() {
     try {
+      this.initializeSubscriptions();
       this.updateDisplay();
       this.dataReady = true;
       this.setPageLoaded();
@@ -122,6 +132,19 @@ export class TranslationEditor implements OnInit,OnDestroy {
       Log.l("TranslationEditor.runWhenReady(): Error loading translation editor!");
       Log.e(err);
       // this.alert.showAlert("ERROR", "Error getting existing messages:<br>\n<br>\n" + err.message);
+    }
+  }
+
+  public initializeSubscriptions() {
+    // this.modelChanged.debounceTime(this.debounceTime)
+    this.textSub = this.modelChanged.pipe(debounceTime(this.debounceTime), distinctUntilChanged()).subscribe(data => {
+      Log.l(`TranslationEditor: Model changed and debounce time elapsed. Data:`, data);
+    });
+  }
+
+  public cancelSubscriptions() {
+    if(this.textSub && !this.textSub.closed) {
+      this.textSub.unsubscribe();
     }
   }
 
@@ -160,12 +183,29 @@ export class TranslationEditor implements OnInit,OnDestroy {
     this.viewCtrl.dismiss();
   }
 
-  public textChanged(key:TranslationTableRecordKey, event?:any) {
-    let text:string = event.textValue;
-    let html:string = event.htmlValue;
-    let delta = event.delta;
-    Log.l(`TranslationEditor.textChanged(): Event is:`, event);
-    this.dirty = true;
+  public textChanged(key:TranslationTableRecordKey, value:string, element?:any, event?:any) {
+    // Log.l(`TranslationEditor.textChanged(): Key:`, key);
+    // Log.l(`TranslationEditor.textChanged(): Value:`, value);
+    // Log.l(`TranslationEditor.textChanged(): Element:`, element);
+    // Log.l(`TranslationEditor.textChanged(): Event:`, event);
+    // window['onsiteelement1'] = element;
+    this.modelChanged.next(value);
+    // if(this.timer) {
+    //   this.timer.clearTimer();
+    // }
+    // // Log.l(`TranslationEditor.textChanged(): Event is:`, event);
+    // this.timer = moment.duration(this.debounceTime).timer(() => {
+    //   // Log.l(`TranslationEditor.textChanged(): Timeout, running function. Event is:`, event);
+    //   // let text:string = event.textValue;
+    //   // let html:string = event.htmlValue;
+    //   // let delta = event.delta;
+    //   Log.l(`TranslationEditor.textChanged(): Key:`, key);
+    //   Log.l(`TranslationEditor.textChanged(): Value:`, value);
+    //   Log.l(`TranslationEditor.textChanged(): Element:`, element);
+    //   Log.l(`TranslationEditor.textChanged(): Event:`, event);
+    //   window['onsiteelement1'] = element;
+    //   this.dirty = true;
+    // });
   }
   
   public updateMaintenanceType(type:MaintenanceTaskType, event?:any) {

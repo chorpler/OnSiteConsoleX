@@ -428,10 +428,20 @@ export class TranslationsPage implements OnInit,OnDestroy {
       Log.l(`TranslationsPage.editorClosed(): Called with event:`, evt);
       this.visibleEditor = false;
       this.visibleMaintEditor = false;
+      this.reSortTables();
     } catch(err) {
       Log.l(`TranslationsPage.editorClosed(): Error closing editor component`);
       Log.e(err);
       throw err;
     }
+  }
+
+  public reSortTable(table:Table, evt?:Event) {
+    table.sortMultiple();
+  }
+
+  public reSortTables(evt?:Event) {
+    this.reSortTable(this.dt);
+    this.reSortTable(this.maintTable);
   }
 }
