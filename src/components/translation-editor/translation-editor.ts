@@ -384,6 +384,7 @@ export class TranslationEditor implements OnInit,OnDestroy {
   }
 
   public async saveClicked(evt?:Event):Promise<any> {
+    let spinnerID;
     try {
       // let document:TranslationDocument = new Object();
       // let translationRecord:TranslationRecord = {};
@@ -401,17 +402,21 @@ export class TranslationEditor implements OnInit,OnDestroy {
       // }
       // document.translations = translationRecord;
       // let res = await this.server.saveTranslations(this.translations);
+      spinnerID = await this.alert.showSpinnerPromise('Saving translations …');
       let res = await this.saveTranslations(evt);
+      await this.alert.hideSpinnerPromise(spinnerID);
       this.close.emit(this.translations);
       return res;
     } catch(err) {
       Log.l(`TranslationEditor.saveClicked(): Error during save of translation edit`);
       Log.e(err);
+      await this.alert.hideSpinnerPromise(spinnerID);
       throw err;
     }
   }
 
   public async saveNoExitClicked(evt?:Event):Promise<any> {
+    let spinnerID;
     try {
       // let document:TranslationDocument = new Object();
       // let translationRecord:TranslationRecord = {};
@@ -429,13 +434,16 @@ export class TranslationEditor implements OnInit,OnDestroy {
       // }
       // document.translations = translationRecord;
       // let res = await this.server.saveTranslations(this.translations);
+      spinnerID = await this.alert.showSpinnerPromise('Saving translations …');
       let res = await this.saveTranslations(evt);
+      await this.alert.hideSpinnerPromise(spinnerID);
       this.mode = 'Edit';
       this.dirty = false;
       return res;
     } catch(err) {
       Log.l(`TranslationEditor.saveClicked(): Error during save of translation edit`);
       Log.e(err);
+      await this.alert.hideSpinnerPromise(spinnerID);
       throw err;
     }
   }
