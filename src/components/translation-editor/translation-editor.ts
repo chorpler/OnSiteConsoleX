@@ -5,7 +5,7 @@ import { Component, ViewChild, OnInit, OnDestroy, ElementRef } from '@angular/co
 import { Input, Output, EventEmitter,                        } from '@angular/core'              ;
 import { IonicPage, NavController, NavParams                 } from 'ionic-angular'              ;
 import { ViewController                                      } from 'ionic-angular'              ;
-import { Log,                                                } from 'domain/onsitexdomain'       ;
+import { Log, oo                                             } from 'domain/onsitexdomain'       ;
 import { Moment, moment, isMoment, MomentTimer,              } from 'domain/onsitexdomain'       ;
 import { Employee, Message                                   } from 'domain/onsitexdomain'       ;
 import { MaintenanceTaskType                                 } from 'domain/onsitexdomain'       ;
@@ -57,13 +57,14 @@ export class TranslationEditor implements OnInit,OnDestroy {
   @Input('translations') translations:TranslationTable = [];
   @Input('maintTranslations') maintTranslations:TranslationTable = [];
   @Input('allTranslations') allTranslations:TranslationTable = [];
+  @Input('mode') mode:"Add"|"Edit" = "Edit";
   @Output('close') close:EventEmitter<any> = new EventEmitter();
   @Output('cancel') cancel:EventEmitter<any> = new EventEmitter();
   public title         : string = "Translation Editor"         ;
   public visible       : boolean        = true                 ;
   public panelClosable : boolean        = false                ;
   public panelESCable  : boolean        = false                ;
-  public mode          : "Add"|"Edit"   = "Edit"               ;
+  // public mode          : "Add"|"Edit"   = "Edit"               ;
   public dialogLeft    : number         = 250                  ;
   public dialogTop     : number         = 100                  ;
   public header        : string         = "Translation Editor" ;
@@ -72,6 +73,7 @@ export class TranslationEditor implements OnInit,OnDestroy {
   public debounceTime  : number         = 750                  ;
   public timer         : MomentTimer                           ;
   public dataReady     : boolean        = false                ;
+  public backupRecord  : TranslationTableRecord                ;
   public maint_types   : SelectItem[]   = [
     { label: "(NONE)"          , value: null              , },
     { label: "Mechanical Noun" , value: "mechanical_noun" , },
@@ -125,6 +127,7 @@ export class TranslationEditor implements OnInit,OnDestroy {
   public async runWhenReady() {
     try {
       this.initializeSubscriptions();
+      this.storeRecord();
       this.updateDisplay();
       this.dataReady = true;
       this.setPageLoaded();
@@ -176,7 +179,21 @@ export class TranslationEditor implements OnInit,OnDestroy {
       // this.htmlModes[key] = isHTML;
       // this.htmlMode[key] = isHTML;
     }
-    
+  }
+
+  public storeRecord():TranslationTableRecord {
+    let doc:TranslationTableRecord = oo.clone(this.record);
+    this.backupRecord = doc;
+    return doc;
+  }
+
+  public revertRecord():TranslationTableRecord {
+    let doc:TranslationTableRecord = this.backupRecord;
+    let existingDoc:TranslationTableRecord = oo.clone(this.record);
+    this.record = doc;
+    this.backupRecord = null;
+    // this.backupRecord = existingDoc;
+    return this.record;
   }
 
   public closeModal(evt?:any) {
@@ -366,16 +383,54 @@ export class TranslationEditor implements OnInit,OnDestroy {
     try {
       // let msg = this.message;
       // if((msg.text && msg.text.length > 0) || (msg.textES && msg.textES.length > 0)) {
-      if(this.dirty) {
-        let confirm:boolean = await this.alert.showConfirm("CANCEL", "Do you really want to cancel? You will lose any changes you've made.");
-        if(confirm) {
-          this.dirty = false;
-          this.close.emit(this.translations);
+      let row = this.record;
+      const inplaceFilter = (row:TranslationTableRecord, table:TranslationTable):TranslationTable => {
+        if(Array.isArray(table)) {
+          let idx = table.indexOf(row);
+          if(idx > -1) {
+            table.splice(idx, 1);
+          }
         }
+        return table;
+      };
+
+      const overwriteRecord = (src:TranslationTableRecord, dest:TranslationTableRecord, table?:TranslationTable):TranslationTableRecord => {
+        if(src && dest && src !== dest && typeof src === 'object' && typeof dest === 'object') {
+          let srcKeys = Object.keys(src);
+          let destKeys = Object.keys(dest);
+          for(let srcKey of srcKeys) {
+            dest[srcKey] = src[srcKey];
+          }
+          for(let destKey of destKeys) {
+            if(!srcKeys.includes(destKey)) {
+              delete dest[destKey];
+            }
+          }
+        } else {
+          let text = `TranslationEditor.cancelClicked(): overwriteRecord(): Must provide two object parameters. Invalid parameter(s)`;
+          Log.w(text + ":", src, dest);
+          let err = new Error(text);
+          throw err;
+        }
+        return dest;
+      };
+
+      if(this.mode === 'Add') {
+        inplaceFilter(row, this.allTranslations);
+        inplaceFilter(row, this.maintTranslations);
       } else {
-        this.dirty = false;
-        this.close.emit(this.translations);
+        if(this.dirty) {
+          let confirm:boolean = await this.alert.showConfirm("CANCEL", "Do you really want to cancel? You will lose any changes you've made.");
+          if(confirm) {
+            let backup = this.backupRecord;
+            overwriteRecord(backup, this.record);
+            this.dirty = false;
+          }
+        } else {
+          this.dirty = false;
+        }
       }
+      this.close.emit(this.translations);
     } catch(err) {
       Log.l(`TranslationEditor.cancelClicked(): Error during cancel of translation edit`);
       Log.e(err);

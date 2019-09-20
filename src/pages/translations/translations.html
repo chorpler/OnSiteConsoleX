@@ -60,7 +60,9 @@
         <!-- <span class="panel-title">
           OnSiteX Translations<span class="translation-count"> ({{translations?.length}} loaded<span class="translation-count-filtered" *ngIf="filteredCount">, {{filteredCount}} matches</span>)</span>
         </span> -->
-        <span class="panel-title">OnSiteX Translations</span>
+        <span class="panel-title">
+          OnSiteX Translations<span class="translation-count"> ({{translations?.length}} loaded<span class="translation-count-filtered" *ngIf="filteredCount">, {{filteredCount}} matches</span>)</span>
+        </span>
         <span class="button-right">
           <span class="panel-header-button right" title="Reset this table (clear filters, selected rows, etc.)" (click)="resetTable(dt, $event)"><i class="fal fa-history"></i></span>
         </span>
@@ -143,7 +145,9 @@
         <!-- <span class="panel-title">
           OnSiteX Translations<span class="translation-count"> ({{translations?.length}} loaded<span class="translation-count-filtered" *ngIf="filteredCount">, {{filteredCount}} matches</span>)</span>
         </span> -->
-        <span class="panel-title">Maintenance Report Options</span>
+        <span class="panel-title">
+          Maintenance Translations<span class="translation-count"> ({{maint_words?.length}} loaded<span class="translation-count-filtered" *ngIf="filteredMaintCount">, {{filteredMaintCount}} matches</span>)</span>
+        </span>
         <span class="button-right">
           <span class="panel-header-button right" title="Reset this table (clear filters, selected rows, etc.)" (click)="resetTable(maintTable, $event)"><i class="fal fa-history"></i></span>
         </span>
@@ -214,4 +218,4 @@
 
 </ion-content>
 
-<translation-editor [record]="editRecord" [translations]="editTranslations" [maintTranslations]="maint_words" [allTranslations]="translations" (close)="editorClosed($event)" (cancel)="editorClosed($event)" *ngIf="visibleEditor"></translation-editor>
+<translation-editor [record]="editRecord" [translations]="editTranslations" [maintTranslations]="maint_words" [allTranslations]="translations" [mode]="editorMode" (close)="editorClosed($event)" (cancel)="editorClosed($event)" *ngIf="visibleEditor"></translation-editor>

@@ -66,6 +66,7 @@ export class TranslationsPage implements OnInit,OnDestroy {
   public translations     : TranslationTable = [];
   public editTranslations : TranslationTable = [];
   public editRecord       : TranslationTableRecord;
+  public editorMode       : "Add"|"Edit" = "Edit";
 
   public maint_words  : TranslationTable = [];
   public maint_enouns : TranslationTable = [];
@@ -74,6 +75,8 @@ export class TranslationsPage implements OnInit,OnDestroy {
   public editMaint    : TranslationTableRecordKey;
 
   public dataReady     : boolean            = false ;
+  public get filteredCount():number { return this.getFilteredCount(this.dt); };
+  public get filteredMaintCount():number { return this.getFilteredCount(this.maintTable); };
 
   constructor(
     public navCtrl   : NavController    ,
@@ -136,6 +139,22 @@ export class TranslationsPage implements OnInit,OnDestroy {
       this.prefsSub.unsubscribe();
     }
   }
+
+  public getFilteredCount(table?:Table):number {
+    // let out:number = this.reports.length;
+    let out:number = 0;
+    let dt:Table = table && typeof table === 'object' ? table : this.dt ? this.dt : null;
+    if(dt && dt.filteredValue && dt.filteredValue.length) {
+      out = dt.filteredValue.length;
+    }
+    return out;
+  }
+
+  // public setHeader(idx?:number) {
+  //   let count = Array.isArray(this.translations) ? this.translations.length : 0;
+  //   this.header = `View Report (${index+1} / ${count})`;
+  //   return this.header;
+  // }
 
   public setPageLoaded() {
     this.data.currentlyOpeningPage = false;
@@ -384,6 +403,7 @@ export class TranslationsPage implements OnInit,OnDestroy {
       this.maint_words.push(record);
       this.editRecord = record;
       this.editTranslations = this.translations;
+      this.editorMode = "Add";
       this.visibleEditor = true;
       this.visibleMaintEditor = true;
     } catch(err) {
@@ -401,7 +421,9 @@ export class TranslationsPage implements OnInit,OnDestroy {
       Log.l(`TranslationsPage.editTranslation(): Called for row:`, row);
       this.editRecord = row;
       this.editTranslations = this.translations;
+      this.editorMode = "Edit";
       this.visibleEditor = true;
+      this.visibleMaintEditor = true;
     } catch(err) {
       Log.l(`TranslationsPage.editTranslation(): Error editing translation:`, row);
       Log.e(err);
@@ -414,6 +436,7 @@ export class TranslationsPage implements OnInit,OnDestroy {
       Log.l(`TranslationsPage.editMaintenance(): Called for row:`, row);
       this.editRecord = row;
       this.editTranslations = this.maint_words;
+      this.editorMode = "Edit";
       this.visibleEditor = true;
       this.visibleMaintEditor = true;
     } catch(err) {
