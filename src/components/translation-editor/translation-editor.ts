@@ -246,6 +246,7 @@ export class TranslationEditor implements OnInit,OnDestroy {
       //   this.allTranslations.push(this.record);
       // }
     }
+    this.dirty = true;
   }
 
   public isStringHTML(text:string):boolean {
@@ -326,6 +327,7 @@ export class TranslationEditor implements OnInit,OnDestroy {
           this.record = this.translations[this.recordIndex - 1];
           this.mode = 'Edit';
           this.updateDisplay();
+          this.storeRecord();
         } else {
           this.addTranslation();
         }
@@ -351,21 +353,69 @@ export class TranslationEditor implements OnInit,OnDestroy {
     }
   }
 
-  public previous(evt?:Event) {
-    if(this.recordIndex > 1) {
-      this.recordIndex--;
-      this.record = this.translations[this.recordIndex - 1];
-      this.mode = 'Edit';
-      this.updateDisplay();
+  public async previous(evt?:Event):Promise<any> {
+    try {
+      let row = this.record;
+      if(this.recordIndex > 1) {
+        if(this.dirty || this.mode === 'Add') {
+          let confirm:number = await this.alert.showConfirmYesNoCancel("UNSAVED CHANGES", "You made changes but have not saved them. Save changes first?");
+          if(confirm === 0) {
+            return;
+          }
+          if(confirm === 1) {
+            await this.saveNoExitClicked(evt);
+          } else if(confirm === -1) {
+            if(this.mode === 'Add') {
+              this.inplaceFilter(row, this.allTranslations);
+              this.inplaceFilter(row, this.maintTranslations);
+            } else {
+              this.revertRecord();
+            }
+          }
+        }
+        this.recordIndex--;
+        this.record = this.translations[this.recordIndex - 1];
+        this.mode = 'Edit';
+        this.updateDisplay();
+        this.storeRecord();
+      }
+    } catch(err) {
+      Log.l(`TranslationEditor.previous(): Error during move to previous record`);
+      Log.e(err);
+      throw err;
     }
   }
 
-  public next(evt?:Event) {
-    if(this.recordIndex < this.recordCount) {
-      this.recordIndex++;
-      this.record = this.translations[this.recordIndex - 1];
-      this.mode = 'Edit';
-      this.updateDisplay();
+  public async next(evt?:Event):Promise<any> {
+    try {
+      let row = this.record;
+      if(this.recordIndex < this.recordCount) {
+        if(this.dirty || this.mode === 'Add') {
+          let confirm:number = await this.alert.showConfirmYesNoCancel("UNSAVED CHANGES", "You made changes but have not saved them. Save changes first?");
+          if(confirm === 0) {
+            return;
+          }
+          if(confirm === 1) {
+            await this.saveNoExitClicked(evt);
+          } else if(confirm === -1) {
+            if(this.mode === 'Add') {
+              this.inplaceFilter(row, this.allTranslations);
+              this.inplaceFilter(row, this.maintTranslations);
+            } else {
+              this.revertRecord();
+            }
+          }
+        }
+        this.recordIndex++;
+        this.record = this.translations[this.recordIndex - 1];
+        this.mode = 'Edit';
+        this.updateDisplay();
+        this.storeRecord();
+      }
+    } catch(err) {
+      Log.l(`TranslationEditor.next(): Error during move to next record`);
+      Log.e(err);
+      throw err;
     }
   }
 
@@ -379,51 +429,59 @@ export class TranslationEditor implements OnInit,OnDestroy {
     // this.alert.showAlert("END OF SITES", "Can't go to next work site. Already at end of list.");
   }
 
+  public inplaceFilter(row:TranslationTableRecord, table:TranslationTable):TranslationTable {
+    if(Array.isArray(table)) {
+      let idx = table.indexOf(row);
+      if(idx > -1) {
+        table.splice(idx, 1);
+      }
+    }
+    return table;
+  }
+
+  public overwriteRecord(src:TranslationTableRecord, dest:TranslationTableRecord, table?:TranslationTable):TranslationTableRecord {
+    if(src && dest && src !== dest && typeof src === 'object' && typeof dest === 'object') {
+      let srcKeys = Object.keys(src);
+      let destKeys = Object.keys(dest);
+      for(let srcKey of srcKeys) {
+        dest[srcKey] = src[srcKey];
+      }
+      for(let destKey of destKeys) {
+        if(!srcKeys.includes(destKey)) {
+          delete dest[destKey];
+        }
+      }
+    } else {
+      let text = `TranslationEditor.cancelClicked(): overwriteRecord(): Must provide two object parameters. Invalid parameter(s)`;
+      Log.w(text + ":", src, dest);
+      let err = new Error(text);
+      throw err;
+    }
+    return dest;
+  }
+
   public async cancelClicked(evt?:Event):Promise<any> {
     try {
       // let msg = this.message;
       // if((msg.text && msg.text.length > 0) || (msg.textES && msg.textES.length > 0)) {
       let row = this.record;
-      const inplaceFilter = (row:TranslationTableRecord, table:TranslationTable):TranslationTable => {
-        if(Array.isArray(table)) {
-          let idx = table.indexOf(row);
-          if(idx > -1) {
-            table.splice(idx, 1);
-          }
-        }
-        return table;
-      };
-
-      const overwriteRecord = (src:TranslationTableRecord, dest:TranslationTableRecord, table?:TranslationTable):TranslationTableRecord => {
-        if(src && dest && src !== dest && typeof src === 'object' && typeof dest === 'object') {
-          let srcKeys = Object.keys(src);
-          let destKeys = Object.keys(dest);
-          for(let srcKey of srcKeys) {
-            dest[srcKey] = src[srcKey];
-          }
-          for(let destKey of destKeys) {
-            if(!srcKeys.includes(destKey)) {
-              delete dest[destKey];
-            }
+      if(this.mode === 'Add') {
+        if(this.dirty) {
+          let confirm:boolean = await this.alert.showConfirm("CANCEL", "Do you really want to cancel? You will lose any changes you've made.");
+          if(confirm) {
+            this.inplaceFilter(row, this.allTranslations);
+            this.inplaceFilter(row, this.maintTranslations);
           }
         } else {
-          let text = `TranslationEditor.cancelClicked(): overwriteRecord(): Must provide two object parameters. Invalid parameter(s)`;
-          Log.w(text + ":", src, dest);
-          let err = new Error(text);
-          throw err;
+          this.inplaceFilter(row, this.allTranslations);
+          this.inplaceFilter(row, this.maintTranslations);
         }
-        return dest;
-      };
-
-      if(this.mode === 'Add') {
-        inplaceFilter(row, this.allTranslations);
-        inplaceFilter(row, this.maintTranslations);
       } else {
         if(this.dirty) {
           let confirm:boolean = await this.alert.showConfirm("CANCEL", "Do you really want to cancel? You will lose any changes you've made.");
           if(confirm) {
             let backup = this.backupRecord;
-            overwriteRecord(backup, this.record);
+            this.overwriteRecord(backup, this.record);
             this.dirty = false;
           }
         } else {

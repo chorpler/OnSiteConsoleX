@@ -52,6 +52,9 @@ page-translations {
     }
   }
   .translations-panel {
+    --header-button-highlighted-color: rgba(0, 128, 0, 0.999);
+    --header-button-highlighted-color-border: rgba(0, 128, 0, 0.999);
+    --delete-icon-color: rgba(255, 0, 0, 0.999);
     margin-top: 10px;
     margin-bottom: 10px;
     position: relative;
@@ -84,6 +87,10 @@ page-translations {
           background: white;
           border: 1px solid lightgrey;
           margin-right: 4px;
+          &.highlighted {
+            color: var(--header-button-highlighted-color);
+            border-color: var(--header-button-highlighted-color-border);
+          }
           &.db-download {
             display: block;
             width: 32px;
@@ -174,6 +181,11 @@ page-translations {
   }
   td.button-col {
     @include button-like-block;
+  }
+  td.dropdown-col {
+    &.ui-editing-cell {
+      overflow: visible;
+    }
   }
   .translations-table {
     .body-col {
@@ -354,6 +366,11 @@ page-translations {
     height: 100%;
     text-align: center;
     margin: 0;
+    .translation-button-icon {
+      &.delete-icon {
+        color: var(--delete-icon-color);
+      }
+    }
     // @include button-like-block;
   }
   // .col-nowrap {

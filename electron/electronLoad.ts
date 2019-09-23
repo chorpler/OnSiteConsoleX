@@ -6,6 +6,8 @@ import { app, Menu, BrowserWindow, dialog, ipcMain, nativeImage, globalShortcut,
 import { BrowserWindowConstructorOptions, } from 'electron';
 import { MessageBoxOptions,               } from 'electron';
 import { ContextMenuParams,               } from 'electron';
+import { electronLocalshortcut            } from 'electron-localshortcut';
+
 import * as windowStateKeeper from 'electron-window-state';
 import * as moment from 'moment';
 import { autoUpdater } from 'electron-updater';

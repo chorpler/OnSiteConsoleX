@@ -44,10 +44,13 @@
 </ion-header>
 
 <!-- <ion-content padding *ngIf="dataReady && data.ready()"> -->
-<ion-content padding #translationsContent id="translations-content" *ngIf="dataReady">
+<ion-content padding #translationsContent id="translations-content" *ngIf="dataReady" (paste)="onPaste($event)">
   <p-panel #translationsPanel id="panel-translations" [styleClass]="'translations-panel'" [toggleable]="true">
     <p-header>
       <span class="panel-header">
+        <span class="button-left">
+          <span class="fal fa-trash-alt panel-header-button" [class.highlighted]="deleteModes[0]" title="Enable delete mode" (click)="toggleDeleteMode(0, $event)"></span>
+        </span>
         <!-- <span class="button-left">
           <span class="panel-header-button db-download" title="Load work reports from database" (click)="possibleUpdateReports(0, $event)"></span>
         </span>
@@ -111,16 +114,29 @@
         <!-- Translation table body rows and columns (actual data) -->
         <ng-template pTemplate="body" let-rowData let-columns="columns" let-rowIndex="rowIndex">
           <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex">
-            <td [class.button-col]="true" title="View work report" (click)="editTranslation(rowData, $event)" *ngIf="showButtonCol">
+            <td [class.button-col]="true" title="View work report" (click)="editTranslation(rowData, $event)" *ngIf="showButtonCol && !deleteModes[0]">
               <span class="icon-button-wrapper">
-                <i class="fal fa-edit work-reports-button-icon"></i>
+                <i class="fal fa-edit translation-button-icon"></i>
+              </span>
+            </td>
+            <td [class.button-col]="true" title="Delete translation record" (click)="possibleDeleteTranslation(rowData, $event)" *ngIf="showButtonCol && deleteModes[0]">
+              <span class="icon-button-wrapper">
+                <i class="fal fa-trash-alt translation-button-icon delete-icon"></i>
               </span>
             </td>
             <td [class.col-index]="true">{{rowIndex+1}}</td>
-            <td *ngFor="let col of columns; let i=index" [class.body-col]="true" [ngClass]="col?.class" [ngStyle]="col?.style">
+            <!-- <td *ngFor="let col of columns; let i=index" [class.body-col]="true" [ngClass]="col?.class" [ngStyle]="col?.style">
               <span class="cell-body-data">
                 {{rowData[col?.field]}}
               </span>
+            </td> -->
+            <td pEditableColumn *ngFor="let col of columns; let i=index" [class.body-col]="true" [ngClass]="col?.class" [ngStyle]="col?.style">
+              <p-cellEditor>
+                <ng-template pTemplate="input">
+                  <input pInputText type="text" [(ngModel)]="rowData[col.field]">
+                </ng-template>
+                <ng-template pTemplate="output">{{rowData[col?.field]}}</ng-template>
+              </p-cellEditor>
             </td>
           </tr>
         </ng-template>
@@ -133,13 +149,13 @@
   <p-panel #maintenancePanel id="panel-maintenance-translations" [styleClass]="'translations-panel'" [toggleable]="true">
     <p-header>
       <span class="panel-header">
-        <!-- <span class="button-left">
-          <span class="panel-header-button db-download" title="Load work reports from database" (click)="possibleUpdateReports(0, $event)"></span>
-        </span>
         <span class="button-left">
-          <span class="panel-header-button" title="Calculate total hours shown" (click)="calculateHoursShown($event)"><i class="fal fa-calculator-alt"></i></span>
+          <span class="fal fa-trash-alt panel-header-button" [class.highlighted]="deleteModes[1]" title="Enable delete mode" (click)="toggleDeleteMode(1, $event)"></span>
         </span>
-        <span class="button-left" *ngIf="data.status.role === 'dev'">
+        <!-- <span class="button-left">
+          <span class="panel-header-button" title="Calculate total hours shown" (click)="calculateHoursShown($event)"><i class="fal fa-calculator-alt"></i></span>
+        </span> -->
+        <!-- <span class="button-left" *ngIf="data.status.role === 'dev'">
           <span class="panel-header-button button-dev" title="Change all selected reports (still in development)" (click)="bulkEdit(1, $event)"><i class="fal fa-pencil-ruler"></i></span>
         </span> -->
         <!-- <span class="panel-title">
@@ -195,17 +211,32 @@
 
         <!-- Report table body rows and columns (actual data) -->
         <ng-template pTemplate="body" let-rowData let-columns="columns" let-rowIndex="rowIndex">
+          <!-- <tr [pEditableRow]="rowData" [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex"> -->
           <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex">
-            <td [class.button-col]="true" title="View work report" (click)="editMaintenance(rowData, $event)" *ngIf="showButtonCol">
+            <td [class.button-col]="true" title="View maintenance translation record" (click)="editMaintenance(rowData, $event)" *ngIf="showButtonCol && !deleteModes[1]">
               <span class="icon-button-wrapper">
-                <i class="fal fa-edit work-reports-button-icon"></i>
+                <i class="fal fa-edit translation-button-icon"></i>
+              </span>
+            </td>
+            <td [class.button-col]="true" title="Delete maintenance translation record" (click)="possibleDeleteMaintenance(rowData, $event)" *ngIf="showButtonCol && deleteModes[1]">
+              <span class="icon-button-wrapper">
+                <i class="fal fa-trash-alt translation-button-icon delete-icon"></i>
               </span>
             </td>
             <td [class.col-index]="true">{{rowIndex+1}}</td>
-            <td *ngFor="let col of columns; let i=index" [class.body-col]="true" [ngClass]="col?.class" [ngStyle]="col?.style">
+            <!-- <td *ngFor="let col of columns; let i=index" [class.body-col]="true" [ngClass]="col?.class" [ngStyle]="col?.style">
               <span class="cell-body-data">
                 {{rowData[col?.field]}}
               </span>
+            </td> -->
+            <td pEditableColumn *ngFor="let col of columns; let i=index" [class.body-col]="true" [class.dropdown-col]="true" [ngClass]="col?.class" [ngStyle]="col?.style">
+              <p-cellEditor>
+                <ng-template pTemplate="input">
+                  <input pInputText type="text" [(ngModel)]="rowData[col.field]" *ngIf="col.field !== 'maint_type'">
+                  <p-dropdown #maintTypeDropdown [options]="maintenanceTypes" [(ngModel)]="rowData[col.field]" [style]="{'width':'100%'}" *ngIf="col.field === 'maint_type'"></p-dropdown>
+                </ng-template>
+                <ng-template pTemplate="output">{{rowData[col?.field]}}</ng-template>
+              </p-cellEditor>
             </td>
           </tr>
         </ng-template>

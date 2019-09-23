@@ -6,6 +6,9 @@ import { webFrame                       } from 'electron' ;
 import { dialog                         } from 'electron' ;
 import { remote                         } from 'electron' ;
 import { ipcRenderer                    } from 'electron' ;
+// import { electronLocalshortcut          } from 'electron-localshortcut';
+// import electronLocalshortcut from 'electron-localshortcut';
+import * as electronLocalshortcut from 'electron-localshortcut';
 
 import { globalShortcut  } from 'electron';
 import * as electron from 'electron';
@@ -117,6 +120,7 @@ export class ElectronService {
   public path = path;
   public fs = fs;
   public fsp = fsp;
+  public localShortcut = electronLocalshortcut;
   public searcher;
   public defaultTitle:string;
   // public childproc = childProc;

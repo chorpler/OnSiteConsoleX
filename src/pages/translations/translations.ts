@@ -1,9 +1,14 @@
+import { sprintf                                                     } from 'sprintf-js'                    ;
 import { Subscription                                                } from 'rxjs'                          ;
-import { Log, Moment, moment, isMoment, _sortTechsByUsername,                              } from 'domain/onsitexdomain'          ;
-import { _matchCLL, _matchSite, _matchReportSite,                    } from 'domain/onsitexdomain'          ;
 import { Component, OnInit, OnDestroy, NgZone, ViewChild, ElementRef } from '@angular/core'                 ;
+import { ViewChildren, QueryList,                                    } from '@angular/core'                 ;
 import { IonicPage, NavController, NavParams                         } from 'ionic-angular'                 ;
 import { ViewController, ModalController, Content, Scroll,           } from 'ionic-angular'                 ;
+import { Log,                                                        } from 'domain/onsitexdomain'          ;
+import { Moment, moment, isMoment,                                   } from 'domain/onsitexdomain'          ;
+import { _sortTechsByUsername,                                       } from 'domain/onsitexdomain'          ;
+import { _matchCLL, _matchSite, _matchReportSite,                    } from 'domain/onsitexdomain'          ;
+import { JSON5                                                       } from 'domain/onsitexdomain'          ;
 import { OSData                                                      } from 'providers/data-service'        ;
 import { DBService                                                   } from 'providers/db-service'          ;
 import { TranslationTableRecordKey                                   } from 'providers/db-service'          ;
@@ -11,14 +16,16 @@ import { TranslationLanguage                                         } from 'pro
 import { TranslationDocument, TranslationRecord                      } from 'providers/db-service'          ;
 import { TranslationTable, TranslationTableRecord                    } from 'providers/db-service'          ;
 import { ServerService                                               } from 'providers/server-service'      ;
-import { AlertService                                                } from 'providers/alert-service'       ;
+import { AlertService, CustomAlertButton                             } from 'providers/alert-service'       ;
 import { Preferences                                                 } from 'providers/preferences'         ;
 import { NotifyService                                               } from 'providers/notify-service'      ;
 import { SpinnerService                                              } from 'providers/spinner-service'     ;
 import { Table                                                       } from 'primeng/table'                 ;
 import { Panel                                                       } from 'primeng/panel'                 ;
 import { MultiSelect                                                 } from 'primeng/multiselect'           ;
+import { Dropdown                                                    } from 'primeng/dropdown'              ;
 import { TranslationEditor                                           } from 'components/translation-editor' ;
+import { SelectItem                                                  } from 'primeng/api'                   ;
 
 @IonicPage({name: 'Translations'})
 @Component({
@@ -27,11 +34,13 @@ import { TranslationEditor                                           } from 'com
   // styleUrls: ['./translations.scss'],
 })
 export class TranslationsPage implements OnInit,OnDestroy {
+  @ViewChild('translationsContent') translationsContent:Content;
   @ViewChild('dt') dt:Table;
   @ViewChild('maintTable') maintTable:Table;
   @ViewChild('translationsPanel') translationsPanel:Panel;
   @ViewChild('columnSelect') columnSelect:MultiSelect;
   @ViewChild('columnSelectMaint') columnSelectMaint:MultiSelect;
+  @ViewChildren('maintTypeDropdown') maintTypeDropdownList:QueryList<Dropdown>;
   public title              : string    = "Translations"            ;
   public mode               : string    = 'page'                    ;
   public modalMode          : boolean   = false                     ;
@@ -41,6 +50,8 @@ export class TranslationsPage implements OnInit,OnDestroy {
   public pageSizeOptions:number[]  = [5, 10, 20, 25, 30, 40, 50,100,200,500,1000,2000];
   public dateFormat       : string    = "DD MMM YYYY HH:mm"   ;
   public prefsSub         : Subscription                      ;
+
+  public maintenanceTypes : SelectItem[] = [];
 
   public autoLayout       : boolean            = true         ;
   public rowCount         : number             = 50           ;
@@ -74,6 +85,11 @@ export class TranslationsPage implements OnInit,OnDestroy {
   public maint_verbs  : TranslationTable = [];
   public editMaint    : TranslationTableRecordKey;
 
+  public deleteModes  : boolean[]           = [false, false];
+  public highlights   : boolean[][]         = [];
+  
+  public focusTimeout : number              = 300   ;
+
   public dataReady     : boolean            = false ;
   public get filteredCount():number { return this.getFilteredCount(this.dt); };
   public get filteredMaintCount():number { return this.getFilteredCount(this.maintTable); };
@@ -93,13 +109,11 @@ export class TranslationsPage implements OnInit,OnDestroy {
     public spinner   : SpinnerService   ,
   ) {
     window['onsitetranslations']  = this;
-    // window['onsitereports2'] = this;
     window['p'] = this;
   }
 
   ngOnInit() {
     Log.l('TranslationsPage: ngOnInit() fired');
-    // this.cols = this.getFields();
     if(this.data.isAppReady()) {
       this.runWhenReady();
     }
@@ -158,6 +172,17 @@ export class TranslationsPage implements OnInit,OnDestroy {
 
   public setPageLoaded() {
     this.data.currentlyOpeningPage = false;
+    setTimeout(() => {
+      let myContent = this.translationsContent;
+      if(myContent && myContent.getNativeElement) {
+        Log.l(`TranslationsPage.setPageLoaded(): Focusing on IonContent element …`);
+        let el1:HTMLElement = myContent.getNativeElement();
+        el1.focus();
+        Log.l(`TranslationsPage.setPageLoaded(): Done focusing!`);
+      } else {
+        Log.l(`TranslationsPage.setPageLoaded(): Tried to focus on IonContent element but could not find it!`);
+      }
+    }, this.focusTimeout);
   }
 
   public moment(value:Date|Moment):Moment {
@@ -187,6 +212,12 @@ export class TranslationsPage implements OnInit,OnDestroy {
     this.selectedColumnsMaint = this.colsMaint.filter((a:any) => {
       return a.show;
     });
+
+    this.maintenanceTypes = [
+      { label: "Mechanical Noun", value: "mechanical_noun" },
+      { label: "Electronic Noun", value: "electronic_noun" },
+      { label: "Verb", value: "verb" },
+    ];
     // this.selectedColumns = initialColumns;
     return fields;
   }
@@ -446,6 +477,147 @@ export class TranslationsPage implements OnInit,OnDestroy {
     }
   }
   
+  public async possibleDeleteTranslation(row:TranslationTableRecord, evt?:Event):Promise<any> {
+    let spinnerID;
+    try {
+      Log.l(`TranslationsPage.possibleDeleteMaintenance(): Called for row:`, row);
+      this.dt.selection = row;
+      this.maintTable.selection = row;
+      let title = "DELETE RECORD";
+      let text = "Do you want to delete this translation record? This cannot be undone.";
+      let confirm = await this.alert.showConfirmYesNo(title, text);
+      if(confirm) {
+        this.dt.selection = null;
+        this.maintTable.selection = null;
+        spinnerID = await this.alert.showSpinnerPromise('Deleting translation …');
+        await this.deleteTranslation(row, evt);
+        await this.alert.hideSpinnerPromise(spinnerID);
+      } else {
+        this.dt.selection = null;
+        this.maintTable.selection = null;
+      }
+    } catch(err) {
+      Log.l(`TranslationsPage.possibleDeleteMaintenance(): Error editing translation:`, row);
+      Log.e(err);
+      let title = "DATABASE ERROR";
+      let text  = "Error while deletion this translation from the database";
+      await this.alert.showErrorMessage(title, text, err);
+    // throw err;
+    }
+  }
+
+  public async possibleDeleteMaintenance(row:TranslationTableRecord, evt?:Event):Promise<any> {
+    let spinnerID;
+    try {
+      Log.l(`TranslationsPage.possibleDeleteMaintenance(): Called for row:`, row);
+      this.maintTable.selection = row;
+      this.dt.selection = row;
+      let title = "DELETE RECORD";
+      let text = "Do you want to delete this translation record? This cannot be undone.";
+      let confirm = await this.alert.showConfirmYesNo(title, text);
+      if(confirm) {
+        this.maintTable.selection = null;
+        this.dt.selection = null;
+        spinnerID = await this.alert.showSpinnerPromise('Deleting translation …');
+        await this.deleteMaintenanceTranslation(row, evt);
+        await this.alert.hideSpinnerPromise(spinnerID);
+      } else {
+        this.maintTable.selection = null;
+        this.dt.selection = null;
+      }
+    } catch(err) {
+      Log.l(`TranslationsPage.possibleDeleteMaintenance(): Error editing translation:`, row);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public async deleteTranslation(record:TranslationTableRecord, evt?:Event):Promise<any> {
+    let spinnerID;
+    try {
+      let idx1:number = this.translations.indexOf(record);
+      if(idx1 > -1) {
+        let deleted = this.translations.splice(idx1, 1)[0];
+        window['onsitedeletedtranslation'] = deleted;
+      }
+      let idx2 = this.maint_words.indexOf(record);
+      if(idx2 > -1) {
+        let deleted2 = this.maint_words.splice(idx2, 1)[0];
+        window['onsitedeletedtranslation2'] = deleted2;
+      }
+      try {
+        // spinnerID = await this.alert.showSpinnerPromise('Deleting translation …');
+        let res = await this.saveTranslations(evt);
+        // await this.alert.hideSpinnerPromise(spinnerID);
+      } catch(err) {
+        Log.l(`TranslationsPage.deleteTranslation(): Error saving deletion`);
+        throw err;
+        // Log.e(err);
+        // await this.alert.hideSpinnerPromise(spinnerID);
+        // let title = "DATABASE ERROR";
+        // let text  = "Error while saving this deletion to the database";
+        // await this.alert.showErrorMessage(title, text, err);
+        // return;
+      }
+      // return res;
+    } catch(err) {
+      Log.l(`TranslationsPage.deleteTranslation(): Error deleting translation`);
+      Log.e(err);
+      // await this.alert.hideSpinnerPromise(spinnerID);
+      throw err;
+    }
+  }
+
+  public async deleteMaintenanceTranslation(record:TranslationTableRecord, evt?:Event):Promise<any> {
+    let spinnerID;
+    try {
+      let idx1:number = this.maint_words.indexOf(record);
+      if(idx1 > -1) {
+        let deleted = this.maint_words.splice(idx1, 1)[0];
+        window['onsitedeletedtranslation'] = deleted;
+      }
+      let idx2 = this.translations.indexOf(record);
+      if(idx2 > -1) {
+        let deleted2 = this.maint_words.splice(idx2, 1)[0];
+        window['onsitedeletedtranslation2'] = deleted2;
+      }
+      try {
+        // spinnerID = await this.alert.showSpinnerPromise('Deleting translation …');
+        let res = await this.saveTranslations(evt);
+        // await this.alert.hideSpinnerPromise(spinnerID);
+      } catch(err) {
+        Log.l(`TranslationsPage.deleteMaintenanceTranslation(): Error saving deletion`);
+        throw err;
+        // Log.e(err);
+        // await this.alert.hideSpinnerPromise(spinnerID);
+        // let title = "DATABASE ERROR";
+        // let text  = "Error while saving this deletion to the database";
+        // await this.alert.showErrorMessage(title, text, err);
+        // return;
+      }
+      // return res;
+    } catch(err) {
+      Log.l(`TranslationsPage.deleteMaintenanceTranslation(): Error deleting translation`);
+      Log.e(err);
+      // await this.alert.hideSpinnerPromise(spinnerID);
+      throw err;
+    }
+  }
+
+  public async saveTranslations(evt?:Event):Promise<any> {
+    try {
+      let table = this.translations;
+      let maint = this.maint_words;
+      let res:any;
+      res = await this.server.saveTranslations(table, maint);
+      return res;
+    } catch(err) {
+      Log.l(`TranslationsPage.saveTranslations(): Error during save of translation edit`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
   public async editorClosed(evt?:any):Promise<any> {
     try {
       Log.l(`TranslationsPage.editorClosed(): Called with event:`, evt);
@@ -466,5 +638,115 @@ export class TranslationsPage implements OnInit,OnDestroy {
   public reSortTables(evt?:Event) {
     this.reSortTable(this.dt);
     this.reSortTable(this.maintTable);
+  }
+
+  public toggleDeleteMode(tableId:number, evt?:Event) {
+    this.deleteModes[tableId] = !this.deleteModes[tableId];
+  }
+
+  public parseTextToJson(text:string):any {
+    try {
+      Log.l(`TranslationsPage.parseTextToJson(): Text is:`, text);
+      let trimmed = text.trim();
+      let json5object = !((trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith("[") && trimmed.endsWith("]"))) ? "{" + trimmed + "}" : trimmed;
+      let jsonOut = JSON5.parse(json5object);
+      window['onsitepastejson5'] = jsonOut;
+      // let rawData = text.trim().split("\n");
+      // let rawData2 = rawData.map(str => str.replace(/ +(?= )/g,'')).map(str2 => str2.endsWith(",") ? str2.slice(0,-1) : str2).map(str3 => "{" + str3 + "}");
+      // let rawData3 = rawData2.map(row => JSON.parse(row));
+      // window['onsitepastejson'] = rawData3;
+      Log.l(`TranslationsPage.parseTextToJson(): Final output is:`, jsonOut);
+      return jsonOut;
+    } catch(err) {
+      Log.l(`TranslationsPage.parseTextToJson(): Error parsing string:`, text);
+      Log.e(err);
+      // throw err;
+      return null;
+    }
+  }
+
+  public onPaste(evt?:ClipboardEvent) {
+    Log.l(`TranslationsPage.onPaste(): Called, event is:`, evt);
+    window['onsitepasteevent'] = evt;
+    window['onsitepastedata'] = evt && evt.clipboardData ? evt.clipboardData : (window as any).clipboardData ? (window as any).clipboardData : null;
+    if(evt && evt.clipboardData) {
+      let text = evt.clipboardData.getData('text');
+      Log.l(`TranslationsPage.onPaste(): Text is:`, text);
+      window['onsitepastetext'] = text;
+      let res = this.parseTextToJson(text);
+      if(res) {
+        this.processJsonData(res);
+      } else {
+        Log.w(`TranslationsPage.onPaste(): Could not parse pasted data:`, text);
+      }
+    }
+  }
+
+  public async processJsonData(data:any) {
+    try {
+      let langKeys = this.langKeys;
+      let langKeyCount = langKeys.length;
+      let keys = Object.keys(data);
+      let out = [];
+      for(let key of keys) {
+        let value:string[] = data[key];
+        let record:TranslationTableRecord;
+        let row:any = {
+          key: key,
+        };
+        let i = 0;
+        for(let langKey of langKeys) {
+          let langValue = value[i++];
+          row[langKey] = langValue;
+        }
+        // if(value.length > langKeyCount) {
+        //   let maint_type = value[i];
+        //   row.maint_type = maint_type;
+        // }
+        record = row;
+        let title = "ADD TRANSLATION";
+        let text1  = "Add translation to table";
+        let text  = sprintf("%s:<br>\n<br>\n%s<br>\n", text1, JSON.stringify(record));
+        let confirm = await this.alert.showConfirmYesNo(title, text);
+        if(confirm) {
+          this.translations.push(record);
+          title = "ADD MAINTENANCE";
+          text = "Add record to maintenance report translations as well?";
+          let maintTypes = [
+            {code: 'mechanical_noun', value: 'Add as Mechanical Noun' },
+            {code: 'electronic_noun', value: 'Add as Electronic Noun' },
+            {code: 'verb', value: 'Add as Verb' },
+          ];
+          let buttons:CustomAlertButton[] = [];
+          for(let type of maintTypes) {
+            let button:CustomAlertButton = {
+              text: type.value,
+              resolve: type.code,
+            };
+            buttons.push(button);
+          }
+          buttons.push({
+            text: "No",
+            role: 'cancel',
+            resolve: null,
+          })
+          let res:string = await this.alert.showCustomConfirm(title, text, buttons);
+          if(res && typeof res === 'string') {
+            record.maint_type = res;
+            this.maint_words.push(record);
+          }
+          out.push(record);
+        }
+      }
+      Log.l(`TranslationsPage.processJsonData(): Final result of JSON data is:`, out);
+      return out;
+    } catch(err) {
+      Log.l(`TranslationsPage.processJsonData(): Error processing JSON data:`, data);
+      Log.e(err);
+      let title = "PASTE ERROR";
+      let text  = "Error processing the pasted data";
+      await this.alert.showErrorMessage(title, text, err);
+      // throw err;
+    }
   }
 }

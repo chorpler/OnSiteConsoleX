@@ -6,8 +6,10 @@ import { TranslationsPage                   } from './translations'             
 import { SharedModule                       } from 'primeng/shared'                   ;
 import { PanelModule,                       } from 'primeng/panel'                    ;
 import { MultiSelectModule                  } from 'primeng/multiselect'              ;
+import { DropdownModule                     } from 'primeng/dropdown'                 ;
 import { TableModule                        } from 'primeng/table'                    ;
-import { TranslationEditorModule            } from 'components/translation-editor'     ;
+import { InputTextModule                    } from 'primeng/inputtext'                ;
+import { TranslationEditorModule            } from 'components/translation-editor'    ;
 
 @NgModule({
   declarations: [
@@ -19,8 +21,10 @@ import { TranslationEditorModule            } from 'components/translation-edito
     SharedModule,
     PanelModule,
     MultiSelectModule,
+    DropdownModule,
     TableModule,
     TranslationEditorModule,
+    InputTextModule,
   ],
   exports: [
     TranslationsPage,

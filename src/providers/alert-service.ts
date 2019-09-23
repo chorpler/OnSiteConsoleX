@@ -1,6 +1,6 @@
 import { sprintf                                           } from 'sprintf-js'           ;
 import { Injectable                                        } from '@angular/core'        ;
-import { NavParams, LoadingController, PopoverController,  } from 'ionic-angular'        ;
+import { NavParams, LoadingController, PopoverController, AlertButton, AlertOptions,  } from 'ionic-angular'        ;
 import { ModalController, AlertController, ToastController } from 'ionic-angular'        ;
 import { Loading, Alert, Toast, Popover                    } from 'ionic-angular'        ;
 import { Log, UUID,                                        } from 'domain/onsitexdomain' ;
@@ -13,6 +13,13 @@ export interface SpinnerRecord {
 export interface AlertRecord {
   id:string;
   alert:Alert;
+}
+export interface CustomAlertButton {
+  text?: string;
+  role?: string;
+  cssClass?: string;
+  handler?: (value: any) => boolean | void;
+  resolve?: any;
 }
 export type Spinners = Map<string,Loading>;
 export type Alerts = Map<string,Alert>;
@@ -349,7 +356,7 @@ export class AlertService {
    */
   public async showErrorMessage(title:string, text:string, err:Error|string, evt?:Event):Promise<any> {
     try {
-      Log.l(`showErrorMessage(): Called with error:\n`, err);
+      Log.l(`AlertService.showErrorMessage(): Called with error:`, err);
       let errText:string = typeof err === 'object' && typeof err.message === 'string' ? err.message : typeof err === 'string' ? err : "Unknown error (code -42)";
       let errMessage:string;
       if(errText) {
@@ -360,7 +367,7 @@ export class AlertService {
       let res:any = await this.showAlert(title, errMessage);
       return res;
     } catch(err) {
-      Log.l(`showErrorMessage(): Error showing error message`);
+      Log.l(`AlertService.showErrorMessage(): Error showing error message`);
       Log.e(err);
       throw err;
     }
@@ -372,8 +379,8 @@ export class AlertService {
         title: title,
         message: text,
         buttons: [
-          { text: 'Cancel', handler: () => { Log.l("Cancel clicked."); resolve(false); } },
-          { text: 'OK', handler: () => { Log.l("OK clicked."); resolve(true); } }
+          { text: 'Cancel', handler: () => { Log.l("AlertService.showConfirm(): Cancel clicked."); resolve(false); } },
+          { text: 'OK', handler: () => { Log.l("AlertService.showConfirm(): OK clicked."); resolve(true); } }
         ],
         enableBackdropDismiss: false,
       };
@@ -391,8 +398,8 @@ export class AlertService {
         title: title,
         message: text,
         buttons: [
-          { text: 'No', handler: () => { Log.l("Cancel clicked."); resolve(false); } },
-          { text: 'Yes', handler: () => { Log.l("OK clicked."); resolve(true); } }
+          { text: 'No', handler: () => { Log.l("AlertService.showConfirmYesNo(): No clicked."); resolve(false); } },
+          { text: 'Yes', handler: () => { Log.l("AlertService.showConfirmYesNo(): Yes clicked."); resolve(true); } }
         ],
         enableBackdropDismiss: false,
       });
@@ -400,18 +407,51 @@ export class AlertService {
     });
   }
 
-  public showCustomConfirm(title: string, text: string, buttons: any, css?:string) {
+  /**
+   * Shows a dialog with three buttons: Cancel, No, Yes. For something like "Save before action?"
+   * - Yes means "save, then perform action"
+   * - No means "don't save, just perform action"
+   * - Cancel means "don't save or perform action"
+   *
+   * @param {string} title The string to show as the dialog title
+   * @param {string} text The string to show as the dialog text
+   * @returns {Promise<number>} A Promise-wrapped number where 0 means cancel, -1 means no, 1 means yes
+   * @memberof AlertService
+   */
+  public showConfirmYesNoCancel(title:string, text:string):Promise<number> {
+    return new Promise((resolve, reject) => {
+      this.alert = this.alertCtrl.create({
+        title: title,
+        message: text,
+        buttons: [
+          { text: 'Cancel', handler: () => { Log.l("AlertService.showConfirmYesNoCancel(): Cancel clicked."); resolve(0); } },
+          { text: 'No', handler: () => { Log.l("AlertService.showConfirmYesNoCancel(): No clicked."); resolve(-1); } },
+          { text: 'Yes', handler: () => { Log.l("AlertService.showConfirmYesNoCancel(): Yes clicked."); resolve(1); } }
+        ],
+        enableBackdropDismiss: false,
+      });
+      this.alert.present();
+    });
+  }
+
+  public showCustomConfirm(title: string, text: string, buttons:CustomAlertButton[], css?:string):Promise<any> {
     return new Promise((resolve, reject) => {
       let customButtons = [];
       for(let button of buttons) {
-        let newButton = {text: button.text, handler: null};
-        newButton.handler = () => {Log.l("User chose option '%s'", button.text); resolve(button.resolve);};
+        let newButton:AlertButton = {text: button.text, handler: null};
+        newButton.handler = () => {Log.l("AlertService.showCustomConfirm(): User chose option '%s'", button.text); resolve(button.resolve);};
+        if(button.role) {
+          newButton.role = button.role;
+        }
+        if(button.cssClass) {
+          newButton.cssClass = button.cssClass;
+        }
         customButtons.push(newButton);
       }
-      let options = {
+      let options:AlertOptions = {
         title: title,
         message: text,
-        buttons: customButtons
+        buttons: customButtons,
       };
       if(css) {
         options['cssClass'] = css;
@@ -431,8 +471,8 @@ export class AlertService {
           {name: 'input', placeholder: placeholder},
         ],
         buttons: [
-          { text: 'Cancel', handler: (data) => { Log.l("Cancel clicked."); resolve(null); } },
-          { text: 'OK', handler: (data) => { Log.l("OK clicked."); resolve(data); } }
+          { text: 'Cancel', handler: (data) => { Log.l("AlertService.showPrompt(): Cancel clicked."); resolve(null); } },
+          { text: 'OK', handler: (data) => { Log.l("AlertService.showPrompt(): OK clicked, data is:", data); resolve(data); } }
         ]
       });
       this.alert.present();
