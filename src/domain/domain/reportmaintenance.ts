@@ -1,9 +1,14 @@
 /**
  * Name: ReportMaintenance domain class
- * Vers: 1.1.3
- * Date: 2019-09-16
+ * Vers: 1.2.4
+ * Date: 2019-09-25
  * Auth: David Sargeant
- * Logs: 1.1.3 2019-09-16: Added MaintenanceWordType type for translation records
+ * Logs: 1.2.4 2019-09-25: Imported types from Report; Added matchesClient(),matchesLocation(),matchesLocID(),matchesOneCLL(),matchesCLL(),matchesSite() methods
+ * Logs: 1.2.3 2019-09-25: Added MaintenanceWordType type for translation records
+ * Logs: 1.2.2 2019-09-19: Added isTask(),addUserToTask(),removeUserFromTask() methods
+ * Logs: 1.2.1 2019-09-18: Added createEmptyTask(),startEmptyTask(),addTask() methods
+ * Logs: 1.2.0 2019-09-17: Added getLatestMileage(),getLatestEngineHours() methods; Added mileage and engine_hours properties to MaintenanceTask type
+ * Logs: 1.1.3 2019-09-17: Changed types slightly; Added getTaskTypes(),getAllNouns(),getAllVerbs(),getAllWords() methods
  * Logs: 1.1.2 2019-08-30: Added check at end of deserialize() method to add a notes field if one does not exist
  * Logs: 1.1.1 2019-08-22: Added getTotalTimeStringHoursMinutes() method
  * Logs: 1.1.0 2019-08-20: Added getLastTimeBlocked() method
@@ -12,24 +17,29 @@
  * Logs: 1.0.0 2019-08-16: Initial creation, derived from ReportMaintenance
  */
 
-// import { roundToNearest    } from '../config'              ;
-// import { isNumeric         } from '../config'              ;
-// import { Shift             } from './shift'                ;
-// import { PayrollPeriod     } from './payroll-period'       ;
-import { sprintf           } from 'sprintf-js'             ;
-import { Log               } from '../config'              ;
-import { Moment            } from '../config'              ;
-import { isMoment          } from '../config'              ;
-import { moment            } from '../config'              ;
-import { roundUpToNearest  } from '../config'              ;
-import { validateVIN       } from '../config'              ;
-import { isNumber          } from '../config'              ;
-import { oo                } from '../config'              ;
-import { Employee          } from './employee'             ;
-import { Jobsite           } from './jobsite'              ;
-import { ReportFlag        } from '../config/config.types' ;
-import { OnSiteGeolocation } from './geolocation'          ;
-import { isLocation        } from './geolocation'          ;
+// import { roundToNearest         } from '../config'              ;
+// import { isNumeric              } from '../config'              ;
+// import { Shift                  } from './shift'                ;
+// import { PayrollPeriod          } from './payroll-period'       ;
+import { sprintf                } from 'sprintf-js'             ;
+import { Log                    } from '../config'              ;
+import { Moment                 } from '../config'              ;
+import { isMoment               } from '../config'              ;
+import { moment                 } from '../config'              ;
+import { roundUpToNearest       } from '../config'              ;
+import { validateVIN            } from '../config'              ;
+import { isNumber               } from '../config'              ;
+import { oo                     } from '../config'              ;
+import { Employee               } from './employee'             ;
+import { Jobsite                } from './jobsite'              ;
+import { ReportFlag             } from '../config/config.types' ;
+import { OnSiteGeolocation      } from './geolocation'          ;
+import { isLocation             } from './geolocation'          ;
+import { ReportStatusUpdateType } from './report'               ;
+import { ReportStatusLogEntry   } from './report'               ;
+import { WorkReportType         } from './report'               ;
+import { SESAReportCLL          } from './report'               ;
+import { ReportCLL              } from './report'               ;
 
 // export type LogisticsType = "start"|"end"|"destination"|"final";
 // export type LogisticsMileageType = LogisticsType;
@@ -37,28 +47,32 @@ import { isLocation        } from './geolocation'          ;
 // export type LogisticsAllType = LogisticsType | LogisticsLocationType;
 
 export type MaintenanceTaskType = "mechanical"|"electronic";
+export type MaintenanceTaskTypes = MaintenanceTaskType[];
 export type MaintenanceWordType = "mechanical_noun"|"electronic_noun"|"verb";
 export type MechanicalWord = string;
 export type ElectronicWord = string;
 export type MaintenanceVerb = string;
-export type NounAny = MechanicalWord|ElectronicWord;
-export type WordAny = MechanicalWord|ElectronicWord|MaintenanceVerb;
+export type MaintenanceNoun = MechanicalWord|ElectronicWord;
+export type MaintenanceWord = MechanicalWord|ElectronicWord|MaintenanceVerb;
 export type MechanicalWords = MechanicalWord[];
 export type ElectronicWords = ElectronicWord[];
-export type MaintenanceNouns = Array<MechanicalWord|ElectronicWord>;
+export type MaintenanceNouns = MaintenanceNoun[];
 export type MaintenanceVerbs = MaintenanceVerb[];
+export type MaintenanceWords = MaintenanceWord[];
 export type TaskNouns = MechanicalWords|ElectronicWords;
 export type TaskVerbs = MaintenanceVerbs;
 export type WordsAny = Array<MechanicalWord|ElectronicWord|MaintenanceVerb>;
 
 export interface MaintenanceTask {
-  type   : MaintenanceTaskType;
-  noun   : NounAny;
-  verb   : MaintenanceVerb;
-  start  : string;
-  end    : string;
-  techs  : string[];
-  notes ?: string;
+  type          : MaintenanceTaskType ;
+  noun          : MaintenanceNoun     ;
+  verb          : MaintenanceVerb     ;
+  start         : string              ;
+  end           : string              ;
+  techs         : string[]            ;
+  notes        ?: string              ;
+  mileage      ?: number              ;
+  engine_hours ?: number              ;
 }
 
 export type MaintenanceTasks = MaintenanceTask[];
@@ -116,6 +130,30 @@ export class ReportMaintenance {
     }
   }
 
+  public static isTask(doc:any):boolean {
+    if(doc && typeof doc === 'object' && doc.hasOwnProperty('type') && doc.hasOwnProperty('noun') && doc.hasOwnProperty('verb') && doc.hasOwnProperty('start')) {
+      return true;
+    }
+    return false;
+  }
+
+  public static createEmptyTask(time?:Date|Moment|string):MaintenanceTask {
+    let datetime = moment(time);
+    if(!isMoment(time)) {
+      datetime = moment();
+    }
+    let task:MaintenanceTask = {
+      type: 'mechanical',
+      noun: null,
+      verb: null,
+      start: datetime.format(),
+      end: "",
+      techs: [],
+      notes: "",
+    };
+    return task;
+  }
+
   public static createMaintenanceTask({type="mechanical",noun="",verb="",start="", end="",notes="",techs=[]}:MaintenanceTask|null|undefined):MaintenanceTask {
     let record:MaintenanceTask = {
       type  : type   ,
@@ -129,6 +167,8 @@ export class ReportMaintenance {
     return record;
   }
 
+  public isTask = ReportMaintenance.isTask;
+  public createEmptyTask = ReportMaintenance.createEmptyTask;
   public createMaintenanceTask = ReportMaintenance.createMaintenanceTask;
 
   // public static roundToNearest(value:number, roundToNearest?:number):number {
@@ -308,6 +348,81 @@ export class ReportMaintenance {
     return report;
   }
 
+  public matchesClient(cll:ReportCLL):boolean {
+    return this.matchesOneCLL('client', cll);
+  }
+
+  public matchesLocation(cll:ReportCLL):boolean {
+    return this.matchesOneCLL('location', cll);
+  }
+
+  public matchesLocID(cll:ReportCLL):boolean {
+    return this.matchesOneCLL('locID', cll);
+  }
+
+  public matchesOneCLL(type:"client"|"location"|"locID"|"location_id", cll:ReportCLL):boolean {
+    let me:string;
+    if(type === 'client') {
+      me = this.client.toUpperCase();
+    } else if(type === 'location') {
+      me = this.location.toUpperCase();
+    } else if(type === 'locID' || type === 'location_id') {
+      me = this.locID.toUpperCase();
+    } else {
+      let text:string = `ReportMaintenance.matchesCLL(): Parameter 1 must be type: client|location|locID. Supplied type incorrect`;
+      Log.w(text + ":", type);
+      let err = new Error(text);
+      throw err;
+    }
+    if(typeof cll === 'object') {
+      let cll1 = typeof cll.name === 'string' ? cll.name.toUpperCase() : "";
+      let cll2 = typeof cll.fullName === 'string' ? cll.fullName.toUpperCase() : "";
+      return me === cll1 || me === cll2;
+    } else if(typeof cll === 'string') {
+      let cll1 = cll.toUpperCase();
+      return me === cll1;
+    } else {
+      let text:string = `ReportMaintenance.matchesCLL(): Parameter 2 must be object "{name:string,fullName:string}" or string. Supplied value invalid`;
+      Log.w(text + ":", cll);
+      let err = new Error(text);
+      throw err;
+    }
+  }
+
+  public matchesCLL(client:ReportCLL, location:ReportCLL, locID:ReportCLL):boolean {
+    return this.matchesClient(client) && this.matchesLocation(location) && this.matchesLocID(locID);
+  }
+
+  public matchesSite(site:Jobsite):boolean {
+    if(!(site instanceof Jobsite)) {
+      Log.w(`ReportMaintenance.matchesSite(): Must be called with Jobsite object. Called with:`, site);
+      return false;
+    } else {
+      if(this.site_number && this.site_number === site.site_number) {
+        // Log.l("ReportMaintenance: matched report to site:\n", this);
+        // Log.l(site);
+        return true;
+      } else {
+        let siteCLI = site.client.name.toUpperCase();
+        let siteLOC = site.location.name.toUpperCase();
+        let siteLID = site.locID.name.toUpperCase();
+        let siteCLI2 = site.client.fullName.toUpperCase();
+        let siteLOC2 = site.location.fullName.toUpperCase();
+        let siteLID2 = site.locID.fullName.toUpperCase();
+        let cli = this.client      ? this.client.toUpperCase() :      "ZZ";
+        let loc = this.location    ? this.location.toUpperCase() :    "Z";
+        let lid = this.locID ? this.locID.toUpperCase() : "ZZZZZZ";
+        if((cli === siteCLI || cli === siteCLI2) && (loc === siteLOC || loc === siteLOC2) && (lid === siteLID || lid === siteLID2)) {
+          // Log.l("ReportMaintenance: matched report to site:\n", this);
+          // Log.l(site);
+          return true;
+        } else {
+          return false;
+        }
+      }
+    }
+  }
+
   public setSite(site:Jobsite):ReportMaintenance {
     if(!(site instanceof Jobsite)) {
       Log.w(`ReportMaintenance.setSite(): Parameter 1 must be Jobsite object. Invalid parameter:`, site);
@@ -348,11 +463,33 @@ export class ReportMaintenance {
       this.username = username;
       this.first_name = first;
       this.last_name = last;
+      for(let task of this.tasks) {
+        let techlist = task.techs;
+        if(!techlist.includes(username)) {
+          techlist.push(username);
+        }
+      }
       return this;
     }
   }
 
-  public startTask(type:MaintenanceTaskType, noun:NounAny, verb:MaintenanceVerb, time?:Date|Moment|string):MaintenanceTasks {
+  public startEmptyTask(time?:Date|Moment|string):MaintenanceTasks {
+    let task:MaintenanceTask = this.createEmptyTask(time);
+    task.techs.push(this.username);
+    this.tasks.push(task);
+    return this.tasks;
+  }
+
+  public addTask(task:MaintenanceTask):MaintenanceTasks {
+    if(!(task && typeof task === 'object' && task.hasOwnProperty('type') && task.hasOwnProperty('noun') && task.hasOwnProperty('verb'))) {
+      Log.w(`ReportMaintenance.addTask(): task must be a MaintenanceTask object`);
+      return null;
+    }
+    this.tasks.push(task);
+    return this.tasks;
+  }
+
+  public startTask(type:MaintenanceTaskType, noun:MaintenanceNoun, verb:MaintenanceVerb, time?:Date|Moment|string):MaintenanceTasks {
     if(this.isTaskActive()) {
       Log.w(`ReportMaintenance.startTask(): Task already started and not ended. Please end current task first.`);
       return null;
@@ -389,6 +526,59 @@ export class ReportMaintenance {
     }
     let task = this.getLatestTask();
     task.end = datetime.format();
+    return this.tasks;
+  }
+
+  /**
+   * Adds specified username to the optional given task. If no task is provided, adds the username to all existing report tasks.
+   *
+   * @param {string} username Username string to add
+   * @param {MaintenanceTask} [task] Task to add username to. If not provided, all existing report tasks will have username added.
+   * @returns {MaintenanceTasks} Report's array of tasks.
+   * @memberof ReportMaintenance
+   */
+  public addUserToTask(username:string, task?:MaintenanceTask):MaintenanceTasks {
+    if(!(username && typeof username === 'string')) {
+      let text = `ReportMaintenance.addUserToTask(): Parameter 1 must be username string. Invalid parameter`;
+      Log.w(text + ":", username);
+      let err = new Error(text);
+      throw err;
+    }
+    let tasks:MaintenanceTasks = this.isTask(task) ? [task] : this.tasks;
+    for(let eachTask of tasks) {
+      let techs:string[] = eachTask.techs || [];
+      if(!techs.includes(username)) {
+        techs.push(username);
+      }
+      eachTask.techs = techs;
+    }
+    return this.tasks;
+  }
+
+  /**
+   * Removes specified username from the optional given task. If no task is provided, removes the username from all existing report tasks.
+   *
+   * @param {string} username Username string to remove
+   * @param {MaintenanceTask} [task] Task to remove username from. If not provided, all existing report tasks will have username removed.
+   * @returns {MaintenanceTasks} Report's array of tasks.
+   * @memberof ReportMaintenance
+   */
+  public removeUserFromTask(username:string, task?:MaintenanceTask):MaintenanceTasks {
+    if(!(username && typeof username === 'string')) {
+      let text = `ReportMaintenance.removeUserFromTask(): Parameter 1 must be username string. Invalid parameter`;
+      Log.w(text + ":", username);
+      let err = new Error(text);
+      throw err;
+    }
+    let tasks:MaintenanceTasks = this.isTask(task) ? [task] : this.tasks;
+    for(let eachTask of tasks) {
+      let techs:string[] = eachTask.techs || [];
+      let idx = techs.indexOf(username);
+      if(idx > -1) {
+        techs.splice(idx, 1);
+      }
+      eachTask.techs = techs;
+    }
     return this.tasks;
   }
 
@@ -748,6 +938,41 @@ export class ReportMaintenance {
   }
 
   /**
+   * Get latest engine hours reading that was added to this report
+   *
+   * @returns {number} The last engine hours reading that was added to this report as part of a task
+   * @memberof ReportMaintenance
+   */
+  public getLatestEngineHours():number {
+    let out = this.engine_hours;
+    let task = this.getLatestTask();
+    if(task && task.engine_hours != undefined) {
+      out = task.engine_hours;
+    // } else {
+    //   Log.w(`ReportMaintenance.getLatestEngineHours(): Could not find a task to return latest engine hours from:`, this.tasks);
+    }
+    return out;
+  }
+
+  /**
+   * Get latest mileage that was added to this report
+   *
+   * @returns {number} The last mileage record added to this report as part of a task
+   * @memberof ReportMaintenance
+   */
+  public getLatestMileage():number {
+    let out = this.mileage;
+    let task = this.getLatestTask();
+    if(task && task.mileage != undefined) {
+      out = task.mileage;
+    // } else {
+    //   Log.w(`ReportMaintenance.getLatestMiles(): Could not find a task to return latest miles from:`, this.tasks);
+    }
+    out = this.mileage;
+    return out;
+  }
+
+  /**
    * Returns last time this report occupies, if any
    *
    * @returns {string} ISO8601 string representing the latest time this report has a record of
@@ -778,6 +1003,13 @@ export class ReportMaintenance {
     }
   }
 
+  /**
+   * Returns array of TaskNoun strings for the given task
+   *
+   * @param {(MaintenanceTask|MaintenanceTaskType)} task A task or task type to return the list of nouns for
+   * @returns {TaskNouns} An array of TaskNoun strings
+   * @memberof ReportMaintenance
+   */
   public getTaskNouns(task:MaintenanceTask|MaintenanceTaskType):TaskNouns {
     let taskType:MaintenanceTaskType;
     if(task && typeof task === 'string') {
@@ -785,9 +1017,10 @@ export class ReportMaintenance {
     } else if(task && typeof task === 'object' && typeof task.type === 'string') {
       taskType = task.type;
     } else {
-      let text = `ReportMaintenance.getTaskNouns(): Parameter 1 must be task or task type. Invalid parameter`;
-      Log.w(text + ":", task);
-      return null;
+      return this.getAllNouns();
+      // let text = `ReportMaintenance.getTaskNouns(): Parameter 1 must be task or task type. Invalid parameter`;
+      // Log.w(text + ":", task);
+      // return null;
     }
     if(taskType === 'mechanical') {
       return this.MWORDS;
@@ -800,6 +1033,13 @@ export class ReportMaintenance {
     }
   }
 
+  /**
+   * Returns array of TaskVerb strings for the given task
+   *
+   * @param {(MaintenanceTask|MaintenanceTaskType)} task A task or task type to return the list of verbs for
+   * @returns {TaskVerbs} An array of TaskVerb strings
+   * @memberof ReportMaintenance
+   */
   public getTaskVerbs(task:MaintenanceTask|MaintenanceTaskType):TaskVerbs {
     let taskType:MaintenanceTaskType;
     if(task && typeof task === 'string') {
@@ -807,9 +1047,10 @@ export class ReportMaintenance {
     } else if(task && typeof task === 'object' && typeof task.type === 'string') {
       taskType = task.type;
     } else {
-      let text = `ReportMaintenance.getTaskVerbs(): Parameter 1 must be task or task type. Invalid parameter`;
-      Log.w(text + ":", task);
-      return null;
+      return this.getAllVerbs();
+      // let text = `ReportMaintenance.getTaskVerbs(): Parameter 1 must be task or task type. Invalid parameter`;
+      // Log.w(text + ":", task);
+      // return null;
     }
     if(taskType === 'mechanical') {
       return this.VERBS;
@@ -820,6 +1061,64 @@ export class ReportMaintenance {
       Log.w(text + ":", task);
       return null;
     }
+  }
+
+  /**
+   * Returns array of MaintenanceTaskType strings
+   *
+   * @param {boolean} [sorted] If true, result is sorted alphabetically
+   * @returns {MaintenanceTaskTypes} Array of MaintenanceTaskType strings
+   * @memberof ReportMaintenance
+   */
+  public getTaskTypes(sorted?:boolean):MaintenanceTaskTypes {
+    let out:MaintenanceTaskTypes = ['mechanical','electronic'];
+    if(sorted === true) {
+      out = out.sort();
+    }
+    return out;
+  }
+
+  /**
+   * Returns array of TaskNoun strings for all maintenance tasks
+   *
+   * @param {boolean} [sorted] If true, result is sorted alphabetically, instead of by noun type
+   * @returns {MaintenanceNouns} Array of TaskNoun strings
+   * @memberof ReportMaintenance
+   */
+  public getAllNouns(sorted?:boolean):MaintenanceNouns {
+    let out = [...this.MWORDS, ...this.EWORDS];
+    if(sorted === true) {
+      out = out.sort();
+    }
+    return out;
+  }
+
+  /**
+   * Returns array of TaskVerb strings for all maintenance tasks
+   *
+   * @returns {MaintenanceVerbs} Array of TaskVerb strings
+   * @memberof ReportMaintenance
+   */
+  public getAllVerbs():MaintenanceVerbs {
+    let out = this.VERBS;
+    return out;
+  }
+
+  /**
+   * Returns array of MaintenanceWord strings for all maintenance tasks
+   *
+   * @param {boolean} [sorted] If true, result is sorted alphabetically, instead of nouns by type and then verbs
+   * @returns {MaintenanceWords} Array of MaintenanceWord strings
+   * @memberof ReportMaintenance
+   */
+  public getAllWords(sorted?:boolean):MaintenanceWords {
+    let nouns = this.getAllNouns(sorted);
+    let verbs = this.getAllVerbs();
+    let out = [...nouns, ...verbs];
+      if(sorted === true) {
+        out = out.sort();
+      }
+      return out;
   }
 
   public getType():string {

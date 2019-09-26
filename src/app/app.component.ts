@@ -1665,7 +1665,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
       // this.user.readFromDoc(res);
 
       // });
-      let res:any = await this.db.getAllNonScheduleData(false, spinnerID);
+      let res = await this.db.getAllNonScheduleData(false, spinnerID);
         // this.schedules = new Schedules();
       for(let key in res) {
         if(key !== 'schedules') {
@@ -1707,9 +1707,9 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
       // return this.db.getDPSSettings();
       this.data.loaded.config = true;
       updateLoaderStatus("sesa-dps-config");
-      res = await this.server.getDPSSettings();
+      let dpsSettings = await this.server.getDPSSettings();
       // OSData.dps = res;
-      this.data.dps = res;
+      this.data.dps = dpsSettings;
       this.data.loaded.dps = true;
       await this.alert.hideSpinnerPromise(spinnerID);
       Log.l("OnSiteConsoleX.fetchData(): All data fetched.");
@@ -1913,7 +1913,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
   public async getReportMaintenances(hideSpinner?:boolean):Promise<ReportMaintenance[]> {
     let spinnerID:string;
     try {
-      let dbname = this.prefs.getDB('maintena');
+      let dbname = this.prefs.getDB('maintenances');
       let db1 = this.db.addDB(dbname);
       let dbinfo:any = await db1.info();
       let count:number = dbinfo.doc_count;

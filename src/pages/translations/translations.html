@@ -20,6 +20,9 @@
         <span class="menubar-button" (click)="addTranslation($event)" title="Add new translation">
           <i class="fal fa-plus-square"></i>
         </span>
+        <span class="menubar-button" (click)="possibleSaveTranslations($event)" title="Save translations">
+          <i class="fal fa-save"></i>
+        </span>
         <!-- <span class="menubar-button" title="Run Tech Shift Reports for visible reports" (click)="openTechShiftReports($event)">
           <i class="icomoon-shift-reports"></i>
         </span>
@@ -113,8 +116,8 @@
 
         <!-- Translation table body rows and columns (actual data) -->
         <ng-template pTemplate="body" let-rowData let-columns="columns" let-rowIndex="rowIndex">
-          <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex">
-            <td [class.button-col]="true" title="View work report" (click)="editTranslation(rowData, $event)" *ngIf="showButtonCol && !deleteModes[0]">
+          <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex" [class.translation-row]="true" [class.dirty-row]="dirtyRows[0][rowIndex]">
+            <td [class.button-col]="true" title="Edit translation record" (click)="editTranslation(rowData, $event)" *ngIf="showButtonCol && !deleteModes[0]">
               <span class="icon-button-wrapper">
                 <i class="fal fa-edit translation-button-icon"></i>
               </span>
@@ -133,7 +136,7 @@
             <td pEditableColumn *ngFor="let col of columns; let i=index" [class.body-col]="true" [ngClass]="col?.class" [ngStyle]="col?.style">
               <p-cellEditor>
                 <ng-template pTemplate="input">
-                  <input pInputText type="text" [(ngModel)]="rowData[col.field]">
+                  <input pInputText type="text" [(ngModel)]="rowData[col.field]" (input)="dirtyUpRow(0, rowIndex)">
                 </ng-template>
                 <ng-template pTemplate="output">{{rowData[col?.field]}}</ng-template>
               </p-cellEditor>
@@ -212,7 +215,7 @@
         <!-- Report table body rows and columns (actual data) -->
         <ng-template pTemplate="body" let-rowData let-columns="columns" let-rowIndex="rowIndex">
           <!-- <tr [pEditableRow]="rowData" [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex"> -->
-          <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex">
+          <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex" [class.translation-row]="true" [class.dirty-row]="dirtyRows[1][rowIndex]">
             <td [class.button-col]="true" title="View maintenance translation record" (click)="editMaintenance(rowData, $event)" *ngIf="showButtonCol && !deleteModes[1]">
               <span class="icon-button-wrapper">
                 <i class="fal fa-edit translation-button-icon"></i>
@@ -232,8 +235,8 @@
             <td pEditableColumn *ngFor="let col of columns; let i=index" [class.body-col]="true" [class.dropdown-col]="true" [ngClass]="col?.class" [ngStyle]="col?.style">
               <p-cellEditor>
                 <ng-template pTemplate="input">
-                  <input pInputText type="text" [(ngModel)]="rowData[col.field]" *ngIf="col.field !== 'maint_type'">
-                  <p-dropdown #maintTypeDropdown [options]="maintenanceTypes" [(ngModel)]="rowData[col.field]" [style]="{'width':'100%'}" *ngIf="col.field === 'maint_type'"></p-dropdown>
+                  <input pInputText type="text" [(ngModel)]="rowData[col.field]" (input)="dirtyUpRow(1, rowIndex)" *ngIf="col.field !== 'maint_type'">
+                  <p-dropdown #maintTypeDropdown [options]="maintenanceTypes" [(ngModel)]="rowData[col.field]" [style]="{'width':'100%'}" (onChange)="dirtyUpRow(1, rowIndex)" *ngIf="col.field === 'maint_type'"></p-dropdown>
                 </ng-template>
                 <ng-template pTemplate="output">{{rowData[col?.field]}}</ng-template>
               </p-cellEditor>

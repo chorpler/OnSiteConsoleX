@@ -1525,7 +1525,8 @@ export class OSData {
       let pp    = new PayrollPeriod();
       pp.setStartDate(start);
       // pp.createConsolePayrollPeriodShiftsForTech(tech, site, shift_type, rotation);
-      pp.createPayrollPeriodShiftsForTech(tech, site, shift_type, rotation);
+      // pp.createPayrollPeriodShiftsForTech(tech, site, shift_type, rotation);
+      pp.createConsolePayrollPeriodShiftsForTech(tech, site, shift_type, rotation);
       return pp;
       // }
       // return OSData.periods;

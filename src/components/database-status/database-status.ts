@@ -18,7 +18,7 @@ import { sizeOf               } from 'domain/onsitexdomain'       ;
 import { DatabaseStatus,      } from 'domain/onsitexdomain'       ;
 import { DatabaseStatusState, } from 'domain/onsitexdomain'       ;
 import { OSData               } from 'providers/data-service'     ;
-import { Preferences          } from 'providers/preferences'      ;
+import { Preferences, DatabaseKey, DatabaseKeys          } from 'providers/preferences'      ;
 import { NotifyService        } from 'providers/notify-service'   ;
 import { DispatchService      } from 'providers/dispatch-service' ;
 import { AppEvents            } from 'providers/dispatch-service' ;
@@ -61,8 +61,8 @@ export class DatabaseStatusComponent implements OnInit,OnDestroy {
   public elapsedTime  :Duration;
   public elapsedTimeString:string = "";
   public progressArray:DatabaseStatus[] = [];
-  public getKeys:any;
-  public sprintf:any = sprintf;
+  public getKeys:(o:Object) => string[] = Object.keys;
+  public sprintf:(...params) => string = sprintf;
 
   public isVisible   : boolean = true              ;
   public isDraggable : boolean = true              ;
@@ -276,9 +276,9 @@ export class DatabaseStatusComponent implements OnInit,OnDestroy {
   }
 
   public async createList(dbNameList?:string[]) {
-    let dbkeys:string[] = this.prefs.getSyncableDBKeys() || [];
+    let dbkeys = this.prefs.getSyncableDBKeys() || [];
     // let dbnames = Array.isArray(dbNameList) ? dbNameList : this.prefs.getSyncableDBList();
-    let dbnames:string[] = dbkeys.map((key:string) => {
+    let dbnames:string[] = dbkeys.map(key => {
       return this.prefs.getDB(key);
     });
     let now:Moment;
@@ -305,7 +305,7 @@ export class DatabaseStatusComponent implements OnInit,OnDestroy {
       progressDoc[key] = dbstatus;
     }
     this.dbProgress = progressDoc;
-    let keys:string[] = Object.keys(progressDoc);
+    let keys = (Object.keys(progressDoc) as DatabaseKeys);
     for(let key of keys) {
       let dbname:string = this.prefs.getDB(key);
       let dberror:boolean = false;
@@ -369,14 +369,14 @@ export class DatabaseStatusComponent implements OnInit,OnDestroy {
     return progressDoc;
   }
 
-  public async refreshDatabaseInfo(keys?:string[], evt?:Event):Promise<any> {
+  public async refreshDatabaseInfo(keys?:DatabaseKeys, evt?:Event):Promise<any> {
     try {
       this.title = this.titleString + " (updating …)";
-      let pkeys:string[] = Object.keys(this.dbProgress);
-      let dbkeys:string[] = Array.isArray(keys) ? keys : pkeys.length ? pkeys : [];
+      let pkeys = (Object.keys(this.dbProgress) as DatabaseKeys);
+      let dbkeys = Array.isArray(keys) ? keys : pkeys.length ? pkeys : [];
       // let dbkeys:string[] = Array.isArray(keys) ? keys : this.prefs.getSyncableDBKeys() || [];
       // let dbnames = Array.isArray(dbNameList) ? dbNameList : this.prefs.getSyncableDBList();
-      let dbnames:string[] = dbkeys.map((key:string) => {
+      let dbnames:string[] = dbkeys.map(key => {
         return this.prefs.getDB(key);
       });
       dbnames = dbnames.filter(a => typeof a === 'string');

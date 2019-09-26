@@ -1,8 +1,9 @@
 /**
  * Name: Preferences provider (Console)
- * Vers: 78
- * Date: 2019-07-23
+ * Vers: 85
+ * Date: 2019-09-25
  * Auth: David Sargeant
+ * Logs: 85 2019-09-25: Added ReportTypeKey, new CONSOLE.global options, new page options for Reports
  * Logs: 78 2019-07-23: Added CONSOLE.scheduling.pastSchedulesToLoad
  * Logs: 77 2018-09-07: Added CONSOLE.scripts entry for Google Maps and Charts scripts to be lazy loaded, plus getScripts(), getScriptURL() methods
  * Logs: 76 2018-08-27: Added SERVER.howlerPort and some methods, plus SERVER.replicationBatchSize
@@ -40,13 +41,16 @@
 import { Injectable                  } from '@angular/core'        ;
 import { Log, oo, ooPatch, ooPointer } from 'domain/onsitexdomain' ;
 
-const version:number = 77       ;
+const version:number = 85       ;
 
 // const GMAPI1:string = "QUl6YVN5QnV0NFdaRGt1MzROYnpmd09PQlBIZk5KUm42MGRILTRr";
 const GMAPI1:string = "QUl6YVN5Q243NjJEcXpTOWhvSGtDSV9xM3JRZHpaZlBXbmVkdkh3";
 var gmkey:string = atob(GMAPI1);
 var adapter:string   = 'idb'    ;
 // var adapter   = 'worker' ;
+
+export type ReportTypeKey = "reports"|"others"|"logistics"|"maintenances"|"drivings"|"timecards";
+export type PageSizeKey = ReportTypeKey|"employees"|"jobsites"|"techphones";
 
 // var server            = "db.cellar.sesa.us"        ;
 // var server            = "mars.sesa.us"             ;
@@ -163,151 +167,155 @@ export class Preferences {
   //   'reports_old02'     : reports_old02     ,
   //   'reports_old'       : reports_old       ,
   // };
-  public static CONSOLE2: any = {
-    scripts: {
-      maps         : `https://maps.google.com/maps/api/js?key=${gmkey}` ,
-      charts       : "https://www.gstatic.com/charts/loader.js"         ,
-      quill        : "build/quill.js"                                   ,
-      fullcalendar : "build/fullcalendar.min.js"                        ,
-    },
-    global: {
-      payroll_periods: 4,
-      loadEmployees: true,
-      loadSites: true,
-      loadReports: false,
-      loadMiscReports: false,
-      loadOldReports: false,
-      weekStartDay: 3,
-      reportsToLoad: 20000,
-      goToLastPage: true,
-      lastPage: '',
-      timeFormat24: false,
-      timeFormat: "hh:mm A",
-      dateFormatShort: "MMM DD",
-      dateFormatMed: "DD MMM YYYY",
-      dateFormatLong: "ddd DD MMM YYYY",
-      dateFormatSort: "YYYY-MM-DD",
-      dateTimeFormat: "YYYY-MM-DD HH:mm",
-    },
-    employeeView: {
-      showAllSites: false,
-    },
-    scheduling: {
-      persistTechChanges: false,
-      showAllSites: true,
-      showOffice: false,
-      showTestSites: false,
-      allDatesAvailable: false,
-      lastScheduleUsed: "",
-      showUnassigned: true,
-      showLegrave: true,
-      showEmptyClients: true,
-      showNonSESA: false,
-      pastSchedulesToLoad: 12,
-    },
-    payroll: {
-      payroll_periods: 4,
-      showColors: true,
-      showShiftLength: true,
-      showAlerts: false,
-      exportUseQuickbooksName: true,
-      minHoursWhenOn: 20,
-      maxHoursWhenOff: 15,
-      showLineNumbers: false,
-      showExTechs: false,
-      showUnassignedTechs: true,
-    },
-    techshiftreports: {
-      showAllSites: false,
-      showAllTechs: false,
-      payroll_periods: 4,
-    },
-    hbpreauth: {
-      showAllSites: false,
-      payroll_periods: 4,
-    },
-    jobsites: {
-      autoLayoutTable: false,
-      tableResizeMode: 'fit',
-      showAllSites: true,
-      colorSitesByStatus: true,
-    },
-    techphones: {
-      autoLayoutTable: false,
-      tableResizeMode: 'fit',
-    },
-    pages: {
-      reports: 25,
-      reports_other: 25,
-      employees: 500,
-      jobsites: 50,
-      techphones: 25,
-    },
-    pageSizes: {
-      reports: [10,20,25,30,40,50,75,100,200,500,1000,2000],
-      reports_other: [10,20,25,30,40,50,75,100,200,500,1000,2000],
-      employees: [5,10,20,25,30,40,50,75,100,150,200,250,300,400,500,1000],
-      jobsites: [5,10,20,25,30,40,50,75,100],
-      techphones: [5,10,20,25,30,40,50,75,100,200,500,1000],
-    },
-  };
-  public static USER2: any = {
-    preferencesVersion: version,
-    language: 'en',
-    shifts: 7,
-    payroll_periods: 2,
-    audio: false,
-    stayInReports: false,
-    spinnerSpeed: 10,
-    messageCheckInterval: 15,
-  };
-  public static DEVELOPER2: any = {
-    showDocID: false,
-    showDocRev: false,
-    showReportTimes: false,
-    showReportSite: false,
-  };
-  public static SERVER2: any = {
-    localAdapter: adapter,
-    server: server,
-    port: port,
-    protocol: protocol,
-    howerPort: howlerPort,
-    replicationBatchSize: 200,
-    opts: { auto_compaction: true, get adapter() { return Preferences.SERVER.protocol; }, set adapter(val:string) {Preferences.SERVER.protocol = val}, skip_setup: true },
-    ropts: {
-      get adapter() {return Preferences.SERVER.opts.adapter; },
-      set adapter(value:string) {Preferences.SERVER.opts.adapter = value;},
-      skip_setup: true,
-      auth: {
-        username: '',
-        password: '',
-      }
-      // ,
-      // ajax: {
-      //   headers: {
-      //     Authorization: '',
-      //   },
-      //   withCredentials: true,
-      // },
-    },
-    cropts: {
-      get adapter() { return Preferences.SERVER.opts.adapter; },
-      set adapter(value: string) { Preferences.SERVER.opts.adapter = value; },
-    },
-    repopts: { live: false, retry: false, continuous: false },
-    // ajaxOpts: { withCredentials: true, headers: { Authorization: '' } },
-    ajaxOpts: {},
-    remoteDBInfo: {},
-    rdbServer: {
-      get protocol() { return Preferences.SERVER.opts.adapter; },
-      set protocol(value: string) { Preferences.SERVER.opts.adapter = value; },
-      get server() { return Preferences.SERVER.server;},
-      set server(value:string) { Preferences.SERVER.server = value;},
-      // get opts() { return Preferences.SERVER.ropts;},
-      // set opts(value:any) { Preferences.SERVER.ropts = value;},
-    }
-  };
+  // public static CONSOLE2: any = {
+  //   scripts: {
+  //     maps         : `https://maps.google.com/maps/api/js?key=${gmkey}` ,
+  //     charts       : "https://www.gstatic.com/charts/loader.js"         ,
+  //     quill        : "build/quill.js"                                   ,
+  //     fullcalendar : "build/fullcalendar.min.js"                        ,
+  //   },
+  //   global: {
+  //     payroll_periods: 4,
+  //     loadEmployees: true,
+  //     loadSites: true,
+  //     loadReports: false,
+  //     loadMiscReports: false,
+  //     loadLogisticsReports: true,
+  //     loadMaintenanceReports: true,
+  //     loadDrivingReports: true,
+  //     loadTimeCardReports: true,
+  //     loadOldReports: false,
+  //     weekStartDay: 3,
+  //     reportsToLoad: 20000,
+  //     goToLastPage: true,
+  //     lastPage: '',
+  //     timeFormat24: false,
+  //     timeFormat: "hh:mm A",
+  //     dateFormatShort: "MMM DD",
+  //     dateFormatMed: "DD MMM YYYY",
+  //     dateFormatLong: "ddd DD MMM YYYY",
+  //     dateFormatSort: "YYYY-MM-DD",
+  //     dateTimeFormat: "YYYY-MM-DD HH:mm",
+  //   },
+  //   employeeView: {
+  //     showAllSites: false,
+  //   },
+  //   scheduling: {
+  //     persistTechChanges: false,
+  //     showAllSites: true,
+  //     showOffice: false,
+  //     showTestSites: false,
+  //     allDatesAvailable: false,
+  //     lastScheduleUsed: "",
+  //     showUnassigned: true,
+  //     showLegrave: true,
+  //     showEmptyClients: true,
+  //     showNonSESA: false,
+  //     pastSchedulesToLoad: 12,
+  //   },
+  //   payroll: {
+  //     payroll_periods: 4,
+  //     showColors: true,
+  //     showShiftLength: true,
+  //     showAlerts: false,
+  //     exportUseQuickbooksName: true,
+  //     minHoursWhenOn: 20,
+  //     maxHoursWhenOff: 15,
+  //     showLineNumbers: false,
+  //     showExTechs: false,
+  //     showUnassignedTechs: true,
+  //   },
+  //   techshiftreports: {
+  //     showAllSites: false,
+  //     showAllTechs: false,
+  //     payroll_periods: 4,
+  //   },
+  //   hbpreauth: {
+  //     showAllSites: false,
+  //     payroll_periods: 4,
+  //   },
+  //   jobsites: {
+  //     autoLayoutTable: false,
+  //     tableResizeMode: 'fit',
+  //     showAllSites: true,
+  //     colorSitesByStatus: true,
+  //   },
+  //   techphones: {
+  //     autoLayoutTable: false,
+  //     tableResizeMode: 'fit',
+  //   },
+  //   pages: {
+  //     reports: 25,
+  //     reports_other: 25,
+  //     employees: 500,
+  //     jobsites: 50,
+  //     techphones: 25,
+  //   },
+  //   pageSizes: {
+  //     reports: [10,20,25,30,40,50,75,100,200,500,1000,2000],
+  //     reports_other: [10,20,25,30,40,50,75,100,200,500,1000,2000],
+  //     employees: [5,10,20,25,30,40,50,75,100,150,200,250,300,400,500,1000],
+  //     jobsites: [5,10,20,25,30,40,50,75,100],
+  //     techphones: [5,10,20,25,30,40,50,75,100,200,500,1000],
+  //   },
+  // };
+  // public static USER2: any = {
+  //   preferencesVersion: version,
+  //   language: 'en',
+  //   shifts: 7,
+  //   payroll_periods: 2,
+  //   audio: false,
+  //   stayInReports: false,
+  //   spinnerSpeed: 10,
+  //   messageCheckInterval: 15,
+  // };
+  // public static DEVELOPER2: any = {
+  //   showDocID: false,
+  //   showDocRev: false,
+  //   showReportTimes: false,
+  //   showReportSite: false,
+  // };
+  // public static SERVER2: any = {
+  //   localAdapter: adapter,
+  //   server: server,
+  //   port: port,
+  //   protocol: protocol,
+  //   howerPort: howlerPort,
+  //   replicationBatchSize: 200,
+  //   opts: { auto_compaction: true, get adapter() { return Preferences.SERVER.protocol; }, set adapter(val:string) {Preferences.SERVER.protocol = val}, skip_setup: true },
+  //   ropts: {
+  //     get adapter() {return Preferences.SERVER.opts.adapter; },
+  //     set adapter(value:string) {Preferences.SERVER.opts.adapter = value;},
+  //     skip_setup: true,
+  //     auth: {
+  //       username: '',
+  //       password: '',
+  //     }
+  //     // ,
+  //     // ajax: {
+  //     //   headers: {
+  //     //     Authorization: '',
+  //     //   },
+  //     //   withCredentials: true,
+  //     // },
+  //   },
+  //   cropts: {
+  //     get adapter() { return Preferences.SERVER.opts.adapter; },
+  //     set adapter(value: string) { Preferences.SERVER.opts.adapter = value; },
+  //   },
+  //   repopts: { live: false, retry: false, continuous: false },
+  //   // ajaxOpts: { withCredentials: true, headers: { Authorization: '' } },
+  //   ajaxOpts: {},
+  //   remoteDBInfo: {},
+  //   rdbServer: {
+  //     get protocol() { return Preferences.SERVER.opts.adapter; },
+  //     set protocol(value: string) { Preferences.SERVER.opts.adapter = value; },
+  //     get server() { return Preferences.SERVER.server;},
+  //     set server(value:string) { Preferences.SERVER.server = value;},
+  //     // get opts() { return Preferences.SERVER.ropts;},
+  //     // set opts(value:any) { Preferences.SERVER.ropts = value;},
+  //   }
+  // };
   // public get DB() { return Preferences.DB; };
   // public set DB(value:any) { Preferences.DB = value;};
   // public get SERVER() { return Preferences.SERVER;};
@@ -548,13 +556,45 @@ export class Preferences {
     };
     Preferences.CONSOLE = {
       global: {
+        // payroll_periods: 4,
+        // loadEmployees: true,
+        // loadSites: true,
+        // loadReports: false,
+        // loadMiscReports: false,
+        // loadOldReports: false,
+        // weekStartDay: 3,
         payroll_periods: 4,
         loadEmployees: true,
         loadSites: true,
         loadReports: false,
         loadMiscReports: false,
+        loadLogisticsReports: true,
+        loadMaintenanceReports: true,
+        loadDrivingReports: true,
+        loadTimeCardReports: true,
         loadOldReports: false,
         weekStartDay: 3,
+        reportsToLoad: 1000000,
+        goToLastPage: true,
+        lastPage: '',
+        timeFormat24: false,
+        timeFormat: "hh:mm A",
+        dateFormatShort: "MMM DD",
+        dateFormatMed: "DD MMM YYYY",
+        dateFormatLong: "ddd DD MMM YYYY",
+        dateFormatSort: "YYYY-MM-DD",
+        dateTimeFormat: "YYYY-MM-DD HH:mm",
+      },
+      loadAtStartup: {
+        employees: true,
+        sites: true,
+        reports: false,
+        others: false,
+        logistics: true,
+        maintenances: true,
+        drivings: true,
+        timecards: true,
+        oldReports: false,
       },
       employeeView: {
         showAllSites: false,
@@ -594,17 +634,25 @@ export class Preferences {
         tableResizeMode: 'fit',
       },
       pages: {
-        reports: 100,
-        reports_other: 100,
+        reports: 25,
+        others: 25,
+        logistics: 25,
+        maintenances: 25,
+        drivings: 25,
+        timecards: 25,
         employees: 200,
         jobsites: 50,
         techphones: 100,
       },
       pageSizes: {
-        reports: [50,100,200,500,1000,2000],
-        reports_other: [50,100,200,500,1000,2000],
-        employees: [30,50,100,150,200,250,300,400,500],
-        jobsites: [5,10,20,30,40,50,100],
+        reports: [5,10,15,20,25,50,100,200,500,1000,2000],
+        others: [5,10,15,20,25,50,100,200,500,1000,2000],
+        logistics: [5,10,15,20,25,50,100,200,500,1000,2000],
+        maintenances: [5,10,15,20,25,50,100,200,500,1000,2000],
+        drivings: [5,10,15,20,25,50,100,200,500,1000,2000],
+        timecards: [5,10,15,20,25,50,100,200,500,1000,2000],
+        employees: [5,10,15,20,25,30,50,100,150,200,250,300,400,500],
+        jobsites: [5,10,20,30,40,50,100,200],
         techphones: [50,100,200,500,1000],
       },
     };
@@ -655,7 +703,7 @@ export class Preferences {
     return Preferences.getRemoteURL();
   }
 
-  public static getRemoteDBURL(dbtype:string):string {
+  public static getRemoteDBURL(dbtype:DatabaseKey):string {
     // let S = Preferences.SERVER;
     let dbname:string = Preferences.getDB(dbtype);
     let url = Preferences.getRemoteURL();
@@ -669,7 +717,7 @@ export class Preferences {
     }
   }
 
-  public getRemoteDBURL(dbtype:string):string {
+  public getRemoteDBURL(dbtype:DatabaseKey):string {
     return Preferences.getRemoteDBURL(dbtype);
   }
 
@@ -808,11 +856,11 @@ export class Preferences {
     return Preferences.getAppURL();
   }
 
-  public getDBKeys(onlySyncableDatabases?:boolean):Array<string> {
+  public getDBKeys(onlySyncableDatabases?:boolean):Array<DatabaseKey> {
     return Preferences.getDBKeys(onlySyncableDatabases);
   }
 
-  public getDB(key?:string):string {
+  public getDB(key?:DatabaseKey):string {
     return Preferences.getDB(key);
   }
 
@@ -953,14 +1001,15 @@ export class Preferences {
     return { DB: Preferences.DB, CAMERA: Preferences.CAMERA, SERVER: Preferences.SERVER, USER: Preferences.USER, DEVELOPER: Preferences.DEVELOPER, CONSOLE: Preferences.CONSOLE };
   }
 
-  public static getDBKeys(onlySyncableDatabases?:boolean):Array<string> {
-    let out:string[] = [];
-    let keys1 = Object.keys(Preferences.DB);
+  public static getDBKeys(onlySyncableDatabases?:boolean):Array<DatabaseKey> {
+    let out:DatabaseKey[] = [];
+    let keys1 = (Object.keys(Preferences.DB) as DatabaseKey[]);
     for(let prefsKey of keys1) {
       if(!Array.isArray(prefsKey)) {
         /* This key is a string, so push it to the output array of strings */
         if(onlySyncableDatabases) {
-          if(prefsKey !== 'login' && prefsKey !== 'reports_old' && prefsKey !== '_session') {
+          // if(prefsKey !== 'login' && prefsKey !== 'reports_old' && prefsKey !== '_session') {
+          if(prefsKey !== 'login' && prefsKey !== 'reports_old') {
             out.push(prefsKey)
           }
         } else {
@@ -984,11 +1033,11 @@ export class Preferences {
     return Preferences.getDBRecords();
   }
 
-  public static getSyncableDBKeys():Array<string> {
+  public static getSyncableDBKeys():DatabaseKey[] {
     return Preferences.getDBKeys(true);
   }
 
-  public getSyncableDBKeys():Array<string> {
+  public getSyncableDBKeys():DatabaseKey[] {
     return Preferences.getSyncableDBKeys();
   }
 
@@ -1009,7 +1058,7 @@ export class Preferences {
     return Preferences.getSyncableDBList();
   }
 
-  public static getDB(dbkeys?:string|string[], onlySyncableDatabases?:boolean):string {
+  public static getDB(dbkeys?:DatabaseKey|DatabaseKey[], onlySyncableDatabases?:boolean):string {
     let keys = Preferences.getDBKeys();
     let out:string[] = [];
     let DB = Preferences.getDBRecords();
@@ -1396,6 +1445,30 @@ export class Preferences {
       count = this.CONSOLE.scheduling.pastSchedulesToLoad;
     }
     return count;
+  }
+
+  public shouldLoadAtStartup(type:string):boolean {
+    if(this.CONSOLE && this.CONSOLE.loadAtStartup && typeof this.CONSOLE.loadAtStartup[type] === 'boolean') {
+      return this.CONSOLE.loadAtStartup[type];
+    } else {
+      return true;
+    }
+  }
+
+  public getTablePageSizes(type:ReportTypeKey):number[] {
+    if(this.CONSOLE && this.CONSOLE.pageSizes && this.CONSOLE.pageSizes[type]) {
+      return this.CONSOLE.pageSizes[type];
+    } else {
+      return [5,10,15,20,25,50,100,200,500,1000,2000];
+    }
+  }
+
+  public getTablePageSize(type:ReportTypeKey):number {
+    if(this.CONSOLE && this.CONSOLE.pageSizes && this.CONSOLE.pages[type]) {
+      return this.CONSOLE.pages[type];
+    } else {
+      return 25;
+    }
   }
 
   // public reinitializePrefs():any {

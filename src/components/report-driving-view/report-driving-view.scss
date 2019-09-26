@@ -1,0 +1,149 @@
+report-driving-view {
+  .svg-icon {
+    width: 20px;
+    height: 24px;
+  }
+  .cell-button-like {
+    font-size: 24px;
+    cursor: pointer;
+    &:hover {
+      background-color: rgba(0, 0, 128, 0.2);
+      color: rgba(255, 0, 128, 0.5);
+    }
+    &:active {
+      background-color: rgba(0, 0, 255, 0.5);
+      color: rgba(255, 0, 255, 0.9);
+    }
+    .button-dev {
+      color: rgba(255, 0, 0, 0.99);
+    }
+  }
+  .cell-button-disabled {
+    font-size: 24px;
+    color: lightgrey;
+  }
+  .report-driving-dialog {
+    width: 600px;
+    max-height: 600px;
+  }
+  .report-driving-button-table {
+    width: 100%;
+    table-layout: fixed;
+    text-align: center;
+    overflow: visible;
+    &.top {
+      margin-bottom: 10px;
+      border-bottom: 1px dashed lightgrey;
+    }
+    &.bottom {
+      margin-top: 10px;
+      border-top: 1px dashed lightgrey;
+    }
+  }
+  .icon-button-like {
+    font-size: 24px;
+    cursor: pointer;
+    &:hover {
+      color: rgba(255, 0, 128, 0.5);
+    }
+    &:active {
+      color: rgba(255, 0, 255, 0.9);
+    }
+  }
+  .icon-greyed-out {
+    font-size: 24px;
+    color: lightgrey;
+    cursor: default;
+  }
+  .report-card {
+    width: 500px;
+    max-width: 500px;
+    user-select: text;
+  }
+  .report-driving-wrapper {
+    max-width: 50vw;
+    width: 30vw;
+  }
+  .report-driving-table {
+    width: 100%;
+    input {
+      width: 100% !important;
+    }
+    .inner-editor {
+      width: 100% !important;
+    }
+    .report-driving-row {
+      // width: 100%;
+      &.date-error {
+        // border: 3px solid rgba(255, 0, 0, 0.5);
+        // box-shadow: -5px 0 0px -1px rgba(255, 0, 0, 0.2);
+        background-color: rgba(255, 0, 0, 0.2);
+        input {
+          background-color: transparent;
+        }
+      }
+      &.time-error {
+        // border: 3px solid rgba(255, 0, 0, 0.5);
+        // box-shadow: -5px 0 0px -1px rgba(255, 0, 0, 0.2);
+        background-color: rgba(255, 0, 0, 0.2);
+        input {
+          background-color: transparent;
+        }
+      }
+    }
+    .label {
+      width: 20%;
+      min-width: 120px;
+      text-align: right;
+      font-weight: bold;
+      padding-right: 4px;
+      background-color: transparent;
+      &.detailed-button {
+        // border: 1px dotted rgba(128, 128, 128, 0.999);
+        @include button-like-block;
+        .label-text {
+          border-bottom: 1px solid rgba(128, 128, 128, 0.999);
+        }
+      }
+    }
+    .data {
+      background-color: transparent;
+      width: 80%;
+      .report-driving-input {
+        background-color: transparent;
+        width: 100%;
+      }
+      .report-driving-calendar {
+        // width: 100%;
+        width: 100% !important;
+        .ui-calendar {
+          width: calc(100% - 28px) !important;
+        }
+        .ui-datepicker.ui-widget {
+          .ui-datepicker-calendar {
+            td { 
+              a {
+                cursor: pointer;
+              }
+            }
+          }
+        }
+        .ui-timepicker {
+          .ui-hour-picker, .ui-minute-picker {
+            cursor: pointer;
+          }
+        }
+      }
+      .report-driving-dropdown {
+        width: 100% !important;
+        .ui-dropdown {
+          width: 100% !important;
+        }
+      }
+      .report-driving-textarea {
+        width: 100% !important;
+      }
+
+    }
+  }
+}

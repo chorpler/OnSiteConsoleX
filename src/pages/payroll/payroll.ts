@@ -208,15 +208,6 @@ export class PayrollPage implements OnInit,OnDestroy {
             }
             this.updateView();
           }
-          // this.data.setData('reports', payload);
-          // let res:any = this.setupData();
-          // this.setupData().then((res:any) => {
-          //   // this.updateView();
-          //   // let period:PayrollPeriod = this.period;
-          //   // this.updatePeriod(period);
-          //   Log.l(`Payroll: DataStore update event received and setupData() finished.`);
-          // });
-        // throw err;
         }
       } catch(err) {
         Log.l(`PayrollPage(): datastoreUpdated() but got error processing it! `);
@@ -641,7 +632,7 @@ export class PayrollPage implements OnInit,OnDestroy {
 
     this.updateReportMatches();
 
-    Log.l(`periodChanged(): For period ${start} - ${end}, reports is:\n`, this.reports);
+    Log.l(`periodChanged(): For period ${start} - ${end}, reports is:`, this.reports);
 
     let pDate = moment(period.start_date);
     this.eRot = new Map();
@@ -651,27 +642,28 @@ export class PayrollPage implements OnInit,OnDestroy {
       this.eRot.set(tech, rotSeq);
     }
     for(let tech of this.employees) {
+      let username = tech.getUsername();
       let date:Moment = moment(period.start_date);
       let techPeriod:PayrollPeriod = this.data.createPeriodForTech(tech, date);
       let shifts:Shift[] = techPeriod.getPayrollShifts();
       for(let shift of shifts) {
-        let shiftDate:string = shift.getShiftDate().format("YYYY-MM-DD");
+        let shiftDate:string = shift.getShiftDateString();
         let reports:Report[] = this.reports.filter((a:Report) => {
-          return a.report_date === shiftDate && a.username === tech.username;
+          return a.report_date === shiftDate && a.username === username;
         });
         let others:ReportOther[] = this.others.filter((a:ReportOther) => {
           // let otherDate = a.report_date.format("YYYY-MM-DD");
           let date:string = a.getReportDateAsString();
-          return date === shiftDate && a.username === tech.username;
+          return date === shiftDate && a.username === username;
         });
         let logistics:ReportLogistics[] = this.logistics.filter((a:ReportLogistics) => {
-          return a.report_date === shiftDate && a.username === tech.username;
+          return a.report_date === shiftDate && a.username === username;
         });
         let drivings:ReportDriving[] = this.drivings.filter((a:ReportDriving) => {
-          return a.report_date === shiftDate && a.username === tech.username;
+          return a.report_date === shiftDate && a.username === username;
         });
         let maintenances:ReportMaintenance[] = this.maintenances.filter((a:ReportMaintenance) => {
-          return a.report_date === shiftDate && a.username === tech.username;
+          return a.report_date === shiftDate && a.username === username;
         });
         shift.setShiftReports([]);
         shift.setOtherReports([]);
@@ -1159,11 +1151,11 @@ export class PayrollPage implements OnInit,OnDestroy {
       // this.notify.addInfo("OK", "Refreshing data and recalculating payroll...", 5000);
       // setTimeout(async () => {
       await this.data.delay(500);
-      let dbname1:string = this.prefs.getDB('reports');
-      let dbname2:string = this.prefs.getDB('reports_other');
-      let dbname3:string = this.prefs.getDB('logistics');
-      let dbname4:string = this.prefs.getDB('drivings');
-      let dbname5:string = this.prefs.getDB('maintenances');
+      let dbname1 = this.prefs.getDB('reports');
+      let dbname2 = this.prefs.getDB('reports_other');
+      let dbname3 = this.prefs.getDB('logistics');
+      let dbname4 = this.prefs.getDB('drivings');
+      let dbname5 = this.prefs.getDB('maintenances');
       let count1:number = await this.db.getDocCount(dbname1);
       let count2:number = await this.db.getDocCount(dbname2);
       let count3:number = await this.db.getDocCount(dbname3);

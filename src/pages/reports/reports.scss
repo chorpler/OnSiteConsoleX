@@ -39,7 +39,7 @@ page-reports {
       margin-top: 4px !important;
     }
   }
-  .reports-panel, .others-panel, .logistics-panel, .timecards-panel {
+  .reports-panel, .others-panel, .logistics-panel, .maintenances-panel, .drivings-panel, .timecards-panel {
     margin-top: 10px;
     margin-bottom: 10px;
     position: relative;
@@ -155,7 +155,7 @@ page-reports {
   .table-wrapper {
     // margin-bottom: 25px;
   }
-  .reports-table, .others-table {
+  .reports-table, .others-table, .logistics-table, .maintenances-table, .drivings-table, .timecards-table {
     .ui-table-caption {
       background: transparent;
     }
@@ -253,13 +253,13 @@ page-reports {
       max-width: 75px;
     }
   }
-  .table-caption, .table-others-caption, .table-logistics-caption, .table-timecards-caption {
+  .table-caption, .table-others-caption, .table-logistics-caption, .table-maintenances-caption, .table-drivings-caption, .table-timecards-caption {
     display         : flex        ;
     flex-flow       : row nowrap  ;
     justify-content : space-between ;
     align-content   : center ;
     align-items     : center ;
-    .column-choose-wrapper, .column-choose-others-wrapper, .column-choose-logistics-wrapper, .column-choose-timecards-wrapper {
+    .column-choose-wrapper, .column-choose-others-wrapper, .column-choose-logistics-wrapper, .column-choose-maintenances-wrapper, .column-choose-drivings-wrapper, .column-choose-timecards-wrapper {
       flex: 0 1 auto;
       text-align: left;
       // display         : flex        ;
@@ -269,7 +269,7 @@ page-reports {
       // align-items     : center ;
       width: 50%;
 
-      .column-multiselect, .column-others-multiselect {
+      .column-multiselect, .column-others-multiselect, .column-logistics-multiselect, .column-maintenances-multiselect, .column-drivings-multiselect, .column-timecards-multiselect {
 
       }
     }

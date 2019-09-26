@@ -7,7 +7,7 @@
  */
 
 import { Injectable                  } from '@angular/core'                 ;
-import { Preferences                 } from './preferences'                 ;
+import { Preferences, DatabaseKey                 } from './preferences'                 ;
 import { Log, oo, ooPatch, ooPointer } from 'domain/onsitexdomain'          ;
 import { Address                     } from 'domain/domain/address'         ;
 import { Employee                    } from 'domain/domain/employee'        ;
@@ -141,7 +141,7 @@ export class DomainService {
     { type: 'messages'       , dbname: this.prefs.getDB('messages'      ), thisClass: Message         , storeKey: '', } ,
     { type: 'comments'       , dbname: this.prefs.getDB('comments'      ), thisClass: Comment         , storeKey: '', } ,
     // { type: 'config'         , dbname: this.prefs.getDB('config'        ), thisClass: configClasses   , storeKey: '', } ,
-    { type: 'schedulingbeta' , dbname: this.prefs.getDB('schedulingbeta'), thisClass: ScheduleBeta    , storeKey: '', } ,
+    // { type: 'schedulingbeta' , dbname: this.prefs.getDB('schedulingbeta'), thisClass: ScheduleBeta    , storeKey: '', } ,
     { type: 'invoices'       , dbname: this.prefs.getDB('invoices'      ), thisClass: Invoice         , storeKey: '', } ,
     { type: 'invoices_be'    , dbname: this.prefs.getDB('invoices_be'   ), thisClass: Invoice         , storeKey: '', } ,
     { type: 'invoices_hb'    , dbname: this.prefs.getDB('invoices_hb'   ), thisClass: Invoice         , storeKey: '', } ,
@@ -191,8 +191,8 @@ export class DomainService {
     }
   }
 
-  public getClassForDBType(dbtype:string):OnSiteDomainClass {
-    let dbname:string = this.prefs.getDB(dbtype);
+  public getClassForDBType(dbtype:DatabaseKey):OnSiteDomainClass {
+    let dbname = this.prefs.getDB(dbtype);
     return this.getClassForDB(dbname);
   }
 
@@ -203,12 +203,12 @@ export class DomainService {
     return false;
   }
 
-  public doesDBTypeHaveClass(dbtype:string):boolean {
+  public doesDBTypeHaveClass(dbtype:DatabaseKey):boolean {
     let dbname:string = this.prefs.getDB(dbtype);
     return this.doesDBHaveClass(dbname);
   }
 
-  public getStoreKeyForDBType(dbtype:string):string {
+  public getStoreKeyForDBType(dbtype:DatabaseKey):string {
     let dbname:string = this.prefs.getDB(dbtype);
     return this.getStoreKeyForDB(dbtype);
   }

@@ -85,6 +85,7 @@ export class TranslationsPage implements OnInit,OnDestroy {
   public maint_verbs  : TranslationTable = [];
   public editMaint    : TranslationTableRecordKey;
 
+  public dirtyRows    : boolean[][]         = [];
   public deleteModes  : boolean[]           = [false, false];
   public highlights   : boolean[][]         = [];
   
@@ -133,6 +134,7 @@ export class TranslationsPage implements OnInit,OnDestroy {
       // this.colsOthers = this.getOthersFields();
       // let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       let res:any = await this.loadTranslationData();
+      this.initializeDirtyRows();
       this.dataReady = true;
       this.setPageLoaded();
       return true;
@@ -152,6 +154,39 @@ export class TranslationsPage implements OnInit,OnDestroy {
     if(this.prefsSub && !this.prefsSub.closed) {
       this.prefsSub.unsubscribe();
     }
+  }
+
+  public initializeDirtyRows():boolean[][] {
+    let dirtyRows:boolean[][] = [];
+    let tables = [
+      this.translations,
+      this.maint_words,
+    ];
+    for(let table of tables) {
+      let tableDirtyRows = [];
+      for(let row of table) {
+        tableDirtyRows.push(false);
+      }
+      dirtyRows.push(tableDirtyRows);
+    }
+    this.dirtyRows = dirtyRows;
+    return dirtyRows;
+  }
+
+  public dirtyUpRow(tableIndex:number, rowIndex:number) {
+    // let tables = [
+    //   this.translations,
+    //   this.maint_words,
+    // ];
+    this.dirtyRows[tableIndex][rowIndex] = true;
+  }
+
+  public cleanUpRow(tableIndex:number, rowIndex:number) {
+    // let tables = [
+    //   this.translations,
+    //   this.maint_words,
+    // ];
+    this.dirtyRows[tableIndex][rowIndex] = false;
   }
 
   public getFilteredCount(table?:Table):number {
@@ -502,10 +537,10 @@ export class TranslationsPage implements OnInit,OnDestroy {
       let title = "DATABASE ERROR";
       let text  = "Error while deletion this translation from the database";
       await this.alert.showErrorMessage(title, text, err);
-    // throw err;
+      // throw err;
     }
   }
-
+  
   public async possibleDeleteMaintenance(row:TranslationTableRecord, evt?:Event):Promise<any> {
     let spinnerID;
     try {
@@ -528,7 +563,10 @@ export class TranslationsPage implements OnInit,OnDestroy {
     } catch(err) {
       Log.l(`TranslationsPage.possibleDeleteMaintenance(): Error editing translation:`, row);
       Log.e(err);
-      throw err;
+      let title = "DATABASE ERROR";
+      let text  = "Error while deletion this maintenance translation from the database";
+      await this.alert.showErrorMessage(title, text, err);
+      // throw err;
     }
   }
 
@@ -601,6 +639,31 @@ export class TranslationsPage implements OnInit,OnDestroy {
       Log.e(err);
       // await this.alert.hideSpinnerPromise(spinnerID);
       throw err;
+    }
+  }
+
+  public async possibleSaveTranslations(evt?:Event):Promise<any> {
+    let spinnerID;
+    try {
+      Log.l(`TranslationsPage.possibleSaveTranslations(): Called with event:`, evt);
+      let title = "SAVE TRANSLATIONS";
+      let text  = "Do you want to save these translation records to the database?";
+      let confirm = await this.alert.showConfirmYesNo(title, text);
+      if(confirm) {
+        spinnerID = await this.alert.showSpinnerPromise('Saving translations …');
+        let res = await this.saveTranslations(evt);
+        this.initializeDirtyRows();
+        await this.alert.hideSpinnerPromise(spinnerID);
+        return res;
+      }
+    } catch(err) {
+      Log.l(`TranslationsPage.possibleSaveTranslations(): Error during possible save of translation edit`);
+      Log.e(err);
+      await this.alert.hideSpinnerPromise(spinnerID);
+      let title = "ERROR SAVING";
+      let text = "There was an error saving the translations to the database";
+      await this.alert.showErrorMessage(title, text, err);
+      // throw err;
     }
   }
 

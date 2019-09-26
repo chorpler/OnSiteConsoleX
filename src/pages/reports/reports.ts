@@ -1,5 +1,5 @@
 import { Subscription                                                } from 'rxjs'                               ;
-import { Log, Moment, moment, isMoment,                              } from 'domain/onsitexdomain'               ;
+import { Log, Moment, moment, isMoment, ReportAny,                              } from 'domain/onsitexdomain'               ;
 import { _matchCLL, _matchSite, _matchReportSite,                    } from 'domain/onsitexdomain'               ;
 import { Component, OnInit, OnDestroy, NgZone, ViewChild, ElementRef } from '@angular/core'                      ;
 import { IonicPage, NavController, NavParams                         } from 'ionic-angular'                      ;
@@ -7,6 +7,8 @@ import { ViewController, ModalController, Content, Scroll,           } from 'ion
 import { PayrollPeriod, Shift, Jobsite, Employee                     } from 'domain/onsitexdomain'               ;
 import { Report, ReportOther,                                        } from 'domain/onsitexdomain'               ;
 import { ReportLogistics,                                            } from 'domain/onsitexdomain'               ;
+import { ReportDriving,                                              } from 'domain/onsitexdomain'               ;
+import { ReportMaintenance,                                          } from 'domain/onsitexdomain'               ;
 import { ReportTimeCard,                                             } from 'domain/onsitexdomain'               ;
 import { OSData                                                      } from 'providers/data-service'             ;
 import { DispatchService, AppEvents                                  } from 'providers/dispatch-service'         ;
@@ -28,6 +30,35 @@ import { ClipboardService                                            } from 'pro
 // import { faArrowAltCircleDown                                        } from '@fortawesome/pro-light-svg-icons'   ;
 // import { faArrowAltCircleDown as farArrowAltCircleDown               } from '@fortawesome/pro-regular-svg-icons' ;
 // import { faArrowAltCircleDown as fasArrowAltCircleDown               } from '@fortawesome/pro-solid-svg-icons'   ;
+
+export type ReportsTableKey = 'reports' | 'others' | 'logistics' | 'drivings' | 'maintenances' | 'timecards';
+export type ReportsTableNumIndex = 1|2|3|4|5|6;
+export type ReportsTableIndex = '1'|'2'|'3'|'4'|'5'|'6';
+// export type TableIndexKey = ReportsTableKey|ReportsTableNumIndex;
+export type TableIndexKey = ReportsTableNumIndex;
+export type ITABLEKEYS = {
+  [propName in ReportsTableKey]: ReportsTableNumIndex;
+}
+export type ITABLEINDEXES = {
+  [propIdx in ReportsTableIndex]: ReportsTableKey;
+}
+export const TABLEINDEX:ITABLEKEYS = {
+  reports             : 1              ,
+  others              : 2              ,
+  logistics           : 3              ,
+  drivings            : 4              ,
+  maintenances        : 5              ,
+  timecards           : 6              ,
+};
+export const TABLEINDEXTOKEY:ITABLEINDEXES = {
+  1                   : 'reports'      ,
+  2                   : 'others'       ,
+  3                   : 'logistics'    ,
+  4                   : 'drivings'     ,
+  5                   : 'maintenances' ,
+  6                   : 'timecards'    ,
+};
+export type TESTENUM = ITABLEKEYS&ITABLEINDEXES;
 
 const copyStringToClipboard = (url:string, mimeType?:string):any => {
   document.addEventListener('copy', (e:ClipboardEvent) => {
@@ -65,6 +96,8 @@ export class ReportsPage implements OnInit,OnDestroy {
   @ViewChild('dt') dt:Table;
   @ViewChild('othersTable') othersTable:Table;
   @ViewChild('logisticsTable') logisticsTable:Table;
+  @ViewChild('drivingsTable') drivingsTable:Table;
+  @ViewChild('maintenancesTable') maintenancesTable:Table;
   @ViewChild('timecardsTable') timecardsTable:Table;
   @ViewChild('reportsPanel') reportsPanel:Panel;
   @ViewChild('othersPanel') othersPanel:Panel;
@@ -73,22 +106,30 @@ export class ReportsPage implements OnInit,OnDestroy {
   @ViewChild('columnSelect') columnSelect:MultiSelect;
   @ViewChild('columnSelectOthers') columnSelectOthers:MultiSelect;
   @ViewChild('columnSelectLogistics') columnSelectLogistics:MultiSelect;
+  @ViewChild('columnSelectDriving') columnSelectDriving:MultiSelect;
+  @ViewChild('columnSelectMaintenance') columnSelectMaintenance:MultiSelect;
   @ViewChild('columnSelectTimeCards') columnSelectTimeCards:MultiSelect;
   @ViewChild('globalFilterInput') globalFilterInput:ElementRef;
   @ViewChild('globalFilterInputOthers') globalFilterInputOthers:ElementRef;
   @ViewChild('globalFilterInputLogistics') globalFilterInputLogistics:ElementRef;
+  @ViewChild('globalFilterInputDriving') globalFilterInputDriving:ElementRef;
+  @ViewChild('globalFilterInputMaintenance') globalFilterInputMaintenance:ElementRef;
   @ViewChild('globalFilterInputTimeCards') globalFilterInputTimeCards:ElementRef;
   // @ViewChild('dateFrom') dateFrom:Calendar;
   // @ViewChild('dateTo') dateTo:Calendar;
   @ViewChild('dateRangeCalendar') dateRangeCalendar:Calendar;
   @ViewChild('dateRangeCalendarOthers') dateRangeCalendarOthers:Calendar;
   @ViewChild('dateRangeCalendarLogistics') dateRangeCalendarLogistics:Calendar;
+  @ViewChild('dateRangeCalendarDriving') dateRangeCalendarDriving:Calendar;
+  @ViewChild('dateRangeCalendarMaintenance') dateRangeCalendarMaintenance:Calendar;
   @ViewChild('dateRangeCalendarTimeCards') dateRangeCalendarTimeCards:Calendar;
   @ViewChild('printArea') printArea:ElementRef;
   @ViewChild('reportsCM1') reportsCM1:ContextMenu;
   @ViewChild('reportsCM2') reportsCM2:ContextMenu;
   @ViewChild('reportsCM3') reportsCM3:ContextMenu;
   @ViewChild('reportsCM4') reportsCM4:ContextMenu;
+  @ViewChild('reportsCM5') reportsCM5:ContextMenu;
+  @ViewChild('reportsCM6') reportsCM6:ContextMenu;
   public title         : string    = "Reports"                 ;
   public mode          : string    = 'page'                    ;
   public modalMode     : boolean   = false                     ;
@@ -123,6 +164,22 @@ export class ReportsPage implements OnInit,OnDestroy {
   // public faIcon3Styles : any = {'color': 'white'}   ;
   // public faLayerClass  : any = ['fa-fw', 'icon-layer-datadl']  ;
 
+  public TABLEINDEX:ITABLEKEYS = {
+    reports             : 1              ,
+    others              : 2              ,
+    logistics           : 3              ,
+    drivings            : 4              ,
+    maintenances        : 5              ,
+    timecards           : 6              ,
+  };
+  public TABLEINDEXTOKEY:ITABLEINDEXES = {
+    1                   : 'reports'      ,
+    2                   : 'others'       ,
+    3                   : 'logistics'    ,
+    4                   : 'drivings'     ,
+    5                   : 'maintenances' ,
+    6                   : 'timecards'    ,
+  };
   public pageSizeOptions:number[]  = [50,100,200,500,1000,2000];
   public dateFormat       : string    = "DD MMM YYYY HH:mm"   ;
   public prefsSub         : Subscription                      ;
@@ -130,6 +187,8 @@ export class ReportsPage implements OnInit,OnDestroy {
   public report           : Report                            ;
   public other            : ReportOther                       ;
   public logistic         : ReportLogistics                   ;
+  public driving          : ReportDriving                     ;
+  public maintenance      : ReportMaintenance                 ;
   public timecard         : ReportTimeCard                    ;
   public tech             : Employee                          ;
   public techs            : Employee[]         = []           ;
@@ -138,23 +197,33 @@ export class ReportsPage implements OnInit,OnDestroy {
   public editReports      : Report[]           = []           ;
   public editOthers       : ReportOther[]      = []           ;
   public editLogistics    : ReportLogistics[]  = []           ;
-  public editTimeCards       : ReportTimeCard[]   = []           ;
+  public editDriving       : ReportDriving[]  = []           ;
+  public editMaintenance    : ReportMaintenance[]  = []           ;
+  public editTimeCards      : ReportTimeCard[]   = []           ;
   public reports          : Report[]           = []           ;
   public others           : ReportOther[]      = []           ;
   public logistics        : ReportLogistics[]  = []           ;
+  public drivings         : ReportDriving[]  = []           ;
+  public maintenances     : ReportMaintenance[]  = []           ;
   public timecards        : ReportTimeCard[]   = []           ;
-  public selectedReports          : Report[]           = []   ;
-  public selectedReportsOther     : ReportOther[]      = []   ;
-  public selectedReportsLogistics : ReportLogistics[]  = []   ;
+  public selectedReports            : Report[]           = []   ;
+  public selectedReportsOther       : ReportOther[]      = []   ;
+  public selectedReportsLogistics   : ReportLogistics[]  = []   ;
+  public selectedReportsDriving     : ReportDriving[]  = []   ;
+  public selectedReportsMaintenance : ReportMaintenance[]  = []   ;
   public selectedTimeCards        : ReportTimeCard[]   = []   ;
   public allReports       : Report[]           = []           ;
   public allOthers        : ReportOther[]      = []           ;
   public allLogistics     : ReportLogistics[]  = []           ;
+  public allMaintenances  : ReportMaintenance[]  = []           ;
+  public allDrivings      : ReportDriving[]  = []           ;
   public allTimeCards     : ReportTimeCard[]   = []           ;
   public selectedReport   : Report             = null         ;
   public reportViewVisible: boolean            = false        ;
   public reportOtherViewVisible: boolean       = false        ;
   public reportLogisticsViewVisible: boolean   = false        ;
+  public reportDrivingViewVisible: boolean   = false        ;
+  public reportMaintenanceViewVisible: boolean   = false        ;
   public reportTimeCardViewVisible : boolean   = false        ;
   public globalSearch     : string             = ""           ;
   public fromDate         : Date                              ;
@@ -178,6 +247,10 @@ export class ReportsPage implements OnInit,OnDestroy {
   public maxDateOthersString     : string             = "2025-12-31" ;
   public minDateLogisticsString  : string             = "2017-01-01" ;
   public maxDateLogisticsString  : string             = "2025-12-31" ;
+  public minDateDrivingString    : string             = "2017-01-01" ;
+  public maxDateDrivingString    : string             = "2017-01-01" ;
+  public minDateMaintenanceString  : string             = "2025-12-31" ;
+  public maxDateMaintenanceString  : string             = "2025-12-31" ;
   public minDateTimeCardsString  : string             = "2017-01-01" ;
   public maxDateTimeCardsString  : string             = "2025-12-31" ;
   public minDate          : Date                              ;
@@ -186,11 +259,17 @@ export class ReportsPage implements OnInit,OnDestroy {
   public maxDateOthers    : Date                              ;
   public minDateLogistics    : Date               = new Date()   ;
   public maxDateLogistics    : Date               = new Date()   ;
+  public minDateDriving      : Date               = new Date()   ;
+  public maxDateDriving      : Date               = new Date()   ;
+  public minDateMaintenance  : Date               = new Date()   ;
+  public maxDateMaintenance  : Date               = new Date()   ;
   public minDateTimeCards    : Date               = new Date()   ;
   public maxDateTimeCards    : Date               = new Date()   ;
   public allFields        : any[]         = []           ;
   public allFieldsOthers  : any[]         = []           ;
   public allFieldsLogistics  : any[]         = []           ;
+  public allFieldsDriving      : any[]         = []           ;
+  public allFieldsMaintenance  : any[]         = []           ;
   public allFieldsTimeCards  : any[]         = []           ;
   public cols             : any[]         = []           ;
   public selectedColumns  : any[]         = []           ;
@@ -199,11 +278,17 @@ export class ReportsPage implements OnInit,OnDestroy {
   public selectedColumnsOthers  : any[]   = []           ;
   public colsLogistics            : any[]   = []           ;
   public selectedColumnsLogistics : any[]   = []           ;
+  public colsDriving              : any[]   = []           ;
+  public selectedColumnsDriving   : any[]   = []           ;
+  public colsMaintenance          : any[]   = []           ;
+  public selectedColumnsMaintenance : any[]   = []           ;
   public colsTimeCards            : any[]   = []           ;
   public selectedColumnsTimeCards : any[]   = []           ;
-  public selectedLabelOthers    : string       = "{0} columns shown";
-  public selectedLabelLogistics : string       = "{0} columns shown";
-  public selectedLabelTimeCards : string       = "{0} columns shown";
+  public selectedLabelOthers      : string       = "{0} columns shown";
+  public selectedLabelLogistics   : string       = "{0} columns shown";
+  public selectedLabelDriving     : string       = "{0} columns shown";
+  public selectedLabelMaintenance : string       = "{0} columns shown";
+  public selectedLabelTimeCards   : string       = "{0} columns shown";
   public styleColIndex    : any                               ;
   public styleColEdit     : any                               ;
   public colsReorder      : boolean            = true         ;
@@ -219,9 +304,13 @@ export class ReportsPage implements OnInit,OnDestroy {
   public reportsMenu2     : MenuItem[]      = []              ;
   public reportsMenu3     : MenuItem[]      = []              ;
   public reportsMenu4     : MenuItem[]      = []              ;
+  public reportsMenu5     : MenuItem[]      = []              ;
+  public reportsMenu6     : MenuItem[]      = []              ;
   public reportsMultiSortMeta:any;
   public othersMultiSortMeta:any;
   public logisticsMultiSortMeta:any;
+  public drivingsMultiSortMeta:any;
+  public maintenancesMultiSortMeta:any;
   public timeCardsMultiSortMeta:any;
   public scrollTo:string;
   public scrollDelay:number = 500;
@@ -232,6 +321,8 @@ export class ReportsPage implements OnInit,OnDestroy {
   public set rowCount(val:number) { this.prefs.CONSOLE.pages.reports = val; };
   public get filteredCountOthers():number { return this.getFilteredCountOthers(); };
   public get filteredCountLogistics():number { return this.getFilteredCountLogistics(); };
+  public get filteredCountDriving():number { return this.getFilteredCountDriving(); };
+  public get filteredCountMaintenance():number { return this.getFilteredCountMaintenance(); };
   public get filteredCountTimeCards():number { return this.getFilteredCountTimeCards(); };
 
   constructor(
@@ -284,6 +375,8 @@ export class ReportsPage implements OnInit,OnDestroy {
       let reports:Report[] = this.data.getData('reports');
       let others:ReportOther[] = this.data.getData('others');
       let logistics:ReportLogistics[] = this.data.getData('logistics');
+      let maintenances:ReportMaintenance[] = this.data.getData('maintenances');
+      let drivings:ReportDriving[] = this.data.getData('drivings');
       let timecards:ReportTimeCard[] = this.data.getData('timecards');
       let sites:Jobsite[] = this.data.getData('sites');
       let techs:Employee[] = this.data.getData('employees');
@@ -293,6 +386,10 @@ export class ReportsPage implements OnInit,OnDestroy {
       this.others = others.slice(0);
       this.allLogistics = logistics;
       this.logistics = logistics.slice(0);
+      this.allMaintenances = maintenances;
+      this.maintenances = maintenances.slice(0);
+      this.allDrivings = drivings;
+      this.drivings = drivings.slice(0);
       this.allTimeCards = timecards;
       this.timecards = timecards.slice(0);
       this.sites = sites;
@@ -422,20 +519,26 @@ export class ReportsPage implements OnInit,OnDestroy {
 
   public createContextMenus() {
     this.reportsMenu1 = [
-      { label: 'Update Work Reports …', icon: 'fal fa-edit', command: (event) => { this.updateReports(1, event); } },
+      { label: 'Update Work Reports …', icon: 'fal fa-edit', command: (event) => { this.updateReports(TABLEINDEX.reports, event); } },
     ];
     this.reportsMenu2 = [
-      { label: 'Update Misc Reports …', icon: 'fal fa-edit', command: (event) => { this.updateReports(2, event); } },
+      { label: 'Update Misc Reports …', icon: 'fal fa-edit', command: (event) => { this.updateReports(TABLEINDEX.others, event); } },
     ];
     this.reportsMenu3 = [
-      { label: 'Update Logistics Reports …', icon: 'fal fa-edit', command: (event) => { this.updateReports(3, event); } },
+      { label: 'Update Logistics Reports …', icon: 'fal fa-edit', command: (event) => { this.updateReports(TABLEINDEX.logistics, event); } },
     ];
     this.reportsMenu4 = [
-      { label: 'Update TimeCards …', icon: 'fal fa-edit', command: (event) => { this.updateReports(4, event); } },
+      { label: 'Update Maintenance Reports …', icon: 'fal fa-edit', command: (event) => { this.updateReports(TABLEINDEX.maintenances, event); } },
+    ];
+    this.reportsMenu5 = [
+      { label: 'Update Driving Reports …', icon: 'fal fa-edit', command: (event) => { this.updateReports(TABLEINDEX.drivings, event); } },
+    ];
+    this.reportsMenu6 = [
+      { label: 'Update TimeCards …', icon: 'fal fa-edit', command: (event) => { this.updateReports(TABLEINDEX.timecards, event); } },
     ];
   }
 
-  public async updateReports(val:number, event?:any):Promise<any> {
+  public async updateReports(val:TableIndexKey, event?:any):Promise<any> {
     try {
       Log.l(`updateReports(${val}): Event is:`, event);
       // return res;
@@ -446,10 +549,11 @@ export class ReportsPage implements OnInit,OnDestroy {
     }
   }
 
-  public async possibleUpdateReports(type:number, evt?:Event):Promise<any> {
+  public async possibleUpdateReports(type:TableIndexKey, evt?:Event):Promise<any> {
     try {
-      Log.l(`possibleUpdateReports(): Called with arguments:\n`, arguments);
-      if(type == 0) {
+      let typeKey = TABLEINDEXTOKEY[type];
+      Log.l(`possibleUpdateReports(): Called for type '${type}', which should be table '${typeKey}'`);
+      if(type == TABLEINDEX.reports) {
         let dbname:string = this.prefs.getDB('reports');
         let count:number = await this.db.getDocCount(dbname);
         count = count > 7 ? count - 7 : count;
@@ -457,7 +561,7 @@ export class ReportsPage implements OnInit,OnDestroy {
         if(confirm) {
           let res:any = await this.getReports();
         }
-      } else if(type == 1) {
+      } else if(type == TABLEINDEX.others) {
         let dbname:string = this.prefs.getDB('reports_other');
         let count:number = await this.db.getDocCount(dbname);
         count = count > 7 ? count - 7 : count;
@@ -465,7 +569,7 @@ export class ReportsPage implements OnInit,OnDestroy {
         if(confirm) {
           let res:any = await this.getOthers();
         }
-      } else if(type == 2) {
+      } else if(type == TABLEINDEX.logistics) {
         let dbname:string = this.prefs.getDB('logistics');
         let count:number = await this.db.getDocCount(dbname);
         count = count > 7 ? count - 7 : count;
@@ -473,7 +577,23 @@ export class ReportsPage implements OnInit,OnDestroy {
         if(confirm) {
           let res:any = await this.getLogistics();
         }
-      } else if(type == 3) {
+      } else if(type == TABLEINDEX.maintenances) {
+        let dbname:string = this.prefs.getDB('maintenances');
+        let count:number = await this.db.getDocCount(dbname);
+        count = count > 7 ? count - 7 : count;
+        let confirm:boolean = await this.alert.showConfirmYesNo('LOAD MAINTENANCE REPORTS', `Do you want to load all ${count} maintenance reports from database?`);
+        if(confirm) {
+          let res:any = await this.getMaintenances();
+        }
+      } else if(type == TABLEINDEX.drivings) {
+        let dbname:string = this.prefs.getDB('drivings');
+        let count:number = await this.db.getDocCount(dbname);
+        count = count > 7 ? count - 7 : count;
+        let confirm:boolean = await this.alert.showConfirmYesNo('LOAD DRIVING REPORTS', `Do you want to load all ${count} driving reports from database?`);
+        if(confirm) {
+          let res:any = await this.getDrivings();
+        }
+      } else if(type == TABLEINDEX.timecards) {
         let dbname:string = this.prefs.getDB('timecards');
         let count:number = await this.db.getDocCount(dbname);
         count = count > 7 ? count - 7 : count;
@@ -482,10 +602,10 @@ export class ReportsPage implements OnInit,OnDestroy {
           let res:any = await this.getTimeCards();
         }
       } else {
-        Log.w(`possibleUpdateReports(): Type is not valid:\n`, type);
+        Log.w(`possibleUpdateReports(): Type is not valid:`, type);
       }
     } catch(err) {
-      Log.l(`possibleUpdateReports(): Error running with arguments:\n`, arguments);
+      Log.l(`possibleUpdateReports(): Error running with arguments:`, arguments);
       Log.e(err);
       throw err;
     }
@@ -493,8 +613,9 @@ export class ReportsPage implements OnInit,OnDestroy {
 
 
   public updatePageSizes() {
-    let newPageSizes = this.prefs.CONSOLE.pageSizes.reports;
-    let rowCount = Number(this.prefs.CONSOLE.pages.reports);
+    let newPageSizes = this.prefs.getTablePageSizes('reports');
+    // let rowCount = Number(this.prefs.CONSOLE.pages.reports);
+    let rowCount = this.prefs.getTablePageSize('reports');
     if(newPageSizes.indexOf(rowCount) === -1) {
       newPageSizes.push(rowCount);
       this.pageSizeOptions = newPageSizes.slice(0).sort((a,b) => a > b ? 1 : a < b ? -1 : 0);
@@ -509,21 +630,27 @@ export class ReportsPage implements OnInit,OnDestroy {
     this.getReportsFields();
     this.getOthersFields();
     this.getLogisticsFields();
+    this.getMaintenanceFields();
+    this.getDrivingFields();
     this.getTimeCardsFields();
   }
 
-  public resetTableSorted(tableNumber:number, dt:Table) {
+  public resetTableSorted(tableNumber:TableIndexKey, dt:Table) {
     let sortMeta = [
       { field: 'report_date', order: -1 },
       { field: '_id', order: -1 },
     ];
-    if(tableNumber === 1) {
+    if(tableNumber === TABLEINDEX.reports) {
       this.reportsMultiSortMeta = sortMeta.slice(0);
-    } else if(tableNumber === 2) {
+    } else if(tableNumber === TABLEINDEX.others) {
       this.othersMultiSortMeta = sortMeta.slice(0);
-    } else if(tableNumber === 3) {
+    } else if(tableNumber === TABLEINDEX.logistics) {
       this.logisticsMultiSortMeta = sortMeta.slice(0);
-    } else if(tableNumber === 4) {
+    } else if(tableNumber === TABLEINDEX.maintenances) {
+      this.maintenancesMultiSortMeta = sortMeta.slice(0);
+    } else if(tableNumber === TABLEINDEX.drivings) {
+      this.drivingsMultiSortMeta = sortMeta.slice(0);
+    } else if(tableNumber === TABLEINDEX.timecards) {
       this.timeCardsMultiSortMeta = sortMeta.slice(0);
     } else {
       let text:string = `resetTableSorted(): Could not find table at index '${tableNumber}' to reset it with sorting`;
@@ -777,6 +904,88 @@ export class ReportsPage implements OnInit,OnDestroy {
     }
   }
 
+  public getMaintenanceFields():any[] {
+    let fields:any[] = [
+      { field: '_id'              , header: 'ID'          , filter: true , filterPlaceholder: "ID"          , order:  1 , style: "", class: "col-nowrap col-00 col-id"       , format: ""      , tooltip: "ID"              , },
+      { field: 'report_date'      , header: 'Date'        , filter: true , filterPlaceholder: "Date"        , order:  2 , style: "", class: "col-wrap   col-01 col-date"     , format: "YYYY-MM-DD"      , tooltip: "Date"            , },
+      { field: 'last_name'        , header: 'Last Name'   , filter: true , filterPlaceholder: "Last Name"   , order:  3 , style: "", class: "col-wrap   col-02 col-last"     , format: ""      , tooltip: "Last Name"       , },
+      { field: 'first_name'       , header: 'First Name'  , filter: true , filterPlaceholder: "First Name"  , order:  4 , style: "", class: "col-wrap   col-03 col-first"    , format: ""      , tooltip: "First Name"      , },
+      // { field: 'startTime'        , header: 'Start Time'  , filter: true , filterPlaceholder: "Start Time"  , order:  5 , style: "", class: "col-wrap   col-04 col-start"    , format: "MMM DD YYYY HH:mm"      , tooltip: "Start Time"      , },
+      // { field: 'endTime'          , header: 'Dest Time'   , filter: true , filterPlaceholder: "Dest Time"   , order:  6 , style: "", class: "col-wrap   col-05 col-end"      , format: "MMM DD YYYY HH:mm"      , tooltip: "Destination Time", },
+      // { field: 'finalTime'        , header: 'Final Time'  , filter: true , filterPlaceholder: "Final Time"  , order:  7 , style: "", class: "col-wrap   col-06 col-final"    , format: "MMM DD YYYY HH:mm"      , tooltip: "Final Time"      , },
+      // { field: 'startMiles'       , header: 'Start Miles' , filter: true , filterPlaceholder: "Start Miles" , order:  8 , style: "", class: "col-wrap   col-07 col-startm"   , format: ""      , tooltip: "Start Miles"      , },
+      // { field: 'endMiles'         , header: 'Dest Miles'  , filter: true , filterPlaceholder: "Dest Miles"  , order:  9 , style: "", class: "col-wrap   col-08 col-endm"     , format: ""      , tooltip: "Destination Miles", },
+      // { field: 'finalMiles'       , header: 'Final Miles' , filter: true , filterPlaceholder: "Final Miles" , order:  10, style: "", class: "col-wrap   col-09 col-finalm"   , format: ""      , tooltip: "Final Miles"      , },
+      // { field: 'fromLocation'     , header: 'From Loc.'   , filter: false, filterPlaceholder: "From"        , order:  11, style: "", class: "col-wrap   col-10 col-fromloc"  , format: ""      , tooltip: "From Location"    , type: "location" },
+      // { field: 'toLocation'       , header: 'To Loc.'     , filter: false, filterPlaceholder: "To"          , order:  12, style: "", class: "col-wrap   col-11 col-toloc"    , format: ""      , tooltip: "To Location"      , type: "location" },
+      // { field: 'finalLocation'    , header: 'Final Loc.'  , filter: false, filterPlaceholder: "Final"       , order:  13, style: "", class: "col-wrap   col-12 col-finalloc" , format: ""      , tooltip: "Final Location"   , type: "location" },
+      { field: 'notes'            , header: 'Notes'       , filter: true , filterPlaceholder: "Notes"       , order:  14, style: "", class: "col-wrap   col-13 col-notes"    , format: ""      , tooltip: "Notes"            , },
+    ];
+    this.allFieldsMaintenance = fields;
+    this.colsMaintenance      = fields;
+    this.selectedColumnsMaintenance = fields;
+    this.columnsChangedMaintenance();
+    this.maintenancesMultiSortMeta = [
+      { field: 'report_date', order: -1 },
+      { field: '_id', order: -1 },
+    ];
+    return fields;
+  }
+
+  public columnsChangedMaintenance(colList?:string[]) {
+    let vCols = colList ? colList : this.selectedColumnsMaintenance;
+    // let cols = this.cols;
+    // Log.l("columnsChangedMaintenance(): Items now selected:\n", vCols);
+    this.selectedColumnsMaintenance = vCols.sort((a:any, b:any) => {
+      return a.order > b.order ? 1 : a.order < b.order ? -1 : 0;
+    });
+    // Log.l("columnsChangedMaintenance(): Now field list is:\n", this.colsMaintenance);
+    if(this.columnSelectMaintenance) {
+      this.columnSelectMaintenance.updateLabel();
+    }
+  }
+
+  public getDrivingFields():any[] {
+    let fields:any[] = [
+      { field: '_id'              , header: 'ID'          , filter: true , filterPlaceholder: "ID"          , order:  1 , style: "", class: "col-nowrap col-00 col-id"       , format: ""      , tooltip: "ID"              , },
+      { field: 'report_date'      , header: 'Date'        , filter: true , filterPlaceholder: "Date"        , order:  2 , style: "", class: "col-wrap   col-01 col-date"     , format: "YYYY-MM-DD"      , tooltip: "Date"            , },
+      { field: 'last_name'        , header: 'Last Name'   , filter: true , filterPlaceholder: "Last Name"   , order:  3 , style: "", class: "col-wrap   col-02 col-last"     , format: ""      , tooltip: "Last Name"       , },
+      { field: 'first_name'       , header: 'First Name'  , filter: true , filterPlaceholder: "First Name"  , order:  4 , style: "", class: "col-wrap   col-03 col-first"    , format: ""      , tooltip: "First Name"      , },
+      { field: 'startTime'        , header: 'Start Time'  , filter: true , filterPlaceholder: "Start Time"  , order:  5 , style: "", class: "col-wrap   col-04 col-start"    , format: "MMM DD YYYY HH:mm"      , tooltip: "Start Time"      , },
+      { field: 'endTime'          , header: 'Dest Time'   , filter: true , filterPlaceholder: "Dest Time"   , order:  6 , style: "", class: "col-wrap   col-05 col-end"      , format: "MMM DD YYYY HH:mm"      , tooltip: "Destination Time", },
+      { field: 'finalTime'        , header: 'Final Time'  , filter: true , filterPlaceholder: "Final Time"  , order:  7 , style: "", class: "col-wrap   col-06 col-final"    , format: "MMM DD YYYY HH:mm"      , tooltip: "Final Time"      , },
+      { field: 'startMiles'       , header: 'Start Miles' , filter: true , filterPlaceholder: "Start Miles" , order:  8 , style: "", class: "col-wrap   col-07 col-startm"   , format: ""      , tooltip: "Start Miles"      , },
+      { field: 'endMiles'         , header: 'Dest Miles'  , filter: true , filterPlaceholder: "Dest Miles"  , order:  9 , style: "", class: "col-wrap   col-08 col-endm"     , format: ""      , tooltip: "Destination Miles", },
+      { field: 'finalMiles'       , header: 'Final Miles' , filter: true , filterPlaceholder: "Final Miles" , order:  10, style: "", class: "col-wrap   col-09 col-finalm"   , format: ""      , tooltip: "Final Miles"      , },
+      { field: 'fromLocation'     , header: 'From Loc.'   , filter: false, filterPlaceholder: "From"        , order:  11, style: "", class: "col-wrap   col-10 col-fromloc"  , format: ""      , tooltip: "From Location"    , type: "location" },
+      { field: 'toLocation'       , header: 'To Loc.'     , filter: false, filterPlaceholder: "To"          , order:  12, style: "", class: "col-wrap   col-11 col-toloc"    , format: ""      , tooltip: "To Location"      , type: "location" },
+      { field: 'finalLocation'    , header: 'Final Loc.'  , filter: false, filterPlaceholder: "Final"       , order:  13, style: "", class: "col-wrap   col-12 col-finalloc" , format: ""      , tooltip: "Final Location"   , type: "location" },
+      { field: 'notes'            , header: 'Notes'       , filter: true , filterPlaceholder: "Notes"       , order:  14, style: "", class: "col-wrap   col-13 col-notes"    , format: ""      , tooltip: "Notes"            , },
+    ];
+    this.allFieldsDriving = fields;
+    this.colsDriving      = fields;
+    this.selectedColumnsDriving = fields;
+    this.columnsChangedDriving();
+    this.drivingsMultiSortMeta = [
+      { field: 'report_date', order: -1 },
+      { field: '_id', order: -1 },
+    ];
+    return fields;
+  }
+
+  public columnsChangedDriving(colList?:string[]) {
+    let vCols = colList ? colList : this.selectedColumnsDriving;
+    // let cols = this.cols;
+    // Log.l("columnsChangedDriving(): Items now selected:\n", vCols);
+    this.selectedColumnsDriving = vCols.sort((a:any, b:any) => {
+      return a.order > b.order ? 1 : a.order < b.order ? -1 : 0;
+    });
+    // Log.l("columnsChangedMaintenance(): Now field list is:\n", this.colsDriving);
+    if(this.columnSelectDriving) {
+      this.columnSelectDriving.updateLabel();
+    }
+  }
+
   public getTimeCardsFields():any[] {
     let fields:any[] = [
       { field: '_id'              , header: 'ID'          , filter: true, filterPlaceholder: "ID"          , order:  1 , style: "", class: "col-nowrap col-00 col-id"       , format: ""      , tooltip: "ID"              , },
@@ -842,6 +1051,20 @@ export class ReportsPage implements OnInit,OnDestroy {
     this.dataReady = true;
   }
 
+  public selectionChangedMaintenance(evt?:Event) {
+    Log.l(`selectionChangedMaintenance(): Event is:\n`, evt);
+    this.dataReady = false;
+    this.columnsChangedMaintenance();
+    this.dataReady = true;
+  }
+
+  public selectionChangedDriving(evt?:Event) {
+    Log.l(`selectionChangedDrivings(): Event is:\n`, evt);
+    this.dataReady = false;
+    this.columnsChangedDriving();
+    this.dataReady = true;
+  }
+
   public selectionChangedTimeCards(evt?:Event) {
     Log.l(`selectionChangedTimeCards(): Event is:\n`, evt);
     this.dataReady = false;
@@ -879,6 +1102,26 @@ export class ReportsPage implements OnInit,OnDestroy {
     return out;
   }
 
+  public getFilteredCountDriving():number {
+    // let out:number = this.reports.length;
+    let out:number = 0;
+    let dt:Table = this.drivingsTable ? this.drivingsTable : null;
+    if(dt && dt.filteredValue && dt.filteredValue.length) {
+      out = dt.filteredValue.length;
+    }
+    return out;
+  }
+
+  public getFilteredCountMaintenance():number {
+    // let out:number = this.reports.length;
+    let out:number = 0;
+    let dt:Table = this.maintenancesTable ? this.maintenancesTable : null;
+    if(dt && dt.filteredValue && dt.filteredValue.length) {
+      out = dt.filteredValue.length;
+    }
+    return out;
+  }
+
   public getFilteredCountTimeCards():number {
     // let out:number = this.reports.length;
     let out:number = 0;
@@ -895,6 +1138,8 @@ export class ReportsPage implements OnInit,OnDestroy {
       let res:any[] = await this.getReports();
       res = await this.getOthers();
       res = await this.getLogistics();
+      res = await this.getDrivings();
+      res = await this.getMaintenances();
       res = await this.getTimeCards();
       // this.allReports = res;
       // res = await this.
@@ -920,7 +1165,7 @@ export class ReportsPage implements OnInit,OnDestroy {
       spinnerID = await this.alert.showSpinnerPromise(text);
       // this.dataReady = false;
       // this.resetReportsTable();
-      this.resetTable(1);
+      this.resetTable(TABLEINDEX.reports);
       // this.dispatch.triggerAppEvent('updatefromdb', {db: 'reports', count: 1000000});
       // let res:Report[] = await this.data.getReports(1000000, spinnerID);
       let res1 = await this.data.updateFromDB('reports');
@@ -933,7 +1178,7 @@ export class ReportsPage implements OnInit,OnDestroy {
       let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       return this.reports;
     } catch (err) {
-      Log.l(`getReports(): Error downloading reports.`);
+      Log.l(`ReportsPage.getReports(): Error downloading reports.`);
       Log.e(err);
       let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       throw err;
@@ -945,7 +1190,7 @@ export class ReportsPage implements OnInit,OnDestroy {
     try {
       // let res:Report[] = await this.db.getAllReportsPlusNew();
       // this.resetReportsTable();
-      this.resetTable(2);
+      this.resetTable(TABLEINDEX.others);
       // this.dataReady = false;
       let count:number = await this.db.getDBDocCount('reports_other');
       let text:string = `Retrieving ${count} misc reports from database …`;
@@ -973,7 +1218,7 @@ export class ReportsPage implements OnInit,OnDestroy {
     try {
       // let res:Report[] = await this.db.getAllReportsPlusNew();
       // this.resetReportsTable();
-      this.resetTable(3);
+      this.resetTable(TABLEINDEX.logistics);
       // this.dataReady = false;
       let count:number = await this.db.getDBDocCount('logistics');
       let text:string = `Retrieving ${count} logistics reports from database …`;
@@ -996,12 +1241,70 @@ export class ReportsPage implements OnInit,OnDestroy {
     }
   }
 
+  public async getDrivings():Promise<ReportDriving[]> {
+    let spinnerID;
+    try {
+      // let res:Report[] = await this.db.getAllReportsPlusNew();
+      let count:number = await this.db.getDBDocCount('drivings');
+      let text:string = `Retrieving ${count} driving reports from database …`;
+      spinnerID = await this.alert.showSpinnerPromise(text);
+      // this.dataReady = false;
+      // this.resetReportsTable();
+      this.resetTable(TABLEINDEX.drivings);
+      // this.dispatch.triggerAppEvent('updatefromdb', {db: 'reports', count: 1000000});
+      // let res:Report[] = await this.data.getReports(1000000, spinnerID);
+      let res1 = await this.data.updateFromDB('drivings');
+      let res:ReportDriving[] = res1.payload;
+      Log.l("ReportsPage.getDrivings(): Got reports:", res);
+      this.allDrivings = res;
+      // this.data.setData('reports', res.slice(0));
+      this.drivings = this.allDrivings.slice(0);
+      this.dataReady = true;
+      let out:any = await this.alert.hideSpinnerPromise(spinnerID);
+      return this.drivings;
+    } catch (err) {
+      Log.l(`ReportsPage.getDrivings(): Error downloading reports.`);
+      Log.e(err);
+      await this.alert.hideSpinnerPromise(spinnerID);
+      throw err;
+    }
+  }
+
+  public async getMaintenances():Promise<ReportMaintenance[]> {
+    let spinnerID;
+    try {
+      // let res:Report[] = await this.db.getAllReportsPlusNew();
+      let count:number = await this.db.getDBDocCount('maintenances');
+      let text:string = `Retrieving ${count} maintenance reports from database …`;
+      spinnerID = await this.alert.showSpinnerPromise(text);
+      // this.dataReady = false;
+      // this.resetReportsTable();
+      this.resetTable(TABLEINDEX.maintenances);
+      // this.dispatch.triggerAppEvent('updatefromdb', {db: 'reports', count: 1000000});
+      // let res:Report[] = await this.data.getReports(1000000, spinnerID);
+      let res1 = await this.data.updateFromDB('maintenances');
+      let res:ReportMaintenance[] = res1.payload;
+      Log.l("ReportsPage.getMaintenances(): Got reports:", res);
+      this.allMaintenances = res;
+      // this.data.setData('reports', res.slice(0));
+      this.maintenances = this.allMaintenances.slice(0);
+      this.dataReady = true;
+      let out:any = await this.alert.hideSpinnerPromise(spinnerID);
+      return this.maintenances;
+    } catch (err) {
+      Log.l(`ReportsPage.getMaintenances(): Error downloading reports.`);
+      Log.e(err);
+      await this.alert.hideSpinnerPromise(spinnerID);
+      throw err;
+    }
+  }
+
   public async getTimeCards():Promise<ReportTimeCard[]> {
     let spinnerID;
     try {
       // let res:Report[] = await this.db.getAllReportsPlusNew();
       // this.resetReportsTable();
-      this.resetTable(4);
+      this.resetTable(TABLEINDEX.timecards);
       // this.dataReady = false;
       let count:number = await this.db.getDBDocCount('timecards');
       let text:string = `Retrieving ${count} timecards from database …`;
@@ -1179,18 +1482,24 @@ export class ReportsPage implements OnInit,OnDestroy {
   public checkDateRange(tableNumber:number, cal:Calendar, evt?:Event) {
     let dt:Table;
     let dateRange:Date[];
-    if(tableNumber === 1) {
+    if(tableNumber === TABLEINDEX.reports) {
       dt = this.dt;
-      dateRange = this.dateRanges[0];
-    } else if(tableNumber === 2) {
+      dateRange = this.dateRanges[TABLEINDEX.reports - 1];
+    } else if(tableNumber === TABLEINDEX.others) {
       dt = this.othersTable;
-      dateRange = this.dateRanges[1];
-    } else if(tableNumber === 3) {
+      dateRange = this.dateRanges[TABLEINDEX.others - 1];
+    } else if(tableNumber === TABLEINDEX.logistics) {
       dt = this.logisticsTable;
-      dateRange = this.dateRanges[2];
-    } else if(tableNumber === 4) {
+      dateRange = this.dateRanges[TABLEINDEX.logistics - 1];
+    } else if(tableNumber === TABLEINDEX.maintenances) {
+      dt = this.maintenancesTable;
+      dateRange = this.dateRanges[TABLEINDEX.maintenances - 1];
+    } else if(tableNumber === TABLEINDEX.drivings) {
+      dt = this.drivingsTable;
+      dateRange = this.dateRanges[TABLEINDEX.drivings - 1];
+    } else if(tableNumber === TABLEINDEX.timecards) {
       dt = this.timecardsTable;
-      dateRange = this.dateRanges[3];
+      dateRange = this.dateRanges[TABLEINDEX.timecards - 1];
     } else {
       let text:string = `ReportsPage.checkDateRange(): Could not find table at index '${tableNumber}' to reset it`;
       Log.w(text);
@@ -1212,28 +1521,41 @@ export class ReportsPage implements OnInit,OnDestroy {
     }
   }
 
-  public checkDateRangeOnClose(tableNumber:number, cal:Calendar, table:Table, evt?:Event) {
+  public checkDateRangeOnClose(tableNumber:TableIndexKey, cal:Calendar, table:Table, evt?:Event) {
     let dt:Table;
     let dateRange:Date[];
-    if(tableNumber === 1) {
+    let idx:number;
+    if(tableNumber === TABLEINDEX.reports) {
       dt = this.dt;
-      dateRange = this.dateRanges[0];
-    } else if(tableNumber === 2) {
+      idx = (TABLEINDEX.reports as number)
+      dateRange = this.dateRanges[idx - 1];
+    } else if(tableNumber === TABLEINDEX.others) {
       dt = this.othersTable;
-      dateRange = this.dateRanges[1];
-    } else if(tableNumber === 3) {
+      idx = (TABLEINDEX.others as number)
+      dateRange = this.dateRanges[idx - 1];
+    } else if(tableNumber === TABLEINDEX.logistics) {
       dt = this.logisticsTable;
-      dateRange = this.dateRanges[2];
-    } else if(tableNumber === 4) {
+      idx = (TABLEINDEX.logistics as number)
+      dateRange = this.dateRanges[idx - 1];
+    } else if(tableNumber === TABLEINDEX.maintenances) {
+      dt = this.maintenancesTable;
+      idx = (TABLEINDEX.maintenances as number)
+      dateRange = this.dateRanges[idx - 1];
+    } else if(tableNumber === TABLEINDEX.drivings) {
+      dt = this.drivingsTable;
+      idx = (TABLEINDEX.drivings as number)
+      dateRange = this.dateRanges[idx - 1];
+    } else if(tableNumber === TABLEINDEX.timecards) {
       dt = this.timecardsTable;
-      dateRange = this.dateRanges[3];
+      idx = (TABLEINDEX.timecards as number)
+      dateRange = this.dateRanges[idx - 1];
     } else {
       let text:string = `ReportsPage.checkDateRangeOnClose(): Could not find table at index '${tableNumber}' to check dates`;
       Log.w(text);
       // this.notify.addWarning("TABLE RESET ERROR", text, 5000);
       return;
     }
-    Log.l(`ReportsPage.checkDateRangeOnClose(): dateRange[${tableNumber}] is now:`, dateRange);
+    Log.l(`ReportsPage.checkDateRangeOnClose(): dateRange[${idx}] is now:`, dateRange);
     // let cal:Calendar = this.dateRangeCalendar;
     // let dates:Date[] = this.dateRange;
     let dates:Date[] = dateRange;
@@ -1249,7 +1571,7 @@ export class ReportsPage implements OnInit,OnDestroy {
       } else if(dStart || dEnd) {
         // dateRange = null;
         dateRange = null;
-        let i:number = tableNumber - 1;
+        let i:number = idx - 1;
         if(i >= 0 && i < this.dateRanges.length) {
           this.dateRanges[i] = null;
         }
@@ -1259,9 +1581,10 @@ export class ReportsPage implements OnInit,OnDestroy {
     }
   }
 
-  public updateDateRange(tableNumber:number, dateRange:Date[], cal:Calendar, table:Table, evt?:Event) {
+  public updateDateRange(tableNumber:TableIndexKey, dateRange:Date[], cal:Calendar, table:Table, evt?:Event) {
     // Log.l(`ReportsPage.updateDateRange(): Arguments are:\n`, arguments);
-    Log.l(`ReportsPage.updateDateRange(): provided date range is:`, dateRange);
+    Log.l(`ReportsPage.updateDateRange(): for table '${tableNumber}', provided date range is:`, dateRange);
+    let idx:number = (tableNumber as number);
     if(!(cal && cal instanceof Calendar)) {
       let text:string = `ReportsPage.updateDateRange(): Provided calendar is invalid`;
       Log.w(text, cal);
@@ -1294,7 +1617,7 @@ export class ReportsPage implements OnInit,OnDestroy {
       }, 250);
     } else {
       dateRange = null;
-      let i:number = tableNumber - 1;
+      let i:number = idx - 1;
       if(i >= 0 && i < this.dateRanges.length) {
         this.dateRanges[i] = null;
       }
@@ -1302,17 +1625,27 @@ export class ReportsPage implements OnInit,OnDestroy {
   }
 
   public onRowSelectOthers(event:any) {
-    Log.l("ReportsPage.onRowSelectOthers(): Event passed is:\n", event);
+    Log.l("ReportsPage.onRowSelectOthers(): Event passed is:", event);
     this.showReportOther(event.data);
   }
 
   public onRowSelectLogistics(event:any) {
-    Log.l("ReportsPage.onRowSelectLogistics(): Event passed is:\n", event);
+    Log.l("ReportsPage.onRowSelectLogistics(): Event passed is:", event);
     this.showReportLogistics(event.data);
   }
 
+  public onRowSelectDriving(event:any) {
+    Log.l("ReportsPage.onRowSelectDriving(): Event passed is:", event);
+    this.showReportDriving(event.data);
+  }
+
+  public onRowSelectMaintenance(event:any) {
+    Log.l("ReportsPage.onRowSelectMaintenance(): Event passed is:", event);
+    this.showReportMaintenance(event.data);
+  }
+
   public onRowSelectTimeCards(event:any) {
-    Log.l("ReportsPage.onRowSelectTimeCards(): Event passed is:\n", event);
+    Log.l("ReportsPage.onRowSelectTimeCards(): Event passed is:", event);
     this.showReportTimeCard(event.data);
   }
 
@@ -1440,20 +1773,26 @@ export class ReportsPage implements OnInit,OnDestroy {
   //   }
   // }
 
-  public async bulkEdit(type:number, event?:Event):Promise<any> {
+  public async bulkEdit(type:TableIndexKey, event?:Event):Promise<any> {
     try {
-      let docs:Array<Report|ReportOther|ReportLogistics|ReportTimeCard>;
+      let docs:ReportAny[];
       let description:string;
-      if(type === 1) {
+      if(type === TABLEINDEX.reports) {
         docs = this.selectedReports;
         description = "work reports";
-      } else if(type === 2) {
+      } else if(type === TABLEINDEX.others) {
         docs = this.selectedReportsOther;
         description = "misc. reports";
-      } else if(type === 3) {
+      } else if(type === TABLEINDEX.logistics) {
         docs = this.selectedReportsLogistics;
         description = "logistics reports";
-      } else if(type === 4) {
+      } else if(type === TABLEINDEX.maintenances) {
+        docs = this.selectedReportsMaintenance;
+        description = "maintenance reports";
+      } else if(type === TABLEINDEX.drivings) {
+        docs = this.selectedReportsDriving;
+        description = "driving reports";
+      } else if(type === TABLEINDEX.timecards) {
         docs = this.selectedTimeCards;
         description = "time card reports";
       }
@@ -1486,7 +1825,7 @@ export class ReportsPage implements OnInit,OnDestroy {
     }
   }
 
-  public findUsedKeys(docs:Array<Report|ReportOther|ReportLogistics|ReportTimeCard>):string[] {
+  public findUsedKeys(docs:ReportAny[]):string[] {
     let allkeys:Set<string> = new Set();
     docs.forEach(a => a.getKeys().forEach((b:string) => allkeys.add(b)));
     let out:string[] = Array.from(allkeys);
@@ -1591,6 +1930,58 @@ export class ReportsPage implements OnInit,OnDestroy {
       return;
     } else {
       this.notify.addWarn("LOGISTICS REPORT ERROR", "Logistics report not found, cannot view/edit it");
+      return;
+    }
+  }
+
+  public showReportMaintenance(report:ReportMaintenance, event?:Event) {
+    Log.l(`showReportMaintenance(): Called with report:`, report);
+    let reportList:ReportMaintenance[] = this.maintenancesTable && this.maintenancesTable.hasFilter() ? this.maintenancesTable.filteredValue : this.maintenancesTable.value;
+    if(report && report instanceof ReportMaintenance) {
+      let username:string = report.username;
+      let techs:Employee[] = this.techs;
+      let tech:Employee = techs.find((a:Employee) => {
+        let techUsername:string = a.getUsername();
+        return username === techUsername;
+      });
+      if(!tech) {
+        this.notify.addWarn("TECH ERROR", "Could not determine what tech created this maintenance report!", 6000);
+        return;
+      }
+      // this.site        = site;
+      this.tech          = tech;
+      this.editMaintenance = reportList;
+      this.maintenance      = report;
+      this.reportMaintenanceViewVisible = true;
+      return;
+    } else {
+      this.notify.addWarn("MAINTENANCE REPORT ERROR", "Maintenance report not found, cannot view/edit it");
+      return;
+    }
+  }
+
+  public showReportDriving(report:ReportDriving, event?:Event) {
+    Log.l(`showReportMaintenance(): Called with report:`, report);
+    let reportList:ReportDriving[] = this.drivingsTable && this.drivingsTable.hasFilter() ? this.drivingsTable.filteredValue : this.drivingsTable.value;
+    if(report && report instanceof ReportDriving) {
+      let username:string = report.username;
+      let techs:Employee[] = this.techs;
+      let tech:Employee = techs.find((a:Employee) => {
+        let techUsername:string = a.getUsername();
+        return username === techUsername;
+      });
+      if(!tech) {
+        this.notify.addWarn("TECH ERROR", "Could not determine what tech created this driving report!", 6000);
+        return;
+      }
+      // this.site        = site;
+      this.tech          = tech;
+      this.editDriving  = reportList;
+      this.driving      = report;
+      this.reportDrivingViewVisible = true;
+      return;
+    } else {
+      this.notify.addWarn("DRIVING REPORT ERROR", "Driving report not found, cannot view/edit it");
       return;
     }
   }
@@ -1805,6 +2196,30 @@ export class ReportsPage implements OnInit,OnDestroy {
     window['p'] = this;
   }
 
+  public maintenanceViewSave(event?:Event) {
+    Log.l("maintenanceViewSave(): Event is:", event);
+    this.reportMaintenanceViewVisible = false;
+    window['p'] = this;
+  }
+
+  public maintenanceViewCancel(event?:Event) {
+    Log.l("maintenanceViewCancel(): Event is:", event);
+    this.reportMaintenanceViewVisible = false;
+    window['p'] = this;
+  }
+
+  public drivingViewSave(event?:Event) {
+    Log.l("drivingViewSave(): Event is:\n", event);
+    this.reportDrivingViewVisible = false;
+    window['p'] = this;
+  }
+
+  public drivingViewCancel(event?:Event) {
+    Log.l("drivingViewCancel(): Event is:", event);
+    this.reportDrivingViewVisible = false;
+    window['p'] = this;
+  }
+
   public timeCardViewSave(event?:Event) {
     Log.l("timeCardViewSave(): Event is:", event);
     this.reportTimeCardViewVisible = false;
@@ -1843,6 +2258,26 @@ export class ReportsPage implements OnInit,OnDestroy {
     let idx = reports.indexOf(report);
     if(idx > -1) {
       Log.l(`ReportsPage.logisticsViewDeleted(): Found report at ${idx}`);
+      window['onsitelastdeletedreport'] = reports.splice(idx, 1);
+    }
+  }
+  
+  public maintenanceViewDeleted(report:ReportMaintenance) {
+    Log.l(`ReportsPage.maintenanceViewDeleted(): called for report:`, report);
+    let reports = this.maintenances;
+    let idx = reports.indexOf(report);
+    if(idx > -1) {
+      Log.l(`ReportsPage.maintenanceViewDeleted(): Found report at ${idx}`);
+      window['onsitelastdeletedreport'] = reports.splice(idx, 1);
+    }
+  }
+  
+  public drivingViewDeleted(report:ReportDriving) {
+    Log.l(`ReportsPage.drivingViewDeleted(): called for report:`, report);
+    let reports = this.drivings;
+    let idx = reports.indexOf(report);
+    if(idx > -1) {
+      Log.l(`ReportsPage.drivingViewDeleted(): Found report at ${idx}`);
       window['onsitelastdeletedreport'] = reports.splice(idx, 1);
     }
   }
@@ -2039,10 +2474,12 @@ export class ReportsPage implements OnInit,OnDestroy {
       this.dt,
       this.othersTable,
       this.logisticsTable,
+      this.maintenancesTable,
+      this.drivingsTable,
       this.timecardsTable,
     ];
     for(let dt of tables) {
-      let tableNumber:number = tables.indexOf(dt) + 1;
+      let tableNumber = (tables.indexOf(dt) + 1 as TableIndexKey);
       this.resetTable(tableNumber);
     }
     // for(let dt of tables) {
@@ -2077,15 +2514,19 @@ export class ReportsPage implements OnInit,OnDestroy {
     // this.clearAllDates(evt);
   }
 
-  public resetTable(tableNumber:number, evt?:Event) {
+  public resetTable(tableNumber:TableIndexKey, evt?:Event) {
     let dt:Table;
-    if(tableNumber === 1) {
+    if(tableNumber === TABLEINDEX.reports) {
       dt = this.dt;
-    } else if(tableNumber === 2) {
+    } else if(tableNumber === TABLEINDEX.others) {
       dt = this.othersTable;
-    } else if(tableNumber === 3) {
+    } else if(tableNumber === TABLEINDEX.logistics) {
       dt = this.logisticsTable;
-    } else if(tableNumber === 4) {
+    } else if(tableNumber === TABLEINDEX.maintenances) {
+      dt = this.maintenancesTable;
+    } else if(tableNumber === TABLEINDEX.drivings) {
+      dt = this.drivingsTable;
+    } else if(tableNumber === TABLEINDEX.timecards) {
       dt = this.timecardsTable;
     } else {
       let text:string = `resetTable(): Could not find table at index '${tableNumber}' to reset it`;
@@ -2174,8 +2615,9 @@ export class ReportsPage implements OnInit,OnDestroy {
     return dt;
   }
 
-  public clearTableDates(tableNumber:number, dt:Table, evt?:Event) {
-    Log.l(`clearTableDates(): Clearing date filters for table '${tableNumber}':`, dt);
+  public clearTableDates(tableNumber:TableIndexKey, dt:Table, evt?:Event) {
+    let tableKey = TABLEINDEXTOKEY[tableNumber];
+    Log.l(`clearTableDates(): Clearing date filters for table '${tableNumber}', which is '${tableKey}':`, dt);
     if(!(dt && dt instanceof Table)) {
       let text:string = `clearTableDates(): Must provide a Table to clear dates of. Provided parameter was not a table`;
       Log.w(text, dt);
@@ -2199,17 +2641,19 @@ export class ReportsPage implements OnInit,OnDestroy {
       this.dt,
       this.othersTable,
       this.logisticsTable,
+      this.maintenancesTable,
+      this.drivingsTable,
       this.timecardsTable,
     ];
     for(let table of tables) {
-      let i:number = tables.indexOf(table) + 1;
+      let i = ((tables.indexOf(table) + 1) as TableIndexKey);
       if(table && table instanceof Table) {
         this.clearDates(i, table, event);
       }
     }
   }
 
-  public clearDates(tableNumber:number, dt:Table, evt?:Event) {
+  public clearDates(tableNumber:TableIndexKey, dt:Table, evt?:Event) {
     Log.l(`clearDates(): Clearing from and to search fields.`);
     let i:number = tableNumber - 1;
     if(i >= 0 && i < this.dateRanges.length) {
@@ -2339,6 +2783,50 @@ export class ReportsPage implements OnInit,OnDestroy {
     }
   }
   
+  public async calculateMaintenanceHoursShown(evt?:MouseEvent):Promise<number> {
+    try {
+      Log.l(`calculateMaintenanceHoursShown(): Called event:`, evt);
+      let table:Table = this.maintenancesTable;
+      let reports:ReportMaintenance[];
+      reports = table && typeof table.hasFilter === 'function' && table.hasFilter() ? table.filteredValue : table && Array.isArray(table.value) ? table.value : [];
+      let total:number = 0;
+      let count:number = reports.length;
+      for(let report of reports) {
+        let hours:number = report.getTotalTime();
+        // let hours:number = report.getTotalWorkHours();
+        total += hours;
+      }
+      await this.showTotalHours(total, count);
+      return total;
+    } catch(err) {
+      Log.l(`calculateMaintenanceHoursShown(): Error calculating visible report hours`);
+      Log.e(err);
+      throw err;
+    }
+  }
+  
+  public async calculateDrivingHoursShown(evt?:MouseEvent):Promise<number> {
+    try {
+      Log.l(`calculateDrivingHoursShown(): Called event:`, evt);
+      let table:Table = this.drivingsTable;
+      let reports:ReportDriving[];
+      reports = table && typeof table.hasFilter === 'function' && table.hasFilter() ? table.filteredValue : table && Array.isArray(table.value) ? table.value : [];
+      let total:number = 0;
+      let count:number = reports.length;
+      for(let report of reports) {
+        let hours:number = report.getTotalTime();
+        // let hours:number = report.getTotalWorkHours();
+        total += hours;
+      }
+      await this.showTotalHours(total, count);
+      return total;
+    } catch(err) {
+      Log.l(`calculateDrivingHoursShown(): Error calculating visible report hours`);
+      Log.e(err);
+      throw err;
+    }
+  }
+  
   public async calculateTimeCardHoursShown(evt?:MouseEvent):Promise<number> {
     try {
       Log.l(`calculateTimecardHoursShown(): Called event:`, evt);
@@ -2376,6 +2864,27 @@ export class ReportsPage implements OnInit,OnDestroy {
       return total;
     } catch(err) {
       Log.l(`calculateLogisticsMilesShown(): Error calculating visible report hours`);
+      Log.e(err);
+      throw err;
+    }
+  }
+  
+  public async calculateDrivingMilesShown(evt?:MouseEvent):Promise<number> {
+    try {
+      Log.l(`calculateDrivingMilesShown(): Called event:`, evt);
+      let table:Table = this.drivingsTable;
+      let reports:ReportDriving[];
+      reports = table && typeof table.hasFilter === 'function' && table.hasFilter() ? table.filteredValue : table && Array.isArray(table.value) ? table.value : [];
+      let total:number = 0;
+      let count:number = reports.length;
+      for(let report of reports) {
+        let miles:number = report.getTotalMiles();
+        total += miles;
+      }
+      await this.showTotalMiles(total, count);
+      return total;
+    } catch(err) {
+      Log.l(`calculateDrivingMilesShown(): Error calculating visible report hours`);
       Log.e(err);
       throw err;
     }

@@ -6,7 +6,7 @@ import { sprintf                                                } from 'sprintf-
 import { Injectable                                             } from '@angular/core'        ;
 import { URLSearchParams                                        } from '@angular/http'        ;
 import { HttpClient, HttpHeaders, HttpParams, HttpErrorResponse } from '@angular/common/http' ;
-import { Log, moment, Moment, isMoment, blobUtil, MaintenanceWordType,               } from 'domain/onsitexdomain' ;
+import { Log, moment, Moment, isMoment, blobUtil,               } from 'domain/onsitexdomain' ;
 import { PouchDBService,                                        } from './pouchdb-service'    ;
 import { Database                                               } from './pouchdb-service'    ;
 import { PDBSync                                                } from './pouchdb-service'    ;
@@ -52,7 +52,7 @@ import { Report                                                 } from 'domain/o
 import { ReportOther                                            } from 'domain/onsitexdomain' ;
 import { ReportLogistics                                        } from 'domain/onsitexdomain' ;
 import { ReportDriving                                          } from 'domain/onsitexdomain' ;
-import { ReportMaintenance                                      } from 'domain/onsitexdomain' ;
+import { ReportMaintenance, MaintenanceWordType                 } from 'domain/onsitexdomain' ;
 import { ReportTimeCard,                                        } from 'domain/onsitexdomain' ;
 import { Message                                                } from 'domain/onsitexdomain' ;
 import { Comment                                                } from 'domain/onsitexdomain' ;
@@ -62,7 +62,7 @@ import { Invoice                                                } from 'domain/o
 import { PreAuth                                                } from 'domain/onsitexdomain' ;
 import { DatabaseProgress                                       } from 'domain/onsitexdomain' ;
 import { SESAClient, SESALocation, SESALocID, SESACLL,          } from 'domain/onsitexdomain' ;
-import { Preferences                                            } from './preferences'        ;
+import { Preferences, DatabaseKey                                            } from './preferences'        ;
 import { DispatchService                                        } from './dispatch-service'   ;
 import { OSData, CONFIGKEY                                      } from './data-service'       ;
 import { TranslationDocument                                    } from './db-service'         ;
@@ -486,7 +486,7 @@ export class ServerService {
   //   });
   // }
 
-  public async getDocCount(dbtype:string):Promise<number> {
+  public async getDocCount(dbtype:DatabaseKey):Promise<number> {
     try {
       // let dbname:string = this.prefs.getDB(dbtype);
       // let dburl:string = this.prefs.getRemoteDBURL(dbtype);
@@ -517,7 +517,7 @@ export class ServerService {
     }
   }
 
-  public async getJSONFromCouchDB(dbtype:string, url:string):Promise<any> {
+  public async getJSONFromCouchDB(dbtype:DatabaseKey, url:string):Promise<any> {
     try {
       // let dbname:string = this.prefs.getDB(dbtype);
       let dburl:string = this.prefs.getRemoteDBURL(dbtype);
@@ -3441,7 +3441,7 @@ export class ServerService {
   public saveInvoice(type:string, invoice: Invoice) {
     return new Promise((resolve, reject) => {
       let invoiceType = type.toLowerCase();
-      let dbkey = `invoices_${invoiceType}`;
+      let dbkey = (`invoices_${invoiceType}` as DatabaseKey);
       let dbname = this.prefs.getDB(dbkey);
       let rdb1 = this.addRDB(dbname);
       let ts = moment().format();
@@ -3495,7 +3495,7 @@ export class ServerService {
 
   public getInvoices(type:string, start: string, end: string):Promise<Invoice[]> {
     return new Promise((resolve, reject) => {
-      let dbtype:string = `invoices_${type.toLowerCase()}`;
+      let dbtype = (`invoices_${type.toLowerCase()}` as DatabaseKey);
       let dbname:string = this.prefs.getDB(dbtype);
       let rdb1:Database = this.addDB(dbname);
       rdb1.allDocs(GETDOCS).then(res => {

@@ -1,8 +1,10 @@
 /**
  * Name: Employee domain class
- * Vers: 8.2.0
- * Date: 2019-07-23
+ * Vers: 8.3.1
+ * Date: 2019-09-19
  * Auth: David Sargeant
+ * Logs: 8.3.1 2019-09-19: Added getFullNameWithSuffix() method
+ * Logs: 8.3.0 2019-09-19: Added optional parameter to getFullNameNormal() method for including middle names; Added getSelectableDescription() method
  * Logs: 8.2.0 2019-07-23: Added .trim() to all string fields created when using serialize() method
  * Logs: 8.1.6 2019-07-03: Changed shift property to use SiteScheduleType from Jobsite
  * Logs: 8.1.5 2019-06-27: Changed StatusUpdateType to EmployeeStatusUpdateType
@@ -362,9 +364,61 @@ export class Employee {
     return fullName;
   }
 
-  public getFullNameNormal():string {
-    let fullName = `${this.firstName} ${this.lastName}`;
+  /**
+   * Returns full name in FIRST [MIDDLE] LAST order. If optional parameter is true, includes middle name.
+   *
+   * @param {boolean} [includeMiddle] If true, middle name will be included
+   * @returns {string} String of user's full name
+   * @memberof Employee
+   */
+  public getFullNameNormal(includeMiddle?:boolean):string {
+    let fullName = `${this.firstName}`;
+    if(includeMiddle === true) {
+      fullName += ` ${this.middleName}`;
+    }
+    fullName += ` ${this.lastName}`;
     return fullName;
+  }
+
+  /**
+   * Returns full name in FIRST [MIDDLE] LAST SUFFIX order. If optional parameter is true, includes middle name.
+   * If user does not have a suffix, will be equivalent to getFullNameNormal() method
+   *
+   * @param {boolean} [includeMiddle] If true, middle name will be included
+   * @returns {string} String of user's full name, with optional suffix.
+   * @memberof Employee
+   */
+  public getFullNameWithSuffix(includeMiddle?:boolean):string {
+    let fullName = this.getFullNameNormal(includeMiddle);
+    if(this.suffix) {
+      fullName += ` ${this.suffix}`;
+    }
+    return fullName;
+  }
+
+  /**
+   * Returns string with username and full normal name.
+   * Optionally includes middle name.
+   * Optionally reverses order of username and full name.
+   *
+   * @param {boolean} [includeMiddle] If true, will include middle name.
+   * @param {boolean} [reversed] If true, output will have full name first, then username.
+   * @returns {string} String in format "USERNAME (FULL NAME)" or "FULL NAME (USERNAME)"
+   * @memberof Employee
+   */
+  public getSelectableDescription(includeMiddle?:boolean, reversed?:boolean):string {
+    let nameFirst = reversed === true ? true : false;
+    let username = this.getUsername();
+    let fullName = this.getFullNameWithSuffix(includeMiddle);
+    let out:string;
+    // let out:string = fullName + `(${username})`;
+    // let out:string = username + ` (${fullName})`;
+    if(nameFirst) {
+      out = fullName + ` (${username})`;
+    } else {
+      out = username + ` (${fullName})`;
+    }
+    return out;
   }
 
   public getClient():string {

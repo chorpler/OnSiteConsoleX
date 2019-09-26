@@ -179,6 +179,13 @@ page-translations {
       background: transparent;
     }
   }
+  tr.translation-row {
+    &.dirty-row {
+      td {
+        background-color: rgba(255, 0, 0, 0.5);
+      }
+    }
+  }
   td.button-col {
     @include button-like-block;
   }
