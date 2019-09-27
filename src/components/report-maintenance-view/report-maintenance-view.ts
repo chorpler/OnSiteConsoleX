@@ -125,9 +125,9 @@ export class ReportMaintenanceView implements OnInit,OnDestroy {
   // public calendarDataType:string     = 'date'             ;
   public reportDateDataType:string     = 'date'           ;
   public calendarDataType:string     = 'string'           ;
-  // public firstIfNull :boolean        = false              ;
   public scrollDelay :number         = 200                ;
-  public firstIfNull :boolean        = true               ;
+  // public firstIfNull :boolean        = true               ;
+  public firstIfNull :boolean        = false              ;
   public detailedSite:boolean        = false              ;
   public dataReady   :boolean        = false              ;
   public taskTimes   :{start:Date,end?:Date}[] = [];
@@ -651,15 +651,24 @@ export class ReportMaintenanceView implements OnInit,OnDestroy {
     // this.update.emit(rpt);
   }
 
-  public openTaskTime(task:MaintenanceTask, timeOpened:'start'|'end', evt?:Event) {
+  public openTaskTime(task:MaintenanceTask, index:number, timeOpened:'start'|'end', calendar?:Calendar, evt?:Event) {
     Log.l(`ReportMaintenanceView.openTaskTime(): Called for '${timeOpened}' time in task, with event:`, task, evt);
     // let mo = moment();
     let time = this.getDefaultTaskTime(task);
     let mo = moment(time);
+    let times = this.taskTimes[index];
     if(timeOpened === 'start') {
-      this.defaultStartDate = mo.toDate();
+      // this.defaultStartDate = mo.toDate();
+      if(!times.start) {
+        // times.start = mo.toDate();
+        calendar.selectDate({year:mo.year(),month:mo.month(),day:mo.date()});
+      }
     } else if(timeOpened === 'end') {
-      this.defaultEndDate = mo.toDate();
+      // this.defaultEndDate = mo.toDate();
+      if(!times.end) {
+        // times.end = mo.toDate();
+        calendar.selectDate({year:mo.year(),month:mo.month(),day:mo.date()});
+      }
     }
     // if(!isMoment(mo)) {
     //   let text = `ReportMaintenanceView.openTaskTime(): invalid datetime provided`;
