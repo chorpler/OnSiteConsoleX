@@ -4,6 +4,7 @@ import { FormsModule           } from '@angular/forms'            ;
 import { ReportMaintenanceView } from './report-maintenance-view' ;
 import { DialogModule,         } from 'primeng/dialog'            ;
 import { DropdownModule,       } from 'primeng/dropdown'          ;
+import { MultiSelectModule     } from 'primeng/multiselect'       ;
 import { CalendarModule,       } from 'primeng/calendar'          ;
 import { InputMaskModule,      } from 'primeng/inputmask'         ;
 import { InputTextareaModule,  } from 'primeng/inputtextarea'     ;
@@ -17,6 +18,7 @@ import { InputTextareaModule,  } from 'primeng/inputtextarea'     ;
     FormsModule,
     DialogModule,
     DropdownModule,
+    MultiSelectModule,
     CalendarModule,
     InputMaskModule,
     InputTextareaModule,

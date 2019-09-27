@@ -59,6 +59,7 @@ const fsp = fs.promises;
 
 // export type Menu = Electron.Menu;
 export type MenuItemConstructorOptions = Electron.MenuItemConstructorOptions;
+export type ElectronMenu = Electron.Menu;
 export type MenuItem = Electron.MenuItem;
 export type WebContents = Electron.WebContents;
 export type ElectronEvent = Electron.Event;
@@ -67,10 +68,13 @@ export type IPCRenderer = Electron.IpcRenderer;
 export type Remote = Electron.Remote;
 export type BrowserWindow = Electron.BrowserWindow;
 export type BrowserView = Electron.BrowserView;
+export type ContextMenuParams = Electron.ContextMenuParams;
+export type PopupOptions = Electron.PopupOptions;
 
 export type DialogType = "none" | "info" | "error" |"question" | "warning";
 
 const Menu = remote.Menu;
+const MenuItem = remote.MenuItem;
 
 export interface DialogOptions {
   type    ?: DialogType;
@@ -88,6 +92,8 @@ export interface PDFPrintOptions extends electron.PrintToPDFOptions {
 @Injectable()
 export class ElectronService {
   public dbDir:string = "";
+  public contextMenu:Electron.Menu;
+  public rightClickEvent:Electron.Menu;
   // public static searchActive:boolean = false;
   // public get searchActive():boolean { return ElectronService.searchActive; };
   // public set searchActive(val:boolean) { ElectronService.searchActive = val; };
@@ -145,6 +151,7 @@ export class ElectronService {
     if(win) {
       this.defaultTitle = win.getTitle();
     }
+    this.createInspectMenu();
     // this.electronDBInit();
     // this.pdfWindow = PDFWindow;
   }
@@ -1387,6 +1394,29 @@ export class ElectronService {
       Log.e(err);
       throw err;
     }
+  }
+
+  public createInspectMenu() {
+    // Console commands to add context menu
+    // var wc = t.electron.remote.getCurrentWebContents(), rightClickPosition = null, contextMenu = new t.electron.remote.Menu(), contextMenuItem = new t.electron.remote.MenuItem({ label: "Inspect Element", click: () => { let wc = t.electron.remote.getCurrentWebContents(); wc.inspectElement(rightClickPosition.x, rightClickPosition.y); } });
+    // contextMenu.append(contextMenuItem);
+    // wc.on('context-menu', (event,params) => { rightClickPosition = {x: params.x, y: params.y }; contextMenu.popup(); });
+    let webContents = remote.getCurrentWebContents();
+    let rightClickPosition;
+    let contextMenu = new Menu();
+    let item:MenuItemConstructorOptions = {
+      label: "Inspect Element",
+      click: () => {
+        webContents.inspectElement(rightClickPosition.x, rightClickPosition.y);
+      }
+    };
+    let contextMenuItem = new MenuItem(item);
+    contextMenu.append(contextMenuItem);
+    webContents.on('context-menu', (event:ElectronEvent,params:ContextMenuParams) => {
+      Log.l(`ElectronService: 'context-menu' event detected. Event and params are:`, event, params);
+      rightClickPosition = {x: params.x, y: params.y };
+      contextMenu.popup();
+    });
   }
 
 }

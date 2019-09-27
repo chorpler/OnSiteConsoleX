@@ -10,7 +10,7 @@ import { PouchDBService, PDBChangeEvent,                        } from './pouchd
 import { AlertService                                           } from './alert-service'      ;
 import { StorageService                                         } from './storage-service'    ;
 import { ServerService                                          } from './server-service'     ;
-import { DBService                                              } from './db-service'         ;
+import { DBService, TranslationTable, TranslationRecord, TranslationTableRecord                                              } from './db-service'         ;
 import { AuthService                                            } from './auth-service'       ;
 import { Preferences, DatabaseKey                               } from './preferences'        ;
 import { DispatchService, AppEvents, UpdateDBOptions,           } from './dispatch-service'   ;
@@ -121,6 +121,9 @@ export class OSData {
     schedules    : null ,
     oldreports   : []   ,
   };
+  public langKeys:string[] = ['en', 'es'];
+  public translations:any = {};
+  public translationsTable:TranslationTable = [];
   public loaded = {
     sites        : false ,
     employees    : false ,
@@ -1959,4 +1962,61 @@ export class OSData {
     // return str.join('');
   }
 
+  public translationsToTable(langKeys:string[], translations:TranslationRecord):TranslationTable {
+    if(!(Array.isArray(langKeys) && langKeys.length && translations)) {
+      let text = `DataService.translationsToTable(): parameters must be array of language codes and translation object, i.e. ['en','es']. Invalid parameter`;
+      Log.w(text + ":", langKeys, translations);
+      let err = new Error(text);
+      throw err;
+    }
+    let out:TranslationTable = [];
+    let translateKeys = Object.keys(translations);
+    for(let translateKey of translateKeys) {
+      let values = translations[translateKey];
+      let record:TranslationTableRecord;
+      let row:any = {
+        key: translateKey,
+      };
+      for(let langKey of langKeys) {
+        let idx = langKeys.indexOf(langKey);
+        row[langKey] = values[idx];
+      }
+      record = row;
+      out.push(record);
+    }
+    return out;
+    // let keys = langKeys;
+    // let translateKeys = Object.keys(translations);
+    // let allTranslations:any = {};
+    // for(let langKey of langKeys) {
+    //   let idx = langKeys.indexOf(langKey);
+    //   let langTranslations:any = {};
+    //   for(let key of translateKeys) {
+    //     langTranslations[key] = translations[key][idx];
+    //   }
+    //   // this.translate.setTranslation(langKey, langTranslations);
+    //   allTranslations[langKey] = langTranslations;
+    // }
+  }
+  
+  public trans(key:string, lang?:string):string|any {
+    if(key && typeof key === 'string') {
+      let idx = lang && typeof lang === 'string' ? this.langKeys.indexOf(lang) : 0;
+      idx = idx === -1 ? 0 : idx;
+      return this.translations[key][idx];
+    } else {
+      // return this.translations;
+      Log.w(`DataService.trans(): Parameter 1 must be string key. Invalid parameter:`, key);
+      return '';
+    }
+  }
+
+  public getMaintenanceWord(key:string):string {
+    if(key && typeof key === 'string' && this.translations[key] && this.translations[key].length) {
+      return this.translations[key][0];
+    } else {
+      Log.w(`DataService.getMaintenanceWord(): Could not find maintenance word for key:`, key);
+      return '';
+    }
+  }
 }

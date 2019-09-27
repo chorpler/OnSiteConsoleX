@@ -77,7 +77,7 @@ export class ScriptService {
   public loadScript(key:string):Promise<ScriptLoadResult> {
     return new Promise((resolve, reject) => {
       try {
-        Log.l(`loadScript(): Attempting to load script '${key}' ...`);
+        Log.l(`ScriptService.loadScript(): Attempting to load script '${key}' ...`);
         let result:ScriptLoadResult = {
           script: key          ,
           loaded: false        ,
@@ -86,13 +86,13 @@ export class ScriptService {
         let scripts:any = this.scripts;
         let item:any = scripts[key];
         if(!item) {
-          let text:string = `Script '${key}' not found`;
+          let text:string = `ScriptService.loadScript(): Script '${key}' not found`;
           let err:Error = new Error(text);
           throw err;
         } else {
           let src:string = item.src;
           if(item.loaded) {
-            Log.l(`loadScript(): Script '${key}' already loaded.`);
+            Log.l(`ScriptService.loadScript(): Script '${key}' already loaded.`);
             result = {
               script: key              ,
               loaded: true             ,
@@ -100,12 +100,12 @@ export class ScriptService {
             };
             resolve(result);
           } else {
-            Log.l(`loadScript(): Script '${key}' not loaded, attempting to load...`);
+            Log.l(`ScriptService.loadScript(): Script '${key}' not loaded, attempting to load...`);
             let script:HTMLScriptElement = document.createElement('script');
             script.type = 'text/javascript';
             script.src = src;
             script.onload = () => {
-              Log.l(`loadScript(): Script '${key}' loaded from '${item.src}'`);
+              Log.l(`ScriptService.loadScript(): Script '${key}' loaded from '${item.src}'`);
               scripts[key].loaded = true;
               result = {
                 script: key      ,
@@ -115,7 +115,7 @@ export class ScriptService {
               resolve(result);
             };
             script.onerror = (err: any) => {
-              Log.l(`loadScript(): Error loading script '${key}' from '${item.src}'`);
+              Log.l(`ScriptService.loadScript(): Error loading script '${key}' from '${item.src}'`);
               Log.e(err);
               throw err;
             };
@@ -123,11 +123,11 @@ export class ScriptService {
             if(header) {
               header.appendChild(script);
             }
-            Log.l(`loadScript(): Script '${key}' should be loading or loaded right now...`);
+            Log.l(`ScriptService.loadScript(): Script '${key}' should be loading or loaded right now...`);
           }
         }
       } catch(err) {
-        Log.l(`loadScript(): Error loading script with key '${key}'`);
+        Log.l(`ScriptService.loadScript(): Error loading script with key '${key}'`);
         Log.e(err);
         // throw new Error(err);
         reject(err);

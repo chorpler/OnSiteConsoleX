@@ -259,7 +259,7 @@ export class TranslationsPage implements OnInit,OnDestroy {
 
   public async loadTranslationData():Promise<any> {
     try {
-      let translationTable = await this.server.loadTranslations();
+      let translationTable = await this.server.loadTranslationTable();
       this.translations = translationTable;
       let enouns = this.data.getConfigData('maintenance_enouns');
       let mnouns = this.data.getConfigData('maintenance_mnouns');
@@ -419,14 +419,14 @@ export class TranslationsPage implements OnInit,OnDestroy {
   }
 
   public selectionChanged(evt?:Event) {
-    Log.l(`TranslationsPage.selectionChanged(): Event is:\n`, evt);
+    Log.l(`TranslationsPage.selectionChanged(): Event is:`, evt);
     this.dataReady = false;
     this.columnsChanged();
     this.dataReady = true;
   }
 
   public selectionChangedMaint(evt?:Event) {
-    Log.l(`TranslationsPage.selectionChangedMaint(): Event is:\n`, evt);
+    Log.l(`TranslationsPage.selectionChangedMaint(): Event is:`, evt);
     this.dataReady = false;
     this.columnsChangedMaint();
     this.dataReady = true;

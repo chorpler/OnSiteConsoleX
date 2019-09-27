@@ -3693,47 +3693,108 @@ export class ServerService {
     }
   }
 
-  public async loadTranslations():Promise<TranslationTable> {
+  public async loadRawTranslations():Promise<TranslationDocument> {
     try {
       let dbname = this.prefs.getDB('translations');
       let rdb1 = this.addRDB(dbname);
       let res:any = await rdb1.get('onsitex');
-      let out:TranslationTable = [];
-      Log.l("Server.loadTranslations(): Got translations result:", res);
+      Log.w("Server.loadRawTranslations(): Got translations result:", res);
       if(res && res.keys && res.translations) {
         // let keys = res.keys;
         // let translations = res.translations;
-        // return res;
+        return res;
+      } else {
+        Log.w("Server.loadRawTranslations(): Invalid translation document");
+        return null;
+      }
+    } catch(err) {
+      Log.l(`Server.loadRawTranslations(): Error loading translations`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public translationsToTable(langKeys:string[], translations:TranslationRecord):TranslationTable {
+    if(!(Array.isArray(langKeys) && langKeys.length && translations)) {
+      let text = `OnSiteX.translationsToTable(): parameters must be array of language codes and translation object, i.e. ['en','es']. Invalid parameter`;
+      Log.w(text + ":", langKeys, translations);
+      let err = new Error(text);
+      throw err;
+    }
+    let out:TranslationTable = [];
+    let translateKeys = Object.keys(translations);
+    for(let translateKey of translateKeys) {
+      let values = translations[translateKey];
+      let record:TranslationTableRecord;
+      let row:any = {
+        key: translateKey,
+      };
+      for(let langKey of langKeys) {
+        let idx = langKeys.indexOf(langKey);
+        row[langKey] = values[idx];
+      }
+      record = row;
+      out.push(record);
+    }
+    return out;
+    // let keys = langKeys;
+    // let translateKeys = Object.keys(translations);
+    // let allTranslations:any = {};
+    // for(let langKey of langKeys) {
+    //   let idx = langKeys.indexOf(langKey);
+    //   let langTranslations:any = {};
+    //   for(let key of translateKeys) {
+    //     langTranslations[key] = translations[key][idx];
+    //   }
+    //   // this.translate.setTranslation(langKey, langTranslations);
+    //   allTranslations[langKey] = langTranslations;
+    // }
+  }
+
+  public async loadTranslationTable():Promise<TranslationTable> {
+    try {
+      // let dbname = this.prefs.getDB('translations');
+      // let rdb1 = this.addRDB(dbname);
+      // let res:any = await rdb1.get('onsitex');
+      let res = await this.loadRawTranslations();
+      Log.l("Server.loadTranslationTable(): Got translations result:", res);
+      let out:TranslationTable = [];
+      if(res && res.keys && res.translations) {
+        // // let keys = res.keys;
+        // // let translations = res.translations;
+        // // return res;
         let keys = res.keys;
         let translations = res.translations;
-        let translateKeys = Object.keys(translations);
-        let allTranslations:any = {};
-        for(let translateKey of translateKeys) {
-          let values = translations[translateKey];
-          let record:any = {
-            key: translateKey,
-          };
-          for(let langKey of keys) {
-            let idx = keys.indexOf(langKey);
-            record[langKey] = values[idx];
-          }
-          out.push(record);
-        }
-        // for(let langKey of keys) {
-        //   let idx = keys.indexOf(langKey);
-        //   let langTranslations:any = {};
-        //   for(let key of translateKeys) {
-        //     langTranslations[key] = translations[key][idx];
+        // let out = this.translationsToTable(keys, translations);
+        // let translateKeys = Object.keys(translations);
+        // // let allTranslations:any = {};
+        // for(let translateKey of translateKeys) {
+        //   let values = translations[translateKey];
+        //   let record:any = {
+        //     key: translateKey,
+        //   };
+        //   for(let langKey of keys) {
+        //     let idx = keys.indexOf(langKey);
+        //     record[langKey] = values[idx];
         //   }
-        //   allTranslations[langKey] = langTranslations;
+        //   out.push(record);
         // }
+        // // for(let langKey of keys) {
+        // //   let idx = keys.indexOf(langKey);
+        // //   let langTranslations:any = {};
+        // //   for(let key of translateKeys) {
+        // //     langTranslations[key] = translations[key][idx];
+        // //   }
+        // //   allTranslations[langKey] = langTranslations;
+        // // }
+        out = this.translationsToTable(keys, translations);
       } else {
-        Log.w("Server.loadTranslations(): Invalid translation document");
+        Log.w("Server.loadTranslationTable(): Invalid translation document");
         // return null;
       }
       return out;
     } catch(err) {
-      Log.l(`Server.loadTranslations(): Error loading translations`);
+      Log.l(`Server.loadTranslationTable(): Error loading translations`);
       Log.e(err);
       throw err;
     }

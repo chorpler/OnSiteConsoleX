@@ -720,7 +720,7 @@ export class ReportMaintenance {
     if(isMoment(start) && isMoment(end)) {
       return end.diff(start, 'hours', true);
     } else {
-      Log.w(`ReportMaintenance.getTaskHours(): Could not get hours for task:`, task);
+      // Log.w(`ReportMaintenance.getTaskHours(): Could not get hours for task:`, task);
       return 0;
     }
   }
@@ -827,7 +827,7 @@ export class ReportMaintenance {
         let hrs:number = end.diff(start, units, true);
         hours += hrs;
       } else {
-        Log.w(`ReportMaintenance.getTotalTime(): Invalid time found in portion:`, task);
+        // Log.w(`ReportMaintenance.getTotalTime(): Invalid time found in portion:`, task);
       }
     }
     if(round) {

@@ -1622,6 +1622,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
         Log.l("OnSiteConsoleX.fetchAllData(): About to begin fetching data...");
         let res:any = await this.fetchData();
         Log.l("OnSiteConsoleX.fetchAllData(): done fetching data.");
+        res = await this.loadTranslations();
         this.data.status.ready   = true;
         this.data.status.loading = false;
         return true;
@@ -1701,9 +1702,16 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
       this.data.config.training_types     = res['training_types']     ;
       this.data.report_types              = res['report_types']       ;
       this.data.training_types            = res['training_types']     ;
-      this.data.config.maintenance_enouns = res['maintenance_enouns'] ;
-      this.data.config.maintenance_mnouns = res['maintenance_mnouns'] ;
-      this.data.config.maintenance_verbs  = res['maintenance_verbs']  ;
+      let EWORDS = res['maintenance_enouns'] ;
+      let MWORDS = res['maintenance_mnouns'] ;
+      let VERBS  = res['maintenance_verbs']  ;
+      this.data.config.maintenance_enouns = EWORDS ;
+      this.data.config.maintenance_mnouns = MWORDS ;
+      this.data.config.maintenance_verbs  = VERBS  ;
+      ReportMaintenance.EWORDS = EWORDS;
+      ReportMaintenance.MWORDS = MWORDS;
+      ReportMaintenance.VERBS = VERBS;
+  
       // return this.db.getDPSSettings();
       this.data.loaded.config = true;
       updateLoaderStatus("sesa-dps-config");
@@ -2610,9 +2618,18 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
   public async loadTranslations():Promise<any> {
     try {
       Log.l(`OnSiteConsole.loadTranslations(): Called …`);
-      let res = await this.server.loadTranslations();
-      let keys = res.keys;
-      // let translations = res.translations;
+      let res = await this.server.loadRawTranslations();
+      if(res && res.keys && res.translations) {
+        let keys = res.keys;
+        let translations = res.translations;
+        this.data.langKeys = keys;
+        this.data.translations = translations;
+        let table = this.data.translationsToTable(keys, translations);
+        this.data.translationsTable = table;
+      } else {
+        Log.l(`OnSiteConsole.loadTranslations(): Error, could not find proper structures in database record:`, res);
+      }
+      
       // let translateKeys = Object.keys(translations);
       // let allTranslations:any = {};
       // for(let langKey of keys) {
@@ -2634,4 +2651,5 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
     }
   }
 
+  
 }

@@ -407,285 +407,6 @@ export class Preferences {
   //   return url;
   // }
 
-
-  public static getKeys():string[] {
-    let keys:string[] = [
-      'DB',
-      'CONSOLE',
-      'USER',
-      'CAMERA',
-      'DEVELOPER',
-      'SERVER',
-    ];
-    return keys;
-  }
-
-  public getKeys():string[] {
-    return Preferences.getKeys();
-  }
-
-  public static initializePrefs():any {
-    Preferences.DB = {
-      'reports'       : reports       ,
-      'reports_other' : reports_other ,
-      'employees'     : employees     ,
-      'config'        : config        ,
-      'jobsites'      : jobsites      ,
-      'scheduling'    : scheduling    ,
-      'invoices'      : invoices      ,
-      'invoices_be'   : invoices_be   ,
-      'invoices_hb'   : invoices_hb   ,
-      'invoices_kn'   : invoices_kn   ,
-      'technicians'   : technicians   ,
-      'messages'      : messages      ,
-      'comments'      : comments      ,
-      'phoneInfo'     : phoneInfo     ,
-      'sounds'        : sounds        ,
-      'login'         : login         ,
-      // 'geolocation'   : geolocation   ,
-      'preauths'      : preauths      ,
-      'worksites'     : worksites     ,
-      'timesheets'    : timesheets    ,
-      'logistics'     : logistics     ,
-      'timecards'     : timecards     ,
-      'drivings'      : drivings      ,
-      'maintenances'  : maintenances  ,
-      'preferences'   : preferences   ,
-      'translations'  : translations  ,
-      'locations'     : locations     ,
-      'reports_old01' : reports_old01 ,
-      'reports_old02' : reports_old02 ,
-      'reports_old'   : reports_old   ,
-    };
-    Preferences.SERVER = {
-      localAdapter: adapter,
-      server: server,
-      port: port,
-      protocol: protocol,
-      database: login,
-      opts: { auto_compaction: true, get adapter():string { return Preferences.SERVER.protocol; }, set adapter(val:string) {Preferences.SERVER.protocol = val;}, skip_setup: true },
-      // ropts: {
-      //   get adapter() {return Preferences.SERVER.opts.adapter; },
-      //   set adapter(value:string) {Preferences.SERVER.opts.adapter = value;},
-      //   skip_setup: true
-      // },
-      // ropts: {
-      //   get adapter() {return Preferences.SERVER.opts.adapter; },
-      //   set adapter(value:string) {Preferences.SERVER.opts.adapter = value;},
-      //   skip_setup: true,
-      //   auth: {
-      //     username: '',
-      //     password: '',
-      //   },
-      //   ajax: {
-      //     headers: {
-      //       Authorization: '',
-      //     },
-      //     withCredentials: true,
-      //   },
-      // },
-      ropts: {
-        skip_setup: true,
-        auth: {
-          username: '',
-          password: '',
-        },
-      },
-      cropts: {
-        get adapter() { return Preferences.SERVER.opts.adapter; },
-        set adapter(value: string) { Preferences.SERVER.opts.adapter = value; },
-      },
-      repopts: { live: false, retry: false, continuous: false, complete: false },
-      ajaxOpts: { headers: { Authorization: '' } },
-      remoteDBInfo: {},
-      rdbServer: {
-        get protocol() { return Preferences.SERVER.opts.adapter; },
-        set protocol(value: string) { Preferences.SERVER.opts.adapter = value; },
-        get server() { return Preferences.SERVER.server;},
-        set server(value:string) { Preferences.SERVER.server = value;},
-        get opts() { return Preferences.SERVER.ropts;},
-        set opts(value:any) { Preferences.SERVER.ropts = value;},
-      }
-    };
-    Preferences.USER = {
-      preferencesVersion: version,
-      language: 'en',
-      shifts: 7,
-      gpsTimeout: 5000,
-      showTimeCardsInHistory: false,
-      payroll_periods: 2,
-      audio: false,
-      stayInReports: false,
-      spinnerSpeed: 10,
-      messageCheckInterval: 15,
-      time24Hour: false,
-      dateTimeCustom: false,
-      timeFormat: "HH:mm",
-      timeFormat12: "h:mm A",
-      timeFormat24: "HH:mm",
-      dateFormatLong: "YYYY-MM-DD",
-      dateFormatShort: "MMM D",
-      timeFormatShort: "HH:mm",
-      timeFormatShort12: "h:mm A",
-      timeFormatShort24: "HH:mm",
-      timeFormatLong: "HH:mm:ss",
-      timeFormatLong12: "h:mm:ss A",
-      timeFormatLong24: "HH:mm:ss",
-      userDateFormatLong: "YYYY-MM-DD",
-      userDateFormatShort: "MMM D",
-      userTimeFormat: "",
-      userTimeFormatLong: "HH:mm:ss",
-      userTimeFormatShort: "HH:mm",
-      lastReportType: "",
-      showReportTypeIcons: true,
-      showReportDates: false,
-      showReportTimes: false,
-      showOfficeReportTimes: true,
-      debounceTime: 1500,
-      vibration: true,
-      readMessageList: [],
-      minAutosizeRows: 1,
-      maxAutosizeRows: 10,
-    };
-    Preferences.CAMERA = {
-      quality            : 50   ,
-      destinationType    : 2    ,
-      encodingType       : 0    ,
-      mediaType          : 0    ,
-      correctOrientation : true ,
-    };
-    Preferences.CONSOLE = {
-      global: {
-        // payroll_periods: 4,
-        // loadEmployees: true,
-        // loadSites: true,
-        // loadReports: false,
-        // loadMiscReports: false,
-        // loadOldReports: false,
-        // weekStartDay: 3,
-        payroll_periods: 4,
-        loadEmployees: true,
-        loadSites: true,
-        loadReports: false,
-        loadMiscReports: false,
-        loadLogisticsReports: true,
-        loadMaintenanceReports: true,
-        loadDrivingReports: true,
-        loadTimeCardReports: true,
-        loadOldReports: false,
-        weekStartDay: 3,
-        reportsToLoad: 1000000,
-        goToLastPage: true,
-        lastPage: '',
-        timeFormat24: false,
-        timeFormat: "hh:mm A",
-        dateFormatShort: "MMM DD",
-        dateFormatMed: "DD MMM YYYY",
-        dateFormatLong: "ddd DD MMM YYYY",
-        dateFormatSort: "YYYY-MM-DD",
-        dateTimeFormat: "YYYY-MM-DD HH:mm",
-      },
-      loadAtStartup: {
-        employees: true,
-        sites: true,
-        reports: false,
-        others: false,
-        logistics: true,
-        maintenances: true,
-        drivings: true,
-        timecards: true,
-        oldReports: false,
-      },
-      employeeView: {
-        showAllSites: false,
-      },
-      scheduling: {
-        persistTechChanges: false,
-        showAllSites: true,
-        showOffice: false,
-        showTestSites: false,
-        allDatesAvailable: false,
-        lastScheduleUsed: "",
-      },
-      payroll: {
-        payroll_periods: 4,
-        showColors: true,
-        showShiftLength: true,
-        showAlerts: false,
-        exportUseQuickbooksName: true,
-        minHoursWhenOn: 20,
-        maxHoursWhenOff: 15,
-      },
-      techshiftreports: {
-        showAllSites: false,
-        showAllTechs: false,
-        payroll_periods: 4,
-      },
-      hbpreauth: {
-        showAllSites: false,
-        payroll_periods: 4,
-      },
-      jobsites: {
-        autoLayoutTable: false,
-        tableResizeMode: 'fit',
-      },
-      techphones: {
-        autoLayoutTable: false,
-        tableResizeMode: 'fit',
-      },
-      pages: {
-        reports: 25,
-        others: 25,
-        logistics: 25,
-        maintenances: 25,
-        drivings: 25,
-        timecards: 25,
-        employees: 200,
-        jobsites: 50,
-        techphones: 100,
-      },
-      pageSizes: {
-        reports: [5,10,15,20,25,50,100,200,500,1000,2000],
-        others: [5,10,15,20,25,50,100,200,500,1000,2000],
-        logistics: [5,10,15,20,25,50,100,200,500,1000,2000],
-        maintenances: [5,10,15,20,25,50,100,200,500,1000,2000],
-        drivings: [5,10,15,20,25,50,100,200,500,1000,2000],
-        timecards: [5,10,15,20,25,50,100,200,500,1000,2000],
-        employees: [5,10,15,20,25,30,50,100,150,200,250,300,400,500],
-        jobsites: [5,10,20,30,40,50,100,200],
-        techphones: [50,100,200,500,1000],
-      },
-    };
-    Preferences.DEVELOPER = {
-      showDocID: false,
-      showDocRev: false,
-      showReportTimes: false,
-      showReportSite: false,
-    };
-    let defaultPreferences:PreferencesDoc = {
-      DB: oo.clone(Preferences.DB),
-      CONSOLE: oo.clone(Preferences.CONSOLE),
-      USER: oo.clone(Preferences.USER),
-      CAMERA: oo.clone(Preferences.CAMERA),
-      DEVELOPER: oo.clone(Preferences.DEVELOPER),
-      SERVER: oo.clone(Preferences.SERVER),
-    };
-    this.defaultPrefs = defaultPreferences;
-    return defaultPreferences;
-  }
-
-  public initializePrefs():PreferencesDoc {
-    return Preferences.initializePrefs();
-  }
-
-  public static getDefaultPrefs():PreferencesDoc {
-    return Preferences.defaultPrefs;
-  }
-
-  public getDefaultPrefs():PreferencesDoc {
-    return Preferences.defaultPrefs;
-  }
-
   public static getRemoteURL():string {
     let prot = Preferences.getProtocol();
     let host = Preferences.getHostname();
@@ -1627,4 +1348,280 @@ export class Preferences {
   //     },
   //   };
   // }
+  public static getDefaultPrefs():PreferencesDoc {
+    return Preferences.defaultPrefs;
+  }
+
+  public getDefaultPrefs():PreferencesDoc {
+    return Preferences.defaultPrefs;
+  }
+
+  public static getKeys():string[] {
+    let keys:string[] = [
+      'DB',
+      'CONSOLE',
+      'USER',
+      'CAMERA',
+      'DEVELOPER',
+      'SERVER',
+    ];
+    return keys;
+  }
+
+  public getKeys():string[] {
+    return Preferences.getKeys();
+  }
+
+  public static initializePrefs():any {
+    Preferences.DB = {
+      'reports'       : reports       ,
+      'reports_other' : reports_other ,
+      'employees'     : employees     ,
+      'config'        : config        ,
+      'jobsites'      : jobsites      ,
+      'scheduling'    : scheduling    ,
+      'invoices'      : invoices      ,
+      'invoices_be'   : invoices_be   ,
+      'invoices_hb'   : invoices_hb   ,
+      'invoices_kn'   : invoices_kn   ,
+      'technicians'   : technicians   ,
+      'messages'      : messages      ,
+      'comments'      : comments      ,
+      'phoneInfo'     : phoneInfo     ,
+      'sounds'        : sounds        ,
+      'login'         : login         ,
+      // 'geolocation'   : geolocation   ,
+      'preauths'      : preauths      ,
+      'worksites'     : worksites     ,
+      'timesheets'    : timesheets    ,
+      'logistics'     : logistics     ,
+      'timecards'     : timecards     ,
+      'drivings'      : drivings      ,
+      'maintenances'  : maintenances  ,
+      'preferences'   : preferences   ,
+      'translations'  : translations  ,
+      'locations'     : locations     ,
+      'reports_old01' : reports_old01 ,
+      'reports_old02' : reports_old02 ,
+      'reports_old'   : reports_old   ,
+    };
+    Preferences.SERVER = {
+      localAdapter: adapter,
+      server: server,
+      port: port,
+      protocol: protocol,
+      database: login,
+      opts: { auto_compaction: true, get adapter():string { return Preferences.SERVER.protocol; }, set adapter(val:string) {Preferences.SERVER.protocol = val;}, skip_setup: true },
+      // ropts: {
+      //   get adapter() {return Preferences.SERVER.opts.adapter; },
+      //   set adapter(value:string) {Preferences.SERVER.opts.adapter = value;},
+      //   skip_setup: true
+      // },
+      // ropts: {
+      //   get adapter() {return Preferences.SERVER.opts.adapter; },
+      //   set adapter(value:string) {Preferences.SERVER.opts.adapter = value;},
+      //   skip_setup: true,
+      //   auth: {
+      //     username: '',
+      //     password: '',
+      //   },
+      //   ajax: {
+      //     headers: {
+      //       Authorization: '',
+      //     },
+      //     withCredentials: true,
+      //   },
+      // },
+      ropts: {
+        skip_setup: true,
+        auth: {
+          username: '',
+          password: '',
+        },
+      },
+      cropts: {
+        get adapter() { return Preferences.SERVER.opts.adapter; },
+        set adapter(value: string) { Preferences.SERVER.opts.adapter = value; },
+      },
+      repopts: { live: false, retry: false, continuous: false, complete: false },
+      ajaxOpts: { headers: { Authorization: '' } },
+      remoteDBInfo: {},
+      rdbServer: {
+        get protocol() { return Preferences.SERVER.opts.adapter; },
+        set protocol(value: string) { Preferences.SERVER.opts.adapter = value; },
+        get server() { return Preferences.SERVER.server;},
+        set server(value:string) { Preferences.SERVER.server = value;},
+        get opts() { return Preferences.SERVER.ropts;},
+        set opts(value:any) { Preferences.SERVER.ropts = value;},
+      }
+    };
+    Preferences.USER = {
+      preferencesVersion: version,
+      language: 'en',
+      shifts: 7,
+      gpsTimeout: 5000,
+      showTimeCardsInHistory: false,
+      payroll_periods: 2,
+      audio: false,
+      stayInReports: false,
+      spinnerSpeed: 10,
+      messageCheckInterval: 15,
+      time24Hour: false,
+      dateTimeCustom: false,
+      timeFormat: "HH:mm",
+      timeFormat12: "h:mm A",
+      timeFormat24: "HH:mm",
+      dateFormatLong: "YYYY-MM-DD",
+      dateFormatShort: "MMM D",
+      timeFormatShort: "HH:mm",
+      timeFormatShort12: "h:mm A",
+      timeFormatShort24: "HH:mm",
+      timeFormatLong: "HH:mm:ss",
+      timeFormatLong12: "h:mm:ss A",
+      timeFormatLong24: "HH:mm:ss",
+      userDateFormatLong: "YYYY-MM-DD",
+      userDateFormatShort: "MMM D",
+      userTimeFormat: "",
+      userTimeFormatLong: "HH:mm:ss",
+      userTimeFormatShort: "HH:mm",
+      lastReportType: "",
+      showReportTypeIcons: true,
+      showReportDates: false,
+      showReportTimes: false,
+      showOfficeReportTimes: true,
+      debounceTime: 1500,
+      vibration: true,
+      readMessageList: [],
+      minAutosizeRows: 1,
+      maxAutosizeRows: 10,
+    };
+    Preferences.CAMERA = {
+      quality            : 50   ,
+      destinationType    : 2    ,
+      encodingType       : 0    ,
+      mediaType          : 0    ,
+      correctOrientation : true ,
+    };
+    Preferences.CONSOLE = {
+      scripts: {
+        maps         : `https://maps.google.com/maps/api/js?key=${gmkey}` ,
+        charts       : "https://www.gstatic.com/charts/loader.js"         ,
+        quill        : "build/quill.js"                                   ,
+        fullcalendar : "build/fullcalendar.min.js"                        ,
+      },
+      global: {
+        payroll_periods: 4,
+        loadEmployees: true,
+        loadSites: true,
+        loadReports: false,
+        loadMiscReports: false,
+        loadLogisticsReports: true,
+        loadMaintenanceReports: true,
+        loadDrivingReports: true,
+        loadTimeCardReports: true,
+        loadOldReports: false,
+        weekStartDay: 3,
+        reportsToLoad: 1000000,
+        goToLastPage: true,
+        lastPage: '',
+        timeFormat24: false,
+        timeFormat: "hh:mm A",
+        dateFormatShort: "MMM DD",
+        dateFormatMed: "DD MMM YYYY",
+        dateFormatLong: "ddd DD MMM YYYY",
+        dateFormatSort: "YYYY-MM-DD",
+        dateTimeFormat: "YYYY-MM-DD HH:mm",
+      },
+      loadAtStartup: {
+        employees: true,
+        sites: true,
+        reports: false,
+        others: false,
+        logistics: true,
+        maintenances: true,
+        drivings: true,
+        timecards: true,
+        oldReports: false,
+      },
+      employeeView: {
+        showAllSites: false,
+      },
+      scheduling: {
+        persistTechChanges: false,
+        showAllSites: true,
+        showOffice: false,
+        showTestSites: false,
+        allDatesAvailable: false,
+        lastScheduleUsed: "",
+      },
+      payroll: {
+        payroll_periods: 4,
+        showColors: true,
+        showShiftLength: true,
+        showAlerts: false,
+        exportUseQuickbooksName: true,
+        minHoursWhenOn: 20,
+        maxHoursWhenOff: 15,
+      },
+      techshiftreports: {
+        showAllSites: false,
+        showAllTechs: false,
+        payroll_periods: 4,
+      },
+      hbpreauth: {
+        showAllSites: false,
+        payroll_periods: 4,
+      },
+      jobsites: {
+        autoLayoutTable: false,
+        tableResizeMode: 'fit',
+      },
+      techphones: {
+        autoLayoutTable: false,
+        tableResizeMode: 'fit',
+      },
+      pages: {
+        reports: 25,
+        others: 25,
+        logistics: 25,
+        maintenances: 25,
+        drivings: 25,
+        timecards: 25,
+        employees: 200,
+        jobsites: 50,
+        techphones: 100,
+      },
+      pageSizes: {
+        reports: [5,10,15,20,25,50,100,200,500,1000,2000],
+        others: [5,10,15,20,25,50,100,200,500,1000,2000],
+        logistics: [5,10,15,20,25,50,100,200,500,1000,2000],
+        maintenances: [5,10,15,20,25,50,100,200,500,1000,2000],
+        drivings: [5,10,15,20,25,50,100,200,500,1000,2000],
+        timecards: [5,10,15,20,25,50,100,200,500,1000,2000],
+        employees: [5,10,15,20,25,30,50,100,150,200,250,300,400,500],
+        jobsites: [5,10,20,30,40,50,100,200],
+        techphones: [50,100,200,500,1000],
+      },
+    };
+    Preferences.DEVELOPER = {
+      showDocID: false,
+      showDocRev: false,
+      showReportTimes: false,
+      showReportSite: false,
+    };
+    let defaultPreferences:PreferencesDoc = {
+      DB: oo.clone(Preferences.DB),
+      CONSOLE: oo.clone(Preferences.CONSOLE),
+      USER: oo.clone(Preferences.USER),
+      CAMERA: oo.clone(Preferences.CAMERA),
+      DEVELOPER: oo.clone(Preferences.DEVELOPER),
+      SERVER: oo.clone(Preferences.SERVER),
+    };
+    this.defaultPrefs = defaultPreferences;
+    return defaultPreferences;
+  }
+
+  public initializePrefs():PreferencesDoc {
+    return Preferences.initializePrefs();
+  }
 }

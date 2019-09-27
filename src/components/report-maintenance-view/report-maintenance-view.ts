@@ -3,6 +3,7 @@ import { Subscription                                         } from 'rxjs'     
 import { sprintf                                              } from 'sprintf-js'                    ;
 import { Component, OnInit, OnDestroy, NgZone, Input, Output, } from '@angular/core'                 ;
 import { ElementRef, ViewChild, EventEmitter,                 } from '@angular/core'                 ;
+import { ViewChildren, QueryList,                             } from '@angular/core'                 ;
 import { OptionsComponent                                     } from 'components/options/options'    ;
 import { ServerService                                        } from 'providers/server-service'      ;
 import { DBService                                            } from 'providers/db-service'          ;
@@ -10,32 +11,42 @@ import { AuthService                                          } from 'providers/
 import { AlertService                                         } from 'providers/alert-service'       ;
 import { OSData                                               } from 'providers/data-service'        ;
 import { NumberService                                        } from 'providers/number-service'      ;
-import { Jobsite, MaintenanceTask, MaintenanceTasks                                              } from 'domain/onsitexdomain'          ;
+import { Jobsite                                              } from 'domain/onsitexdomain'          ;
 import { Employee                                             } from 'domain/onsitexdomain'          ;
 import { ReportMaintenance                                    } from 'domain/onsitexdomain'          ;
 import { Schedule                                             } from 'domain/onsitexdomain'          ;
 import { Shift                                                } from 'domain/onsitexdomain'          ;
 import { PayrollPeriod                                        } from 'domain/onsitexdomain'          ;
+import { MaintenanceTask                                      } from 'domain/onsitexdomain'          ;
+import { MaintenanceTasks                                     } from 'domain/onsitexdomain'          ;
+import { MaintenanceNouns                                     } from 'domain/onsitexdomain'          ;
+import { MaintenanceVerbs                                     } from 'domain/onsitexdomain'          ;
+import { MaintenanceTaskType                                  } from 'domain/onsitexdomain'          ;
+import { MaintenanceNoun                                      } from 'domain/onsitexdomain'          ;
+import { MaintenanceVerb                                      } from 'domain/onsitexdomain'          ;
+import { MaintenanceTaskTypes                                 } from 'domain/onsitexdomain'          ;
 import { Log, moment, Moment, isMoment, oo, _dedupe,          } from 'domain/onsitexdomain'          ;
 import { SESAClient, SESALocation, SESALocID, SESAAux,        } from 'domain/onsitexdomain'          ;
 import { Message, SelectItem, InputTextarea, Dropdown,        } from 'primeng/primeng'               ;
 import { NotifyService                                        } from 'providers/notify-service'      ;
 import { Command, KeyCommandService                           } from 'providers/key-command-service' ;
 import { Calendar                                             } from 'primeng/calendar'              ;
-import { stringify } from 'querystring';
+import { MultiSelect                                          } from 'primeng/multiselect'           ;
 
 @Component({
   selector: 'report-maintenance-view',
   templateUrl: 'report-maintenance-view.html',
 })
 export class ReportMaintenanceView implements OnInit,OnDestroy {
-  @ViewChild('startTimeCal') startTimeCal:Calendar;
-  @ViewChild('endTimeCal') endTimeCal:Calendar;
+  @ViewChild('tasksScroller') tasksScroller:ElementRef;
+  @ViewChildren('startTimeCal') startTimeCalList:QueryList<Calendar>;
+  @ViewChildren('endTimeCal') endTimeCalList:QueryList<Calendar>;
+  @ViewChildren('taskTechsSelect') techsSelectList:QueryList<MultiSelect>;
   @Input('mode')       mode : string = "edit"     ;
   @Input('shift')     shift : Shift               ;
   @Input('period')   period : PayrollPeriod       ;
   @Input('report')   report : ReportMaintenance   ;
-  @Input('reports') reports : ReportMaintenance[]  = []      ;
+  @Input('reports') reports : ReportMaintenance[]  = [];
   @Input('tech')       tech : Employee            ;
   @Input('site')       site : Jobsite             ;
   @Input('sites')     sites : Jobsite[] = []      ;
@@ -45,12 +56,21 @@ export class ReportMaintenanceView implements OnInit,OnDestroy {
   @Output('save')     save = new EventEmitter<any>();
 
   public title      : string         = "View Maintenance Report";
-  public visible    : boolean        = true               ;
-  public dialogLeft : number         = 250                ;
-  public dialogTop  : number         = 100                ;
   public header     : string         = "View Maintenance Report";
-  public keySubscription: Subscription                    ;
 
+  public visible        : boolean        = true               ;
+  public dialogLeft     : number         = 250                ;
+  public dialogTop      : number         = 100                ;
+  public dialogTarget   : any            = null               ;
+  public dropdownTarget : any            = 'body'             ;
+  public calendarTarget : any            = 'body'             ;
+  public dialogStyle    : any = {
+    // overflow: 'visible',
+    overflow: 'auto',
+  };
+
+  public keySubscription: Subscription                    ;
+  
   public moment                      = moment             ;
   public idx        : number         = 0                  ;
   public count      : number         = 0                  ;
@@ -58,6 +78,31 @@ export class ReportMaintenanceView implements OnInit,OnDestroy {
   public client     : any            ;
   public location   : any            ;
   public locID      : any            ;
+  public allTechs   : Employee[]     = []                 ;
+  public techs      : Employee[]     = []                 ;
+  
+  public dirty      : boolean        = false              ;
+  public includeMiddleName:boolean = true;
+  public reverseTechLabel:boolean  = false;
+
+  public selectedType              : MaintenanceTaskType;
+  public selectedNoun              : MaintenanceNoun;
+  public selectedVerb              : MaintenanceVerb;
+  public taskTypes                 : MaintenanceTaskTypes = [];
+  public taskMNouns                : MaintenanceNouns = [];
+  public taskENouns                : MaintenanceNouns = [];
+  public taskNouns                 : MaintenanceNouns = [];
+  public taskVerbs                 : MaintenanceVerbs = [];
+  public selectedTaskType          : MaintenanceTaskType;
+  public selectedTaskNoun          : MaintenanceTaskType;
+  public selectedTaskVerb          : MaintenanceTaskType;
+  public selectedTechsLabel        : string = "{0} techs selected";
+
+  public techsMenu      : SelectItem[] = [];
+  public taskTypesMenu  : SelectItem[] = [];
+  public taskMNounsMenu : SelectItem[] = [];
+  public taskENounsMenu : SelectItem[] = [];
+  public taskVerbsMenu  : SelectItem[] = [];
 
   public clients     :any[]           = []                 ;
   public locations   :any[]           = []                 ;
@@ -65,6 +110,8 @@ export class ReportMaintenanceView implements OnInit,OnDestroy {
   public repair_hours:number = 0;
   public time_start  :Date           = new Date()         ;
   public time_end    :Date           = new Date()         ;
+  public defaultStartDate:Date       = new Date()         ;
+  public defaultEndDate:Date         = new Date()         ;
   public siteList    :SelectItem[]   = []                 ;
   public clientList  :SelectItem[]   = []                 ;
   public locationList:SelectItem[]   = []                 ;
@@ -75,9 +122,16 @@ export class ReportMaintenanceView implements OnInit,OnDestroy {
   public reportTimeError:boolean     = false              ;
   public stepMinute  :number         = 15                 ;
   public dropdownScroll : string     = "200px"            ;
+  // public calendarDataType:string     = 'date'             ;
+  public reportDateDataType:string     = 'date'           ;
+  public calendarDataType:string     = 'string'           ;
+  // public firstIfNull :boolean        = false              ;
+  public scrollDelay :number         = 200                ;
+  public firstIfNull :boolean        = true               ;
   public detailedSite:boolean        = false              ;
   public dataReady   :boolean        = false              ;
   public taskTimes   :{start:Date,end?:Date}[] = [];
+  public tasksVisible:boolean[] = [];
 
   constructor(
     public db         : DBService         ,
@@ -146,13 +200,16 @@ export class ReportMaintenanceView implements OnInit,OnDestroy {
     let site = this.getReportLocation();
     this.site = site;
     let report = this.report;
+    this.allTechs = this.data.getData('employees');
+    this.techs = this.allTechs.slice(0);
     this.setHeader();
+    this.initializeSelections();
     this.createMenuLists();
+    this.createTaskVisibilityArray();
     this.updateDisplay(report);
     // let report_date = rpt.getReportDateAsMoment().toDate();
     // this.report_date = report_date;
     this.report_date = rpt.getReportDateMoment().toDate();
-
 
     this.dataReady = true;
   }
@@ -160,7 +217,7 @@ export class ReportMaintenanceView implements OnInit,OnDestroy {
   public setHeader(idx?:number) {
     let count = this.reports.length;
     let index = idx || this.idx;
-    this.header = `View Report (${index+1} / ${count})`;
+    this.header = `View Maintenance Report (${index+1} / ${count})`;
     return this.header;
   }
 
@@ -199,11 +256,88 @@ export class ReportMaintenanceView implements OnInit,OnDestroy {
       let item:SelectItem = {label: val.fullName, value: val}
       locIDList.push(item);
     }
+    let emptyType = {
+      label: "(Select Task Type)",
+      value: null,
+    };
+    let emptyNoun = {
+      label: "(Select Part/System)",
+      value: null,
+    };
+    let emptyVerb = {
+      label: "(Select Action)",
+      value: null,
+    };
+    // let emptyTech = {
+    //   label: "Select Technicians",
+    //   value: null,
+    // };
+    this.taskTypesMenu = this.taskTypes.map(a => {
+      let value = this.data.getMaintenanceWord(a);
+      let out:SelectItem = {
+        label : value,
+        value : a,
+      };
+      return out;
+    });
+    this.taskMNounsMenu = this.taskMNouns.map(a => {
+      let value = this.data.getMaintenanceWord(a);
+      let out:SelectItem = {
+        label : value,
+        value : a,
+      };
+      return out;
+    });
+    this.taskENounsMenu = this.taskENouns.map(a => {
+      let value = this.data.getMaintenanceWord(a);
+      let out:SelectItem = {
+        label : value,
+        value : a,
+      };
+      return out;
+    });
+    this.taskVerbsMenu = this.taskVerbs.map(a => {
+      let label = this.data.getMaintenanceWord(a);
+      let out:SelectItem = {
+        label : label,
+        value : a,
+      };
+      return out;
+    });
+    // this.taskTypesMenu.unshift(emptyType);
+    // this.taskMNounsMenu.unshift(emptyNoun);
+    // this.taskENounsMenu.unshift(emptyNoun);
+    // this.taskVerbsMenu.unshift(emptyVerb);
+    this.techsMenu = this.updateTechsMenu(this.includeMiddleName, this.reverseTechLabel);
     this.timeList     = timeList     ;
     this.siteList     = siteList     ;
     this.clientList   = clientList   ;
     this.locationList = locationList ;
     this.locIDList    = locIDList    ;
+  }
+
+  public updateTechsMenu(includeMiddle?:boolean, reversed?:boolean):SelectItem[] {
+    let middle = typeof includeMiddle === 'boolean' ? includeMiddle : true;
+    let nameFirst = typeof reversed === 'boolean' ? reversed : false;
+    this.techsMenu = this.techs.map(user => {
+      let label = user.getSelectableDescription(middle, nameFirst);
+      let username = user.getUsername();
+      let out:SelectItem = {
+        label : label,
+        value : username,
+      };
+      return out;
+    });
+    return this.techsMenu;
+  }
+
+  public initializeSelections() {
+    let rpt = this.report;
+    this.taskTypes  = rpt.getTaskTypes();
+    this.taskMNouns = rpt.getTaskNouns('mechanical');
+    this.taskENouns = rpt.getTaskNouns('electronic');
+    this.taskNouns  = rpt.getAllNouns();
+    this.taskVerbs  = rpt.getAllVerbs();
   }
 
   public updateDisplay(report?:ReportMaintenance) {
@@ -472,11 +606,36 @@ export class ReportMaintenanceView implements OnInit,OnDestroy {
     }
   }
 
+  public taskTypeUpdate(task:MaintenanceTask, evt?:Event) {
+    Log.l(`ReportMaintenanceView.taskTypeUpdate(): Called for task with event:`, task, evt);
+    let type = task && typeof task.type === 'string' ? task.type : "unknown";
+    let noun = task.noun;
+    let verb = task.verb;
+    let verbs  = ReportMaintenance.VERBS;
+    let mnouns = ReportMaintenance.MWORDS;
+    let enouns = ReportMaintenance.EWORDS;
+    if(type === 'mechanical') {
+      if(mnouns.indexOf(noun) === -1) {
+        task.noun = null;
+      }
+      task.verb = null;
+      this.dirty = true;
+    } else if(type === 'electronic') {
+      if(enouns.indexOf(noun) === -1) {
+        task.noun = null;
+      }
+      task.verb = null;
+      this.dirty = true;
+    } else {
+      Log.w(`ReportMaintenance.taskTypeUpdate(): Could not update task to type '${type}':`, task);
+    }
+  }
+
   public taskWordUpdate(wordType:'noun'|'verb', task:MaintenanceTask, evt?:Event) {
     Log.l(`ReportMaintenanceView.taskWordUpdate(): Called for '${wordType}' for task:`, task);
   }
 
-  public updateTaskTime(task:MaintenanceTask, timeToUpdate:'start'|'end', datetime:Date|Moment|string, evt?:Event) {
+  public updateTaskTime(task:MaintenanceTask, timeToUpdate:'start'|'end', datetime?:Date|Moment|string, evt?:Event) {
     Log.l(`ReportMaintenanceView.updateTaskTime(): Called for '${timeToUpdate}' time in task, with event:`, task, evt);
     let mo = moment(datetime);
     if(!isMoment(mo)) {
@@ -489,6 +648,29 @@ export class ReportMaintenanceView implements OnInit,OnDestroy {
       let time = mo.format();
       task[timeToUpdate] = time;
     }
+    // this.update.emit(rpt);
+  }
+
+  public openTaskTime(task:MaintenanceTask, timeOpened:'start'|'end', evt?:Event) {
+    Log.l(`ReportMaintenanceView.openTaskTime(): Called for '${timeOpened}' time in task, with event:`, task, evt);
+    // let mo = moment();
+    let time = this.getDefaultTaskTime(task);
+    let mo = moment(time);
+    if(timeOpened === 'start') {
+      this.defaultStartDate = mo.toDate();
+    } else if(timeOpened === 'end') {
+      this.defaultEndDate = mo.toDate();
+    }
+    // if(!isMoment(mo)) {
+    //   let text = `ReportMaintenanceView.openTaskTime(): invalid datetime provided`;
+    //   Log.w(text + ":", datetime);
+    //   let err = new Error(text);
+    //   throw err;
+    // } else {
+    //   let rpt:ReportMaintenance = this.report;
+    //   let time = mo.format();
+    //   task[timeToUpdate] = time;
+    // }
     // this.update.emit(rpt);
   }
 
@@ -681,9 +863,140 @@ export class ReportMaintenanceView implements OnInit,OnDestroy {
     } catch(err) {
       Log.l(`ReportMaintenanceView.possibleRemoveTask(): Error removing task:`, task);
       Log.e(err);
+      let title = "ERROR";
+      let text = "Error while removing the task from this report";
+      await this.alert.showErrorMessage(title, text, err);
+      // throw err;
+    }
+  }
+
+  public async addTaskToReport(evt?:Event):Promise<MaintenanceTasks> {
+    try {
+      Log.l(`ReportMaintenanceView.addTaskToReport(): Called with event:`, evt);
+      let rpt:ReportMaintenance = this.report;
+      let tasks:MaintenanceTasks = rpt.tasks;
+      let time = rpt.getLastTimeBlocked();
+      let start = moment(time);
+      this.tasksVisible.push(true);
+      let newDates = {start: start.toDate(), end: null};
+      this.taskTimes.push(newDates);
+      rpt.startEmptyTask(start);
+      let emptyTask = rpt.getLatestTask();
+      let stime = emptyTask.start;
+      let etime = moment(stime);
+      this.defaultEndDate = etime.toDate();
+      // rpt.tasks = rpt.tasks || [];
+      // rpt.tasks.push(task);
+      // this.tasksVisible.splice(idx, 1);
+      // this.update.emit(rpt);
+      return rpt.tasks;
+    } catch(err) {
+      Log.l(`ReportMaintenanceView.addTaskToReport(): Error removing task from maintenance report:`, this.report);
+      Log.e(err);
       throw err;
     }
   }
 
+  public async possibleAddTask(evt?:Event):Promise<any> {
+    try {
+      Log.l(`ReportMaintenanceView.possibleAddTask(): Called with event:`, evt);
+      let title = "ADD NEW TASK";
+      let text  = "Do you want to add a new task to this report?"
+      let confirm = await this.alert.showConfirmYesNo(title, text);
+      if(confirm) {
+        let res = await this.addTaskToReport(evt);
+        this.dirty = true;
+        await this.data.delay(this.scrollDelay);
+        if(this.tasksScroller && this.tasksScroller.nativeElement) {
+          let el:HTMLDivElement = this.tasksScroller.nativeElement;
+          let height = el.scrollHeight || 10000;
+          el.scrollTo(0, height);
+        }
+        // setTimeout(() => {
+        //   if(this.tasksScroller && this.tasksScroller.nativeElement) {
+        //     let el:HTMLDivElement = this.tasksScroller.nativeElement;
+        //     let height = el.scrollHeight || 10000;
+        //     el.scrollTo(0, height);
+        //   }
+        // }, this.scrollDelay);
+        return res;
+      }
+    } catch(err) {
+      Log.l(`ReportMaintenanceView.possibleAddTask(): Error adding new task`);
+      Log.e(err);
+      let title = "ERROR";
+      let text = "Error while adding new task to this report";
+      await this.alert.showErrorMessage(title, text, err);
+      // throw err;
+    }
+  }
+
+  public taskTechsChanged(task:MaintenanceTask, evt?:any) {
+    Log.l(`ReportMaintenanceView.taskTechsChanged(): Called for task and event:`, task, evt);
+  }
+
+  public updateTasks(report?:ReportMaintenance) {
+    let rpt = report && report instanceof ReportMaintenance ? report : this.report;
+    Log.l(`ReportMaintenanceView.updateTasks(): Called with report:`, report);
+    this.createTaskVisibilityArray(report);
+    this.updateDisplay();
+  }
+
+  public createTaskVisibilityArray(report?:ReportMaintenance) {
+    let rpt = report && report instanceof ReportMaintenance ? report : this.report;
+    if(rpt instanceof ReportMaintenance) {
+      Log.l(`ReportMaintenanceView.createTaskVisibilityArray(): Called with report and clone:`, rpt, rpt.clone());
+      let count = rpt.getTaskCount();
+      let visible:boolean[] = [];
+      for(let i = 0; i < count; i++) {
+        visible[i] = typeof this.tasksVisible[i] === 'boolean' ? this.tasksVisible[i] : true;
+      }
+      this.tasksVisible = visible;
+      Log.l(`ReportMaintenanceView.createTaskVisibilityArray(): Called with report and clone:`, rpt, rpt.clone());
+      return this.tasksVisible;
+    } else {
+      Log.w(`ReportMaintenanceView.createTaskVisibilityArray(): Error creating report visibility array for maintenance report:`, rpt);
+      if(!Array.isArray(this.tasksVisible)) {
+        this.tasksVisible = [];
+      }
+    }
+  }
+
+  public toggleTaskVisible(index:number, evt?:MouseEvent):boolean {
+    Log.l(`ReportMaintenancePage.toggleTaskVisible(): Called for ${index} …`);
+    this.tasksVisible[index] = !this.tasksVisible[index];
+    Log.l(`ReportMaintenancePage.toggleTaskVisible(): Visibility set to: ${this.tasksVisible[index]}`);
+    return this.tasksVisible[index];
+  }
+  
+  public formatMultipleTechs(techs:Array<Employee|string>):string {
+    if(Array.isArray(techs) && techs.length) {
+      // return techs.map(tech => tech.getUsername()).join(', ');
+      return techs.map(tech => {
+        if(typeof tech === 'string') {
+          return tech;
+        } else if(tech instanceof Employee) {
+          return tech.getUsername();
+        } else {
+          return '';
+        }
+      }).join(', ');
+    } else {
+      return "(NONE)";
+    }
+  }
+
+  public getDefaultTaskTime(task:MaintenanceTask):Date {
+    // let last = this.report.getLastTimeBlocked();
+    let time:Moment = moment().round(this.stepMinute, 'minutes');
+    if(task && task.start) {
+      time = moment(task.start);
+    }
+    if(task && task.end) {
+      time = moment(task.end);
+    }
+    Log.l(`getDefaultTaskTime(): Got time of:`, time.format());
+    return time.toDate();
+  }
 
 }
