@@ -1619,7 +1619,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
         return true;
       } else {
         this.data.status.loading = true;
-        Log.l("OnSiteConsoleX.fetchAllData(): About to begin fetching data...");
+        Log.l("OnSiteConsoleX.fetchAllData(): About to begin fetching data …");
         let res:any = await this.fetchData();
         Log.l("OnSiteConsoleX.fetchAllData(): done fetching data.");
         res = await this.loadTranslations();
@@ -2322,11 +2322,11 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
       let storedPrefs:any = await this.storage.persistentGet('PREFS');
       let updatePrefs = storedPrefs;
       if(storedPrefs) {
-        Log.l(`checkPreferences(): Found stored preferences, comparing...`);
+        Log.l(`checkPreferences(): Found stored preferences, comparing …`);
         updatePrefs = this.prefs.comparePrefs(storedPrefs);
         this.prefs.setPrefs(updatePrefs);
       } else {
-        Log.l(`checkPreferences(): No stored preferences found, comparing...`);
+        Log.l(`checkPreferences(): No stored preferences found, comparing …`);
         updatePrefs = this.prefs.getPrefs();
       }
       let version:number = this.prefs.getPreferencesVersion();
@@ -2346,7 +2346,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
   public async savePreferences(updatedPrefs?:any) {
     let spinnerID;
     try {
-      spinnerID = await this.alert.showSpinner('Saving preferences...');
+      spinnerID = await this.alert.showSpinner('Saving preferences …');
       let prefs = updatedPrefs ? updatedPrefs : this.prefs.getPrefs();
       let res:any = await this.storage.persistentSet('PREFS', prefs);
       Log.l("savePreferences: Preferences stored:\n", this.prefs.getPrefs());

@@ -10,7 +10,10 @@ import { PouchDBService, PDBChangeEvent,                        } from './pouchd
 import { AlertService                                           } from './alert-service'      ;
 import { StorageService                                         } from './storage-service'    ;
 import { ServerService                                          } from './server-service'     ;
-import { DBService, TranslationTable, TranslationRecord, TranslationTableRecord                                              } from './db-service'         ;
+import { DBService                                              } from './db-service'         ;
+import { TranslationTable                                       } from './db-service'         ;
+import { TranslationRecord                                      } from './db-service'         ;
+import { TranslationTableRecord                                 } from './db-service'         ;
 import { AuthService                                            } from './auth-service'       ;
 import { Preferences, DatabaseKey                               } from './preferences'        ;
 import { DispatchService, AppEvents, UpdateDBOptions,           } from './dispatch-service'   ;
