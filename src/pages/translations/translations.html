@@ -1,5 +1,5 @@
 <ion-header>
-  <ion-navbar>
+  <ion-navbar [class.dirty-in-page]="pageDirty">
     <ion-buttons left>
       <button ion-button menuToggle *ngIf="!modalMode && !data.currentlyOpeningPage">
         <ion-icon name="menu"></ion-icon>
@@ -10,7 +10,7 @@
       <ion-spinner name="bubbles" [class.spinner-opening-page]="true" *ngIf="data.currentlyOpeningPage"></ion-spinner>
     </ion-buttons>
     <ion-title>
-      <span class="page-title">{{title}}</span>
+      <span class="page-title">{{title}}<span class="dirty-caption" *ngIf="pageDirty"> (unsaved changes)</span></span>
     </ion-title>
     <ion-buttons right>
       <span class="menubar-buttons">
@@ -48,7 +48,8 @@
 
 <!-- <ion-content padding *ngIf="dataReady && data.ready()"> -->
 <ion-content padding #translationsContent id="translations-content" *ngIf="dataReady" (paste)="onPaste($event)">
-  <p-panel #translationsPanel id="panel-translations" [styleClass]="'translations-panel'" [toggleable]="true">
+  <!-- <p-panel #translationsPanel id="panel-translations" [styleClass]="'translations-panel'" [class.dirty-in-panel]="panelDirty[0]" [toggleable]="true"> -->
+  <p-panel #translationsPanel id="panel-translations" [styleClass]="'translations-panel'" [class.dirty-in-panel]="panelDirty[0]" [toggleable]="true">
     <p-header>
       <span class="panel-header">
         <span class="button-left">
@@ -68,6 +69,7 @@
         </span> -->
         <span class="panel-title">
           OnSiteX Translations<span class="translation-count"> ({{translations?.length}} loaded<span class="translation-count-filtered" *ngIf="filteredCount">, {{filteredCount}} matches</span>)</span>
+          <span class="dirty-panel-caption" *ngIf="panelDirty[0]"> (unsaved changes)</span>
         </span>
         <span class="button-right">
           <span class="panel-header-button right" title="Reset this table (clear filters, selected rows, etc.)" (click)="resetTable(dt, $event)"><i class="fal fa-history"></i></span>
@@ -116,7 +118,8 @@
 
         <!-- Translation table body rows and columns (actual data) -->
         <ng-template pTemplate="body" let-rowData let-columns="columns" let-rowIndex="rowIndex">
-          <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex" [class.translation-row]="true" [class.dirty-row]="dirtyRows[0][rowIndex]">
+          <!-- <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex" [class.translation-row]="true" [class.dirty-row]="dirtyRows[0][rowIndex]"> -->
+          <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex" [class.translation-row]="true" [class.dirty-row]="rowData._meta.dirty">
             <td [class.button-col]="true" title="Edit translation record" (click)="editTranslation(rowData, $event)" *ngIf="showButtonCol && !deleteModes[0]">
               <span class="icon-button-wrapper">
                 <i class="fal fa-edit translation-button-icon"></i>
@@ -136,7 +139,7 @@
             <td pEditableColumn *ngFor="let col of columns; let i=index" [class.body-col]="true" [ngClass]="col?.class" [ngStyle]="col?.style">
               <p-cellEditor>
                 <ng-template pTemplate="input">
-                  <input pInputText type="text" [(ngModel)]="rowData[col.field]" (input)="dirtyUpRow(0, rowIndex)">
+                  <input pInputText type="text" [(ngModel)]="rowData[col.field]" (input)="dirtyUpRow(0, rowData, rowIndex)">
                 </ng-template>
                 <ng-template pTemplate="output">{{rowData[col?.field]}}</ng-template>
               </p-cellEditor>
@@ -149,7 +152,7 @@
     </div>
   </p-panel>
 
-  <p-panel #maintenancePanel id="panel-maintenance-translations" [styleClass]="'translations-panel'" [toggleable]="true">
+  <p-panel #maintenancePanel id="panel-maintenance-translations" [styleClass]="'translations-panel'" [class.dirty-in-panel]="panelDirty[1]" [toggleable]="true">
     <p-header>
       <span class="panel-header">
         <span class="button-left">
@@ -166,6 +169,7 @@
         </span> -->
         <span class="panel-title">
           Maintenance Translations<span class="translation-count"> ({{maint_words?.length}} loaded<span class="translation-count-filtered" *ngIf="filteredMaintCount">, {{filteredMaintCount}} matches</span>)</span>
+          <span class="dirty-panel-caption" *ngIf="panelDirty[1]"> (unsaved changes)</span>
         </span>
         <span class="button-right">
           <span class="panel-header-button right" title="Reset this table (clear filters, selected rows, etc.)" (click)="resetTable(maintTable, $event)"><i class="fal fa-history"></i></span>
@@ -215,7 +219,8 @@
         <!-- Report table body rows and columns (actual data) -->
         <ng-template pTemplate="body" let-rowData let-columns="columns" let-rowIndex="rowIndex">
           <!-- <tr [pEditableRow]="rowData" [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex"> -->
-          <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex" [class.translation-row]="true" [class.dirty-row]="dirtyRows[1][rowIndex]">
+          <!-- <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex" [class.translation-row]="true" [class.dirty-row]="dirtyRows[1][rowIndex]"> -->
+          <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex" [class.translation-row]="true" [class.dirty-row]="rowData._meta.dirty">
             <td [class.button-col]="true" title="View maintenance translation record" (click)="editMaintenance(rowData, $event)" *ngIf="showButtonCol && !deleteModes[1]">
               <span class="icon-button-wrapper">
                 <i class="fal fa-edit translation-button-icon"></i>
@@ -235,8 +240,8 @@
             <td pEditableColumn *ngFor="let col of columns; let i=index" [class.body-col]="true" [class.dropdown-col]="true" [ngClass]="col?.class" [ngStyle]="col?.style">
               <p-cellEditor>
                 <ng-template pTemplate="input">
-                  <input pInputText type="text" [(ngModel)]="rowData[col.field]" (input)="dirtyUpRow(1, rowIndex)" *ngIf="col.field !== 'maint_type'">
-                  <p-dropdown #maintTypeDropdown [options]="maintenanceTypes" [(ngModel)]="rowData[col.field]" [style]="{'width':'100%'}" (onChange)="dirtyUpRow(1, rowIndex)" *ngIf="col.field === 'maint_type'"></p-dropdown>
+                  <input pInputText type="text" [(ngModel)]="rowData[col.field]" (input)="dirtyUpRow(1, rowData, rowIndex)" *ngIf="col.field !== 'maint_type'">
+                  <p-dropdown #maintTypeDropdown [options]="maintenanceTypes" [(ngModel)]="rowData[col.field]" [style]="{'width':'100%'}" (onChange)="dirtyUpRow(1, rowData, rowIndex)" *ngIf="col.field === 'maint_type'"></p-dropdown>
                 </ng-template>
                 <ng-template pTemplate="output">{{rowData[col?.field]}}</ng-template>
               </p-cellEditor>

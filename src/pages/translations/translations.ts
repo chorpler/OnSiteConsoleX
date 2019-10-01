@@ -86,6 +86,8 @@ export class TranslationsPage implements OnInit,OnDestroy {
   public editMaint    : TranslationTableRecordKey;
 
   public dirtyRows    : boolean[][]         = [];
+  public panelDirty   : boolean[]           = [];
+  public pageDirty    : boolean             = false;
   public deleteModes  : boolean[]           = [false, false];
   public highlights   : boolean[][]         = [];
   
@@ -134,7 +136,7 @@ export class TranslationsPage implements OnInit,OnDestroy {
       // this.colsOthers = this.getOthersFields();
       // let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       let res:any = await this.loadTranslationData();
-      this.initializeDirtyRows();
+      this.initializeDirtyTrackers();
       this.dataReady = true;
       this.setPageLoaded();
       return true;
@@ -156,6 +158,24 @@ export class TranslationsPage implements OnInit,OnDestroy {
     }
   }
 
+  public initializeDirtyTrackers() {
+    this.pageDirty = false;
+    this.initializeDirtyPanels();
+    this.initializeDirtyRows();
+  }
+
+  public initializeDirtyPanels():boolean[] {
+    let tables = [
+      this.translations,
+      this.maint_words,
+    ];
+    this.panelDirty = [];
+    for(let table of tables) {
+      this.panelDirty.push(false);
+    }
+    return this.panelDirty;
+  }
+
   public initializeDirtyRows():boolean[][] {
     let dirtyRows:boolean[][] = [];
     let tables = [
@@ -165,6 +185,7 @@ export class TranslationsPage implements OnInit,OnDestroy {
     for(let table of tables) {
       let tableDirtyRows = [];
       for(let row of table) {
+        row._meta = {dirty: false};
         tableDirtyRows.push(false);
       }
       dirtyRows.push(tableDirtyRows);
@@ -173,20 +194,30 @@ export class TranslationsPage implements OnInit,OnDestroy {
     return dirtyRows;
   }
 
-  public dirtyUpRow(tableIndex:number, rowIndex:number) {
-    // let tables = [
-    //   this.translations,
-    //   this.maint_words,
-    // ];
+  public dirtyUpRow(tableIndex:number, rowData:TranslationTableRecord, rowIndex:number) {
+    let tables = [
+      this.translations,
+      this.maint_words,
+    ];
+    rowData._meta.dirty = true;
     this.dirtyRows[tableIndex][rowIndex] = true;
+    this.panelDirty[tableIndex] = true;
+    this.pageDirty = true;
   }
 
   public cleanUpRow(tableIndex:number, rowIndex:number) {
-    // let tables = [
-    //   this.translations,
-    //   this.maint_words,
-    // ];
+    let tables = [
+      this.translations,
+      this.maint_words,
+    ];
+    tables[tableIndex][rowIndex]._meta.dirty = false;
     this.dirtyRows[tableIndex][rowIndex] = false;
+    if(!this.dirtyRows[tableIndex].includes(true)) {
+      this.panelDirty[tableIndex] = false;
+    }
+    if(!this.panelDirty.includes(true)) {
+      this.pageDirty = false;
+    }
   }
 
   public getFilteredCount(table?:Table):number {
@@ -460,6 +491,7 @@ export class TranslationsPage implements OnInit,OnDestroy {
       let tmpRecord:any = {
         key: '',
         maint_type: null,
+        _meta: {dirty:true},
       };
       for(let key of this.langKeys) {
         tmpRecord[key] = '';
@@ -673,12 +705,25 @@ export class TranslationsPage implements OnInit,OnDestroy {
       let maint = this.maint_words;
       let res:any;
       res = await this.server.saveTranslations(table, maint);
+      this.cleanEverything();
       return res;
     } catch(err) {
       Log.l(`TranslationsPage.saveTranslations(): Error during save of translation edit`);
       Log.e(err);
       throw err;
     }
+  }
+
+  public cleanEverything() {
+    let tables = [
+      this.translations,
+      this.maint_words,
+    ];
+    this.pageDirty = false;
+    this.panelDirty = this.panelDirty.map(a => false);
+    tables.forEach(table => {
+      table.forEach(row => row._meta = {dirty:false});
+    });
   }
 
   public async editorClosed(evt?:any):Promise<any> {
@@ -751,6 +796,8 @@ export class TranslationsPage implements OnInit,OnDestroy {
       let langKeyCount = langKeys.length;
       let keys = Object.keys(data);
       let out = [];
+      // let newRecords:TranslationTableRecord[] = [];
+      // let newMaintRecords:TranslationTableRecord[] = [];
       for(let key of keys) {
         let value:string[] = data[key];
         let record:TranslationTableRecord;
@@ -772,7 +819,12 @@ export class TranslationsPage implements OnInit,OnDestroy {
         let text  = sprintf("%s:<br>\n<br>\n%s<br>\n", text1, JSON.stringify(record));
         let confirm = await this.alert.showConfirmYesNo(title, text);
         if(confirm) {
+          record._meta = {dirty: true};
           this.translations.push(record);
+          // newRecords.push(record);
+          // this.dirtyRows[0].push(false);
+          this.panelDirty[0] = true;
+          this.reSortTables();
           title = "ADD MAINTENANCE";
           text = "Add record to maintenance report translations as well?";
           let maintTypes = [
@@ -796,12 +848,32 @@ export class TranslationsPage implements OnInit,OnDestroy {
           let res:string = await this.alert.showCustomConfirm(title, text, buttons);
           if(res && typeof res === 'string') {
             record.maint_type = res;
+            record._meta = {dirty: true};
             this.maint_words.push(record);
+            // newMaintRecords.push(record);
+            // this.dirtyRows[1].push(false);
+            this.panelDirty[1] = true;
+            this.reSortTables();
           }
           out.push(record);
         }
       }
       Log.l(`TranslationsPage.processJsonData(): Final result of JSON data is:`, out);
+      this.reSortTables();
+      // let dt:Table = this.dt;
+      // for(let record of newRecords) {
+      //   let idx = dt.value.indexOf(record);
+      //   if(idx > -1) {
+      //     this.dirtyRows[0][idx] = true;
+      //   }
+      // }
+      // dt = this.maintTable;
+      // for(let record of newMaintRecords) {
+      //   let idx = dt.value.indexOf(record);
+      //   if(idx > -1) {
+      //     this.dirtyRows[1][idx] = true;
+      //   }
+      // }
       return out;
     } catch(err) {
       Log.l(`TranslationsPage.processJsonData(): Error processing JSON data:`, data);
@@ -812,4 +884,5 @@ export class TranslationsPage implements OnInit,OnDestroy {
       // throw err;
     }
   }
+
 }

@@ -35,7 +35,7 @@ const delay = (ms:number):Promise<boolean> => {
 };
 
 export type TranslationLanguage = 'en'|'es';
-export type TranslationTableRecordKey = TranslationLanguage|'key'|'maint_type';
+export type TranslationTableRecordKey = TranslationLanguage|'key'|'maint_type'|'_meta';
 export interface TranslationRecord {
   [propName:string]:string[];
 }
@@ -43,7 +43,7 @@ export type TranslationLanguageRecord = {
   [propName in TranslationLanguage]?:string
 };
 export type TranslationTableRecord = {
-  [propName in TranslationTableRecordKey]: string;
+  [propName in TranslationTableRecordKey]?: string|any;
 };
 export type TranslationTable = TranslationTableRecord[];
 export interface TranslationDocument {

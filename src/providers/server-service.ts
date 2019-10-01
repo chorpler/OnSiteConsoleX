@@ -3698,7 +3698,7 @@ export class ServerService {
       let dbname = this.prefs.getDB('translations');
       let rdb1 = this.addRDB(dbname);
       let res:any = await rdb1.get('onsitex');
-      Log.w("Server.loadRawTranslations(): Got translations result:", res);
+      Log.l("Server.loadRawTranslations(): Got translations result:", res);
       if(res && res.keys && res.translations) {
         // let keys = res.keys;
         // let translations = res.translations;
@@ -3822,7 +3822,7 @@ export class ServerService {
       let translationKeys:string[];
       let translationRecord:TranslationRecord = {}, sortedTranslationRecord:TranslationRecord = {};
       let row:TranslationTableRecord = table[0];
-      let langKeys = Object.keys(row).filter(a => a !== 'key' && a !== 'maint_type');
+      let langKeys = Object.keys(row).filter(a => a !== 'key' && a !== 'maint_type' && a !== '_meta');
       let isMaint = table.find(a => a.maint_type && typeof a.maint_type === 'string');
       if(maintTable) {
         Log.l(`Server.saveTranslations(): Got maintenance translation table:`, maintTable);

@@ -10,7 +10,42 @@ page-translations {
   //     top: 100px;
   //   }
   // }
-
+  background: white;
+  // --dirty-page-background: rgba(255, 0, 0, 0.5);
+  // --dirty-page-background: rgba(255, 140, 140, 0.6);
+  // --dirty-panel-background: rgba(255, 140, 140, 0.6);
+  --dirty-page-background: rgba(236, 230, 122, 0.6);
+  --dirty-panel-background: rgba(236, 230, 122, 0.6);
+  --dirty-row-background: rgba(236, 230, 122, 0.6);
+  --dirty-panel-shadow-color: rgba(255, 64, 64, 0.9);
+  .dirty-in-page {
+    background-color: var(--dirty-page-background);
+    .toolbar-background {
+      background: transparent;
+    }
+  }
+  .dirty-in-panel {
+    .translations-panel {
+      box-sizing: border-box;
+      // border: 2px solid var(--dirty-panel-background);
+      box-shadow: 2px 2px 2px 4px var(--dirty-panel-shadow-color);
+      // background: var(--dirty-panel-background);
+    }
+    .ui-panel-titlebar, .ui-widget-header {
+      background-color: var(--dirty-panel-background);
+      background: var(--dirty-panel-background);
+    }
+  }
+  .dirty-caption {
+    font-style: italic;
+    font-weight: bold;
+    color: blue;
+  }
+  .dirty-panel-caption {
+    font-style: italic;
+    font-weight: bold;
+    color: blue;
+  }
   user-select: text;
   .menubar-buttons {
     display         : flex        ;
@@ -182,7 +217,13 @@ page-translations {
   tr.translation-row {
     &.dirty-row {
       td {
-        background-color: rgba(255, 0, 0, 0.5);
+        background-color: var(--dirty-row-background);
+        input {
+          &:not(:focus) {
+            // background-color: white;
+            background-color: transparent;
+          }
+        }
       }
     }
   }
