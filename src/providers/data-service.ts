@@ -280,9 +280,8 @@ export class OSData {
         if(dbname && change) {
           Log.l(`OSData: adding change events to queue for database '${dbname}'`);
           this.addChangeToQueue(dbname, change);
-          /* TODO 2018-09-19: Add changes to this.dataqueue for whatever the database is, to be processed when replication is complete */
-          if(dbname === this.prefs.getDB('reports')) {
-          }
+          // if(dbname === this.prefs.getDB('reports')) {
+          // }
         }
       }
     });

@@ -33,10 +33,6 @@
  * Logs: 4.1.1 2017-08-22: Unknown
  */
 
-/**
- * TODO: 2018-08-08: Premium hours need to be changed to pull from Jobsite property, not just check report client
- */
-
 import { oo                } from '../config'           ;
 import { sprintf           } from 'sprintf-js'          ;
 import { Log               } from '../config'           ;
