@@ -1658,7 +1658,7 @@ export class SchedulingPage implements OnInit,OnDestroy {
       }
     }
   }
-z
+
   public editSite(site:Jobsite) {
     // this.alert.showAlert("SORRY", "Clicking here was going to allow you to edit the job site, but this feature is not implemented yet. Actually, it's only being implemented while Mike isn't watching. He said it was a stupid idea and I was stupid for thinking of it. And trust me, you don't want to mess with that guy. I saw him try to chop up a cat with a gate. <span class='alert-icons'>😨😿</span>");
     let modal = this.modalCtrl.create('Work Site', { mode: 'Edit', modal:true, source: 'scheduling', jobsite: site }, {cssClass: 'site-edit-modal'});
