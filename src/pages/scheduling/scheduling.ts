@@ -11,7 +11,13 @@ import { AlertService                                       } from 'providers/al
 import { Preferences                                        } from 'providers/preferences'              ;
 import { NotifyService                                      } from 'providers/notify-service'           ;
 import { OSData                                             } from 'providers/data-service'             ;
-import { Log, Moment, moment, isMoment, oo, _dedupe, SiteShiftType,        } from 'domain/onsitexdomain'               ;
+import { Log                                                } from 'domain/onsitexdomain'               ;
+import { Moment                                             } from 'domain/onsitexdomain'               ;
+import { SiteShiftType                                      } from 'domain/onsitexdomain'               ;
+import { moment                                             } from 'domain/onsitexdomain'               ;
+import { isMoment                                           } from 'domain/onsitexdomain'               ;
+import { oo                                                 } from 'domain/onsitexdomain'               ;
+import { _dedupe                                            } from 'domain/onsitexdomain'               ;
 import { Jobsite, Employee, Schedule,                       } from 'domain/onsitexdomain'               ;
 import { OptionsGenericComponent                            } from 'components/options-generic'         ;
 import { Command, KeyCommandService                         } from 'providers/key-command-service'      ;
