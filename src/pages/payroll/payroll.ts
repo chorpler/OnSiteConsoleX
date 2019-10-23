@@ -1009,7 +1009,9 @@ export class PayrollPage implements OnInit,OnDestroy {
       let loc = site.location.name;
       let lid = site.locID.name;
       let shiftLen = site.getSiteShiftLength(rotation, shift, pDate);
-      let shiftStart = site.getShiftStartTime(shift);
+      // let shiftStart = site.getShiftStartTime(shift);
+      let shiftStart = site.getShiftStartTimeString(shift);
+      // let shiftStart = site.getShiftStartTimeNumber(shift);
       let usr = "";
       let rate = !isNaN(Number(tech.payRate)) ? Number(tech.payRate) : 0;
       if(this.prefs.CONSOLE.payroll.exportUseQuickbooksName) {
