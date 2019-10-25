@@ -110,7 +110,7 @@ export class SchedulingPage implements OnInit,OnDestroy {
   public keySubscription : Subscription                                         ;
   public buttonLocation  : number          = 1                                  ;
   public updated         : boolean         = false                              ;
-  public items           : TechItem[]      = []                                 ;
+  // public items           : TechItem[]      = []                                 ;
   public stats           : any             = null                               ;
   public techs           : Employee[] = []                                 ;
   public allTechs        : Employee[] = []                                 ;
