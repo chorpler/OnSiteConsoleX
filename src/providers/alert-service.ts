@@ -251,30 +251,47 @@ export class AlertService {
     });
   }
 
-  public clearSpinners() {
+  public async clearSpinners():Promise<any> {
     let spinners = this.spinners;
-    Log.l("clearSpinners(): called, spinner array is:\n", spinners);
-    for(let entry of spinners) {
-      let id = entry[0];
-      let spinner = entry[1];
-      spinner.dismiss().then(res => {
-        spinners.delete(id);
-      }).catch(err => {
-        Log.l(`clearSpinners(): Error dismissing spinner '${id}':\n`, spinner);
-        Log.e(err);
-        spinners.delete(id);
-      });
+    let total = spinners && typeof spinners.size === 'number' ? spinners.size : 0;
+    let cleared = 0;
+    let errored = 0;
+    Log.l("AlertService.clearSpinners(): called, spinner array is:", spinners);
+    try {
+      for(let entry of spinners) {
+        let id = entry[0];
+        let spinner = entry[1];
+        try {
+          let res = await spinner.dismiss();
+          Log.l(`AlertService.clearSpinners(): Successfully dismissed spinner '${id}', now removing it from spinners list:`, spinner);
+          cleared++;
+          spinners.delete(id);
+        } catch(err) {
+          Log.l(`AlertService.clearSpinners(): Error dismissing spinner '${id}', merely removing it from spinners list:`, spinner);
+          Log.e(err);
+          errored++;
+          spinners.delete(id);
+        }
+      }
+      // setTimeout(() => {
+      //   for (let i in this.loadings) {
+      //     let tmpLoad = this.loadings.pop();
+      //     Log.l("clearSpinners(): Now clearing spinner:\n", tmpLoad);
+      //     tmpLoad.dismiss().catch(err => {
+      //       Log.l('clearSpinners(): loading.dismiss() error for loader:\n', tmpLoad);
+      //       Log.e(err);
+      //     });
+      //   }
+      // });
+      let title = "SPINNERS CLEARED";
+      let text  = ``;
+      Log.l(`AlertService.clearSpinners(): After clearing spinners, spinners record is now:`, spinners);
+      return spinners;
+    } catch(err) {
+      Log.l(`AlertService.clearSpinners(): Error clearing spinners`);
+      Log.e(err);
+      throw err;
     }
-    // setTimeout(() => {
-    //   for (let i in this.loadings) {
-    //     let tmpLoad = this.loadings.pop();
-    //     Log.l("clearSpinners(): Now clearing spinner:\n", tmpLoad);
-    //     tmpLoad.dismiss().catch(err => {
-    //       Log.l('clearSpinners(): loading.dismiss() error for loader:\n', tmpLoad);
-    //       Log.e(err);
-    //     });
-    //   }
-    // });
   }
 
   public showAlert(title: string, text: string):Promise<string> {

@@ -86,6 +86,10 @@ export class PayrollPage implements OnInit,OnDestroy {
   public scheduleMissing:boolean         = false      ;
   public spinnerLabel:string = "Initializing payroll page …";
   public dataReady: boolean              = false      ;
+  public statusBarEnabled:boolean        = true       ;
+  public reportsLocalTotal  : number       = 0        ;
+  public reportsRemoteTotal : number       = 0        ;
+  public reportsRemaining   : number       = 0        ;
 
   constructor(
     public application    : ApplicationRef    ,
@@ -1301,6 +1305,57 @@ export class PayrollPage implements OnInit,OnDestroy {
 
   public printf(...params):string {
     return sprintf(...params);
+  }
+
+  public async getReportsStatus(dbkey?:DatabaseKey):Promise<any> {
+    let dbTotal = 0, rdbTotal = 0, dbDiff = 0;
+    let key = dbkey && typeof dbkey === 'string' ? dbkey : 'reports';
+    let spinnerID:string;
+    try {
+      Log.l(`Payroll.getReportsStatus(): Called with dbkey:`, dbkey);
+      let dbname  = this.prefs.getDB(key);
+      let db1     = this.db.addDB(dbname);
+      let dbInfo  = await db1.info();
+      dbTotal     = dbInfo.doc_count;
+      let rdb1    = this.server.addRDB(dbname);
+      let rdbInfo = await rdb1.info();
+      rdbTotal    = rdbInfo.doc_count;
+      dbDiff      = rdbTotal - dbTotal;
+      if(dbDiff < 0) {
+        dbDiff = Math.abs(dbDiff);
+      }
+      this.reportsLocalTotal = dbTotal;
+      this.reportsRemoteTotal = rdbTotal;
+      this.reportsRemoteTotal = dbDiff;
+      Log.l(`Payroll.getReportsStatus(): For '${key}', local: ${dbTotal}, remote: ${rdbTotal}, remaining: ${dbDiff}`);
+      // spinnerID = await this.alert.showSpinner(`readReports(): Reading reports for week '${date.format("DD MMM YYYY")}'...`);
+      // let spinner = this.alert.getSpinner(spinnerID);
+      // let res = await this.db.getAllReportsPlusNew(date)
+      // Log.l("Payroll.readReports(): Read in:", res);
+      // this.reports = res;
+      // this.data.setData('reports', res);
+      // this.updatePeriod(period);
+      // await this.alert.hideSpinner(spinnerID);
+      // }).catch(err => {
+      //   Log.l("readReports(): Error reading reports for PayrollPeriod.");
+      //   Log.e(err);
+      //   this.alert.hideSpinner(spinnerID);
+      //   this.notify.addError("ERROR", "Error reading reports for payroll period:<br>\n<br>\n" + err.message, 10000);
+      // });
+    } catch(err) {
+      Log.l("Payroll.readReports(): Error reading reports for PayrollPeriod.");
+      Log.e(err);
+      this.alert.hideSpinner(spinnerID);
+      this.notify.addError("ERROR", "Error reading reports for payroll period:<br>\n<br>\n" + err.message, 10000);
+    }
+  }
+  
+  public toggleStatusBar(evt?:Event):boolean {
+    this.statusBarEnabled = !this.statusBarEnabled;
+    Log.l("Payroll.toggleStatusBar(): Toggling status bar to:", this.statusBarEnabled);
+    this.updateView();
+    return this.statusBarEnabled;
+    
   }
 
 }

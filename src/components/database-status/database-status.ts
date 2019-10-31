@@ -18,7 +18,9 @@ import { sizeOf               } from 'domain/onsitexdomain'       ;
 import { DatabaseStatus,      } from 'domain/onsitexdomain'       ;
 import { DatabaseStatusState, } from 'domain/onsitexdomain'       ;
 import { OSData               } from 'providers/data-service'     ;
-import { Preferences, DatabaseKey, DatabaseKeys          } from 'providers/preferences'      ;
+import { Preferences          } from 'providers/preferences'      ;
+import { DatabaseKey          } from 'providers/preferences'      ;
+import { DatabaseKeys         } from 'providers/preferences'      ;
 import { NotifyService        } from 'providers/notify-service'   ;
 import { DispatchService      } from 'providers/dispatch-service' ;
 import { AppEvents            } from 'providers/dispatch-service' ;
@@ -26,6 +28,8 @@ import { AlertService         } from 'providers/alert-service'    ;
 import { DomainService        } from 'providers/domain-service'   ;
 import { PouchDBService       } from 'providers/pouchdb-service'  ;
 import { Database             } from 'providers/pouchdb-service'  ;
+import { DBService            } from 'providers/db-service'       ;
+import { ServerService        } from 'providers/server-service'   ;
 import { Dialog               } from 'primeng/dialog'             ;
 import { ProgressBar          } from 'primeng/progressbar'        ;
 
@@ -80,6 +84,8 @@ export class DatabaseStatusComponent implements OnInit,OnDestroy {
     public notify   : NotifyService   ,
     public dispatch : DispatchService ,
     public pouchdb  : PouchDBService  ,
+    public db       : DBService       ,
+    public server   : ServerService   ,
   ) {
     window['onsiteDatabaseStatus'] = this;
     window['onsitedbstatus' ] = this;
@@ -187,6 +193,28 @@ export class DatabaseStatusComponent implements OnInit,OnDestroy {
       return status;
     } catch(err) {
       throw err;
+    }
+  }
+
+  public async forceSyncDatabase(dbkey:DatabaseKey, evt?:Event):Promise<any> {
+    let spinnerID;
+    try {
+      let dbname = this.prefs.getDB(dbkey);
+      Log.l(`DatabaseStatus.forceSyncDatabase(): Called for '${dbkey}' ('${dbname}') with event:`, evt);
+      // let res = await this.server.syncFromServerViaSelector(dbname);
+      let text = `Forcing sync from server for '${dbkey}' database …`;
+      spinnerID = await this.alert.showSpinnerPromise(text);
+      let res = await this.server.nonLiveSyncWithServer(dbname);
+      Log.l(`DatabaseStatus.forceSyncDatabase(): Finished for '${dbkey}' ('${dbname}') with result:`, res);
+      await this.alert.hideSpinnerPromise(spinnerID);
+      return res;
+    } catch(err) {
+      Log.l(`DatabaseStatus.forceSyncDatabase(): Error force syncing to database '${dbkey}'!`);
+      Log.e(err);
+      await this.alert.hideSpinnerPromise(spinnerID);
+      let title = "SYNC ERROR";
+      let text  = `Error synchronizing '${dbkey}' database`;
+      await this.alert.showErrorMessage(title, text, err);
     }
   }
 

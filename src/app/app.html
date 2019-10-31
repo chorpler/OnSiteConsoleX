@@ -21,7 +21,7 @@
 <!-- <div #confirmTarget></div> -->
 <div #loginTarget class="onsitex-login-overlay-target"></div>
 
-<ion-menu [content]="content" (ionClose)="menuClosed()" *ngIf="menuEnabled">
+<ion-menu #ionMenu [content]="content" (ionClose)="menuClosed($event)" *ngIf="menuEnabled">
   <ion-header>
     <ion-toolbar>
       <!-- <ion-title>{{title}}<span [class.side-menu-icon]="true" [class.developer-icon]="data.status.role==='dev'" *ngIf="data.isDeveloper"><i class="fa fa-github fake-button" (click)="data.toggleDeveloperMode()"></i></span></ion-title> -->
@@ -46,13 +46,16 @@
         <span class="side-menu-icon second" title="Re-authenticate to server (in case app has not been used for more than 15 minutes)">
           <i class="icomoon-authenticate fake-button button-like-icon" (click)="reauthenticate($event)"></i>
         </span>
-        <span class="side-menu-icon third" title="Refresh data (generally for reports)">
-          <i class="icomoon-data-refresh fake-button button-like-icon" (click)="updateData($event)"></i>
+        <span class="side-menu-icon third database" (click)="showDatabaseStatus($event)" title="Show Database Replication Status">
+          <i class="fa fa-database"></i>
         </span>
+          <!-- <span class="side-menu-icon third" title="Refresh data (generally for reports)">
+          <i class="icomoon-data-refresh fake-button button-like-icon" (click)="updateData($event)"></i>
+        </span> -->
       </span>
     </ng-template>
     <ng-template #menuTopButtonsEmpty>
-      <span class="menu-button-container"></span>
+      <span class="menu-button-container"></span>2
     </ng-template>
 
     <!-- MENU TYPE 1: Nested style (CURRENT FAVORITE) -->

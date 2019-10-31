@@ -19,6 +19,7 @@
       <!-- <div class="header" [class.header-scroll-pad]="isBodyScrolling()"> -->
       <div class="header header-scroll-pad">
         <div class="row">
+          <div class="cell col-btn"></div>
           <div class="cell col-00"></div>
           <div class="cell col-01">Database</div>
           <div class="cell col-02">Local</div>
@@ -30,6 +31,9 @@
       <div #databaseStatusBody class="body">
         <ng-container *ngIf="dbProgress">
           <div class="row" [class.row-error]="dbProgress[key]?.state === DatabaseStatusState.ERROR" [class.row-waiting]="dbProgress[key]?.state === DatabaseStatusState.WAITING" *ngFor="let key of getKeys(dbProgress)">
+            <div class="cell col-btn" title="Force sync to '{{key}}'" (click)="forceSyncDatabase(key, $event)">
+              <span class="status-button sync"><i class="fad fa-cloud-download-alt"></i></span>
+            </div>
             <div class="cell col-00">
               <!-- <span class="status-icon error" title="Error checking for database status (try refreshing)" *ngIf="dbProgress[key]?.error"><i class="fal fa-exclamation-triangle"></i></span>
               <span class="status-icon wait"  title="Not yet finished synchronizing" *ngIf="!dbProgress[key]?.error && (dbProgress[key]?.localDocs !== dbProgress[key]?.remoteDocs) || (dbProgress[key]?.waiting)">  <i class="fas fa-spinner fa-pulse"></i></span>

@@ -33,6 +33,94 @@ page-payroll {
       }
     }
   }
+  .status-bar {
+    --status-border-color: rgba(0, 0, 0, 0.999);
+    --status-background-color: rgba(0, 0, 128, 0.2);
+    --status-width-col-01: 10%;
+    --status-width-col-02: var(--status-width-col-01);
+    --status-width-col-03: var(--status-width-col-01);
+    user-select: none;
+    width: 100%;
+    background-color: var(--status-background-color);
+    .status-bar-table {
+      display         : flex           ;
+      flex-flow       : column nowrap  ;
+      justify-content : flex-start     ;
+      align-content   : center ;
+      align-items     : center ;
+      .status-bar-row {
+        display         : flex        ;
+        flex-flow       : row nowrap  ;
+        justify-content : flex-start ;
+        align-content   : center ;
+        align-items     : center ;
+        width: 100%;
+        .status-bar-item {
+          padding-left: 5px;
+          padding-right: 5px;
+          display         : flex        ;
+          flex-flow       : row nowrap  ;
+          justify-content : flex-start ;
+          align-content   : center ;
+          align-items     : center ;
+          margin-right: 20px;
+          border: 1px dotted var(--status-border-color);
+          &.col-01 {
+            flex: 0 1 var(--status-width-col-01);
+          }
+          &.col-02 {
+            flex: 0 1 var(--status-width-col-02);
+          }
+          &.col-03 {
+            flex: 0 1 var(--status-width-col-03);
+          }
+        }
+        &.header {
+          font-weight: bold;
+          .status-bar-item {
+            // display: inline-block;
+            .label {
+              width: 100%;
+              // flex: 1 0 80%;
+              font-weight: bold;
+              text-align: center;
+              padding-right: 2px;
+              // border-right: 1px dotted var(--status-border-color);
+            }
+            // .data {
+            //   flex: 0 0 20%;
+            //   font-weight: normal;
+            //   text-align: right;
+            //   font-family: "Roboto Mono";
+            //   min-width: 50px;
+            //   padding-left: 4px;
+            // }
+          }
+        }
+        &.body {
+          font-weight: normal;
+          .status-bar-item {
+            // .label {
+            //   flex: 1 0 80%;
+            //   font-weight: bold;
+            //   text-align: left;
+            //   padding-right: 2px;
+            //   border-right: 1px dotted var(--status-border-color);
+            // }
+            .data {
+              width: 100%;
+              // flex: 0 0 20%;
+              font-weight: normal;
+              text-align: right;
+              font-family: "Roboto Mono";
+              // min-width: 50px;
+              // padding-left: 4px;
+            }
+          }
+        }
+      }
+    }
+  }
   .background-spinner {
     // background-color: transparent;
     width: 100%;
@@ -91,7 +179,7 @@ page-payroll {
     .final-buttons {
       margin-left: 10px;
     }
-    .start-buttons, .final-buttons, {
+    .start-buttons, .final-buttons {
       font-size: 24px;
       flex: 0 1 auto;
       display: flex;

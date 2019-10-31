@@ -1,17 +1,19 @@
 database-status {
-  $min-width-table : 725px ;
-  $min-width-col00 :  22px ;
-  $min-width-col01 : 160px ;
-  $min-width-col02 :  90px ;
-  $min-width-col03 :  90px ;
-  $min-width-col04 :  90px ;
-  $min-width-col05 : 250px ;
-  $width-col00     : 22px  ;
-  $width-col01     : 25%   ;
-  $width-col02     : 15%   ;
-  $width-col03     : 15%   ;
-  $width-col04     : 15%   ;
-  $width-col05     : 30%   ;
+  $min-width-table  : 750px ;
+  $min-width-colbtn :  28px ;
+  $min-width-col00  :  22px ;
+  $min-width-col01  : 160px ;
+  $min-width-col02  :  90px ;
+  $min-width-col03  :  90px ;
+  $min-width-col04  :  90px ;
+  $min-width-col05  : 250px ;
+  $width-colbtn     :  28px ;
+  $width-col00      :  22px ;
+  $width-col01      :  25%  ;
+  $width-col02      :  15%  ;
+  $width-col03      :  15%  ;
+  $width-col04      :  15%  ;
+  $width-col05      :  30%  ;
   .db-status-dialog {
     &.ui-dialog {
       &.ui-widget {
@@ -142,6 +144,10 @@ database-status {
         // border: 1px dotted lightgrey;
       }
     }
+    .col-btn {
+      min-width: $min-width-colbtn;
+      width: $width-colbtn;
+    }
     .col-00 {
       min-width: $min-width-col00;
       width: $width-col00;
@@ -189,6 +195,10 @@ database-status {
           display: table-cell;
           text-align: center;
           border-bottom: 2px solid lightgrey;
+          &.col-btn {
+            font-weight: normal;
+            height: 19px;
+          }
           &.col-00 {
             font-weight: normal;
             height: 19px;
@@ -248,6 +258,18 @@ database-status {
         .cell {
           padding-top: 4px;
           padding-bottom: 4px;
+          &.col-btn {
+            font-weight: normal;
+            text-align: center;
+            font-size: 16px;
+            border-right: 1px dotted lightgrey;
+            padding-left: 1px;
+            padding-right: 1px;
+            @include button-like-block;
+            .status-button {
+              --status-button-radius: 5px;
+            }
+          }
           &.col-00 {
             font-weight: normal;
             text-align: center;

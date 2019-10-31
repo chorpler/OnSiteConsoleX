@@ -16,6 +16,7 @@ import { Nav, Platform, MenuController, ModalController,                   } fro
 import { NavOptions,                                                       } from 'ionic-angular'                 ;
 import { ModalOptions,                                                     } from 'ionic-angular'                 ;
 import { Loading                                                           } from 'ionic-angular'                 ;
+import { Menu as IonMenu                                                   } from 'ionic-angular'                 ;
 import { Log, CONSOLE, moment, Moment, oo, JSON5, blobUtil, Duration,      } from 'domain/onsitexdomain'          ;
 import { ooPatch, ooPointer, sizeOf, round, roundMaxDecimals,              } from 'domain/onsitexdomain'          ;
 import { Employee, Shift, Invoice, DPS, PreAuth,                           } from 'domain/onsitexdomain'          ;
@@ -168,6 +169,7 @@ declare const global:any;
 })
 export class OnSiteConsoleX implements OnInit,OnDestroy {
   @ViewChild(Nav) nav: Nav;
+  @ViewChild('ionMenu') ionMenu:IonMenu;
   @ViewChild('mainPanelMenu') mainPanelMenu:PanelMenu;
   @ViewChild('spinnerTemplate', { read: ViewContainerRef }) viewContainerRef: ViewContainerRef;
   @ViewChild('confirmTarget') confirmTarget:ElementRef;
@@ -596,6 +598,8 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
         } else if(channel === 'testnotifications') {
           Log.l(`AppComponent: Received event 'testnotifications' …`);
           this.testNotifications();
+        } else if(channel === 'killspinners') {
+          this.alert.clearSpinners();
         } else if(channel === 'replicationcomplete') {
           // let dbname = data && data.event && data.event.db ? data.event.db : "UNKNOWN";
           // Log.l(`AppComponent: Received event 'replicationcomplete' for '${dbname}' …`);
@@ -2651,5 +2655,10 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
     }
   }
 
-  
+  public async showDatabaseStatus(event?:MouseEvent) {
+    Log.l("OnSiteConsole.showDatabaseStatus(): Event is:", event);
+    await this.menuCtrl.close();
+    this.dispatch.triggerAppEvent('showdbstatus', event);
+  }
+
 }

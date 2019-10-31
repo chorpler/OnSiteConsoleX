@@ -3020,25 +3020,21 @@ export class ServerService {
     }
   }
 
-  public nonLiveSyncWithServer(dbname:string) {
-    Log.l(`nonLiveSyncWithServer(): About to replicate remote=>'${dbname}'`);
-    // let options = this.syncOptions;
-    let options = this.nonsyncOptions;
-    let db1:Database = this.addDB(dbname);
-    let db2:Database = this.addRDB(dbname);
-    return new Promise((resolve,reject) => {
-      db1.replicate.from(db2, options).then(res => {
-        Log.l(`nonLiveSyncWithServer(): Successfully replicated '${dbname}' from remote to local. Now replicating local->remote …`);
-        return db1.replicate.to(db2, options);
-      }).then(res => {
-        Log.l(`nonLiveSyncWithServer(): Successfully replicated '${dbname}' from local to remote! Now implementing EABOD routine … done.`);
-        resolve(res);
-      }).catch(err => {
-        Log.l(`nonLiveSyncWithServer(): Failed replication for '${dbname}', either remote->local or local->remote. Now FOADIAF … done.`);
-        Log.e(err);
-        reject(err);
-      })
-    });
+  public async nonLiveSyncWithServer(dbname:string):Promise<ReplicationComplete> {
+    Log.l(`SERVER.nonLiveSyncWithServer(): About to replicate remote=>'${dbname}'`);
+    try {
+      // let options = this.syncOptions;
+      let options = this.nonsyncOptions;
+      let db1:Database = this.addDB(dbname);
+      let db2:Database = this.addRDB(dbname);
+      let res = await db1.replicate.from(db2, options);
+      Log.l(`SERVER.nonLiveSyncWithServer(): Successfully replicated '${dbname}' from remote to local, result:`, res);
+      return res;
+    } catch(err) {
+      Log.l(`SERVER.nonLiveSyncWithServer(): Error syncing from '${dbname}'`);
+      Log.e(err);
+      throw err;
+    }
   }
 
   public async syncFromServerViaSelector(dbname:string, spinnerID?:string) {

@@ -6,7 +6,7 @@ import { Shift, PayrollPeriod, Schedule, Schedules, } from 'domain/onsitexdomain
 import { Notice,                                    } from 'domain/onsitexdomain' ;
 import { DatabaseKey,                               } from './preferences'        ;
 
-export type AppEvents = 'openpage' | 'authenticate' | 'login' | 'logout' | 'updatefromdb' | 'updatedfromdb'| 'updatefromserver' | 'updatedfromserver' | 'updatedata' | 'updatelogistics' | 'updatetimecards' | 'dataupdated' | 'dbupdated' | 'options' | 'saveprefs' | 'testnotifications' | 'menuclosed' | 'starttime' | 'endtime' | 'elapsedtime' | 'replicationerror' | 'replicationcomplete' | 'find-in-page' | 'showdbstatus' | 'downloaddb' | 'reinitializedb' | 'toggledevmode' | 'changedetection';
+export type AppEvents = 'openpage' | 'authenticate' | 'login' | 'logout' | 'updatefromdb' | 'updatedfromdb'| 'updatefromserver' | 'updatedfromserver' | 'updatedata' | 'updatelogistics' | 'updatetimecards' | 'dataupdated' | 'dbupdated' | 'options' | 'saveprefs' | 'testnotifications' | 'menuclosed' | 'starttime' | 'endtime' | 'elapsedtime' | 'replicationerror' | 'replicationcomplete' | 'find-in-page' | 'showdbstatus' | 'downloaddb' | 'reinitializedb' | 'toggledevmode' | 'changedetection' | 'killspinners';
 
 export interface UpdateDBOptions {
   timeout ?: number  ;
