@@ -2237,6 +2237,8 @@ export class SchedulingPage implements OnInit,OnDestroy {
       // this.shiftsData = scheduleObject;
       // this.schedule.setSchedule(scheduleObject);
       let oldSchedule:Schedule = this.schedule;
+      window['onsiteschedule_old'] = oldSchedule;
+      this.schedules.unshift(schedule);
       this.schedule = schedule;
       this.removeUsedTechs();
       this.start = moment(start);
