@@ -86,7 +86,8 @@ export class PayrollPage implements OnInit,OnDestroy {
   public scheduleMissing:boolean         = false      ;
   public spinnerLabel:string = "Initializing payroll page …";
   public dataReady: boolean              = false      ;
-  public statusBarEnabled:boolean        = true       ;
+  // public statusBarEnabled:boolean        = true       ;
+  public statusBarEnabled:boolean        = false      ;
   public reportsLocalTotal  : number       = 0        ;
   public reportsRemoteTotal : number       = 0        ;
   public reportsRemaining   : number       = 0        ;
