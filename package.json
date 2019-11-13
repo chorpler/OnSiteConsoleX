@@ -113,6 +113,7 @@
     "clean": "npm run ionic:clean",
     "buildprod": "npm run ionic:buildprod",
     "build": "npm run ionic:build",
+    "publish": "npm run release",
     "release": "run-script-os",
     "release:win32": "npm run ionic:build && build --win --x64 --publish always",
     "release:darwin": "npm run ionic:build && build --mac --x64 --publish always",
