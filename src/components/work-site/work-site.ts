@@ -1355,7 +1355,7 @@ export class WorkSiteComponent implements OnInit,OnDestroy {
           let center:ILatLng = {
             lat: latitude ,
             lng: longitude,
-          }
+          };
           // let maptype:GoogleMapType = 'hybrid';
           // let maptype:MapTypeId = GoogleMapType.HYBRID;
           let options:MapOptions = {
