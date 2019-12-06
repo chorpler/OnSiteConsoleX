@@ -18,6 +18,9 @@ page-translations {
   --dirty-panel-background: rgba(236, 230, 122, 0.6);
   --dirty-row-background: rgba(236, 230, 122, 0.6);
   --dirty-panel-shadow-color: rgba(255, 64, 64, 0.9);
+  --new-row-background: rgba(114, 240, 83, 0.6);
+  --duplicate-row-background: rgba(250, 114, 114, 0.2);
+  --duplicate-import-row-background: rgba(245, 191, 45, 0.555);
   .dirty-in-page {
     background-color: var(--dirty-page-background);
     .toolbar-background {
@@ -218,6 +221,39 @@ page-translations {
     &.dirty-row {
       td {
         background-color: var(--dirty-row-background);
+        input {
+          &:not(:focus) {
+            // background-color: white;
+            background-color: transparent;
+          }
+        }
+      }
+    }
+    &.new-row {
+      td {
+        background-color: var(--new-row-background);
+        input {
+          &:not(:focus) {
+            // background-color: white;
+            background-color: transparent;
+          }
+        }
+      }
+    }
+    &.duplicate-row {
+      td {
+        background-color: var(--duplicate-row-background);
+        input {
+          &:not(:focus) {
+            // background-color: white;
+            background-color: transparent;
+          }
+        }
+      }
+    }
+    &.duplicate-import-row {
+      td {
+        background-color: var(--duplicate-import-row-background);
         input {
           &:not(:focus) {
             // background-color: white;

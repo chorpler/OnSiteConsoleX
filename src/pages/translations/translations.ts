@@ -1,6 +1,6 @@
 import { sprintf                                                     } from 'sprintf-js'                    ;
 import { Subscription                                                } from 'rxjs'                          ;
-import { Component, OnInit, OnDestroy, NgZone, ViewChild, ElementRef } from '@angular/core'                 ;
+import { Component, OnInit, OnDestroy, NgZone, ViewChild, ElementRef, ContentChildren } from '@angular/core'                 ;
 import { ViewChildren, QueryList,                                    } from '@angular/core'                 ;
 import { IonicPage, NavController, NavParams                         } from 'ionic-angular'                 ;
 import { ViewController, ModalController, Content, Scroll,           } from 'ionic-angular'                 ;
@@ -20,12 +20,13 @@ import { AlertService, CustomAlertButton                             } from 'pro
 import { Preferences                                                 } from 'providers/preferences'         ;
 import { NotifyService                                               } from 'providers/notify-service'      ;
 import { SpinnerService                                              } from 'providers/spinner-service'     ;
-import { Table                                                       } from 'primeng/table'                 ;
+import { Table, EditableColumn, CellEditor                           } from 'primeng/table'                 ;
 import { Panel                                                       } from 'primeng/panel'                 ;
 import { MultiSelect                                                 } from 'primeng/multiselect'           ;
 import { Dropdown                                                    } from 'primeng/dropdown'              ;
 import { TranslationEditor                                           } from 'components/translation-editor' ;
 import { SelectItem                                                  } from 'primeng/api'                   ;
+import { EOVERFLOW } from 'constants';
 
 @IonicPage({name: 'Translations'})
 @Component({
@@ -41,11 +42,21 @@ export class TranslationsPage implements OnInit,OnDestroy {
   @ViewChild('columnSelect') columnSelect:MultiSelect;
   @ViewChild('columnSelectMaint') columnSelectMaint:MultiSelect;
   @ViewChildren('maintTypeDropdown') maintTypeDropdownList:QueryList<Dropdown>;
+  @ViewChildren(HTMLInputElement) inputElementList:QueryList<HTMLInputElement>;
+  @ViewChildren(EditableColumn) editableColumnList:QueryList<EditableColumn>;
+  @ContentChildren(EditableColumn) editableColumnList2:QueryList<EditableColumn>;
+  @ViewChildren(CellEditor) cellEditorList:QueryList<CellEditor>;
+  public get inputElements():HTMLInputElement[] { return this.inputElementList && typeof this.inputElementList.toArray === 'function' ? this.inputElementList.toArray() : []; }
+  public get editableColumns():EditableColumn[] { return this.editableColumnList && typeof this.editableColumnList.toArray === 'function' ? this.editableColumnList.toArray() : []; }
+  public get editableCols():EditableColumn[] { return this.editableColumnList2 && typeof this.editableColumnList2.toArray === 'function' ? this.editableColumnList2.toArray() : []; }
+  public get cellEditors():CellEditor[] { return this.cellEditorList && typeof this.cellEditorList.toArray === 'function' ? this.cellEditorList.toArray() : []; }
+
   public title              : string    = "Translations"            ;
   public mode               : string    = 'page'                    ;
   public modalMode          : boolean   = false                     ;
   public visibleEditor      : boolean   = false                     ;
   public visibleMaintEditor : boolean   = false                     ;
+  public visibleImport      : boolean   = false                     ;
 
   public pageSizeOptions:number[]  = [5, 10, 20, 25, 30, 40, 50,100,200,500,1000,2000];
   public dateFormat       : string    = "DD MMM YYYY HH:mm"   ;
@@ -78,13 +89,16 @@ export class TranslationsPage implements OnInit,OnDestroy {
   public editTranslations : TranslationTable = [];
   public editRecord       : TranslationTableRecord;
   public editorMode       : "Add"|"Edit" = "Edit";
-
+  
+  
   public maint_words  : TranslationTable = [];
   public maint_enouns : TranslationTable = [];
   public maint_mnouns : TranslationTable = [];
   public maint_verbs  : TranslationTable = [];
   public editMaint    : TranslationTableRecordKey;
-
+  
+  public importTranslations : TranslationTable = [];
+  
   public dirtyRows    : boolean[][]         = [];
   public panelDirty   : boolean[]           = [];
   public pageDirty    : boolean             = false;
@@ -185,7 +199,7 @@ export class TranslationsPage implements OnInit,OnDestroy {
     for(let table of tables) {
       let tableDirtyRows = [];
       for(let row of table) {
-        row._meta = {dirty: false};
+        row._meta = {dirty: false, new: false};
         tableDirtyRows.push(false);
       }
       dirtyRows.push(tableDirtyRows);
@@ -194,30 +208,40 @@ export class TranslationsPage implements OnInit,OnDestroy {
     return dirtyRows;
   }
 
+  public maintenanceTypeChanged(rowData:TranslationTableRecord, tableIndex:number, rowIndex:number) {
+    if(!rowData.maint_type) {
+      delete rowData.maint_type;
+    }
+    this.dirtyUpRow(tableIndex, rowData, rowIndex);
+  }
+
   public dirtyUpRow(tableIndex:number, rowData:TranslationTableRecord, rowIndex:number) {
     let tables = [
       this.translations,
       this.maint_words,
     ];
     rowData._meta.dirty = true;
-    this.dirtyRows[tableIndex][rowIndex] = true;
-    this.panelDirty[tableIndex] = true;
-    this.pageDirty = true;
+    this.checkPage();
+    // this.dirtyRows[tableIndex][rowIndex] = true;
+    // this.panelDirty[tableIndex] = true;
+    // this.pageDirty = true;
   }
-
+  
   public cleanUpRow(tableIndex:number, rowIndex:number) {
     let tables = [
       this.translations,
       this.maint_words,
     ];
     tables[tableIndex][rowIndex]._meta.dirty = false;
-    this.dirtyRows[tableIndex][rowIndex] = false;
-    if(!this.dirtyRows[tableIndex].includes(true)) {
-      this.panelDirty[tableIndex] = false;
-    }
-    if(!this.panelDirty.includes(true)) {
-      this.pageDirty = false;
-    }
+    tables[tableIndex][rowIndex]._meta.new = false;
+    this.checkPage();
+    // this.dirtyRows[tableIndex][rowIndex] = false;
+    // if(!this.dirtyRows[tableIndex].includes(true)) {
+    //   this.panelDirty[tableIndex] = false;
+    // }
+    // if(!this.panelDirty.includes(true)) {
+    //   this.pageDirty = false;
+    // }
   }
 
   public getFilteredCount(table?:Table):number {
@@ -487,23 +511,39 @@ export class TranslationsPage implements OnInit,OnDestroy {
 
   public async addTranslation(evt?:Event):Promise<any> {
     try {
-      let record:TranslationTableRecord;
-      let tmpRecord:any = {
+      let record:TranslationTableRecord = {
         key: '',
-        maint_type: null,
-        _meta: {dirty:true},
+        _meta: {dirty:true, new:true},
       };
       for(let key of this.langKeys) {
-        tmpRecord[key] = '';
+        // tmpRecord[key] = '';
+        record[key] = '';
       }
-      record = tmpRecord;
-      this.translations.push(record);
-      this.maint_words.push(record);
-      this.editRecord = record;
-      this.editTranslations = this.translations;
-      this.editorMode = "Add";
-      this.visibleEditor = true;
-      this.visibleMaintEditor = true;
+      let event:MouseEvent = (evt as MouseEvent);
+      if(event && event.shiftKey) {
+        // let record:TranslationTableRecord;
+        // record = tmpRecord;
+        this.translations.push(record);
+        this.maint_words.push(record);
+        this.editRecord = record;
+        this.editTranslations = this.translations;
+        this.editorMode = "Add";
+        this.visibleEditor = true;
+        this.visibleMaintEditor = true;
+      } else {
+        this.translations.unshift(record);
+        this.translations = this.translations.slice(0);
+        // this.dataReady = false;
+        await this.data.delay(50);
+        // this.dataReady = true;
+        
+        let editCell = this.editableColumns.find(ecol => ecol && ecol.el && ecol.el.nativeElement && ecol.el.nativeElement.classList && ecol.el.nativeElement.classList.contains("brand-new"));
+        if(editCell) {
+          editCell.openCell();
+        } else {
+          Log.w(`TranslationsPage.addTranslation(): Could not find cell to edit`);
+        }
+      }
     } catch(err) {
       Log.l(`TranslationsPage.addTranslation(): Error adding translation`);
       Log.e(err);
@@ -550,19 +590,36 @@ export class TranslationsPage implements OnInit,OnDestroy {
       Log.l(`TranslationsPage.possibleDeleteMaintenance(): Called for row:`, row);
       this.dt.selection = row;
       this.maintTable.selection = row;
-      let title = "DELETE RECORD";
-      let text = "Do you want to delete this translation record? This cannot be undone.";
-      let confirm = await this.alert.showConfirmYesNo(title, text);
-      if(confirm) {
+      let confirm:boolean = false;
+      if(row._meta.new) {
         this.dt.selection = null;
         this.maintTable.selection = null;
-        spinnerID = await this.alert.showSpinnerPromise('Deleting translation …');
-        await this.deleteTranslation(row, evt);
-        await this.alert.hideSpinnerPromise(spinnerID);
+        let idx1:number = this.translations.indexOf(row);
+        if(idx1 > -1) {
+          let deleted = this.translations.splice(idx1, 1)[0];
+          window['onsitedeletedtranslation'] = deleted;
+        }
+        let idx2 = this.maint_words.indexOf(row);
+        if(idx2 > -1) {
+          let deleted2 = this.maint_words.splice(idx2, 1)[0];
+          window['onsitedeletedtranslation2'] = deleted2;
+        }
       } else {
-        this.dt.selection = null;
-        this.maintTable.selection = null;
+        let title = "DELETE RECORD";
+        let text = "Do you want to delete this translation record? This cannot be undone.";
+        confirm = await this.alert.showConfirmYesNo(title, text);
+        if(confirm) {
+          this.dt.selection = null;
+          this.maintTable.selection = null;
+          spinnerID = await this.alert.showSpinnerPromise('Deleting translation …');
+          await this.deleteTranslation(row, evt);
+          await this.alert.hideSpinnerPromise(spinnerID);
+        } else {
+          this.dt.selection = null;
+          this.maintTable.selection = null;
+        }
       }
+      this.checkPage();
     } catch(err) {
       Log.l(`TranslationsPage.possibleDeleteMaintenance(): Error editing translation:`, row);
       Log.e(err);
@@ -579,19 +636,36 @@ export class TranslationsPage implements OnInit,OnDestroy {
       Log.l(`TranslationsPage.possibleDeleteMaintenance(): Called for row:`, row);
       this.maintTable.selection = row;
       this.dt.selection = row;
-      let title = "DELETE RECORD";
-      let text = "Do you want to delete this translation record? This cannot be undone.";
-      let confirm = await this.alert.showConfirmYesNo(title, text);
-      if(confirm) {
-        this.maintTable.selection = null;
+      let confirm:boolean = false;
+      if(row._meta.new) {
         this.dt.selection = null;
-        spinnerID = await this.alert.showSpinnerPromise('Deleting translation …');
-        await this.deleteMaintenanceTranslation(row, evt);
-        await this.alert.hideSpinnerPromise(spinnerID);
+        this.maintTable.selection = null;
+        let idx1:number = this.translations.indexOf(row);
+        if(idx1 > -1) {
+          let deleted = this.translations.splice(idx1, 1)[0];
+          window['onsitedeletedtranslation'] = deleted;
+        }
+        let idx2 = this.maint_words.indexOf(row);
+        if(idx2 > -1) {
+          let deleted2 = this.maint_words.splice(idx2, 1)[0];
+          window['onsitedeletedtranslation2'] = deleted2;
+        }
       } else {
-        this.maintTable.selection = null;
-        this.dt.selection = null;
+        let title = "DELETE RECORD";
+        let text = "Do you want to delete this translation record? This cannot be undone.";
+        confirm = await this.alert.showConfirmYesNo(title, text);
+        if(confirm) {
+          this.maintTable.selection = null;
+          this.dt.selection = null;
+          spinnerID = await this.alert.showSpinnerPromise('Deleting translation …');
+          await this.deleteMaintenanceTranslation(row, evt);
+          await this.alert.hideSpinnerPromise(spinnerID);
+        } else {
+          this.maintTable.selection = null;
+          this.dt.selection = null;
+        }
       }
+      this.checkPage();
     } catch(err) {
       Log.l(`TranslationsPage.possibleDeleteMaintenance(): Error editing translation:`, row);
       Log.e(err);
@@ -678,9 +752,15 @@ export class TranslationsPage implements OnInit,OnDestroy {
     let spinnerID;
     try {
       Log.l(`TranslationsPage.possibleSaveTranslations(): Called with event:`, evt);
-      let title = "SAVE TRANSLATIONS";
-      let text  = "Do you want to save these translation records to the database?";
-      let confirm = await this.alert.showConfirmYesNo(title, text);
+      let event:MouseEvent = (evt as MouseEvent);
+      let confirm:boolean = false;
+      if(event && event.shiftKey) {
+        confirm = true;
+      } else {
+        let title = "SAVE TRANSLATIONS";
+        let text  = "Do you want to save these translation records to the database?";
+        confirm = await this.alert.showConfirmYesNo(title, text);
+      }
       if(confirm) {
         spinnerID = await this.alert.showSpinnerPromise('Saving translations …');
         let res = await this.saveTranslations(evt);
@@ -726,14 +806,72 @@ export class TranslationsPage implements OnInit,OnDestroy {
     });
   }
 
+  public isDuplicate(row:TranslationTableRecord, table?:TranslationTable):boolean {
+    let key = row.key;
+    let tab:TranslationTable = table && table.length ? table : this.translations;
+    let dupes = tab.filter(rcrd => rcrd && rcrd.key && rcrd.key === key);
+    if(dupes.length > 1) {
+      return true;
+    }
+    return false;
+  }
+
   public async editorClosed(evt?:any):Promise<any> {
     try {
       Log.l(`TranslationsPage.editorClosed(): Called with event:`, evt);
       this.visibleEditor = false;
       this.visibleMaintEditor = false;
       this.reSortTables();
+      this.checkPage();
     } catch(err) {
       Log.l(`TranslationsPage.editorClosed(): Error closing editor component`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public async importClosed(evt?:TranslationTable):Promise<any> {
+    try {
+      Log.l(`TranslationsPage.importClosed(): Called with event:`, evt);
+      this.visibleImport = false;
+      if(evt) {
+        let imports = evt;
+        let keys = imports.map(row => row.key);
+        for(let row of imports) {
+          let idx = this.translations.findIndex(record => record && record.key === row.key);
+          if(idx > -1) {
+            row._meta.new   = false;
+            row._meta.dirty = true;
+            this.panelDirty[0] = true;
+            this.pageDirty = true;
+            this.translations[idx] = row;
+          } else {
+            row._meta.new = true;
+            this.panelDirty[0] = true;
+            this.pageDirty = true;
+            this.translations.push(row);
+          }
+          if(row.maint_type) {
+            let idx2 = this.maint_words.findIndex(record => record && record.key === row.key);
+            if(idx > -1) {
+              row._meta.new   = false;
+              row._meta.dirty = true;
+              this.panelDirty[1] = true;
+              this.pageDirty = true;
+              this.maint_words[idx] = row;
+            } else {
+              row._meta.new = true;
+              this.panelDirty[1] = true;
+              this.pageDirty = true;
+              this.maint_words.push(row);
+            }
+          }
+        }
+      }
+      this.reSortTables();
+      this.checkPage();
+    } catch(err) {
+      Log.l(`TranslationsPage.importClosed(): Error closing import component`);
       Log.e(err);
       throw err;
     }
@@ -746,6 +884,37 @@ export class TranslationsPage implements OnInit,OnDestroy {
   public reSortTables(evt?:Event) {
     this.reSortTable(this.dt);
     this.reSortTable(this.maintTable);
+  }
+
+  public checkPage(evt?:Event):boolean {
+    // let tables = [this.dt, this.maintTable];
+    let pageDirty = this.checkTables();
+    this.pageDirty = pageDirty;
+    return pageDirty;
+  }
+
+  public checkTables(evt?:Event):boolean {
+    let dirty = this.checkTable(this.dt) || this.checkTable(this.maintTable);
+    return dirty;
+  }
+
+  public checkTable(table:Table, evt?:Event):boolean {
+    let data:TranslationTable = table.value;
+    let tableDirty = false;
+    for(let row of data) {
+      if(row && row._meta && (row._meta.dirty || row._meta.new)) {
+        tableDirty = true;
+        break;
+      }
+    }
+    if(table === this.dt) {
+      this.panelDirty[0] = tableDirty;
+    } else if(table === this.maintTable) {
+      this.panelDirty[1] = tableDirty;
+    } else {
+      Log.w(`TranslationsPage.checkTable(): Invalid table provided:`, table);
+    }
+    return tableDirty;
   }
 
   public toggleDeleteMode(tableId:number, evt?:Event) {
@@ -773,24 +942,38 @@ export class TranslationsPage implements OnInit,OnDestroy {
     }
   }
 
-  public onPaste(evt?:ClipboardEvent) {
-    Log.l(`TranslationsPage.onPaste(): Called, event is:`, evt);
-    window['onsitepasteevent'] = evt;
-    window['onsitepastedata'] = evt && evt.clipboardData ? evt.clipboardData : (window as any).clipboardData ? (window as any).clipboardData : null;
-    if(evt && evt.clipboardData) {
-      let text = evt.clipboardData.getData('text');
-      Log.l(`TranslationsPage.onPaste(): Text is:`, text);
-      window['onsitepastetext'] = text;
-      let res = this.parseTextToJson(text);
-      if(res) {
-        this.processJsonData(res);
-      } else {
-        Log.w(`TranslationsPage.onPaste(): Could not parse pasted data:`, text);
+  public async onPaste(evt?:ClipboardEvent) {
+    try {
+      Log.l(`TranslationsPage.onPaste(): Called with event:`, evt);
+      // Log.l(`TranslationsPage.onPaste(): Called, event is:`, evt);
+      window['onsitepasteevent'] = evt;
+      window['onsitepastedata'] = evt && evt.clipboardData ? evt.clipboardData : (window as any).clipboardData ? (window as any).clipboardData : null;
+      if(evt && evt.clipboardData) {
+        let active = document.activeElement;
+        if(active instanceof HTMLInputElement) {
+          Log.l(`TranslationsPage.onPaste(): Inside an input element. Doing nothing.`);
+          return;
+        }
+        let text = evt.clipboardData.getData('text');
+        Log.l(`TranslationsPage.onPaste(): Text is:`, text);
+        window['onsitepastetext'] = text;
+        let res = this.parseTextToJson(text);
+        if(res) {
+          let imports = await this.processJsonData(res);
+          await this.showImports(imports);
+        } else {
+          Log.w(`TranslationsPage.onPaste(): Could not parse pasted data:`, text);
+        }
       }
+      // return res;
+    } catch(err) {
+      Log.l(`TranslationsPage.onPaste(): Error with paste`);
+      Log.e(err);
+      throw err;
     }
   }
 
-  public async processJsonData(data:any) {
+  public async processJsonData(data:any):Promise<TranslationTable> {
     try {
       let langKeys = this.langKeys;
       let langKeyCount = langKeys.length;
@@ -798,6 +981,7 @@ export class TranslationsPage implements OnInit,OnDestroy {
       let out = [];
       // let newRecords:TranslationTableRecord[] = [];
       // let newMaintRecords:TranslationTableRecord[] = [];
+      let tempTable:TranslationTable = [];
       for(let key of keys) {
         let value:string[] = data[key];
         let record:TranslationTableRecord;
@@ -814,67 +998,73 @@ export class TranslationsPage implements OnInit,OnDestroy {
         //   row.maint_type = maint_type;
         // }
         record = row;
-        let title = "ADD TRANSLATION";
-        let text1  = "Add translation to table";
-        let text  = sprintf("%s:<br>\n<br>\n%s<br>\n", text1, JSON.stringify(record));
-        let confirm = await this.alert.showConfirmYesNo(title, text);
-        if(confirm) {
-          record._meta = {dirty: true};
-          this.translations.push(record);
-          // newRecords.push(record);
-          // this.dirtyRows[0].push(false);
-          this.panelDirty[0] = true;
-          this.reSortTables();
-          title = "ADD MAINTENANCE";
-          text = "Add record to maintenance report translations as well?";
-          let maintTypes = [
-            {code: 'mechanical_noun', value: 'Add as Mechanical Noun' },
-            {code: 'electronic_noun', value: 'Add as Electronic Noun' },
-            {code: 'verb', value: 'Add as Verb' },
-          ];
-          let buttons:CustomAlertButton[] = [];
-          for(let type of maintTypes) {
-            let button:CustomAlertButton = {
-              text: type.value,
-              resolve: type.code,
-            };
-            buttons.push(button);
-          }
-          buttons.push({
-            text: "No",
-            role: 'cancel',
-            resolve: null,
-          })
-          let res:string = await this.alert.showCustomConfirm(title, text, buttons);
-          if(res && typeof res === 'string') {
-            record.maint_type = res;
-            record._meta = {dirty: true};
-            this.maint_words.push(record);
-            // newMaintRecords.push(record);
-            // this.dirtyRows[1].push(false);
-            this.panelDirty[1] = true;
-            this.reSortTables();
-          }
-          out.push(record);
-        }
+        record._meta = {dirty: true};
+        tempTable.push(record);
       }
-      Log.l(`TranslationsPage.processJsonData(): Final result of JSON data is:`, out);
-      this.reSortTables();
-      // let dt:Table = this.dt;
-      // for(let record of newRecords) {
-      //   let idx = dt.value.indexOf(record);
-      //   if(idx > -1) {
-      //     this.dirtyRows[0][idx] = true;
+      this.importTranslations = tempTable;
+      return tempTable;
+      //   let title = "ADD TRANSLATION";
+      //   let text1  = "Add translation to table";
+      //   let text  = sprintf("%s:<br>\n<br>\n%s<br>\n", text1, JSON.stringify(record));
+      //   let confirm = await this.alert.showConfirmYesNo(title, text);
+      //   if(confirm) {
+      //     record._meta = {dirty: true};
+      //     // this.translations.push(record);
+      //     tempTable.push(record);
+      //     // newRecords.push(record);
+      //     // this.dirtyRows[0].push(false);
+      //     this.panelDirty[0] = true;
+      //     this.reSortTables();
+      //     title = "ADD MAINTENANCE";
+      //     text = "Add record to maintenance report translations as well?";
+      //     let maintTypes = [
+      //       {code: 'mechanical_noun', value: 'Add as Mechanical Noun' },
+      //       {code: 'electronic_noun', value: 'Add as Electronic Noun' },
+      //       {code: 'verb', value: 'Add as Verb' },
+      //     ];
+      //     let buttons:CustomAlertButton[] = [];
+      //     for(let type of maintTypes) {
+      //       let button:CustomAlertButton = {
+      //         text: type.value,
+      //         resolve: type.code,
+      //       };
+      //       buttons.push(button);
+      //     }
+      //     buttons.push({
+      //       text: "No",
+      //       role: 'cancel',
+      //       resolve: null,
+      //     })
+      //     let res:string = await this.alert.showCustomConfirm(title, text, buttons);
+      //     if(res && typeof res === 'string') {
+      //       record.maint_type = res;
+      //       record._meta = {dirty: true};
+      //       this.maint_words.push(record);
+      //       // newMaintRecords.push(record);
+      //       // this.dirtyRows[1].push(false);
+      //       this.panelDirty[1] = true;
+      //       this.reSortTables();
+      //     }
+      //     out.push(record);
       //   }
       // }
-      // dt = this.maintTable;
-      // for(let record of newMaintRecords) {
-      //   let idx = dt.value.indexOf(record);
-      //   if(idx > -1) {
-      //     this.dirtyRows[1][idx] = true;
-      //   }
-      // }
-      return out;
+      // Log.l(`TranslationsPage.processJsonData(): Final result of JSON data is:`, out);
+      // this.reSortTables();
+      // // let dt:Table = this.dt;
+      // // for(let record of newRecords) {
+      // //   let idx = dt.value.indexOf(record);
+      // //   if(idx > -1) {
+      // //     this.dirtyRows[0][idx] = true;
+      // //   }
+      // // }
+      // // dt = this.maintTable;
+      // // for(let record of newMaintRecords) {
+      // //   let idx = dt.value.indexOf(record);
+      // //   if(idx > -1) {
+      // //     this.dirtyRows[1][idx] = true;
+      // //   }
+      // // }
+      // return out;
     } catch(err) {
       Log.l(`TranslationsPage.processJsonData(): Error processing JSON data:`, data);
       Log.e(err);
@@ -885,4 +1075,17 @@ export class TranslationsPage implements OnInit,OnDestroy {
     }
   }
 
+  public async showImports(imports:TranslationTable, evt?:any):Promise<any> {
+    try {
+      Log.l(`TranslationsPage.showImports(): Called with table and event:\n`, imports, evt);
+      this.importTranslations = imports;
+      this.visibleImport = true;
+      // return res;
+    } catch(err) {
+      Log.l(`TranslationsPage.showImports(): Error showing imports component`);
+      Log.e(err);
+      throw err;
+    }
+  }
+  
 }

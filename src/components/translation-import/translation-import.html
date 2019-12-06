@@ -1,0 +1,93 @@
+<div class="translation-import-wrapper">
+  <!-- <p-dialog #translationEditorDialog styleClass="translation-import-dialog" [header]="header" [(visible)]="visible" [contentStyle]="{'overflow':'visible'}" [modal]="false" [responsive]="true" [draggable]="true" [resizable]="true" [positionLeft]="dialogLeft" [positionTop]="dialogTop" (onHide)="cancelClicked($event)"> -->
+  <!-- <p-dialog #translationEditorDialog styleClass="translation-import-dialog" [header]="header" [(visible)]="visible" [modal]="false" [responsive]="true" [draggable]="true" [resizable]="true" (onHide)="cancelClicked($event)"> -->
+  <p-dialog #translationImportDialog [styleClass]="'translation-import-dialog'" [(visible)]="visible" [modal]="false" [responsive]="true" [draggable]="true" [resizable]="true" [closable]="panelClosable" [closeOnEscape]="panelESCable" (onHide)="cancelClicked($event)" [class.dropdown-active]="dropdownActive">
+    <p-header>
+      <div class="header-row">
+        <!-- <div class="header-buttons start">
+        </div> -->
+        <div class="header-title">{{header}}</div>
+        <!-- <div class="header-buttons">
+          <span class="header-button"          title="Save but don't exit page" (click)="saveNoExitClicked($event)"><i class="fal fa-check-circle"></i></span>
+        </div> -->
+        <div class="header-close">
+          <span class="header-close-button" (click)="cancelClicked($event)"><i class="fa fa-times"></i></span>
+        </div>
+      </div>
+    </p-header>
+
+    <div class="import-table-container">
+      <p-table [styleClass]="'import-datatable'" [columns]="cols" [value]="imports" [(selection)]="selectedImports">
+        <ng-template pTemplate="header" let-columns>
+          <tr class="import-row-hdr">
+            <th class="import-col-index" [ngStyle]="styleColIndex"></th>
+            <th class="import-col-checkbox">
+              <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+            </th>
+              <th *ngFor="let col of columns; let idx = index" class="import-col-{{idx+1|number:'2.0-0'}}">
+                {{col.header}}
+              </th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-rowData let-columns="columns" let-rowIndex="rowIndex">
+          <tr [pSelectableRow]="rowData" class="import-row-data dropdown-row" [class.duplicate-row]="isDuplicate(rowData)" [class.duplicate-import-row]="isDuplicateImport(rowData)">
+            <td class="import-col-index">
+              {{rowIndex+1}}
+            </td>
+            <td class="import-col-checkbox">
+              <p-tableCheckbox [value]="rowData"></p-tableCheckbox>
+            </td>
+            <td pEditableColumn *ngFor="let col of columns; let idx=index" class="body-col import-col-{{idx+1|number:'2.0-0'}}" [ngClass]="col?.class" [ngStyle]="col?.style">
+              <p-cellEditor>
+                <ng-template pTemplate="input">
+                  <!-- <input pInputText type="text" [(ngModel)]="rowData[col.field]" (input)="dirtyUpRow(1, rowData, rowIndex)" *ngIf="col.field !== 'maint_type'"> -->
+                  <!-- <p-dropdown #maintTypeDropdown [options]="maintenanceTypes" [(ngModel)]="rowData[col.field]" [style]="{'width':'100%'}" (onChange)="dirtyUpRow(1, rowData, rowIndex)" *ngIf="col.field === 'maint_type'"></p-dropdown> -->
+                  <input pInputText type="text" [(ngModel)]="rowData[col.field]" *ngIf="col.field !== 'maint_type'">
+                  <p-dropdown [options]="maint_types" [(ngModel)]="rowData.maint_type" (onChange)="updateRowMaintenanceType(rowData, $event)" (onShow)="dropdownVisible(true, $event)" (onHide)="dropdownVisible(false, $event)" *ngIf="col.field === 'maint_type'"></p-dropdown>
+                </ng-template>
+                <ng-template pTemplate="output"><span class="import-cell-data-wrapper">{{rowData[col?.field]}}</span></ng-template>
+              </p-cellEditor>
+            </td>
+            <!-- <ng-container *ngFor="let col of columns; let idx = index">
+              <td pEditableColumn *ngIf="col.value === 'maint_type'" class="import-col-{{idx+1|number:'2.0-0'}}">
+                <p-cellEditor>
+                  <ng-template pTemplate="input">
+                    <p-dropdown [options]="maint_types" [(ngModel)]="rowData.maint_type" (onChange)="updateRowMaintenanceType(rowData, $event)" (onShow)="dropdownVisible(true, $event)" (onHide)="dropdownVisible(false, $event)"></p-dropdown>
+                  </ng-template>
+                  <ng-template pTemplate="output">
+                    {{rowData.maint_type}}
+                  </ng-template>
+                </p-cellEditor>
+              </td>
+              <td *ngIf="col.value !== 'maint_type'" class="import-col-{{idx+1|number:'2.0-0'}}">
+                {{rowData[col.value]}}
+              </td>
+            </ng-container> -->
+            <!-- <ng-container *ngFor="let col of columns; let idx = index">
+              <td pEditableColumn *ngIf="col.value === 'maint_type'" class="import-col-{{idx+1|number:'2.0-0'}}">
+                <p-cellEditor>
+                  <ng-template pTemplate="input">
+                    <p-dropdown [options]="maint_types" [(ngModel)]="rowData.maint_type" (onChange)="updateRowMaintenanceType(rowData, $event)" (onFocus)="dropdownVisible(true, $event)" (onBlur)="dropdownVisible(false, $event)"></p-dropdown>
+                  </ng-template>
+                  <ng-template pTemplate="output">
+                    {{rowData.maint_type}}
+                  </ng-template>
+                </p-cellEditor>
+              </td>
+              <td *ngIf="col.value !== 'maint_type'" class="import-col-{{idx+1|number:'2.0-0'}}">
+                {{rowData[col.value]}}
+              </td>
+            </ng-container> -->
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+    <p-footer>
+      <div class="translation-import-buttons">
+        <button class="ui-button-raised ui-button-rounded ui-button-info dialog-footer-button cancel"  pButton type="button" (click)="cancelClicked($event)" label="Cancel"></button>
+        <!-- <button class="ui-button-raised ui-button-rounded ui-button-success dialog-footer-button save-noexit" pButton type="button" (click)="saveNoExitClicked($event)" label="Save"></button> -->
+        <button class="ui-button-raised ui-button-rounded ui-button-success dialog-footer-button save" pButton type="button" (click)="saveClicked($event)" label="Save"></button>
+      </div>
+    </p-footer>
+  </p-dialog>
+</div>

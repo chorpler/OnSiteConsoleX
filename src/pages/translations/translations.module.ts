@@ -10,6 +10,7 @@ import { DropdownModule                     } from 'primeng/dropdown'           
 import { TableModule                        } from 'primeng/table'                    ;
 import { InputTextModule                    } from 'primeng/inputtext'                ;
 import { TranslationEditorModule            } from 'components/translation-editor'    ;
+import { TranslationImportModule            } from 'components/translation-import'    ;
 
 @NgModule({
   declarations: [
@@ -24,6 +25,7 @@ import { TranslationEditorModule            } from 'components/translation-edito
     DropdownModule,
     TableModule,
     TranslationEditorModule,
+    TranslationImportModule,
     InputTextModule,
   ],
   exports: [

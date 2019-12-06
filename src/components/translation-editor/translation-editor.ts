@@ -272,8 +272,10 @@ export class TranslationEditor implements OnInit,OnDestroy {
     try {
       Log.l(`TranslationEditor.addTranslation(): Called …`);
       let record:TranslationTableRecord;
-      let row:any = {};
-      row.key = "";
+      let row:TranslationTableRecord = {
+        key: "",
+        _meta: { dirty: true, new: true },
+      };
       let langKeys = ['en', 'es'];
       for(let langKey of langKeys) {
         row[langKey] = "";

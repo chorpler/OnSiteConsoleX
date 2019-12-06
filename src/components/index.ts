@@ -31,6 +31,8 @@ export * from './schedule-open';
 export * from './scheduling-list-employees';
 export * from './spinner';
 export * from './spinner-clock';
+export * from './translation-editor';
+export * from './translation-import';
 export * from './video-play';
 export * from './work-report-items';
 export * from './work-site';
