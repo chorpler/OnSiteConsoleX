@@ -59,10 +59,7 @@ export class AlertService {
     // this.loadings = AlertService.LOADINGS;
     // this.popovers = AlertService.POPOVERS;
     // this.toasts = AlertService.TOASTS;
-    window['consolealerts'] = this;
-    window['AlertService'] = AlertService;
-    window['alertservice'] = this;
-    window['UUID'] = UUID;
+    window['consolealertservice'] = this;
   }
 
   public async showSpinnerPromise(text:string):Promise<string> {
