@@ -138,6 +138,13 @@
 
     <!-- Scheduling Page -->
     <div class="options-main" *ngIf="optionType==='scheduling'">
+      <div class="options-item" title="How many past schedules to load (weeks)">
+        <input class="options-input" type="number" min="1" step="1" [(ngModel)]="prefs.CONSOLE.scheduling.pastSchedulesToLoad" (ngModelChange)="updateSchedulesStartDate($event)" />
+        <span class="options-label">Past Schedules</span>
+      </div>
+      <div class="options-item" title="How many past schedules to load (weeks)">
+        <span class="options-label-full">(to {{firstScheduleDate.format("DD MMM YYYY")}})</span>
+      </div>
       <div class="options-item" title="Save employee records automatically when they are moved">
         <p-checkbox [class.options-checkbox]="true" [(ngModel)]="prefs.CONSOLE.scheduling.persistTechChanges" binary="true"></p-checkbox>
         <span class="label">Persist Tech Changes</span>

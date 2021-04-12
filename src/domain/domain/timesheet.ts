@@ -42,7 +42,7 @@ export class Timesheet {
 
   constructor() {
     Log.l("Timesheet created:", this);
-    console.trace();
+    Log.tr();
     let now = moment();
     this._id               = ""                       ;
     this._rev              = ""                       ;
@@ -86,7 +86,7 @@ export class Timesheet {
 
   public serialize() {
     Log.l("Timesheet.serialize(): Now serializing timesheet:", this);
-    console.trace("Timesheet serializing");
+    Log.tr("Timesheet serializing");
     let newSheet:any = {};
     // this._id = this._id || this.genReportID(tech);
     let keys = Object.keys(this);
@@ -139,7 +139,7 @@ export class Timesheet {
   }
   public toJSON():any {
     Log.l(`TimeSheet.toJSON(): Called`);
-    console.trace();
+    Log.tr();
     return this.serialize();
   }
   public static fromJSON(doc:any):Timesheet {
@@ -156,5 +156,5 @@ export class Timesheet {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }

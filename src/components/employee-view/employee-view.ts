@@ -18,6 +18,7 @@ import { NotifyService                                           } from 'provide
 import { SelectItem,                                             } from 'primeng/api'                   ;
 import { Command, KeyCommandService                              } from 'providers'                     ;
 import { DispatchService                                         } from 'providers'                     ;
+import { Checkbox                                                } from 'primeng/checkbox'              ;
 
 @Component({
   selector: 'employee-view',
@@ -26,6 +27,7 @@ import { DispatchService                                         } from 'provide
 export class EmployeeViewComponent implements OnInit,OnDestroy {
   @ViewChild('avatarName') avatarName:ElementRef                                      ;
   @ViewChild('emailTextArea') emailTextArea:ElementRef                                ;
+  @ViewChild('activeCheckbox') activeCheckbox:Checkbox                                ;
   @Input('employee') employee:Employee                                                ;
   @Input('employees') employees:Employee[] = []                                       ;
   @Input('mode') mode:string = "edit"                                                 ;
@@ -94,6 +96,8 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
     // overflow: 'visible',
     overflow: 'auto',
   };
+  public disableActiveCheckbox:boolean = true;
+
 
   constructor(
     public prefs     : Preferences       ,
@@ -167,11 +171,14 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
       // this.developerMode = username === 'mike' || username === 'Chorpler' || username === 'Hachero' ? true : false;
       // this.developerMode = this.data.status.role;
     }
-    let bday:string = this.employee.getBirthdate();
-    let birthdate:Moment = moment(bday);
-    if(isMoment(birthdate)) {
-      this.birthdate = birthdate.toDate();
-    }
+
+    // let bday:string = this.employee.getBirthdate();
+    // let birthdate:Moment = moment(bday);
+    // if(isMoment(birthdate)) {
+    //   this.birthdate = birthdate.toDate();
+    // }
+    this.setVisibleBirthdate();
+
     this.dataReady = true;
     // }).catch(err => {
     //   Log.l("initializeEmployeeData(): Error getting employee data!");
@@ -479,7 +486,7 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
         return a.value.name == tech.shiftStartTime;
       });
       let rotation = this.rotationList.find((a:SelectItem) => {
-        return a.value.name == tech.rotation;
+        return a.value.name == tech.rotation || a.value.fullName === tech.rotation;
       });
       if(shift) {
         delete shift['_$visited'];
@@ -531,24 +538,41 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
         delete rotation['_$visited'];
         this.rotation = rotation.value;
       } else {
-        let rotation:SESAShiftRotation = new SESAShiftRotation();
-        let rotationList:SESAShiftRotation[] = [
-          rotation,
-        ];
-        this.rotationList = rotationList.map((a:SESAShiftRotation) => {
+        // let rotation:SESAShiftRotation = new SESAShiftRotation();
+        // let rotationList:SESAShiftRotation[] = [
+        //   rotation,
+        // ];
+        // this.rotationList = rotationList.map((a:SESAShiftRotation) => {
+        //   let item:SelectItem = {
+        //     label: a.fullName,
+        //     value: a,
+        //   };
+        //   return item;
+        // });
+        // this.rotation = this.rotationList[0].value;
+        this.rotationList = this.rotations.map((a:SESAShiftRotation) => {
           let item:SelectItem = {
-            label: a.name,
+            label: a.fullName,
             value: a,
           };
           return item;
         });
-        this.rotation = this.rotationList[0].value;
+        let newRotationItem = this.rotationList.find((a:SelectItem) => {
+          let value = a.value;
+          return value.name === "CONTN WEEK";
+        });
+        if(newRotationItem) {
+          this.rotation = newRotationItem.value;
+        } else {
+          this.rotation = null;
+        }
       }
       // let employeeEmail = tech.email || "\n";
     }
     let employeeEmail = tech.email && tech.email.length ? tech.email.join("\n") : "";
     this.userEmail = employeeEmail;
 
+    this.setVisibleBirthdate();
   }
 
   // public updateSite(site:Jobsite) {
@@ -648,7 +672,7 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
       // let rotation = this.data.getTechRotationForDate(this.employee, now);
       let rotation = this.employee.rotation || "CONTN WEEK";
       let payPeriodStartDate = this.data.getPayrollPeriodStartDate(now);
-      let shiftLength = site.getShiftLengthForDate(rotation, shiftTime, payPeriodStartDate);
+      let shiftLength = site.getShiftLengthForDate(payPeriodStartDate, rotation, shiftTime);
       if(isNaN(Number(shiftLength))) {
         shiftLength = 11;
       }
@@ -1166,17 +1190,17 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
   }
 
   public showOptions(evt?:any) {
-    Log.l(`showOptions(): Event is:\n`, evt);
+    Log.l(`showOptions(): Event is:`, evt);
     this.evOptionsVisible = true;
   }
 
   public optionsClosed(evt?:any) {
-    Log.l(`optionsClosed(): Event is:\n`, evt);
+    Log.l(`optionsClosed(): Event is:`, evt);
     this.evOptionsVisible = false;
   }
   public async optionsSaved(evt?:any) {
     try {
-      Log.l(`optionsSaved(): Event is:\n`, evt);
+      Log.l(`optionsSaved(): Event is:`, evt);
       this.evOptionsVisible = false;
       this.createJobsiteMenu();
       this.updateEmployeeDropdownFields();
@@ -1191,19 +1215,34 @@ export class EmployeeViewComponent implements OnInit,OnDestroy {
   }
 
   public updateBirthdate(evt?:any):string {
-    Log.l(`updateBirthdate(): New birthdate is:\n`, this.birthdate);
+    Log.l(`updateBirthdate(): New birthdate is:`, this.birthdate);
     let bdate:Moment = moment(this.birthdate);
     if(isMoment(bdate)) {
       let birthdate:string = bdate.format("YYYY-MM-DD");
       this.employee.birthdate = birthdate;
       return birthdate;
     } else {
-      Log.l(`updateBirthdate(): Birthdate invalid:\n`, this.birthdate);
+      Log.l(`updateBirthdate(): Birthdate invalid:`, this.birthdate);
     }
   }
 
   public updateEmployeeType(evt?:any) {
-    Log.l(`updateEmployeeType(): Employee type set to:\n`, this.employee.employeeType);
+    Log.l(`updateEmployeeType(): Employee type set to:`, this.employee.employeeType);
   }
 
+  public undoActiveChange(state?:boolean) {
+    let e = this.employee;
+    // e.active = !state;
+    // this.activeCheckbox.checked = !state;
+    this.notify.addWarning("DISABLED HERE", "Please activate/deactivate users with the thumbs up/down button on the Employees page", 10000);
+  }
+
+  public setVisibleBirthdate() {
+    this.birthdate = new Date();
+    let bday:string = this.employee.getBirthdate();
+    let birthdate:Moment = moment(bday);
+    if(isMoment(birthdate)) {
+      this.birthdate = birthdate.toDate();
+    }
+  }
 }

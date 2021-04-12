@@ -6,6 +6,9 @@ import { webFrame                       } from 'electron' ;
 import { dialog                         } from 'electron' ;
 import { remote                         } from 'electron' ;
 import { ipcRenderer                    } from 'electron' ;
+// import { electronLocalshortcut          } from 'electron-localshortcut';
+// import electronLocalshortcut from 'electron-localshortcut';
+import * as electronLocalshortcut from 'electron-localshortcut';
 
 import { globalShortcut  } from 'electron';
 import * as electron from 'electron';
@@ -56,6 +59,7 @@ const fsp = fs.promises;
 
 // export type Menu = Electron.Menu;
 export type MenuItemConstructorOptions = Electron.MenuItemConstructorOptions;
+export type ElectronMenu = Electron.Menu;
 export type MenuItem = Electron.MenuItem;
 export type WebContents = Electron.WebContents;
 export type ElectronEvent = Electron.Event;
@@ -64,10 +68,13 @@ export type IPCRenderer = Electron.IpcRenderer;
 export type Remote = Electron.Remote;
 export type BrowserWindow = Electron.BrowserWindow;
 export type BrowserView = Electron.BrowserView;
+export type ContextMenuParams = Electron.ContextMenuParams;
+export type PopupOptions = Electron.PopupOptions;
 
 export type DialogType = "none" | "info" | "error" |"question" | "warning";
 
 const Menu = remote.Menu;
+const MenuItem = remote.MenuItem;
 
 export interface DialogOptions {
   type    ?: DialogType;
@@ -85,6 +92,8 @@ export interface PDFPrintOptions extends electron.PrintToPDFOptions {
 @Injectable()
 export class ElectronService {
   public dbDir:string = "";
+  public contextMenu:Electron.Menu;
+  public rightClickEvent:Electron.Menu;
   // public static searchActive:boolean = false;
   // public get searchActive():boolean { return ElectronService.searchActive; };
   // public set searchActive(val:boolean) { ElectronService.searchActive = val; };
@@ -117,6 +126,7 @@ export class ElectronService {
   public path = path;
   public fs = fs;
   public fsp = fsp;
+  public localShortcut = electronLocalshortcut;
   public searcher;
   public defaultTitle:string;
   // public childproc = childProc;
@@ -141,6 +151,7 @@ export class ElectronService {
     if(win) {
       this.defaultTitle = win.getTitle();
     }
+    this.createInspectMenu();
     // this.electronDBInit();
     // this.pdfWindow = PDFWindow;
   }
@@ -321,240 +332,6 @@ export class ElectronService {
   public zoomOut() {
     webFrame.setZoomLevel(--this.currentZoom);
   }
-
-  public createMenuFromIonicMenu(ionicMenu:any[]) {
-    let template:any[] = [];
-    let thisApp = this.app;
-    let dev = this.data.status.role === 'dev';
-    // let Menu = Menu;
-    // let MenuItem = MenuItem;
-    let i = 0;
-    for(let item of ionicMenu) {
-      i++;
-      let label = item.title;
-      let page = item.page;
-      let role = item.role;
-      if(role === 'dev' && !dev) {
-        continue;
-      } else {
-        if(item.submenu.length) {
-          let submenu = [];
-          for(let subitem of item.submenu) {
-            let sublabel = subitem.title;
-            let subpage  = subitem.page;
-            let subMenuItem = {label: sublabel, click() { thisApp.openPage(subitem); }};
-            submenu.push(subMenuItem);
-          }
-          let menuItem = {label: label, submenu: submenu};
-          template.push(menuItem);
-        } else {
-          if(i === 1) {
-            let menuItem = {label: label, accelerator: 'F5', click() { thisApp.openPage(item); }};
-            template.push(menuItem);
-          } else {
-            let menuItem = {label: label, click() { thisApp.openPage(item); }};
-            template.push(menuItem);
-          }
-        }
-      }
-    }
-    Log.l("createMenuFromIonicMenu(): Final template is:\n", template);
-    return template;
-  }
-
-  public createMenus() {
-    // let template1:MenuItem = {
-    let thisApp = this.app;
-    let pages = this.app.pagesNested;
-    let viewSubmenu:MenuItemConstructorOptions[] = [
-      { label: 'Developer Tools', accelerator: 'F12', click: () => { this.showDeveloperTools(); }},
-      { role: 'toggledevtools' },
-      { label: 'Toggle Dev Mode', accelerator: 'CommandOrControl+F12', click: () => { this.toggleDeveloperMode(); } },
-      { type: 'separator' },
-      { role: 'resetzoom' },
-      { role: 'zoomin' },
-      { role: 'zoomout' },
-      { type: 'separator' },
-      { role: 'togglefullscreen' },
-    ];
-    // let viewSub1:MenuItemConstructorOptions[] = [
-    //   { label: 'Developer Tools', accelerator: 'F12', click: () => { this.showDeveloperTools(); }},
-    //   { role: 'toggledevtools' },
-    // ];
-    // let viewSub2:MenuItemConstructorOptions[] = [
-    //   { type: 'separator' },
-    //   { role: 'resetzoom' },
-    //   { role: 'zoomin' },
-    //   { role: 'zoomout' },
-    //   { type: 'separator' },
-    //   { role: 'togglefullscreen' },
-    // ];
-    // let viewSubDev:MenuItemConstructorOptions[] = [
-    //   { label: 'Toggle Dev Mode', accelerator: 'CommandOrControl+F12', click: () => { this.toggleDeveloperMode(); } },
-    // ];
-    if(!this.data.isDeveloper) {
-      viewSubmenu = viewSubmenu.filter((a:MenuItemConstructorOptions) => {
-        return a.label !== 'Toggle Dev Mode';
-      });
-    }
-    let template:MenuItemConstructorOptions[] = [
-      {
-        label: 'File',
-        submenu: [
-          { label: "Options", accelerator: "CommandOrControl+O", click: () => { this.showAppOptions('global'); }},
-          { label: "Advanced Options", accelerator: "CommandOrControl+Shift+O", click: () => { this.showAppOptions('advanced'); }},
-          { type: 'separator' },
-          { label: "Restart App", accelerator: 'CommandOrControl+Shift+R', click: () => { this.relaunchApp(); } },
-          { role: 'quit' },
-        ]
-      },
-      {
-        label: 'Edit',
-        submenu: [
-          // { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
-          // { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
-          // { type: "separator" },
-          // { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
-          //   {role: 'copy'},
-          // {role: 'paste'},
-          // {role: 'pasteandmatchstyle'},
-          // {role: 'selectall'},
-          { label: "Undo", accelerator: "CmdOrCtrl+Z", role: "undo" },
-          { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", role: "redo" },
-          { type: "separator" },
-          { label: "Cut", accelerator: "CmdOrCtrl+X", role: "cut" },
-          { label: "Copy", accelerator: "CmdOrCtrl+C", role: "copy" },
-          { label: "Paste", accelerator: "CmdOrCtrl+V", role: "paste" },
-          { label: "Select All", accelerator: "CmdOrCtrl+A", role: "selectAll" },
-          { type: 'separator' },
-          // { label: 'Find…', accelerator: 'CommandOrControl+G', click: () => { this.pageSearch(); } },
-          { label: 'Find…', accelerator: 'CommandOrControl+G', click: () => { this.dispatch.triggerAppEvent('find-in-page'); } },
-        ]
-      },
-      {
-        label: 'View',
-        accelerator: 'Alt+V',
-        submenu: viewSubmenu,
-      },
-      {
-        label: 'App',
-        accelerator: 'Alt+A',
-        submenu: [
-          { label: "Reauthenticate", click: () => { this.reauthenticate(); } },
-        ]
-      },
-    ];
-    if(this.app && this.app.pagesNested && Array.isArray(this.app.pagesNested)) {
-    // if(ionicMenu) {
-      let screenMenu = this.createMenuFromIonicMenu(this.app.pagesNested);
-      // let item = {label: 'Screens', submenu: screenMenu, accelerator: 'CmdOrCtrl+Shift+S' };
-      let item = {label: 'Screens', submenu: screenMenu, accelerator: 'CommandOrControl+Alt+S' };
-      template.push(item);
-    }
-      // template = [...template, ...screenMenu];
-    // }
-    // let help:MenuItemConstructorOptions = {
-    //   label: 'Help',
-    //   submenu: [
-    //     {label: 'Check for update...', click: () => { this.checkForUpdate(); } },
-    //     { type: 'separator' },
-    //     {label: 'About OnSiteX Console...', click: () => { this.notify.addInfo("VERSION", `OnSiteX Console ${this.getVersion()}`, 5000); } },
-    //   ]
-    // };
-    let helpMenu:MenuItemConstructorOptions = {
-      label: 'Help',
-      submenu: [
-        {label: 'Check for update...', click: () => { this.checkForUpdate(); } },
-        {type: 'separator' },
-        {label: 'About OnSiteX Console...', click: () => { this.showVersion(); } },
-      ]
-    };
-    template.push(helpMenu);
-    if(process.platform === 'darwin') {
-      template.unshift({
-        label: electronApp.getName(),
-        submenu: [
-          { role: 'about' },
-          { type: 'separator' },
-          { role: 'services', submenu: [] },
-          { type: 'separator' },
-          { role: 'hide' },
-          { role: 'hideothers' },
-          { role: 'unhide' },
-          { type: 'separator' },
-          { role: 'quit' }
-        ]
-      });
-    }
-    Log.l("createMenu(): Resulting template is:", template);
-    let menu:MenuType = remote.Menu.buildFromTemplate(template);
-
-    Log.l("createMenu(): Resulting menu is:", menu);
-    remote.Menu.setApplicationMenu(menu);
-    this.menu = menu;
-    return menu;
-  }
-
-  public createStartupMenus() {
-    // let template1:MenuItem = {
-    let template:MenuItemConstructorOptions[] = [
-      {
-        label: 'File',
-        submenu: [
-          { label: "Options", accelerator: "CommandOrControl+O", click: () => { this.showAppOptions('global'); }},
-          { type: 'separator' },
-          { label: "Restart App", accelerator: 'CommandOrControl+Shift+R', click: () => { this.relaunchApp(); } },
-          { role: 'quit' },
-        ]
-      },
-      {
-        label: 'View',
-        accelerator: 'Alt+V',
-        submenu: [
-          { label: 'Developer Tools', accelerator: 'F12', click: () => { this.showDeveloperTools(); }},
-          { role: 'toggledevtools' },
-          { type: 'separator' },
-          { role: 'resetzoom' },
-          { role: 'zoomin' },
-          { role: 'zoomout' },
-          { type: 'separator' },
-          { role: 'togglefullscreen' }
-        ]
-      },
-    ];
-    let helpMenu:MenuItemConstructorOptions = {
-      label: 'Help',
-      submenu: [
-        {label: 'Check for update...', click: () => { this.checkForUpdate(); } },
-        {type: 'separator' },
-        {label: 'About OnSiteX Console...', click: () => { this.showVersion(); } },
-      ]
-    };
-    template.push(helpMenu);
-    if(process.platform === 'darwin') {
-      template.unshift({
-        label: electronApp.getName(),
-        submenu: [
-          { role: 'about' },
-          { type: 'separator' },
-          { role: 'services', submenu: [] },
-          { type: 'separator' },
-          { role: 'hide' },
-          { role: 'hideothers' },
-          { role: 'unhide' },
-          { type: 'separator' },
-          { role: 'quit' }
-        ]
-      });
-    }
-    Log.l("createStartupMenus(): Resulting template is:", template);
-    let menu:MenuType = remote.Menu.buildFromTemplate(template);
-    Log.l("createStartupMenus(): Resulting menu is:", menu);
-    remote.Menu.setApplicationMenu(menu);
-    this.menu = menu;
-    return menu;
-  }
-
 
   public buttonClick(event?:any) {
     Log.l("buttonClick(): Event is:\n", event);
@@ -1383,6 +1160,281 @@ export class ElectronService {
       Log.e(err);
       throw err;
     }
+  }
+
+  public async killActiveSpinners(evt?:any):Promise<any> {
+    try {
+      Log.l(`ElectronService.killActiveSpinners(): Attempting to kill all spinners …`);
+      this.dispatch.triggerAppEvent('killspinners');
+      // let res:any = await someFunctionThatReturnsAPromise();
+      // Additional code
+      // return res;
+    } catch(err) {
+      Log.l(`ElectronService.killActiveSpinners(): Error clearing spinners`);
+      Log.e(err);
+      this.notify.addError("ERROR", `Error clearing spinners: ${err.message}`, 4000);
+      // throw err;
+    }
+  }
+
+  public createMenuFromIonicMenu(ionicMenu:any[]) {
+    let template:any[] = [];
+    let thisApp = this.app;
+    let dev = this.data.status.role === 'dev';
+    // let Menu = Menu;
+    // let MenuItem = MenuItem;
+    let i = 0;
+    for(let item of ionicMenu) {
+      i++;
+      let label = item.title;
+      let page = item.page;
+      let role = item.role;
+      if(role === 'dev' && !dev) {
+        continue;
+      } else {
+        if(item.submenu.length) {
+          let submenu = [];
+          for(let subitem of item.submenu) {
+            let sublabel = subitem.title;
+            let subpage  = subitem.page;
+            let subMenuItem = {label: sublabel, click() { thisApp.openPage(subitem); }};
+            submenu.push(subMenuItem);
+          }
+          let menuItem = {label: label, submenu: submenu};
+          template.push(menuItem);
+        } else {
+          if(i === 1) {
+            let menuItem = {label: label, accelerator: 'F5', click() { thisApp.openPage(item); }};
+            template.push(menuItem);
+          } else {
+            let menuItem = {label: label, click() { thisApp.openPage(item); }};
+            template.push(menuItem);
+          }
+        }
+      }
+    }
+    Log.l("createMenuFromIonicMenu(): Final template is:\n", template);
+    return template;
+  }
+
+  public createMenus() {
+    // let template1:MenuItem = {
+    let thisApp = this.app;
+    let pages = this.app.pagesNested;
+    let viewSubmenu:MenuItemConstructorOptions[] = [
+      { label: 'Developer Tools', accelerator: 'F12', click: () => { this.showDeveloperTools(); }},
+      { role: 'toggledevtools' },
+      { label: 'Toggle Dev Mode', accelerator: 'CommandOrControl+F12', click: () => { this.toggleDeveloperMode(); } },
+      { type: 'separator' },
+      { role: 'resetzoom' },
+      { role: 'zoomin' },
+      { role: 'zoomout' },
+      { type: 'separator' },
+      { role: 'togglefullscreen' },
+    ];
+    // let viewSub1:MenuItemConstructorOptions[] = [
+    //   { label: 'Developer Tools', accelerator: 'F12', click: () => { this.showDeveloperTools(); }},
+    //   { role: 'toggledevtools' },
+    // ];
+    // let viewSub2:MenuItemConstructorOptions[] = [
+    //   { type: 'separator' },
+    //   { role: 'resetzoom' },
+    //   { role: 'zoomin' },
+    //   { role: 'zoomout' },
+    //   { type: 'separator' },
+    //   { role: 'togglefullscreen' },
+    // ];
+    // let viewSubDev:MenuItemConstructorOptions[] = [
+    //   { label: 'Toggle Dev Mode', accelerator: 'CommandOrControl+F12', click: () => { this.toggleDeveloperMode(); } },
+    // ];
+    if(!this.data.isDeveloper) {
+      viewSubmenu = viewSubmenu.filter((a:MenuItemConstructorOptions) => {
+        return a.label !== 'Toggle Dev Mode';
+      });
+    }
+    let template:MenuItemConstructorOptions[] = [
+      {
+        label: 'File',
+        submenu: [
+          { label: "Options", accelerator: "CommandOrControl+O", click: () => { this.showAppOptions('global'); }},
+          { label: "Advanced Options", accelerator: "CommandOrControl+Shift+O", click: () => { this.showAppOptions('advanced'); }},
+          { type: 'separator' },
+          { label: "Restart App", accelerator: 'CommandOrControl+Shift+R', click: () => { this.relaunchApp(); } },
+          { role: 'quit' },
+        ]
+      },
+      {
+        label: 'Edit',
+        submenu: [
+          // { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
+          // { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
+          // { type: "separator" },
+          // { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
+          //   {role: 'copy'},
+          // {role: 'paste'},
+          // {role: 'pasteandmatchstyle'},
+          // {role: 'selectall'},
+          { label: "Undo", accelerator: "CmdOrCtrl+Z", role: "undo" },
+          { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", role: "redo" },
+          { type: "separator" },
+          { label: "Cut", accelerator: "CmdOrCtrl+X", role: "cut" },
+          { label: "Copy", accelerator: "CmdOrCtrl+C", role: "copy" },
+          { label: "Paste", accelerator: "CmdOrCtrl+V", role: "paste" },
+          { label: "Select All", accelerator: "CmdOrCtrl+A", role: "selectAll" },
+          { type: 'separator' },
+          // { label: 'Find…', accelerator: 'CommandOrControl+G', click: () => { this.pageSearch(); } },
+          { label: 'Find…', accelerator: 'CommandOrControl+G', click: () => { this.dispatch.triggerAppEvent('find-in-page'); } },
+        ]
+      },
+      {
+        label: 'View',
+        accelerator: 'Alt+V',
+        submenu: viewSubmenu,
+      },
+      {
+        label: 'App',
+        accelerator: 'Alt+A',
+        submenu: [
+          { label: "Reauthenticate", click: () => { this.reauthenticate(); } },
+        ]
+      },
+    ];
+    if(this.app && this.app.pagesNested && Array.isArray(this.app.pagesNested)) {
+    // if(ionicMenu) {
+      let screenMenu = this.createMenuFromIonicMenu(this.app.pagesNested);
+      // let item = {label: 'Screens', submenu: screenMenu, accelerator: 'CmdOrCtrl+Shift+S' };
+      let item = {label: 'Screens', submenu: screenMenu, accelerator: 'CommandOrControl+Alt+S' };
+      template.push(item);
+    }
+      // template = [...template, ...screenMenu];
+    // }
+    // let help:MenuItemConstructorOptions = {
+    //   label: 'Help',
+    //   submenu: [
+    //     {label: 'Check for update...', click: () => { this.checkForUpdate(); } },
+    //     { type: 'separator' },
+    //     {label: 'About OnSiteX Console...', click: () => { this.notify.addInfo("VERSION", `OnSiteX Console ${this.getVersion()}`, 5000); } },
+    //   ]
+    // };
+    let helpMenu:MenuItemConstructorOptions = {
+      label: 'Help',
+      submenu: [
+        { label: 'Check for update …', click: () => { this.checkForUpdate(); } },
+        { type: 'separator' },
+        { label: 'Kill spinners', accelerator: 'CommandOrControl+Shift+K', click: (evt) => { Log.l(`ElectronService: KILL SPINNERS CHOSEN WITH ARGS:`, arguments); this.killActiveSpinners(evt); } },
+        { type: 'separator' },
+        { label: 'About OnSiteX Console …', click: () => { this.showVersion(); } },
+      ]
+    };
+    template.push(helpMenu);
+    if(process.platform === 'darwin') {
+      template.unshift({
+        label: electronApp.getName(),
+        submenu: [
+          { role: 'about' },
+          { type: 'separator' },
+          { role: 'services', submenu: [] },
+          { type: 'separator' },
+          { role: 'hide' },
+          { role: 'hideothers' },
+          { role: 'unhide' },
+          { type: 'separator' },
+          { role: 'quit' }
+        ]
+      });
+    }
+    Log.l("createMenu(): Resulting template is:", template);
+    let menu:MenuType = remote.Menu.buildFromTemplate(template);
+
+    Log.l("createMenu(): Resulting menu is:", menu);
+    remote.Menu.setApplicationMenu(menu);
+    this.menu = menu;
+    return menu;
+  }
+
+  public createStartupMenus() {
+    // let template1:MenuItem = {
+    let template:MenuItemConstructorOptions[] = [
+      {
+        label: 'File',
+        submenu: [
+          { label: "Options", accelerator: "CommandOrControl+O", click: () => { this.showAppOptions('global'); }},
+          { type: 'separator' },
+          { label: "Restart App", accelerator: 'CommandOrControl+Shift+R', click: () => { this.relaunchApp(); } },
+          { role: 'quit' },
+        ]
+      },
+      {
+        label: 'View',
+        accelerator: 'Alt+V',
+        submenu: [
+          { label: 'Developer Tools', accelerator: 'F12', click: () => { this.showDeveloperTools(); }},
+          { role: 'toggledevtools' },
+          { type: 'separator' },
+          { role: 'resetzoom' },
+          { role: 'zoomin' },
+          { role: 'zoomout' },
+          { type: 'separator' },
+          { role: 'togglefullscreen' }
+        ]
+      },
+    ];
+    let helpMenu:MenuItemConstructorOptions = {
+      label: 'Help',
+      submenu: [
+        { label: 'Check for update...', click: () => { this.checkForUpdate(); } },
+        { type: 'separator' },
+        { label: 'Kill spinners', accelerator: 'CommandOrControl+Shift+K', click: (evt) => { Log.l(`ElectronService: KILL SPINNERS CHOSEN WITH ARGS:`, arguments); this.killActiveSpinners(evt); } },
+        { type: 'separator' },
+        { label: 'About OnSiteX Console …', click: () => { this.showVersion(); } },
+      ]
+    };
+    template.push(helpMenu);
+    if(process.platform === 'darwin') {
+      template.unshift({
+        label: electronApp.getName(),
+        submenu: [
+          { role: 'about' },
+          { type: 'separator' },
+          { role: 'services', submenu: [] },
+          { type: 'separator' },
+          { role: 'hide' },
+          { role: 'hideothers' },
+          { role: 'unhide' },
+          { type: 'separator' },
+          { role: 'quit' }
+        ]
+      });
+    }
+    Log.l("createStartupMenus(): Resulting template is:", template);
+    let menu:MenuType = remote.Menu.buildFromTemplate(template);
+    Log.l("createStartupMenus(): Resulting menu is:", menu);
+    remote.Menu.setApplicationMenu(menu);
+    this.menu = menu;
+    return menu;
+  }
+
+  public createInspectMenu() {
+    // Console commands to add context menu
+    // var wc = t.electron.remote.getCurrentWebContents(), rightClickPosition = null, contextMenu = new t.electron.remote.Menu(), contextMenuItem = new t.electron.remote.MenuItem({ label: "Inspect Element", click: () => { let wc = t.electron.remote.getCurrentWebContents(); wc.inspectElement(rightClickPosition.x, rightClickPosition.y); } });
+    // contextMenu.append(contextMenuItem);
+    // wc.on('context-menu', (event,params) => { rightClickPosition = {x: params.x, y: params.y }; contextMenu.popup(); });
+    let webContents = remote.getCurrentWebContents();
+    let rightClickPosition;
+    let contextMenu = new Menu();
+    let item:MenuItemConstructorOptions = {
+      label: "Inspect Element",
+      click: () => {
+        webContents.inspectElement(rightClickPosition.x, rightClickPosition.y);
+      }
+    };
+    let contextMenuItem = new MenuItem(item);
+    contextMenu.append(contextMenuItem);
+    webContents.on('context-menu', (event:ElectronEvent,params:ContextMenuParams) => {
+      Log.l(`ElectronService: 'context-menu' event detected. Event and params are:`, event, params);
+      rightClickPosition = {x: params.x, y: params.y };
+      contextMenu.popup();
+    });
   }
 
 }

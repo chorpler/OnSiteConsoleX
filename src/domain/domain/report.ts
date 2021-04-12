@@ -1,8 +1,16 @@
 /**
  * Name: Report domain class
- * Vers: 7.8.1
- * Date: 2019-06-27
+ * Vers: 8.1.0
+ * Date: 2019-08-20
  * Auth: David Sargeant
+ * Logs: 8.1.0 2019-08-20: Added getLastTimeBlocked() method
+ * Logs: 8.0.4 2019-08-13: Fixed unreachable code in getReportDate() method
+ * Logs: 8.0.3 2019-08-11: Added setUser() method; Added some JSDoc comments
+ * Logs: 8.0.2 2019-08-08: Added type property and getType() method
+ * Logs: 8.0.1 2019-08-07: Added some JSDoc comments
+ * Logs: 8.0.0 2019-07-24: Changed genReportID() method to use English locale for current Moment string
+ * Logs: 7.8.3 2019-07-17: Modified setPremiumStatus() method to throw error if not given Jobsite object; added billable property and isBillable(),setBillableStatus() methods
+ * Logs: 7.8.2 2019-07-17: Added matchesCLL(),matchesOneCLL(),matchesClient(),matchesLocation(),matchesLocID() methods
  * Logs: 7.8.1 2019-06-27: Changed StatusUpdateType to ReportStatusUpdateType; minor TSLint errors fixed
  * Logs: 7.7.2 2019-06-19: Added a type property, for office/work_report types
  * Logs: 7.7.1 2019-06-11: Added times_error,date_error properties, areTimesValid() method, and new methods to force date/time updates without checking instantly for errors
@@ -46,6 +54,13 @@ export interface ReportStatusLogEntry {
   invoice   ?: number                 ;
 }
 export type WorkReportType = "work_report" | "office";
+export interface SESAReportCLL {
+  name:string;
+  fullName:string;
+  code?:string;
+  value?:string;
+}
+export type ReportCLL = SESAReportCLL|string;
 
 export class Report {
   public _id              : string = "";
@@ -90,6 +105,7 @@ export class Report {
   public paid             : boolean = false;
   public paid_date        : string  = "";
   public premium_eligible : boolean = true;
+  public billable         : boolean = true;
   public isTest           : boolean = false;
   public times_error      : boolean = false;
   public date_error       : boolean = false;
@@ -102,6 +118,8 @@ export class Report {
     ["wONum"           , "work_order_number" , 0 ] ,
     ["notes"           , "notes"             , 1 ] ,
     ["rprtDate"        , "report_date"       , 0 ] ,
+    ["timeStarts"      , "time_start"        , 0 ] ,
+    ["timeEnds"        , "time_end"          , 0 ] ,
     ["lastName"        , "last_name"         , 0 ] ,
     ["firstName"       , "first_name"        , 0 ] ,
     ["client"          , "client"            , 1 ] ,
@@ -133,6 +151,8 @@ export class Report {
     ["paid"            , "paid"              , 1 ] ,
     ["paid_date"       , "paid_date"         , 1 ] ,
     ["isTest"          , "isTest"            , 1 ] ,
+    ["premium_eligible", "premium_eligible"  , 1 ] ,
+    ["billable"        , "billable"          , 1 ] ,
   ];
 
   /**
@@ -227,7 +247,7 @@ export class Report {
           } else if(typeof doc[docKey] === 'string') {
             let xl = Number(doc[docKey]);
             if(!isNaN(xl)) {
-              this[thisKey] = moment().fromExcel(xl).format("YYYY-MM-DD")
+              this[thisKey] = moment().fromExcel(xl).format("YYYY-MM-DD");
             } else {
               this[thisKey] = doc[docKey] ? doc[docKey] : this[thisKey];
             }
@@ -245,34 +265,40 @@ export class Report {
       let timestart = doc['timeStarts'];
       let timeend   = doc['timeEnds'];
 
-      if(typeof timestart === 'string' && timestart.length === 5) {
-        let startTime = timestart.slice(0, 5).split(":");
-        let hour : number  = Number(startTime[0]);
-        let min  : number  = Number(startTime[1]);
-        let ts:Moment = moment(report_date).startOf('day').hour(hour).minute(min);
-        this.time_start = ts;
-      } else if(typeof timestart === 'string') {
-        this.time_start = moment(timestart);
-      } else {
-        let start = moment(timestart);
-        this.time_start = start;
+      if(typeof timestart === 'string' && timestart) {
+        if(timestart.length === 5) {
+          let startTime = timestart.slice(0, 5).split(":");
+          let hour : number  = Number(startTime[0]);
+          let min  : number  = Number(startTime[1]);
+          let ts:Moment = moment(report_date).startOf('day').hour(hour).minute(min);
+          this.time_start = ts;
+        } else {
+          this.time_start = moment(timestart);
+        }
       }
+      // else {
+      //   let start = moment(timestart);
+      //   this.time_start = start;
+      // }
 
-      if(typeof timeend === 'string' && timeend.length === 5) {
-        let endTime = doc['timeEnds'].slice(0, 5).split(":");
-        let hour = Number(endTime[0]);
-        let min = Number(endTime[1]);
-        let te = moment(report_date).startOf('day').hour(hour).minute(min);
-        // this.time_end = te.format("HH:mm");
-        this.time_end = te;
-      } else if(typeof timeend === 'string') {
-        this.time_end = moment(timeend);
-      } else {
-        let end = moment(timeend);
-        this.time_end = end;
+      if(typeof timeend === 'string' && timeend) {
+        if(timeend.length === 5) {
+          let endTime = doc['timeEnds'].slice(0, 5).split(":");
+          let hour = Number(endTime[0]);
+          let min = Number(endTime[1]);
+          let te = moment(report_date).startOf('day').hour(hour).minute(min);
+          // this.time_end = te.format("HH:mm");
+          this.time_end = te;
+        } else {
+          this.time_end = moment(timeend);
+        }
       }
+      // else {
+      //   let end = moment(timeend);
+      //   this.time_end = end;
+      // }
 
-      let repair_hours = doc['repairHrs'] !== undefined ? doc['repairHrs'] : doc['repair_hours'] !== undefined ? doc['repair_hours'] : 0;
+      let repair_hours = doc['repairHrs'] != undefined ? doc['repairHrs'] : doc['repair_hours'] != undefined ? doc['repair_hours'] : 0;
       let hr1 = Number(repair_hours);
       if(!isNaN(hr1)) {
         this.repair_hours = hr1;
@@ -456,20 +482,40 @@ export class Report {
     return out;
   }
 
-  public getReportDate(asString?:boolean):Moment|string {
-    if(asString) {
-      return this.getReportDateAsString();
+  /**
+   * Return report date as a Moment.js object or a string
+   *
+   * @param {(string|boolean)} [format] Either a Moment.js format string to use, or a boolean indicating default format will be used
+   * @returns {(Moment|string)} Report date as either a Moment.js object or string
+   * @memberof Report
+   */
+  public getReportDate(format?:boolean|string):Moment|string {
+    if(format != undefined) {
+      if(typeof format === 'string') {
+        return this.getReportDateAsString(format);
+      } else {
+        return this.getReportDateAsString();
+      }
     } else {
+      return this.getReportDateAsMoment();
       // let date = moment(this.report_date, "YYYY-MM-DD");
       // return date;
-      if(typeof this.report_date === 'string') {
-        return moment(this.report_date, "YYYY-MM-DD");
-      } else {
-        return moment(this.report_date);
-      }
+      // if(typeof this.report_date === 'string') {
+      //   return moment(this.report_date, "YYYY-MM-DD");
+      // } else {
+      //   return moment(this.report_date);
+      // }
     }
   }
 
+  /**
+   * Return report date as a string.
+   * Default format is "YYYY-MM-DD".
+   *
+   * @param {string} [format] Optional Moment.js-style format string to use
+   * @returns {string} Report date formatted as a string
+   * @memberof Report
+   */
   public getReportDateAsString(format?:string):string {
     let date:any = this.report_date;
     if(typeof format !== 'string') {
@@ -488,6 +534,12 @@ export class Report {
     }
   }
 
+  /**
+   * Return report date as a Moment.js object
+   *
+   * @returns {Moment} The report date as a Moment.js object (time is midnight local)
+   * @memberof Report
+   */
   public getReportDateAsMoment():Moment {
     let reportDate:any = this.report_date;
     if(isMoment(reportDate) || reportDate instanceof Date) {
@@ -603,11 +655,11 @@ export class Report {
         this.adjustEndTime();
       }
     } else if(isMoment(start) && typeof time === 'number') {
-      let end = moment(start).add(time, 'hours');
-      this.time_end = end;
+      let timeEnd = moment(start).add(time, 'hours');
+      this.time_end = timeEnd;
     } else if(isMoment(end) && typeof time === 'number') {
-      let start = moment(end).subtract(time, 'hours');
-      this.time_start = start;
+      let timeStart = moment(end).subtract(time, 'hours');
+      this.time_start = timeStart;
     } else if(isMoment(start) && isMoment(end)) {
       let hours = moment(end).diff(start, 'hours', true);
       this.repair_hours = hours;
@@ -665,18 +717,66 @@ export class Report {
     return !(this.date_error || this.times_error);
   }
 
-  public genReportID(tech:Employee):string {
+  public genReportID(tech:Employee, lang?:string):string {
     let now = moment();
+    let i8nCode = typeof lang === 'string' ? lang : "en";
+    let localNow = moment(now).locale(i8nCode);
     // let idDateTime = now.format("dddDDMMMYYYYHHmmss");
-    let idDateTime = now.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
+    // let idDateTime = now.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
+    let idDateTime = localNow.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
     let docID = tech.avatarName + '_' + idDateTime;
-    Log.l("genReportID(): Generated ID:\n", docID);
+    Log.l("REPORT.genReportID(): Generated ID:", docID);
     return docID;
+  }
+
+  public matchesClient(cll:ReportCLL):boolean {
+    return this.matchesOneCLL('client', cll);
+  }
+
+  public matchesLocation(cll:ReportCLL):boolean {
+    return this.matchesOneCLL('location', cll);
+  }
+
+  public matchesLocID(cll:ReportCLL):boolean {
+    return this.matchesOneCLL('locID', cll);
+  }
+
+  public matchesOneCLL(type:"client"|"location"|"locID"|"location_id", cll:ReportCLL):boolean {
+    let me:string;
+    if(type === 'client') {
+      me = this.client.toUpperCase();
+    } else if(type === 'location') {
+      me = this.location.toUpperCase();
+    } else if(type === 'locID' || type === 'location_id') {
+      me = this.location_id.toUpperCase();
+    } else {
+      let text:string = `Report.matchesCLL(): Parameter 1 must be type: client|location|locID. Supplied type incorrect`;
+      Log.w(text + ":", type);
+      let err = new Error(text);
+      throw err;
+    }
+    if(typeof cll === 'object') {
+      let cll1 = typeof cll.name === 'string' ? cll.name.toUpperCase() : "";
+      let cll2 = typeof cll.fullName === 'string' ? cll.fullName.toUpperCase() : "";
+      return me === cll1 || me === cll2;
+    } else if(typeof cll === 'string') {
+      let cll1 = cll.toUpperCase();
+      return me === cll1;
+    } else {
+      let text:string = `Report.matchesCLL(): Parameter 2 must be object "{name:string,fullName:string}" or string. Supplied value invalid`;
+      Log.w(text + ":", cll);
+      let err = new Error(text);
+      throw err;
+    }
+  }
+
+  public matchesCLL(client:ReportCLL, location:ReportCLL, locID:ReportCLL):boolean {
+    return this.matchesClient(client) && this.matchesLocation(location) && this.matchesLocID(locID);
   }
 
   public matchesSite(site:Jobsite):boolean {
     if(!(site instanceof Jobsite)) {
-      Log.w(`Report.matchesSite(): Must be called with Jobsite object. Called with:\n`, site);
+      Log.w(`Report.matchesSite(): Must be called with Jobsite object. Called with:`, site);
       return false;
     } else {
       if(this.site_number && this.site_number === site.site_number) {
@@ -704,13 +804,50 @@ export class Report {
     }
   }
 
+  /**
+   * Sets Jobsite-related fields in the report
+   *
+   * @param {Jobsite} site A Jobsite object
+   * @returns {Report} The entire report
+   * @memberof Report
+   */
   public setSite(site:Jobsite):Report {
-    this.client      = site.client.name;
-    this.location    = site.location.name;
-    this.location_id = site.locID.name;
-    this.workSite    = site.getSiteSelectName();
-    this.site_number = site.site_number;
-    return this;
+    if(site instanceof Jobsite) {
+      this.client      = site.client.name;
+      this.location    = site.location.name;
+      this.location_id = site.locID.name;
+      this.workSite    = site.getSiteSelectName();
+      this.site_number = site.site_number;
+      this.setPremiumStatus(site);
+      this.setBillableStatus(site);
+      return this;
+    } else {
+      Log.w(`Report.setSite(): Parameter 1 must be Jobsite object. Invalid parameter:`, site);
+    }
+  }
+
+  /**
+   * Sets user-related fields in the report
+   *
+   * @param {Employee} tech The Employee object to use
+   * @returns {Report} The entire report
+   * @memberof Report
+   */
+  public setUser(tech:Employee):Report {
+    if(tech instanceof Employee) {
+      let username:string = tech.getUsername();
+      let first:string = tech.getFirstName();
+      let last:string = tech.getLastName();
+      let fullName:string = tech.getTechName();
+      this.username = username;
+      this.first_name = first;
+      this.last_name = last;
+      this.technician = fullName;
+      return this;
+    } else {
+      Log.w(`Report.setUser(): Parameter 1 must be Employee object. Invalid parameter:`, tech);
+      return null;
+    }
   }
 
   public get flags():number {
@@ -840,8 +977,55 @@ export class Report {
       } else {
         this.premium_eligible = false;
       }
+    } else {
+      let text:string = `Report.setPremiumStatus(): must be provided with Jobsite object, provided parameter invalid`;
+      Log.w(text + ":", site);
+      let err = new Error(text);
+      Log.e(err);
+      throw err;
     }
     return this.premium_eligible;
+  }
+
+  public isBillable():boolean {
+    return this.billable;
+  }
+
+  public setBillableStatus(site:Jobsite):boolean {
+    if(site instanceof Jobsite) {
+      if(site.isBillable()) {
+        this.billable = true;
+      } else {
+        this.billable = false;
+      }
+    } else {
+      let text:string = `Report.setBillableStatus(): must be provided with Jobsite object, provided parameter invalid`;
+      Log.w(text + ":", site);
+      let err = new Error(text);
+      Log.e(err);
+      throw err;
+    }
+    return this.billable;
+  }
+
+  public getType():WorkReportType {
+    return this.type;
+  }
+
+  /**
+   * Returns last time this report occupies, if any
+   *
+   * @returns {string} ISO8601 string representing the latest time this report has a record of
+   * @memberof Report
+   */
+  public getLastTimeBlocked():string {
+    let lastTime = this.getEndTime();
+    if(isMoment(lastTime)) {
+      return lastTime.format();
+    } else {
+      Log.w(`Report.getLastTimeBlocked(): Could not find last time, apparently this report does not have any time recorded`);
+      return null;
+    }
   }
 
   // public splitReportID(reportID?:string) {

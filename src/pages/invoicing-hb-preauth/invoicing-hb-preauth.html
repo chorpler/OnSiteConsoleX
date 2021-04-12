@@ -173,6 +173,7 @@
     </div>
   </div>
 </ion-content>
-<report-view-beta #preauthReportViewBeta *ngIf="reportViewVisible" [class.report-view-component]="true" [report]="report" [reports]="shiftReports" [tech]="tech" [site]="site" [sites]="sites" (save)="reportViewSave($event)" (cancel)="reportViewCancel($event)"></report-view-beta>
+<!-- <report-view-beta #preauthReportViewBeta *ngIf="reportViewVisible" [class.report-view-component]="true" [report]="report" [reports]="shiftReports" [tech]="tech" [site]="site" [sites]="sites" (save)="reportViewSave($event)" (cancel)="reportViewCancel($event)"></report-view-beta> -->
+<report-view #preauthReportView *ngIf="reportViewVisible" [class.report-view-component]="true" [report]="report" [reports]="editReports" [tech]="tech" [site]="site" [sites]="sites" (save)="reportViewSave($event)" (cancel)="reportViewCancel($event)"></report-view>
 <preauth-open *ngIf="dataReady && data.ready() && preauthOpenVisible" (open)="preauthsOpen($event)" (cancel)="cancelOpen($event)"></preauth-open>
 <options-generic #optionsComponent *ngIf="optionsVisible" [type]="optionsType" (onCancel)="optionsClosed($event)" (onSave)="optionsSaved($event)"></options-generic>

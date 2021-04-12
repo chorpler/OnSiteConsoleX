@@ -22,7 +22,7 @@ import { Invoice,                                             } from 'domain/ons
 import { OSData,                                              } from 'providers/data-service'        ;
 import { ServerService,                                       } from 'providers/server-service'      ;
 import { DBService,                                           } from 'providers/db-service'          ;
-import { Preferences,                                         } from 'providers/preferences'         ;
+import { Preferences, DatabaseKey,                                         } from 'providers/preferences'         ;
 import { DispatchService,                                     } from 'providers'                     ;
 import { AlertService,                                        } from 'providers/alert-service'       ;
 import { NotifyService,                                       } from 'providers/notify-service'      ;
@@ -254,14 +254,15 @@ export class InvoicingHBBetaPage implements OnInit,OnDestroy {
   public initializeSubscriptions() {
     this.keySub = this.keyService.commands.subscribe((command:Command) => {
       switch(command.name) {
-        case "InvoicingHBPage.showOptions"      : this.showOptions(command.ev); break;
+        case "InvoicingHBPage.showOptions": this.showOptions(command.ev); break;
       }
     });
-    this.dsSubscription = this.dispatch.datastoreUpdated().subscribe((data:{type:string, payload:any}) => {
+    this.dsSubscription = this.dispatch.datastoreUpdated().subscribe((data:{type:DatabaseKey, payload:any}) => {
       let key = data.type;
       let payload = data.payload;
-      if(key === 'reports' || key === 'reports_ver101100') {
-        // this.data.setData('reports', payload);
+      // if(key === 'reports' || key === 'reports_ver101100') {
+      if(key === 'reports' || key.includes('ver101100')) {
+          // this.data.setData('reports', payload);
         setTimeout(() => {
           this.runWhenSubscriptionsAreAlreadyInitialized();
         }, 500);
@@ -274,7 +275,7 @@ export class InvoicingHBBetaPage implements OnInit,OnDestroy {
       let event:any = data && data.event ? data.event : null;
       if(channel) {
         if(channel === 'sort') {
-          let columns:Array<number> = event;
+          let columns:number[] = event;
           let col:number = columns[0];
           let dir:number = columns[1];
           if(this.reports.length) {

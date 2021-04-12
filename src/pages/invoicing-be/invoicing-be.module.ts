@@ -4,7 +4,7 @@ import { InvoicingBEPage               } from './invoicing-be'                  
 import { InplaceModule                 } from 'primeng/inplace'                               ;
 import { DropdownModule                } from 'primeng/dropdown'                              ;
 import { DialogModule                  } from 'primeng/dialog'                                ;
-import { ReportViewBetaComponentModule } from 'components/report-view-beta'                   ;
+import { ReportViewComponentModule     } from 'components/report-view'                        ;
 import { InvoicesOpenComponentModule   } from 'components/invoices-open/invoices-open.module' ;
 
 @NgModule({
@@ -16,7 +16,7 @@ import { InvoicesOpenComponentModule   } from 'components/invoices-open/invoices
     InvoicesOpenComponentModule,
     DropdownModule,
     DialogModule,
-    ReportViewBetaComponentModule,
+    ReportViewComponentModule,
   ],
   exports: [
     InvoicingBEPage,

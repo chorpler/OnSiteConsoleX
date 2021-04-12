@@ -4,12 +4,12 @@
       <tr class="other-view-button-row">
         <!-- <td class="other-view-button-td cell-button-like"                          (click)="splitReport($event)"  ><img src="/assets/icon/split_icon.svg"  class="svg-icon" title="Split work report" /></td> -->
         <!-- <td class="other-view-button-td cell-button-like"                          (click)="splitReport($event)"  ><i class="onsiteicon-split"                            title="Split work report"></i></td> -->
-        <td class="other-view-button-td cell-button-like"                          (click)="deleteReport($event)" ><i class="fal fa-trash-alt icon-button-like"              title="Delete work report"></i></td>
-        <td class="other-view-button-td cell-button-like"                          (click)="saveNoExit($event)"   ><i class="fal fa-check-circle icon-button-like"       title="Save, don't exit"></i></td>
-        <td *ngIf="idx > 0"  class="other-view-button-td cell-button-like"         (click)="previous($event)"     ><i class="icon-button-like fa fa-chevron-circle-left"  title="Previous work report"></i></td>
-        <td *ngIf="!(idx > 0)" class="other-view-button-td"                                                       ><i class="fa fa-chevron-circle-left icon-greyed-out"   title="No previous work reports"></i></td>
-        <td *ngIf="idx < count-1"  class="other-view-button-td cell-button-like"   (click)="next($event)"         ><i class="icon-button-like fa fa-chevron-circle-right" title="Next work report"></i></td>
-        <td *ngIf="!(idx < count-1)" class="other-view-button-td"                                                 ><i class="fa fa-chevron-circle-right icon-greyed-out"  title="No next work report"></i></td>
+        <td class="other-view-button-td cell-button-like"                          (click)="deleteReport($event)" ><i class="fal fa-trash-alt icon-button-like"           title="Delete misc. report"></i></td>
+        <td class="other-view-button-td cell-button-like"                          (click)="saveNoExit($event)"   ><i class="fal fa-save icon-button-like"                title="Save, don't exit"></i></td>
+        <td *ngIf="idx > 0"  class="other-view-button-td cell-button-like"         (click)="previous($event)"     ><i class="icon-button-like fa fa-chevron-circle-left"  title="Previous misc. report"></i></td>
+        <td *ngIf="!(idx > 0)" class="other-view-button-td"                                                       ><i class="fa fa-chevron-circle-left icon-greyed-out"   title="No previous misc. reports"></i></td>
+        <td *ngIf="idx < count-1"  class="other-view-button-td cell-button-like"   (click)="next($event)"         ><i class="icon-button-like fa fa-chevron-circle-right" title="Next misc. report"></i></td>
+        <td *ngIf="!(idx < count-1)" class="other-view-button-td"                                                 ><i class="fa fa-chevron-circle-right icon-greyed-out"  title="No next misc. report"></i></td>
       </tr>
     </table>
     <table class="other-view-table">
@@ -21,12 +21,14 @@
         <td class="label">Rev</td>
         <td class="data" ><input class="other-view-input" [readonly]="true" [(ngModel)]="other._rev" /></td>
       </tr>
-      <tr class="other-view-row">
+      <tr class="other-view-row" [class.flagged-row]="!reportType">
+        <!-- <td class="label">Report Type</td>
+        <td class="data" ><input class="other-view-input" [(ngModel)]="other.type" /></td> -->
         <td class="label">Report Type</td>
-        <td class="data" ><input class="other-view-input" [(ngModel)]="other.type" /></td>
+        <td class="data" ><p-dropdown [class.other-view-dropdown]="true" [placeholder]="reportTypePlaceholder" [options]="typeList" [(ngModel)]="reportType" (ngModelChange)="updateReportType(reportType, other, $event)"></p-dropdown></td>
       </tr>
       <tr class="other-view-row">
-        <td class="label">Timestamp <i class="fa fa-clock-o icon-button-like"  title="Toggle Excel/Date format" (click)="toggleDateFormat()"></i></td>
+        <td class="label">Timestamp <i class="fa fa-clock-o icon-button-like"  title="Toggle Excel/Date format" (click)="toggleDateFormat($event)"></i></td>
         <td class="data" >
           <input class="other-view-input" [(ngModel)]="other.timestamp" *ngIf="dateFormat==='excel'" />
           <span class="other-view-fake-input" *ngIf="dateFormat==='moment'">{{moment.fromExcel(other.timestamp).toDate()}}</span>
@@ -34,24 +36,35 @@
       </tr>
       <tr class="other-view-row">
         <td class="label">Date</td>
-        <td class="data" ><p-calendar [class.other-view-calendar]="true" dateFormat="dd M yy" [(ngModel)]="report_date" (onChange)="updateDate(report_date)"></p-calendar></td>
+        <td class="data" ><p-calendar [class.other-view-calendar]="true" dateFormat="dd M yy" [(ngModel)]="report_date" (ngModelChange)="updateDate(report_date, $event)"></p-calendar></td>
       </tr>
       <tr class="other-view-row">
         <td class="label">Time</td>
         <td class="data" ><input class="other-view-input" type="number" min="0" step="0.5" [(ngModel)]="other.time" /></td>
       </tr>
-      <tr class="other-view-row">
+      <tr class="other-view-row" [class.flagged-row]="getReportOtherType(other) === 'training' && !other.training_type" [class.disabled]="getReportOtherType(other) !== 'training'">
         <td class="label">Training Type</td>
-        <td class="data" ><input class="other-view-input" [(ngModel)]="other.training_type" /></td>
+        <!-- <td class="data" ><input class="other-view-input" [(ngModel)]="other.training_type" /></td> -->
+        <td class="data" ><p-dropdown [class.other-view-dropdown]="true" [disabled]="getReportOtherType(other) !== 'training'" [placeholder]="trainingTypePlaceholder" [options]="trainingTypeList" [(ngModel)]="trainingType" (ngModelChange)="updateTrainingType(reportType, other, $event)"></p-dropdown></td>
       </tr>
-      <tr class="other-view-row">
+      <tr class="other-view-row" [class.flagged-row]="getReportOtherType(other) === 'travel' && !other.travel_location" [class.disabled]="getReportOtherType(other) !== 'travel'">
         <td class="label">Travel Location</td>
         <!-- <td class="data" ><input class="other-view-input" [(ngModel)]="other.travel_location" /></td> -->
-        <td class="data" ><p-dropdown [class.other-view-dropdown]="true" [options]="siteList" [(ngModel)]="selectedSite" (onChange)="updateSite(selectedSite)"></p-dropdown></td>
+        <!-- <td class="data" ><p-dropdown [class.other-view-dropdown]="true" [options]="siteList" [(ngModel)]="selectedSite" (ngModelChange)="updateSite(selectedSite, $event)"></p-dropdown></td> -->
+        <td class="data" ><p-dropdown [class.other-view-dropdown]="true" [disabled]="getReportOtherType(other) !== 'travel'" [placeholder]="travelDestinationPlaceholder" [options]="siteList" [(ngModel)]="selectedSite" (ngModelChange)="updateTravelDestination(selectedSite, $event)"></p-dropdown></td>
+      </tr>
+      <tr class="other-view-row">
+        <td class="label">Username</td>
+        <td class="data" ><input class="other-view-input" type="text" [(ngModel)]="other.username" /></td>
       </tr>
       <tr class="other-view-row">
         <td class="label">Technician</td>
-        <td class="data" ><input class="other-view-input" [(ngModel)]="other.technician" /></td>
+        <td class="data" >
+          <div class="split-input">
+            <input class="other-view-input" placeholder="First Name" [(ngModel)]="other.first_name" />
+            <input class="other-view-input" placeholder="Last Name" [(ngModel)]="other.last_name" />
+          </div>
+        </td>
       </tr>
       <tr class="other-view-row">
         <td class="label">Client</td>
@@ -69,13 +82,35 @@
         <td class="label">Notes</td>
         <td class="data" ><textarea pInputTextArea [class.other-view-textarea]="true" [(ngModel)]="other.notes"></textarea></td>
       </tr>
+      <tr class="other-view-row table-row flagged-row" *ngIf="other.isFlagged()">
+        <td class="label">Flags</td>
+        <td class="data">
+          <div class="scroller-cell">
+            <table class="flagged-table">
+              <thead>
+                <tr>
+                  <td class="field">Field</td>
+                  <td class="reason">Reason</td>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of other.flagged_fields">
+                  <td class="field">{{row.field}}</td>
+                  <td class="reason">{{row.reason}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr>
     </table>
+    <div class="other-view-button-divider"></div>
     <table class="other-view-button-table bottom">
       <tr class="other-view-button-row">
         <td class="other-view-button-td cell-button-like" (click)="cancelClicked($event)"><i class="fal fa-times-circle icon-button-like"  title="Cancel any edits"></i></td>
         <td class="other-view-button-td"></td>
         <td class="other-view-button-td"></td>
-        <td class="other-view-button-td cell-button-like" (click)="save($event)"><i class="fal fa-check-circle icon-button-like"    title="Save and exit"></i></td>
+        <td class="other-view-button-td cell-button-like" (click)="saveClicked($event)"><i class="fal fa-check-circle icon-button-like"    title="Save and exit"></i></td>
       </tr>
     </table>
   </div>

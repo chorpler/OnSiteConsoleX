@@ -41,7 +41,7 @@
 </ion-header>
 
 <ion-content padding *ngIf="dataReady && data.ready()">
-  <p-table #dt [styleClass]="'work-sites-table'" [columns]="selectedCols" [value]="jobsites" [autoLayout]="autoLayout" [columnResizeMode]="prefs.CONSOLE.jobsites.tableResizeMode"  [rowHover]="true" [reorderableColumns]="true" [resizableColumns]="'true'" [loading]="!dataReady" [scrollable]="tableScrollable" [scrollHeight]="scrollHeight" [sortMode]="multiple" selectionMode="single" [(selection)]="jobsite" (onRowReorder)="reorderSites($event)" (onRowSelect)="onRowSelect($event)">
+  <p-table #dt [styleClass]="'work-sites-table'" [columns]="selectedCols" [value]="jobsites" [autoLayout]="autoLayout" [columnResizeMode]="prefs.CONSOLE.jobsites.tableResizeMode"  [rowHover]="true" [reorderableColumns]="true" [resizableColumns]="'true'" [loading]="!dataReady" [scrollable]="tableScrollable" [scrollHeight]="scrollHeight" [sortMode]="'multiple'" selectionMode="single" [(selection)]="jobsite" (onRowReorder)="reorderSites($event)" (onRowSelect)="onRowSelect($event)">
     <ng-template pTemplate="caption">
       <div class="table-header-contents">
         <div class="column-choose-wrapper">

@@ -91,5 +91,5 @@ export class DatabaseProgress implements IDatabaseProgress {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }

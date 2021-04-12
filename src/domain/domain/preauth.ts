@@ -124,7 +124,7 @@ export class PreAuth {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 
 }
 

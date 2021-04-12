@@ -71,6 +71,32 @@
       </span>
     </ion-buttons>
   </ion-navbar>
+  <div class="status-bar" *ngIf="statusBarEnabled">
+    <div class="status-bar-table">
+      <div class="status-bar-row header">
+        <span class="status-bar-item col-01">
+          <span class="label">Local Reports</span>
+        </span>
+        <span class="status-bar-item col-02">
+          <span class="label">Remote Reports</span>
+        </span>
+        <span class="status-bar-item col-03">
+          <span class="label">Remaining Reports</span>
+        </span>
+      </div>
+      <div class="status-bar-row body">
+        <span class="status-bar-item col-01">
+          <span class="data">{{reportsLocalTotal}}</span>
+        </span>
+        <span class="status-bar-item col-02">
+          <span class="data">{{reportsRemoteTotal}}</span>
+        </span>
+        <span class="status-bar-item col-03">
+          <span class="data">{{reportsRemaining}}</span>
+        </span>
+      </div>
+    </div>
+  </div>
 </ion-header>
 
 <ion-content padding #ionContent class="payroll-page-content">
@@ -120,7 +146,7 @@
               <div class="col-button  col-loc" (click)="showTech(tech, $event)"> {{eSite?.get(tech)?.location?.name}} </div>
               <div class="col-button  col-locid" (click)="showTech(tech, $event)"> {{eSite?.get(tech)?.locID?.name}} </div>
               <div class="col-button  col-tech" (click)="showTech(tech, $event)"> {{tech.getFullName()}} </div>
-              <div class="col-button  payroll-column-{{sprintf('%02d',5+i4)}} {{shift.getShiftStatus(prefs.CONSOLE.payroll.showColors)}} col-day" *ngFor="let shift of ePeriod?.get(tech)?.getPayrollShifts(); let i4=index" (click)="viewTechReports(ePeriod?.get(tech), tech)">
+              <div class="col-button  payroll-column-{{printf('%02d',5+i4)}} {{shift.getShiftStatus(prefs.CONSOLE.payroll.showColors)}} col-day" *ngFor="let shift of ePeriod?.get(tech)?.getPayrollShifts(); let i4=index" (click)="viewTechReports(ePeriod?.get(tech), tech)">
                 <div *ngIf="shift?.getShiftLength() == 'OFF'">
                   <div *ngIf="shift?.getShiftReportsStatus()?.code != ''">
                     <div *ngIf="shift?.getNormalHours() != 0">

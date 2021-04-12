@@ -4,20 +4,20 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Input, Output } fr
 import { EventEmitter, NgZone, ViewChildren, QueryList, AfterViewInit,      } from '@angular/core'                                ;
 import { IonicPage, NavController, NavParams                                } from 'ionic-angular'                                ;
 import { ViewController                                                     } from 'ionic-angular'                                ;
-import { Log, moment, Moment, oo, s2ab,                                   } from 'domain/onsitexdomain'                         ;
+import { Log, moment, Moment, oo, s2ab,                                     } from 'domain/onsitexdomain'                         ;
 import { Report, Invoice, Jobsite, Employee, Shift, PayrollPeriod, PreAuth, } from 'domain/onsitexdomain'                         ;
 import { AlertService                                                       } from 'providers/alert-service'                      ;
 import { DBService                                                          } from 'providers/db-service'                         ;
 import { ServerService                                                      } from 'providers/server-service'                     ;
 import { OSData                                                             } from 'providers/data-service'                       ;
-import { Preferences                                                        } from 'providers/preferences'                        ;
+import { Preferences, DatabaseKey                                           } from 'providers/preferences'                        ;
 import { NotifyService                                                      } from 'providers/notify-service'                     ;
 import { DispatchService                                                    } from 'providers/dispatch-service'                   ;
 import { SelectItem,                                                        } from 'primeng/api'                                  ;
 import { MenuItem,                                                          } from 'primeng/api'                                  ;
 import { Dropdown,                                                          } from 'primeng/dropdown'                             ;
 import { MultiSelect,                                                       } from 'primeng/multiselect'                          ;
-import { ReportViewBetaComponent                                            } from 'components/report-view-beta/report-view-beta' ;
+import { ReportViewComponent                                                } from 'components/report-view'                       ;
 import { LoaderService                                                      } from 'providers/loader-service'                     ;
 
 export enum Row {
@@ -51,7 +51,6 @@ export class HBPreauthPage implements OnInit,OnDestroy {
   @ViewChildren('printArea') printArea:QueryList<any>;
   // @ViewChild('printArea') printArea:ElementRef;
   // @ViewChild('preauthTable') preauthTable: ElementRef;
-  public moment     : any        = moment       ;
   public title      : string     = "HB Preauth" ;
   public optionsVisible:boolean = false         ;
   public optionsType:string = "hbpreauth"       ;
@@ -128,11 +127,12 @@ export class HBPreauthPage implements OnInit,OnDestroy {
   }
 
   public initializeSubscriptions() {
-    this.dataSub = this.dispatch.datastoreUpdated().subscribe((data:{type:string, payload:any}) => {
+    this.dataSub = this.dispatch.datastoreUpdated().subscribe((data:{type:DatabaseKey, payload:any}) => {
       Log.l("Home.subscriptions: Got updated data payload!\n", data);
       let key = data.type;
       let payload = data.payload;
-      if(key === 'reports' || key === 'reports_ver101100') {
+      // if(key === 'reports' || key === 'reports_ver101100') {
+      if(key === 'reports' || key.includes('ver101100')) {
         Log.l("HBPreauthPage: Updated data payload was for reports.")
         this.allReports = payload;
       }
@@ -916,5 +916,9 @@ export class HBPreauthPage implements OnInit,OnDestroy {
     this.viewCtrl.dismiss();
   }
 
+  public moment(...args):Moment {
+    let mo = moment(...args);
+    return mo;
+  }
 
 }

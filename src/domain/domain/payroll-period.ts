@@ -1,8 +1,16 @@
 /**
  * Name: PayrollPeriod domain class
- * Vers: 5.7.0
- * Date: 2019-01-24
+ * Vers: 7.0.0
+ * Date: 2019-08-27
  * Auth: David Sargeant
+ * Logs: 7.0.0 2019-08-27: Changed createPayrollPeriodShiftsForTech() to always generate all 7 shifts; display will be handled elsewhere
+ * Logs: 6.1.3 2019-08-26: Added ReportTimeCard functionality
+ * Logs: 6.1.2 2019-08-25: Added includesDate() method
+ * Logs: 6.1.1 2019-08-25: Added getDescriptionString() method
+ * Logs: 6.1.0 2019-08-19: Added ReportMaintenance methods
+ * Logs: 6.0.0 2019-08-07: Added methods to add different Report types to period
+ * Logs: 5.8.1 2019-07-18: Changed how readFromDoc() method works, although this method is so far unused since PayrollPeriod is not serialized to database at all
+ * Logs: 5.7.1 2019-07-17: Deleted empty getPayrollPeriodPremiumHours() method; changed all occurrences of "bonus" to "premium" for premium hours
  * Logs: 5.7.0 2019-01-24: Added deserialize() method (also static version)
  * Logs: 5.6.0 2018-12-13: Refactored imports; added standard OnSite methods
  * Logs: 5.5.0 2018-12-10: Added hasShiftForDate(), getShiftForDate(), addShift() methods
@@ -17,22 +25,26 @@
  * Logs: 4.0.1 2017-10-16, added site_number data field
  */
 
-// import { oo               } from '../config'     ;
-// import { reportType       } from '../config'     ;
-import { Moment           } from '../config'     ;
-import { moment           } from '../config'     ;
-import { Log              } from '../config'     ;
-import { isMoment         } from '../config'     ;
-import { _matchCLL        } from '../config'     ;
-import { _matchSite       } from '../config'     ;
-import { _sortReports     } from '../config'     ;
-import { Shift            } from './shift'       ;
-import { Employee         } from './employee'    ;
-import { Jobsite          } from './jobsite'     ;
-import { SiteScheduleType } from './jobsite'     ;
-import { Report           } from './report'      ;
-import { ReportOther      } from './reportother' ;
-
+// import { oo                } from '../config'           ;
+// import { reportType        } from '../config'           ;
+import { Moment,           } from '../config'           ;
+import { moment            } from '../config'           ;
+import { Log               } from '../config'           ;
+import { isMoment          } from '../config'           ;
+import { _matchCLL         } from '../config'           ;
+import { _matchSite        } from '../config'           ;
+import { _sortReports      } from '../config'           ;
+import { Shift             } from './shift'             ;
+import { Employee          } from './employee'          ;
+import { Jobsite           } from './jobsite'           ;
+import { SiteScheduleType  } from './jobsite'           ;
+import { Report            } from './report'            ;
+import { ReportOther       } from './reportother'       ;
+import { ReportLogistics   } from './reportlogistics'   ;
+import { ReportDriving     } from './reportdriving'     ;
+import { ReportMaintenance } from './reportmaintenance' ;
+import { ReportTimeCard    } from './reporttimecard'    ;
+import { ReportAny         } from './reportany'         ;
 
 export class PayrollPeriod {
   public start_date              : Moment             ;
@@ -42,11 +54,11 @@ export class PayrollPeriod {
   public shift_hours_list        : number[]      = [] ;
   public shift_payroll_hours_list: number[]      = [] ;
   public total_hours             : number        = 0  ;
-  public bonus_hours             : number        = 0  ;
+  public premium_hours           : number        = 0  ;
   public payroll_hours           : number        = 0  ;
   public site_number             : number        = 0  ;
 
-  constructor(start_date?: Moment | string | number, end_date?: Moment | string | number, serial_number?: number, shifts?: Array<Shift>, total_hours?: number, payroll_hours?: number) {
+  constructor(start_date?:Moment|string|number, end_date?:Moment|string|number, serial_number?:number, shifts?:Shift[], total_hours?:number, payroll_hours?:number) {
     if(start_date && typeof start_date === 'number') {
       this.start_date = moment.fromExcel(start_date);
     } else {
@@ -66,15 +78,28 @@ export class PayrollPeriod {
   }
 
   public readFromDoc(doc:any):PayrollPeriod {
-    for(let key in doc) {
-      let value:any = doc[key];
-      if(key === 'start_date' || key === 'end_date') {
-        this[key] = moment(value);
-      } else {
-        this[key] = value;
+    let docKeys = Object.keys(doc);
+    let myKeys = Object.keys(this);
+    for(let docKey of docKeys) {
+      if(myKeys.includes(docKey)) {
+        let value:any = doc[docKey];
+        if(docKey === 'start_date' || docKey === 'end_date') {
+          this[docKey] = moment(value);
+        } else {
+          this[docKey] = value;
+        }
       }
     }
     return this;
+    // for(let key in doc) {
+    //   let value:any = doc[key];
+    //   if(key === 'start_date' || key === 'end_date') {
+    //     this[key] = moment(value);
+    //   } else {
+    //     this[key] = value;
+    //   }
+    // }
+    // return this;
   }
 
   public static deserialize(doc:any):PayrollPeriod {
@@ -124,34 +149,36 @@ export class PayrollPeriod {
   }
 
   public getShiftForDate(date:Moment|Date|string):Shift {
-    let queryDate:Moment = typeof date === 'string' ? moment(date, "YYYY-MM-DD") : moment(date);
-    let strDate:string = queryDate.format("YYYY-MM-DD");
+    // let queryDate:Moment = typeof date === 'string' ? moment(date, "YYYY-MM-DD") : moment(date);
+    // let strDate:string = queryDate.format("YYYY-MM-DD");
     let shifts:Shift[] = this.getPayrollShifts();
-    let shift:Shift = shifts.find((a:Shift) => {
-      let date:Moment = a.getShiftDate();
-      return date.format("YYYY-MM-DD") === strDate;
-    });
+    // let shift:Shift = shifts.find((a:Shift) => {
+    //   let shiftDate:Moment = a.getShiftDate();
+    //   return shiftDate.format("YYYY-MM-DD") === strDate;
+    // });
+    let shift:Shift = shifts.find(a => a.isDate(date));
     if(shift) {
       return shift;
     }
   }
 
-  public addShift():Shift[] {
+  public addShift(shift?:Shift):Shift[] {
     let now:Moment = moment().startOf('day');
     let shifts:Shift[] = this.getPayrollShifts();
     let shift_length:number = 12;
-    let shift_time:string = "AM";
+    let shift_time:SiteScheduleType = "AM";
     let shift_start_time:number = 7;
+    let shift_date:Moment = moment(now);
     if(shifts.length && shifts.length < 7) {
-      let shift:Shift = shifts[0];
-      shift_length = shift.getShiftLength();
-      shift_time = shift.shift_time;
-      let startTime:Moment = shift.getStartTime();
+      let shiftToDuplicate:Shift = shifts[0];
+      shift_length = shiftToDuplicate.getShiftLength();
+      shift_time = shiftToDuplicate.shift_time;
+      let startTime:Moment = shiftToDuplicate.getStartTime();
       shift_start_time = startTime.hours();
+      shift_date = shiftToDuplicate.getShiftDate().add(1, 'day');
     }
-    let shift:Shift = new Shift();
-    shift.initializeShift('UNKNOWN', moment(now), shift_time, moment(now).hours(shift_start_time), shift_length);
-    shifts.unshift(shift);
+    let newShift:Shift = shift && shift instanceof Shift ? shift : new Shift().initializeShift('UNKNOWN', moment(now), shift_time, moment(now).hours(shift_start_time), shift_length);
+    shifts.unshift(newShift);
     return shifts;
   }
 
@@ -196,7 +223,7 @@ export class PayrollPeriod {
     return shifts;
   }
 
-  public getNormalHours() {
+  public getNormalHours():number {
     let total = 0;
     for(let shift of this.shifts) {
       total += shift.getNormalHours();
@@ -220,9 +247,9 @@ export class PayrollPeriod {
   }
 
   /**
-   * Need to add work report specific calculations in here for bonus hours
+   * Need to add work report specific calculations in here for premium hours
    *
-   * @returns total_hours: a number ostensibly representing total normal hours plus bonus hours, where hours are eligible
+   * @returns total_hours: a number ostensibly representing total normal hours plus premium hours, where hours are eligible
    * @memberof PayrollPeriod
    */
   public getPayrollHours() {
@@ -234,12 +261,12 @@ export class PayrollPeriod {
     return this.payroll_hours;
   }
 
-  public getBonusHours() {
+  public getPremiumHours():number {
     let total = 0;
     for(let shift of this.shifts) {
-      total += shift.getTotalBonusHoursForShift();
+      total += shift.getTotalPremiumHoursForShift();
     }
-    this.bonus_hours = total;
+    this.premium_hours = total;
     return total;
   }
 
@@ -261,8 +288,8 @@ export class PayrollPeriod {
 
   public getTotalHours() {
     let total = 0;
-    // total += this.getNormalHours() + this.getBonusHours() + this.getTrainingHours() + this.getTravelHours() + this.getSpecialHours().hours;
-    total += this.getNormalHours() + this.getBonusHours() + this.getSpecialHours().hours;
+    // total += this.getNormalHours() + this.getPremiumHours() + this.getTrainingHours() + this.getTravelHours() + this.getSpecialHours().hours;
+    total += this.getNormalHours() + this.getPremiumHours() + this.getSpecialHours().hours;
     return total;
   }
 
@@ -315,7 +342,7 @@ export class PayrollPeriod {
   }
 
   public getEndDate():Moment {
-    return moment(this.end_date).startOf('day');
+    return moment(this.end_date).endOf('day');
   }
 
   public getStartDateString(format?:string):string {
@@ -330,6 +357,14 @@ export class PayrollPeriod {
     return date.format(fmt);
   }
 
+  public getDescriptionString(format?:string):string {
+    let fmt:string = typeof format === 'string' ? format : "MMM D";
+    let start:Moment = this.getStartDate();
+    let end:Moment = this.getEndDate();
+    let out:string = `${start.format(fmt)} — ${end.format(fmt)}`;
+    return out;
+  }
+
   public updateLocale(language:string) {
     this.start_date.locale(language);
     this.end_date.locale(language);
@@ -339,29 +374,46 @@ export class PayrollPeriod {
     }
   }
 
-  public createConsolePayrollPeriodShiftsForTech(tech:Employee, site:Jobsite, rotation:string) {
+  public includesDate(date?:Moment|Date|string):boolean {
+    let day:Moment = moment(date);
+    if(isMoment(day)) {
+      let start:Moment = this.getStartDate();
+      let end:Moment = this.getEndDate();
+      return day.isBetween(start, end, null, '[]');
+    } else {
+      let text = `PAYROLLPERIOD.includesDate(): Parameter 1 must be Date, Moment, or Moment-able string! Invalid parameter provided`;
+      Log.w(text + `:`, date);
+      let err = new Error(text);
+      throw err;
+      // return false;
+    }
+  }
+
+  public createConsolePayrollPeriodShiftsForTech(tech:Employee, site:Jobsite, shift_type:SiteScheduleType, rotation?:string):Shift[] {
     // let day = moment(this.end_date).startOf('day');
     let day = moment(this.start_date).startOf('day');
-    let today = moment().startOf('day');
-    let tp = tech;
-    if (tp != undefined) {
+    // let today = moment().startOf('day');
+    if(tech instanceof Employee && site instanceof Jobsite) {
       // let rotation = tp.rotation;
-      let shifts = new Array<Shift>();
+      let shifts:Shift[] = [];
       for(let i = 0; i < 7; i++) {
         let tmpDay = moment(day).add(i, 'days');
-        let techShift:string = tech.shift && typeof tech.shift === 'string' ? tech.shift.toUpperCase().trim() : "AM";
+        let techShift:SiteScheduleType = tech.shift && typeof tech.shift === 'string' ? (tech.shift.toUpperCase().trim() as SiteScheduleType) : "AM";
         // let ampm:SiteScheduleType = techShift ? techShift.trim() : "AM";
-        let ampm:SiteScheduleType = (techShift as SiteScheduleType);
+        // let ampm:SiteScheduleType = (techShift as SiteScheduleType);
+        let ampm:SiteScheduleType = techShift !== shift_type ? techShift : shift_type;
+        let techRotation = rotation && typeof rotation === 'string' ? rotation : tech.getShiftRotation();
         let shift_day = moment(tmpDay).startOf('day');
         let tmpStart = site.getShiftStartTimeString(ampm);
         let h   :number = Number(tmpStart.split(':')[0]);
         let m   :number = Number(tmpStart.split(':')[1]);
         let hrs :number = h + (m/60);
         let shift_start_time:Moment = moment(shift_day).add(hrs, 'hours');
-        let length:number = site.getShiftLengthForDate(rotation, ampm, shift_day);
+        let length:number = site.getShiftLengthForDate(shift_day, techRotation, ampm);
         let client:string = site.client.fullName.toUpperCase();
         let thisShift:Shift = new Shift();
         thisShift.initializeShift(client, null, ampm, shift_start_time, length);
+        thisShift.shift_time = shift_type;
         thisShift.updateShiftWeek();
         thisShift.updateShiftNumber();
         thisShift.getExcelDates();
@@ -378,39 +430,54 @@ export class PayrollPeriod {
     }
   }
 
-  public createPayrollPeriodShiftsForTech(tech:Employee, site:Jobsite) {
+  // public createPayrollPeriodShiftsForTech(tech:Employee, site:Jobsite, shift_type:SiteScheduleType) {
+  public createPayrollPeriodShiftsForTech(tech:Employee, site:Jobsite, shift_type:SiteScheduleType, rotation?:string):Shift[] {
     let day = moment(this.end_date).startOf('day');
     let today = moment().startOf('day');
-    let tp = tech;
-    if (tp !== undefined && tp !== null) {
-      let rotation = tp.rotation;
-      let shifts = new Array<Shift>();
-      for (let i = 0; i < 7; i++) {
+    // let tp = tech;
+    if(tech instanceof Employee && site instanceof Jobsite) {
+      // let rotation = tp.rotation;
+      let shifts:Shift[] = [];
+      for(let i = 0; i < 7; i++) {
         let tmpDay = moment(day).subtract(i, 'days');
-        if(tmpDay.isAfter(today)) {
-          continue;
-        } else {
-          let ampm             = tech.shift.toUpperCase().trim()                         ;
-          let rotation         = tech.rotation.toUpperCase().trim()                      ;
+        // if(tmpDay.isAfter(today)) {
+        //   continue;
+        // } else {
+          let techShift:SiteScheduleType = tech.shift && typeof tech.shift === 'string' ? (tech.shift.toUpperCase().trim() as SiteScheduleType) : "AM";
+          // let ampm:SiteScheduleType = techShift ? techShift.trim() : "AM";
+          // let ampm:SiteScheduleType = (techShift as SiteScheduleType);
+          let ampm:SiteScheduleType = techShift !== shift_type ? techShift : shift_type;
+          let techRotation = rotation && typeof rotation === 'string' ? rotation : tech.getShiftRotation();
+            // let ampm             = tech.shift.toUpperCase().trim()                         ;
+          // let rotation         = tech.rotation.toUpperCase().trim()                      ;
           let shift_day        = tmpDay.startOf('day')                                   ;
-          let tmpStart         = tp.shiftStartTime                                       ;
-          let shift_start_time = moment(shift_day).add(tmpStart, 'hours')                ;
-          let client           = tp.client                                               || "SITENAME" ;
-          let type             = tp.shift                                                ;
-          let length           = tp.shiftLength                                          ;
+          // let tmpStart         = tech.shiftStartTime                                       ;
+          // let shift_start_time = moment(shift_day).add(tmpStart, 'hours')                ;
+          // let client           = tech.client                                               || "SITENAME" ;
+          // let type             = tech.shift                                                ;
+          // let length           = tech.shiftLength                                          ;
+          let tmpStart = site.getShiftStartTimeString(ampm);
+          let h   :number = Number(tmpStart.split(':')[0]);
+          let m   :number = Number(tmpStart.split(':')[1]);
+          let hrs :number = h + (m/60);
+          let shift_start_time:Moment = moment(shift_day).add(hrs, 'hours');
+          let length:number = site.getShiftLengthForDate(shift_day, techRotation, ampm);
+          let client:string = site.client.fullName.toUpperCase();
           let thisShift:Shift  = new Shift() ;
-          thisShift.initializeShift(client, null, type, shift_start_time, length);
+          thisShift.initializeShift(client, null, ampm, shift_start_time, length);
 
           thisShift.updateShiftWeek();
           thisShift.updateShiftNumber();
           thisShift.getExcelDates();
+          thisShift.setStartTime(shift_start_time);
           shifts.push(thisShift);
           // Log.l(`createPayrollPeriodShiftsForTech(): Now adding day ${i}: ${moment(shift_day).format()} `);
-        }
+        // }
       }
       this.shifts = shifts;
+      return this.shifts;
     } else {
-      Log.e("createPayrollPeriodShiftsForTech(): Failed, needs Employee as argument and got:\n", tech);
+      Log.w("PayrollPeriod.createPayrollPeriodShiftsForTech(): Requires Employee, Jobsite, and SiteScheduleType arguments. Got:", tech, site, shift_type);
     }
   }
 
@@ -461,9 +528,6 @@ export class PayrollPeriod {
         }
       }
     }
-  }
-
-  public getPayrollPeriodBonusHours() {
   }
 
   public getPayrollPeriodTotal() {
@@ -525,6 +589,127 @@ export class PayrollPeriod {
     return out;
   }
 
+  /**
+   * Add this Report or array of Reports to the appropriate shift(s)
+   *
+   * @param {(Report|Report[])} reports Report or array of Reports to add to the appropriate shift
+   * @memberof PayrollPeriod
+   */
+  public setPeriodReports(reports:Report|Report[]) {
+    if(reports instanceof Report) {
+      reports = [ reports ];
+    }
+    // let shifts = this.getPayrollShifts();
+    for(let report of reports) {
+      let report_date = report.getReportDateAsString();
+      let shift = this.getShiftForDate(report_date);
+      if(shift) {
+        shift.addShiftReport(report);
+      }
+    }
+  }
+
+  /**
+   * Add this ReportOther or array of ReportOthers to the appropriate shift(s)
+   *
+   * @param {(ReportOther|ReportOther[])} reports ReportOther or array of ReportOthers to add to the appropriate shift
+   * @memberof PayrollPeriod
+   */
+  public setPeriodOthers(reports:ReportOther|ReportOther[]) {
+    if(reports instanceof ReportOther) {
+      reports = [ reports ];
+    }
+    // let shifts = this.getPayrollShifts();
+    for(let report of reports) {
+      let report_date = report.getReportDateAsString();
+      let shift = this.getShiftForDate(report_date);
+      if(shift) {
+        shift.addOtherReport(report);
+      }
+    }
+  }
+
+  /**
+   * Add this ReportLogistics or array of ReportLogistics to the appropriate shift(s)
+   *
+   * @param {(ReportLogistics|ReportLogistics[])} reports ReportLogistics or array of ReportLogistics to add to the appropriate shift
+   * @memberof PayrollPeriod
+   */
+  public setPeriodLogistics(reports:ReportLogistics|ReportLogistics[]) {
+    if(reports instanceof ReportLogistics) {
+      reports = [ reports ];
+    }
+    // let shifts = this.getPayrollShifts();
+    for(let report of reports) {
+      let report_date = report.getReportDateString();
+      let shift = this.getShiftForDate(report_date);
+      if(shift) {
+        shift.addLogisticsReport(report);
+      }
+    }
+  }
+
+  /**
+   * Add this ReportDriving or array of ReportDrivings to the appropriate shift(s)
+   *
+   * @param {(ReportDriving|ReportDriving[])} reports ReportDriving or array of ReportDrivings to add to the appropriate shift
+   * @memberof PayrollPeriod
+   */
+  public setPeriodDrivings(reports:ReportDriving|ReportDriving[]) {
+    if(reports instanceof ReportDriving) {
+      reports = [ reports ];
+    }
+    // let shifts = this.getPayrollShifts();
+    for(let report of reports) {
+      let report_date = report.getReportDateString();
+      let shift = this.getShiftForDate(report_date);
+      if(shift) {
+        shift.addDrivingReport(report);
+      }
+    }
+  }
+
+  /**
+   * Add this ReportMaintenance or array of ReportMaintenances to the appropriate shift(s)
+   *
+   * @param {(ReportMaintenance|ReportMaintenance[])} reports ReportMaintenance or array of ReportMaintenances to add to the appropriate shift
+   * @memberof PayrollPeriod
+   */
+  public setPeriodMaintenances(reports:ReportMaintenance|ReportMaintenance[]) {
+    if(reports instanceof ReportMaintenance) {
+      reports = [ reports ];
+    }
+    // let shifts = this.getPayrollShifts();
+    for(let report of reports) {
+      let report_date = report.getReportDateString();
+      let shift = this.getShiftForDate(report_date);
+      if(shift) {
+        shift.addMaintenanceReport(report);
+      }
+    }
+  }
+
+  /**
+   * Add this ReportTimeCard or array of ReportTimeCards to the appropriate shift(s)
+   *
+   * @param {(ReportTimeCard|ReportTimeCard[])} reports ReportTimeCard or array of ReportTimeCards to add to the appropriate shift
+   * @memberof PayrollPeriod
+   */
+  public setPeriodTimeCards(reports:ReportTimeCard|ReportTimeCard[]) {
+    if(reports instanceof ReportTimeCard) {
+      reports = [ reports ];
+    }
+    // let shifts = this.getPayrollShifts();
+    for(let report of reports) {
+      let report_date = report.getReportDateString();
+      let shift = this.getShiftForDate(report_date);
+      if(shift) {
+        shift.addTimeCardReport(report);
+      }
+    }
+  }
+
+
   public getKeys():string[] {
     return Object.keys(this);
   }
@@ -548,5 +733,5 @@ export class PayrollPeriod {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }

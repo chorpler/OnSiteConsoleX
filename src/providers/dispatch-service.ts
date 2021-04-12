@@ -4,8 +4,15 @@ import { Observable, Subject,                       } from 'rxjs'               
 import { Employee, Jobsite, Report, ReportOther,    } from 'domain/onsitexdomain' ;
 import { Shift, PayrollPeriod, Schedule, Schedules, } from 'domain/onsitexdomain' ;
 import { Notice,                                    } from 'domain/onsitexdomain' ;
+import { DatabaseKey,                               } from './preferences'        ;
 
-export type AppEvents = 'openpage' | 'authenticate' | 'login' | 'logout' | 'updatedata' | 'updatelogistics' | 'updatetimecards' | 'dataupdated' | 'dbupdated' | 'options' | 'saveprefs' | 'testnotifications' | 'menuclosed' | 'starttime' | 'endtime' | 'elapsedtime' | 'replicationerror' | 'replicationcomplete' | 'find-in-page' | 'showdbstatus' | 'downloaddb' | 'reinitializedb' | 'toggledevmode' | 'changedetection';
+export type AppEvents = 'openpage' | 'authenticate' | 'login' | 'logout' | 'updatefromdb' | 'updatedfromdb'| 'updatefromserver' | 'updatedfromserver' | 'updatedata' | 'updatelogistics' | 'updatetimecards' | 'dataupdated' | 'dbupdated' | 'options' | 'saveprefs' | 'testnotifications' | 'menuclosed' | 'starttime' | 'endtime' | 'elapsedtime' | 'replicationerror' | 'replicationcomplete' | 'find-in-page' | 'showdbstatus' | 'downloaddb' | 'reinitializedb' | 'toggledevmode' | 'changedetection' | 'killspinners';
+
+export interface UpdateDBOptions {
+  timeout ?: number  ;
+  count   ?: number  ;
+  server  ?: boolean ;
+}
 
 @Injectable()
 export class DispatchService {
@@ -18,7 +25,9 @@ export class DispatchService {
   private invoiceSite    = new Subject<any>() ;
   private invoiceReports = new Subject<any>() ;
   private DPSCalcGrid    = new Subject<any>() ;
-  private datastore      = new Subject<any>() ;
+  private datastore      = new Subject<{type:DatabaseKey, payload?:any}>() ;
+  private dbupdated      = new Subject<{type:DatabaseKey, payload?:any}>() ;
+  private serverupdated  = new Subject<{type:DatabaseKey, payload?:any}>() ;
   private dbProgress     = new Subject<any>() ;
   private notice         = new Subject<Notice>();
   private notices        = new Subject<Notice[]>();
@@ -45,7 +54,7 @@ export class DispatchService {
     this.shift.next({ shift: shift });
   }
 
-  public updateDPSCalculationsGrid(grid:Array<Array<any>>) {
+  public updateDPSCalculationsGrid(grid:any[][]) {
     this.DPSCalcGrid.next({ grid: grid });
   }
 
@@ -61,11 +70,11 @@ export class DispatchService {
     this.invoiceSite.next({site: site});
   }
 
-  public updateInvoiceReports(reports:Array<Report>) {
+  public updateInvoiceReports(reports:Report[]) {
     this.invoiceReports.next({reports: reports});
   }
 
-  public updateDatastore(type:string, payload:any) {
+  public updateDatastore(type:DatabaseKey, payload?:any) {
     this.datastore.next({type:type, payload:payload});
   }
 
@@ -85,6 +94,14 @@ export class DispatchService {
     this.appReady.next(value);
   }
 
+  public triggerUpdatedFromDB(type:DatabaseKey, payload?:any) {
+    this.dbupdated.next({type:type, payload:payload});
+  }
+
+  public triggerUpdatedFromServer(type:DatabaseKey, payload?:any) {
+    this.serverupdated.next({type:type, payload:payload});
+  }
+
   public updatePrefs() {
     this.prefsChange.next(true);
   }
@@ -93,7 +110,7 @@ export class DispatchService {
     this.showOptions.next(value);
   }
 
-  public sendMessage(message: string) {
+  public sendMessage(message:string) {
     this.subject.next({ text: message });
   }
 
@@ -146,7 +163,7 @@ export class DispatchService {
     return this.invoiceReports.asObservable();
   }
 
-  public datastoreUpdated():Observable<any> {
+  public datastoreUpdated():Observable<{type:DatabaseKey, payload?:any}> {
     return this.datastore.asObservable();
   }
 
@@ -164,6 +181,14 @@ export class DispatchService {
 
   public appReadyStatus():Observable<boolean> {
     return this.appReady.asObservable();
+  }
+
+  public updatedFromDB():Observable<{type:DatabaseKey, payload?:any}> {
+    return this.dbupdated.asObservable();
+  }
+
+  public updatedFromServer():Observable<{type:DatabaseKey, payload?:any}> {
+    return this.serverupdated.asObservable();
   }
 
   public prefsUpdated():Observable<any> {

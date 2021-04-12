@@ -20,11 +20,15 @@ import   * as moment              from 'moment'             ;
 // import   * as momentTimezone      from 'moment-timezone'    ;
 import { Moment, Duration } from 'moment';
 // import   * as moShortFormat   from 'moment-shortformat' ;
-import   * as moTimer         from 'moment-timer'       ;
+// import   * as moTimer         from 'moment-timer'       ;
 import   * as momentRange         from 'moment-range'       ;
 import { PreciseRange, preciseDiff, staticPreciseDiff } from './moment-precise-range';
 import { extendMoment } from 'moment-range';
-// import * as momentDurationFormat from 'moment-duration-format';
+// import {momentDurationFormatSetup} from 'moment-duration-format';
+import 'moment-duration-format';
+import { MomentTimer, MomentTimerAttributes, Timer } from './moment-timer-onsite';
+// import 'moment-timer';
+
 // import 'moment-precise-range-plugin';
 // import   * as momentPreciseRange  from 'moment-precise-range-plugin'       ;
 
@@ -70,14 +74,17 @@ declare module "moment" {
     within(range: momentRange.DateRange): boolean;
 
   }
+  interface Duration {
+    timer: (attributes:MomentTimerAttributes|Function, callback?:Function) => MomentTimer;
+  }
   function toExcel(mo?:Date | moment.Moment | string | boolean, dayOnly?:boolean):number;
   function fromExcel(days:number|string):moment.Moment;
   function preciseDiff(d1:Date|Moment, d2:Date|Moment, returnValueObject:boolean):PreciseRange|string;
   function range(start: Date, end: Date): momentRange.DateRange;
   function range(start: Moment, end: Moment): momentRange.DateRange;
-  function range(range: [Date, Date]): momentRange.DateRange;
-  function range(range: [Moment, Moment]): momentRange.DateRange;
-  function range(range: string): momentRange.DateRange;
+  // function range(range: [Date, Date]): momentRange.DateRange;
+  function range(range: [Date, Date] | [Moment, Moment] | string): momentRange.DateRange;
+  // function range(range: string): momentRange.DateRange;
 
   function rangeFromInterval(interval: unitOfTime.Diff, count?: number, date?: Date | Moment): momentRange.DateRange;
   function rangeFromISOString(isoTimeInterval: string): momentRange.DateRange;
@@ -135,7 +142,7 @@ const momentRound = function(precision:number, key:string, roundDirection?:"roun
   } else if(direction === 'down') {
     direction = 'floor';
   }
-  let _this:any = this; //cache of this
+  let _this:any = this; // cache of this
   let methods = {
     hours:        { 'name': 'Hours',        'maxValue': 24   },
     minutes:      { 'name': 'Minutes',      'maxValue': 60   },
@@ -175,13 +182,13 @@ const momentRound = function(precision:number, key:string, roundDirection?:"roun
   }
   key = keys[key].toLowerCase();
 
-  //control
+  // control
   if(!methods[key]) {
     throw new Error('The value to round is not valid. Possibles ["hours", "minutes", "seconds", "milliseconds"]');
   }
 
-  var getMethodName:string = 'get' + methods[key].name;
-  var setMethodName:string = 'set' + methods[key].name;
+  let getMethodName:string = 'get' + methods[key].name;
+  let setMethodName:string = 'set' + methods[key].name;
 
   for(let k in methods) {
     if(k === key) {
@@ -200,21 +207,21 @@ const momentRound = function(precision:number, key:string, roundDirection?:"roun
   _this._d[setMethodName](value);
 
   return _this;
-}
+};
 
 const momentCeil = function(precision, key):moment.Moment {
   let self = this;
   return self.round(precision, key, 'ceil');
-}
+};
 
 const momentFloor = function(precision, key):moment.Moment {
   let self = this;
   return self.round(precision, key, 'floor');
-}
+};
 
 export const isMoment = function(val:any):boolean {
   return (moment.isMoment(val) && moment(val).isValid());
-}
+};
 
 export const isDuration = function(val:any):boolean {
   return (moment.isDuration(val) && val['isValid'] && typeof val['isValid'] === 'function' && (val as any).isValid());
@@ -391,7 +398,7 @@ export const moment2excel = function(mo?: Date | moment.Moment | string | boolea
 
 export const Moment2excel = function(dayOnly?:boolean):number {
   return moment2excel(dayOnly);
-}
+};
 
 export const excel2moment = function(days:number|string, sourceIsMacExcel?:boolean) {
   let value:number;
@@ -441,22 +448,69 @@ export const excel2moment = function(days:number|string, sourceIsMacExcel?:boole
   let OADateString:string = moment(OADate).format("YYYY-MM-DDTHH:mm:ss.SSS");
   let CorrectedOADate:Moment = moment(OADateString);
   return CorrectedOADate;
-}
+};
 
 // (<any>moment).fromExcel = excel2moment;
 
-var momentFnObject:any = moment.fn || {};
-(<any>moment).fn = momentFnObject;
+let momentFnObject:any = moment.fn || {};
 // .toExcel = moment2excel;
-(<any>moment).fn.round        = momentRound       ;
-(<any>moment).fn.fromExcel    = excel2moment      ;
-(<any>moment).fn.toExcel      = moment2excel      ;
-(<any>moment).fn.ceil         = momentCeil        ;
-(<any>moment).fn.floor        = momentFloor       ;
-(<any>moment).fn.preciseDiff  = preciseDiff       ;
-(<any>moment).fromExcel       = excel2moment      ;
-(<any>moment).toExcel         = Moment2excel      ;
-(<any>moment).preciseDiff     = staticPreciseDiff ;
+(moment as any).fn = momentFnObject;
+(moment as any).fn.round        = momentRound       ;
+(moment as any).fn.fromExcel    = excel2moment      ;
+(moment as any).fn.toExcel      = moment2excel      ;
+(moment as any).fn.ceil         = momentCeil        ;
+(moment as any).fn.floor        = momentFloor       ;
+(moment as any).fn.preciseDiff  = preciseDiff       ;
+(moment as any).fromExcel       = excel2moment      ;
+(moment as any).toExcel         = Moment2excel      ;
+(moment as any).preciseDiff     = staticPreciseDiff ;
+(moment as any).duration.fn.timer = function(attributes:MomentTimerAttributes|Function, callback?:Function):MomentTimer {
+  let options:MomentTimerAttributes;
+  let cb:Function;
+  if(typeof attributes === "function") {
+    cb = attributes;
+    options = {
+      wait: 0,
+      loop: false,
+      start: true,
+    };
+  } else if(typeof attributes === "object" && typeof callback === "function") {
+    cb = callback;
+    options = attributes;
+    if(options.start == null) {
+      options.start = true;
+    }
+  } else {
+    let text = "MomentTimer(): First argument must be MomentTimerAttributes object or callback function. Invalid parameter";
+    console.warn(text + ":", attributes);
+    let err = new Error(text);
+    throw err;
+  }
+  return (function() {
+    return new Timer(this.asMilliseconds(), options, cb);
+  }.bind(this))();
+};
+// (moment.duration.fn as any).timer = function(attributes, callback) {
+//   if(typeof attributes === "function") {
+//     callback = attributes;
+//     attributes = {
+//       wait: 0,
+//       loop: false,
+//       start: true
+//     };
+//   } else if(typeof attributes === "object" && typeof callback === "function") {
+//     if(attributes.start == null) {
+//       attributes.start = true;
+//     }
+//   } else {
+//     throw new Error("First argument must be of type function or object.");
+//   }
+
+//   return (function() {
+//     return new Timer(this.asMilliseconds(), attributes, callback);
+//   }.bind(this))();
+// };
+
 
 // momentDurationFormatSetup(moment);
 
@@ -471,6 +525,8 @@ var momentFnObject:any = moment.fn || {};
 // export type Moment = momentRange.MomentRange;
 export type Moment = moment.Moment;
 export type Duration = moment.Duration;
+export type Locale = moment.Locale;
+export type LocaleSpecification = moment.LocaleSpecification;
 export type MomentInput = moment.MomentInput;
 export type MomentRange = momentRange.DateRange;
 export type DateRange = momentRange.DateRange;
@@ -488,8 +544,9 @@ export type DateRange = momentRange.DateRange;
 
 // export {moment, momentTimezone};
 // export {moment, momentTimezone};
+
 export { moment };
 // export const momentShortFormat = moShortFormat;
-export const momentTimer       = moTimer;
+// export const momentTimer       = moTimer;
 // momentDurationFormat
 const momo = extendMoment(moment);

@@ -1,8 +1,14 @@
 /**
  * Name: ReportTimeCard domain class
- * Vers: 1.2.1
- * Date: 2018-12-13
+ * Vers: 2.1.2
+ * Date: 2017-08-26
  * Auth: David Sargeant
+ * Logs: 2.1.2 2019-08-26: Changed getTotalTime() method to have optional roundToNearest parameter; Added getTotalWorkHours() method for compatibility with other report classes
+ * Logs: 2.1.1 2019-08-22: Added getTotalTimeStringHoursMinutes() method
+ * Logs: 2.1.0 2019-08-20: Added getLastTimeBlocked() method
+ * Logs: 2.0.1 2019-08-08: Added type property and getType() method
+ * Logs: 2.0.0 2019-07-24: Changed genReportID() method to use English locale for current Moment string
+ * Logs: 1.2.2 2019-07-18: Minor corrections to fix TSLint errors
  * Logs: 1.2.1 2018-12-13: Refactored imports to remove circular dependencies; added standard OnSite methods
  * Logs: 1.1.2 2018-12-04: Added isTest property
  * Logs: 1.1.1 2018-10-09: Added getKeys(), isValid() methods
@@ -14,7 +20,7 @@
 // import { Shift         } from './shift'                ;
 // import { PayrollPeriod } from './payroll-period'       ;
 import { sprintf       } from 'sprintf-js'             ;
-import { Log           } from '../config'              ;
+import { Log, roundUpToNearest           } from '../config'              ;
 import { Moment        } from '../config'              ;
 import { moment        } from '../config'              ;
 import { isMoment      } from '../config'              ;
@@ -25,30 +31,31 @@ import { Employee      } from './employee'             ;
 import { Jobsite       } from './jobsite'              ;
 
 
-type StatusUpdateType = "created" | "updated"                               ;
+type StatusUpdateType = "created" | "updated";
 
-type ReportStatusLogEntry = {
-  type       : StatusUpdateType ,
-  user       : string           ,
-  timestamp  : string           ,
-  invoice   ?: number           ,
-};
+interface ReportStatusLogEntry {
+  type       : StatusUpdateType ;
+  user       : string           ;
+  timestamp  : string           ;
+  invoice   ?: number           ;
+}
 
-type TimeCardEntry = {
-  start : string,
-  end  ?: string,
-};
+interface TimeCardEntry  {
+  start : string ;
+  end  ?: string ;
+}
 
-export type ReportTimeEntry = {
-  start : string,
-  end  ?: string,
-};
+export interface ReportTimeEntry {
+  start : string ;
+  end  ?: string ;
+}
 
 export type ReportTimeEntries = ReportTimeEntry[];
 
 export class ReportTimeCardDoc {
   public _id              : string = "";
   public _rev             : string = "";
+  public type             : string = "timecard";
   public report_date      : string = "";
   public notes            : string = "";
   public username         : string = "";
@@ -72,47 +79,49 @@ export class ReportTimeCardDoc {
 
 export class ReportTimeCard {
   public timecard:ReportTimeCardDoc = new ReportTimeCardDoc();
-  public get _id               (): string                  { return this.timecard._id                      ; }  ;
-  public get _rev              (): string                  { return this.timecard._rev                     ; }  ;
-  public get notes             (): string                  { return this.timecard.notes                    ; }  ;
-  public get report_date       (): string                  { return this.timecard.report_date              ; }  ;
-  public get last_name         (): string                  { return this.timecard.last_name                ; }  ;
-  public get first_name        (): string                  { return this.timecard.first_name               ; }  ;
-  public get shift             (): string                  { return this.timecard.shift                    ; }  ;
-  public get client            (): string                  { return this.timecard.client                   ; }  ;
-  public get location          (): string                  { return this.timecard.location                 ; }  ;
-  public get locID             (): string                  { return this.timecard.locID                    ; }  ;
-  public get site_number       (): number                  { return this.timecard.site_number              ; }  ;
-  public get timestamp         (): number                  { return this.timecard.timestamp                ; }  ;
-  public get timestampM        (): Moment                  { return moment(this.timecard.timestampM)       ; }  ;
-  public get username          (): string                  { return this.timecard.username                 ; }  ;
-  public get change_log        (): ReportStatusLogEntry[]  { return this.timecard.change_log               ; }  ;
-  public get flagged           (): boolean                 { return this.timecard.flagged                  ; }  ;
-  public get flagged_fields    (): ReportFlag[]            { return this.timecard.flagged_fields           ; }  ;
-  public get times             (): TimeCardEntry[]         { return this.timecard.times                    ; }  ;
-  public get timer_running     (): boolean                 { return this.timecard.timer_running            ; }  ;
-  public get isTest            (): boolean                 { return this.timecard.isTest                   ; }  ;
+  public get _id               (): string                  { return this.timecard._id                      ; }
+  public get _rev              (): string                  { return this.timecard._rev                     ; }
+  public get type              (): string                  { return this.timecard.type                     ; }
+  public get notes             (): string                  { return this.timecard.notes                    ; }
+  public get report_date       (): string                  { return this.timecard.report_date              ; }
+  public get last_name         (): string                  { return this.timecard.last_name                ; }
+  public get first_name        (): string                  { return this.timecard.first_name               ; }
+  public get shift             (): string                  { return this.timecard.shift                    ; }
+  public get client            (): string                  { return this.timecard.client                   ; }
+  public get location          (): string                  { return this.timecard.location                 ; }
+  public get locID             (): string                  { return this.timecard.locID                    ; }
+  public get site_number       (): number                  { return this.timecard.site_number              ; }
+  public get timestamp         (): number                  { return this.timecard.timestamp                ; }
+  public get timestampM        (): Moment                  { return moment(this.timecard.timestampM)       ; }
+  public get username          (): string                  { return this.timecard.username                 ; }
+  public get change_log        (): ReportStatusLogEntry[]  { return this.timecard.change_log               ; }
+  public get flagged           (): boolean                 { return this.timecard.flagged                  ; }
+  public get flagged_fields    (): ReportFlag[]            { return this.timecard.flagged_fields           ; }
+  public get times             (): TimeCardEntry[]         { return this.timecard.times                    ; }
+  public get timer_running     (): boolean                 { return this.timecard.timer_running            ; }
+  public get isTest            (): boolean                 { return this.timecard.isTest                   ; }
 
-  public set _id               (val: string                )  { this.timecard._id                     = val ; }  ;
-  public set _rev              (val: string                )  { this.timecard._rev                    = val ; }  ;
-  public set notes             (val: string                )  { this.timecard.notes                   = val ; }  ;
-  public set report_date       (val: string                )  { this.timecard.report_date             = val ; }  ;
-  public set last_name         (val: string                )  { this.timecard.last_name               = val ; }  ;
-  public set first_name        (val: string                )  { this.timecard.first_name              = val ; }  ;
-  public set shift             (val: string                )  { this.timecard.shift                   = val ; }  ;
-  public set client            (val: string                )  { this.timecard.client                  = val ; }  ;
-  public set location          (val: string                )  { this.timecard.location                = val ; }  ;
-  public set locID             (val: string                )  { this.timecard.locID                   = val ; }  ;
-  public set site_number       (val: number                )  { this.timecard.site_number             = val ; }  ;
-  public set timestamp         (val: number                )  { this.timecard.timestamp               = val ; }  ;
-  public set timestampM        (val: Moment                )  { this.timecard.timestampM     = val.format() ; }  ;
-  public set username          (val: string                )  { this.timecard.username                = val ; }  ;
-  public set change_log        (val: ReportStatusLogEntry[])  { this.timecard.change_log              = val ; }  ;
-  public set flagged           (val: boolean               )  { this.timecard.flagged                 = val ; }  ;
-  public set flagged_fields    (val: ReportFlag[]          )  { this.timecard.flagged_fields          = val ; }  ;
-  public set times             (val: TimeCardEntry[]       )  { this.timecard.times                   = val ; }  ;
-  public set timer_running     (val: boolean               )  { this.timecard.timer_running           = val ; }  ;
-  public set isTest            (val: boolean               )  { this.timecard.isTest                  = val ; }  ;
+  public set _id               (val: string                )  { this.timecard._id                     = val ; }
+  public set _rev              (val: string                )  { this.timecard._rev                    = val ; }
+  public set type              (val: string                )  { this.timecard.type                    = val ; }
+  public set notes             (val: string                )  { this.timecard.notes                   = val ; }
+  public set report_date       (val: string                )  { this.timecard.report_date             = val ; }
+  public set last_name         (val: string                )  { this.timecard.last_name               = val ; }
+  public set first_name        (val: string                )  { this.timecard.first_name              = val ; }
+  public set shift             (val: string                )  { this.timecard.shift                   = val ; }
+  public set client            (val: string                )  { this.timecard.client                  = val ; }
+  public set location          (val: string                )  { this.timecard.location                = val ; }
+  public set locID             (val: string                )  { this.timecard.locID                   = val ; }
+  public set site_number       (val: number                )  { this.timecard.site_number             = val ; }
+  public set timestamp         (val: number                )  { this.timecard.timestamp               = val ; }
+  public set timestampM        (val: Moment                )  { this.timecard.timestampM     = val.format() ; }
+  public set username          (val: string                )  { this.timecard.username                = val ; }
+  public set change_log        (val: ReportStatusLogEntry[])  { this.timecard.change_log              = val ; }
+  public set flagged           (val: boolean               )  { this.timecard.flagged                 = val ; }
+  public set flagged_fields    (val: ReportFlag[]          )  { this.timecard.flagged_fields          = val ; }
+  public set times             (val: TimeCardEntry[]       )  { this.timecard.times                   = val ; }
+  public set timer_running     (val: boolean               )  { this.timecard.timer_running           = val ; }
+  public set isTest            (val: boolean               )  { this.timecard.isTest                  = val ; }
 
   /**
    * Create a ReportTimeCard object. All parameters are optional, and can be populated later from a serialized object document from database.
@@ -149,7 +158,7 @@ export class ReportTimeCard {
 
   public serialize(tech?:Employee):ReportTimeCardDoc {
     if(!this._id) {
-      this._id = this.genReportID();
+      this._id = this.genReportID(tech);
     }
     if(!this.report_date) {
       let now:Moment = moment();
@@ -202,23 +211,28 @@ export class ReportTimeCard {
     }
   }
 
-  public genReportID(tech?:Employee):string {
+  public genReportID(tech:Employee, lang?:string):string {
     let username:string = tech && tech instanceof Employee ? tech.getUsername() : this.username && typeof this.username === 'string' ? this.username : "";
     if(username) {
       let now:Moment = moment();
+      let i8nCode = typeof lang === 'string' ? lang : "en";
+      let localNow = moment(now).locale(i8nCode);
       // let idDateTime = now.format("dddDDMMMYYYYHHmmss");
       // let idDateTime:string = now.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
-      let idDateTime:string = now.format("YYYY-MM-DD");
+      // let idDateTime:string = now.format("YYYY-MM-DD");
+      // let idDateTime = localNow.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
+      let idDateTime = localNow.format("YYYY-MM-DD");
       let docID:string = `${username}_${idDateTime}`;
-      Log.l("ReportTimeCard.genReportID(): Generated ID:\n", docID);
+      Log.l("REPORTTIMECARD.genReportID(): Generated ID:", docID);
       if(!this._id) {
         this._id = docID;
       }
       return docID;
     } else {
       let errText:string = `ReportTimeCard.genReportID(): No username found to generate ID!`;
-      Log.e(errText);
-      throw new Error(errText);
+      let err = new Error(errText);
+      Log.e(err);
+      throw err;
     }
   }
 
@@ -253,6 +267,7 @@ export class ReportTimeCard {
   }
 
   public initializeTimeCard(tech:Employee, site:Jobsite):ReportTimeCard {
+    Log.l(`ReportTimeCard(): Called with tech and site:`, tech, site);
     let report:ReportTimeCard = this;
     if(tech && tech instanceof Employee && site && site instanceof Jobsite) {
       this.setUser(tech);
@@ -260,7 +275,7 @@ export class ReportTimeCard {
       let now:Moment = moment();
       report.setReportDate(now);
       report.setTimeStamp(now);
-      this.genReportID();
+      this.genReportID(tech);
     } else {
       Log.w(`ReportTimeCard.initializeTimeCard(): Must be provided valid Employee and Jobsite objects. These were:`);
       Log.l(tech);
@@ -495,7 +510,7 @@ export class ReportTimeCard {
    * startTimer() starts the timer running
    *
    * @returns {ReportTimes} The current ReportTimes array (an array of objects with start and optional end properties, both of which are ISO8601-formatted strings representing times)
-   * @memberof ReportLogistics
+   * @memberof ReportTimeCard
    */
   public startTimer():ReportTimeEntries {
     if(this.timer_running) {
@@ -555,14 +570,19 @@ export class ReportTimeCard {
   }
 
   /**
-   * getTotalTime() Gets the total time for this report, in specified units ('hours' by default)
-   * @param unitOfTime A string that is part of the Moment.unitOfTime.Diff type ('hours', 'minutes', 'seconds', etc.)
+   * Gets the total time for this report, in specified units ('hours' by default)
+   *
+   * @param {moment.unitOfTime.Diff} [unitOfTime] A string that is part of the Moment.unitOfTime.Diff type ('hours', 'minutes', 'seconds', etc.)
+   * @param {number} [roundToNearest] If provided, rounds to this number of minutes (1h10m would round to 1.25 hours). Defaults to 1.
+   * @returns {number} The number of specified time units (default hours) in this timecard report
    * @memberof ReportTimeCard
    */
-  public getTotalTime(unitOfTime?:moment.unitOfTime.Diff):number {
+  public getTotalTime(unitOfTime?:moment.unitOfTime.Base, roundToNearest?:number):number {
     let now:Moment = moment();
     let hours:number = 0;
-    let units:moment.unitOfTime.Diff = unitOfTime || ('hours' as moment.unitOfTime.Diff);
+    let roundTo:number = typeof roundToNearest === 'number' ? roundToNearest : 1;
+    let units:moment.unitOfTime.Base = unitOfTime || ('hours' as moment.unitOfTime.Base);
+    let mins:number = 0;
     for(let time of this.times) {
       let startTime:Moment = moment(time.start);
       let endTime:Moment = now;
@@ -571,20 +591,27 @@ export class ReportTimeCard {
         if(isMoment(endTime)) {
           let hrs:number = endTime.diff(startTime, units, true);
           hours += hrs;
+          let oneMins = endTime.diff(startTime, 'minutes', true);
+          mins += oneMins;
         } else {
-          Log.w(`ReportTimeCard.getTotalTime(): Invalid endTime found:\n`, time.end);
+          Log.w(`ReportTimeCard.getTotalTime(): Invalid endTime found:`, time.end);
           return null;
         }
       } else {
         let hrs:number = endTime.diff(startTime, units, true);
+        let oneMins = endTime.diff(startTime, 'minutes', true);
+        mins += oneMins;
         hours += hrs;
       }
     }
+    let roundedMinutes = roundUpToNearest(mins, roundTo);
+    let duration = moment.duration(roundedMinutes, 'minutes');
+    let out = duration.as(units);
     return hours;
   }
 
   /**
-   * getTotalTimeString() Gets the total time for this report as a string. HH:mm:ss format (i.e. 1 hour, 1 minute, 1 second is 01:01:01). Seconds can be specified as a static method for straight-up conversion
+   * Gets the total time for this report as a string. HH:mm:ss format (i.e. 1 hour, 1 minute, 1 second is 01:01:01). Seconds can be specified as a static method for straight-up conversion
    * @param seconds Number of seconds, which will convert them to a time string (in HH:mm:ss format)
    * @memberof ReportTimeCard
    */
@@ -594,6 +621,20 @@ export class ReportTimeCard {
     let min:number = Math.trunc((total/60) - (hrs*60));
     let sec:number = Math.round(total - (hrs * 3600) - (min * 60));
     let out:string = sprintf("%02d:%02d:%02d", hrs, min, sec);
+    return out;
+  }
+
+  /**
+   * Gets the total time for this report as a string. HH:mm format (i.e. 1 hour, 1 minute is 01:01). Seconds can be specified as a static method for straight-up conversion
+   * @param seconds Number of seconds, which will convert them to a time string (in HH:mm format)
+   * @memberof ReportTimeCard
+   */
+  public getTotalTimeStringHoursMinutes(seconds?:number):string {
+    let total:number = seconds != undefined ? seconds : this.getTotalTime('seconds');
+    let hrs:number = Math.trunc(total / 3600);
+    let min:number = Math.trunc((total/60) - (hrs*60));
+    // let sec:number = Math.round(total - (hrs * 3600) - (min * 60));
+    let out:string = sprintf("%02d:%02d", hrs, min);
     return out;
   }
 
@@ -634,6 +675,11 @@ export class ReportTimeCard {
       out = sprintf("%0.2f", hours);
     }
     return out;
+  }
+
+  public getTotalWorkHours(roundToNearest?:number):number {
+    let hrs = this.getTotalTime('hours', roundToNearest);
+    return hrs;
   }
 
   public getClockStatus():string {
@@ -696,7 +742,44 @@ export class ReportTimeCard {
 
     // }
     return true;
+  }
 
+  /**
+   * Returns last time this report occupies, if any
+   *
+   * @returns {string} ISO8601 string representing the latest time this report has a record of
+   * @memberof ReportTimeCard
+   */
+  public getLastTimeBlocked():string {
+    let times = this.times.slice(0);
+    let lastTime:Moment;
+    for(let record of times) {
+      if(!record.end) {
+        continue;
+      } else {
+        let currentTaskEndTime = moment(record.end);
+        if(isMoment(currentTaskEndTime)) {
+          if(!lastTime) {
+            lastTime = moment(currentTaskEndTime);
+          } else if(lastTime.isBefore(currentTaskEndTime)) {
+            lastTime = moment(currentTaskEndTime);
+          }
+        }
+      }
+    }
+    if(isMoment(lastTime)) {
+      return lastTime.format();
+    } else {
+      Log.w(`ReportTimeCard.getLastTimeBlocked(): Could not find last time, apparently this report does not have any time recorded`);
+      return null;
+    }
+  }
+
+
+
+
+  public getType():string {
+    return this.type;
   }
 
   public getKeys():string[] {
@@ -725,5 +808,5 @@ export class ReportTimeCard {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }

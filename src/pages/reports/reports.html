@@ -68,19 +68,19 @@
     <p-header>
       <span class="panel-header">
         <span class="button-left">
-          <span class="panel-header-button db-download" title="Load work reports from database" (click)="possibleUpdateReports(0, $event)"></span>
+          <span class="panel-header-button db-download" title="Load work reports from database" (click)="possibleUpdateReports(TABLEINDEX.reports - 1, $event)"></span>
         </span>
         <span class="button-left">
           <span class="panel-header-button" title="Calculate total hours shown" (click)="calculateHoursShown($event)"><i class="fal fa-calculator-alt"></i></span>
         </span>
         <span class="button-left" *ngIf="data.status.role === 'dev'">
-          <span class="panel-header-button button-dev" title="Change all selected reports (still in development)" (click)="bulkEdit(1, $event)"><i class="fal fa-pencil-ruler"></i></span>
+          <span class="panel-header-button button-dev" title="Change all selected reports (still in development)" (click)="bulkEdit(TABLEINDEX.reports, $event)"><i class="fal fa-pencil-ruler"></i></span>
         </span>
         <span class="panel-title">
           Work Reports<span class="report-count"> ({{reports?.length}} loaded<span class="report-count-filtered" *ngIf="filteredCount">, {{filteredCount}} matches</span>)</span>
         </span>
         <span class="button-right">
-          <span class="panel-header-button right" title="Reset this table (clear filters, selected rows, etc.)" (click)="resetTable(1, $event)"><i class="fal fa-history"></i></span>
+          <span class="panel-header-button right" title="Reset this table (clear filters, selected rows, etc.)" (click)="resetTable(TABLEINDEX.reports, $event)"><i class="fal fa-history"></i></span>
         </span>
       </span>
     </p-header>
@@ -100,10 +100,10 @@
             <div class="caption-right">
               <div class="date-wrapper">
                 <span class="date-range-calendar-wrapper">
-                  <p-calendar #dateRangeCalendar [styleClass]="'date-range-calendar'" [(ngModel)]="dateRanges[0]" (onSelect)="checkDateRange(1, dateRangeCalendar, $event)" (onClose)="checkDateRangeOnClose(1, dateRangeCalendar, $event)" selectionMode="range" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true" placeholder="Date Range" title="Filter reports by this date range"></p-calendar>
+                  <p-calendar #dateRangeCalendar [styleClass]="'date-range-calendar'" [(ngModel)]="dateRanges[TABLEINDEX.reports - 1]" (onSelect)="checkDateRange(TABLEINDEX.reports, dateRangeCalendar, $event)" (onClose)="checkDateRangeOnClose(TABLEINDEX.reports, dateRangeCalendar, $event)" selectionMode="range" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true" placeholder="Date Range" title="Filter reports by this date range"></p-calendar>
                 </span>
                 <!-- <span class="header-button" title="Clear date filters" (click)="clearDates(dt, $event)"><i class="fa fa-times"></i></span> -->
-                <span class="header-button" title="Clear date filters" (click)="clearTableDates(1, dt, $event)"><i class="fa fa-times"></i></span>
+                <span class="header-button" title="Clear date filters" (click)="clearTableDates(TABLEINDEX.reports, dt, $event)"><i class="fa fa-times"></i></span>
               </div>
               <div class="global-filter-wrapper">
                 <i class="global-filter-icon fa fa-search" style="margin:4px 4px 0 0"></i>
@@ -161,19 +161,19 @@
     <p-header>
       <span class="panel-header">
         <span class="button-left">
-          <span class="panel-header-button db-download" title="Load miscellaneous reports from database" (click)="possibleUpdateReports(1, $event)"></span>
+          <span class="panel-header-button db-download" title="Load miscellaneous reports from database" (click)="possibleUpdateReports(TABLEINDEX.others, $event)"></span>
         </span>
         <span class="button-left">
           <span class="panel-header-button" title="Calculate total misc report hours shown" (click)="calculateMiscHoursShown($event)"><i class="fal fa-calculator-alt"></i></span>
         </span>
         <span class="button-left" *ngIf="data.status.role === 'dev'">
-          <span class="panel-header-button button-dev" title="Change all selected misc. reports (still in development)" (click)="bulkEdit(2, $event)"><i class="fal fa-pencil-ruler"></i></span>
+          <span class="panel-header-button button-dev" title="Change all selected misc. reports (still in development)" (click)="bulkEdit(TABLEINDEX.others, $event)"><i class="fal fa-pencil-ruler"></i></span>
         </span>
         <span class="panel-title">
           Misc Reports<span class="report-count"> ({{others?.length}} loaded<span class="report-count-filtered" *ngIf="filteredCountOthers">, {{filteredCountOthers}} matches</span>)</span>
         </span>
         <span class="button-right">
-          <span class="panel-header-button right" title="Reset this table (clear filters, selected rows, etc.)" (click)="resetTable(2, $event)"><i class="fal fa-history"></i></span>
+          <span class="panel-header-button right" title="Reset this table (clear filters, selected rows, etc.)" (click)="resetTable(TABLEINDEX.others, $event)"><i class="fal fa-history"></i></span>
         </span>
       </span>
     </p-header>
@@ -192,10 +192,10 @@
             <div class="caption-right">
               <div class="date-wrapper">
                 <span class="date-range-calendar-wrapper">
-                  <p-calendar #dateRangeCalendarOthers [styleClass]="'date-range-calendar'" [(ngModel)]="dateRanges[1]" (onSelect)="checkDateRange(2, dateRangeCalendarOthers, $event)" (onClose)="checkDateRangeOnClose(2, dateRangeCalendarOthers, $event)" selectionMode="range" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true" placeholder="Date Range" title="Filter reports by this date range"></p-calendar>
+                  <p-calendar #dateRangeCalendarOthers [styleClass]="'date-range-calendar'" [(ngModel)]="dateRanges[TABLEINDEX.others - 1]" (onSelect)="checkDateRange(TABLEINDEX.others, dateRangeCalendarOthers, $event)" (onClose)="checkDateRangeOnClose(TABLEINDEX.others, dateRangeCalendarOthers, $event)" selectionMode="range" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true" placeholder="Date Range" title="Filter reports by this date range"></p-calendar>
                 </span>
                 <!-- <span class="header-button" title="Clear date filters" (click)="clearDates(othersTable, $event)"><i class="fa fa-times"></i></span> -->
-                <span class="header-button" title="Clear date filters" (click)="clearTableDates(2, othersTable, $event)"><i class="fa fa-times"></i></span>
+                <span class="header-button" title="Clear date filters" (click)="clearTableDates(TABLEINDEX.others, othersTable, $event)"><i class="fa fa-times"></i></span>
               </div>
               <div class="global-filter-wrapper">
                 <i class="global-filter-icon fa fa-search" style="margin:4px 4px 0 0"></i>
@@ -256,7 +256,7 @@
     <p-header>
       <span class="panel-header">
         <span class="button-left">
-          <span class="panel-header-button db-download" title="Load logistics reports from database" (click)="possibleUpdateReports(2, $event)"></span>
+          <span class="panel-header-button db-download" title="Load logistics reports from database" (click)="possibleUpdateReports(TABLEINDEX.logistics, $event)"></span>
         </span>
         <span class="button-left">
           <span class="panel-header-button" title="Calculate total logistics hours shown" (click)="calculateLogisticsHoursShown($event)"><i class="fal fa-calculator-alt"></i></span>
@@ -265,13 +265,13 @@
           <span class="panel-header-button" title="Calculate total logistics miles shown" (click)="calculateLogisticsMilesShown($event)"><i class="fal fa-ruler"></i></span>
         </span>
         <span class="button-left" *ngIf="data.status.role === 'dev'">
-          <span class="panel-header-button button-dev" title="Change all selected logistics reports (still in development)" (click)="bulkEdit(3, $event)"><i class="fal fa-pencil-ruler"></i></span>
+          <span class="panel-header-button button-dev" title="Change all selected logistics reports (still in development)" (click)="bulkEdit(TABLEINDEX.logistics, $event)"><i class="fal fa-pencil-ruler"></i></span>
         </span>
         <span class="panel-title">
           Logistics Reports<span class="report-count"> ({{logistics?.length}} loaded<span class="report-count-filtered" *ngIf="filteredCountLogistics">, {{filteredCountLogistics}} matches</span>)</span>
         </span>
         <span class="button-right">
-          <span class="panel-header-button right" title="Reset this table (clear filters, selected rows, etc.)" (click)="resetTable(3, $event)"><i class="fal fa-history"></i></span>
+          <span class="panel-header-button right" title="Reset this table (clear filters, selected rows, etc.)" (click)="resetTable(TABLEINDEX.logistics, $event)"><i class="fal fa-history"></i></span>
         </span>
       </span>
     </p-header>
@@ -290,10 +290,10 @@
             <div class="caption-right">
               <div class="date-wrapper">
                 <span class="date-range-calendar-wrapper">
-                  <p-calendar #dateRangeCalendarLogistics [styleClass]="'date-range-calendar'" [(ngModel)]="dateRanges[2]" (onSelect)="checkDateRange(3, dateRangeCalendarLogistics, $event)" (onClose)="checkDateRangeOnClose(3, dateRangeCalendarLogistics, $event)" selectionMode="range" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true" placeholder="Date Range" title="Filter reports by this date range"></p-calendar>
+                  <p-calendar #dateRangeCalendarLogistics [styleClass]="'date-range-calendar'" [(ngModel)]="dateRanges[TABLEINDEX.logistics - 1]" (onSelect)="checkDateRange(TABLEINDEX.logistics, dateRangeCalendarLogistics, $event)" (onClose)="checkDateRangeOnClose(TABLEINDEX.logistics, dateRangeCalendarLogistics, $event)" selectionMode="range" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true" placeholder="Date Range" title="Filter reports by this date range"></p-calendar>
                 </span>
                 <!-- <span class="header-button" title="Clear date filters" (click)="clearDates(logisticsTable, $event)"><i class="fa fa-times"></i></span> -->
-                <span class="header-button" title="Clear date filters" (click)="clearTableDates(3, logisticsTable, $event)"><i class="fa fa-times"></i></span>
+                <span class="header-button" title="Clear date filters" (click)="clearTableDates(TABLEINDEX.logistics, logisticsTable, $event)"><i class="fa fa-times"></i></span>
               </div>
               <div class="global-filter-wrapper">
                 <i class="global-filter-icon fa fa-search" style="margin:4px 4px 0 0"></i>
@@ -358,30 +358,133 @@
     </div>
   </p-panel>
 
+  <p-panel #maintenancesPanel id="panel-maintenances" [styleClass]="'reports-panel maintenances'" [toggleable]="true">
+    <p-header>
+      <span class="panel-header">
+        <span class="button-left">
+          <span class="panel-header-button db-download" title="Load maintenance reports from database" (click)="possibleUpdateReports(TABLEINDEX.maintenances, $event)"></span>
+        </span>
+        <span class="button-left">
+          <span class="panel-header-button" title="Calculate total maintenance hours shown" (click)="calculateMaintenanceHoursShown($event)"><i class="fal fa-calculator-alt"></i></span>
+        </span>
+        <!-- <span class="button-left">
+          <span class="panel-header-button" title="Calculate total maintenance miles shown" (click)="calculateMaintenanceMilesShown($event)"><i class="fal fa-ruler"></i></span>
+        </span> -->
+        <span class="button-left" *ngIf="data.status.role === 'dev'">
+          <span class="panel-header-button button-dev" title="Change all selected maintenance reports (still in development)" (click)="bulkEdit(TABLEINDEX.maintenances, $event)"><i class="fal fa-pencil-ruler"></i></span>
+        </span>
+        <span class="panel-title">
+          Maintenance Reports<span class="report-count"> ({{maintenances?.length}} loaded<span class="report-count-filtered" *ngIf="filteredCountMaintenance">, {{filteredCountMaintenance}} matches</span>)</span>
+        </span>
+        <span class="button-right">
+          <span class="panel-header-button right" title="Reset this table (clear filters, selected rows, etc.)" (click)="resetTable(TABLEINDEX.maintenances, $event)"><i class="fal fa-history"></i></span>
+        </span>
+      </span>
+    </p-header>
+    <div #printAreaMaintenances class="table-wrapper" id="print-area-maintenances">
+
+      <!-- Begin Maintenance Reports table -->
+      <!-- <p-table #maintenancesTable [styleClass]="'maintenances-table'" [columns]="selectedColumnsMaintenance" [value]="maintenances" [resizableColumns]="true" [reorderableColumns]="colsReorder" [autoLayout]="autoLayout" [rows]="rowCount" [paginator]="showTableFoot" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" selectionMode="single" (onRowSelect)="onRowSelectMaintenance($event)" sortMode="multiple" [multiSortMeta]="maintenancesMultiSortMeta"> -->
+      <p-table #maintenancesTable [styleClass]="'maintenances-table'" [columns]="selectedColumnsMaintenance" [value]="maintenances" [resizableColumns]="true" [reorderableColumns]="colsReorder" [autoLayout]="autoLayout" [rows]="rowCount" [paginator]="showTableFoot" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" selectionMode="multiple" [(selection)]="selectedReportsMaintenance"  sortMode="multiple" [multiSortMeta]="maintenancesMultiSortMeta" [(contextMenuSelection)]="selectedReportsMaintenance" [contextMenu]="reportsCM4">
+
+        <!-- Caption area (column multiselect, date range filter, global search input) -->
+        <ng-template pTemplate="caption">
+          <div class="table-maintenances-caption">
+            <div class="column-choose-maintenances-wrapper">
+              <p-multiSelect #columnSelectMaintenance [styleClass]="'column-maintenances-multiselect'" optionLabel="header" defaultLabel="Choose columns" [options]="colsMaintenance" [(ngModel)]="selectedColumnsMaintenance" [selectedItemsLabel]="selectedLabelMaintenance" (onChange)="selectionChangedMaintenance($event)"></p-multiSelect>
+            </div>
+            <div class="caption-right">
+              <div class="date-wrapper">
+                <span class="date-range-calendar-wrapper">
+                  <p-calendar #dateRangeCalendarMaintenance [styleClass]="'date-range-calendar'" [(ngModel)]="dateRanges[TABLEINDEX.maintenances - 1]" (onSelect)="checkDateRange(TABLEINDEX.maintenances, dateRangeCalendarMaintenance, $event)" (onClose)="checkDateRangeOnClose(TABLEINDEX.maintenances, dateRangeCalendarMaintenance, $event)" selectionMode="range" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true" placeholder="Date Range" title="Filter reports by this date range"></p-calendar>
+                </span>
+                <!-- <span class="header-button" title="Clear date filters" (click)="clearDates(maintenancesTable, $event)"><i class="fa fa-times"></i></span> -->
+                <span class="header-button" title="Clear date filters" (click)="clearTableDates(TABLEINDEX.maintenances, maintenancesTable, $event)"><i class="fa fa-times"></i></span>
+              </div>
+              <div class="global-filter-wrapper">
+                <i class="global-filter-icon fa fa-search" style="margin:4px 4px 0 0"></i>
+                <input #globalFilterInputMaintenance class="global-filter-input" type="text" pInputText size="50" placeholder="Global Search" (input)="maintenancesTable.filterGlobal($event.target.value, 'contains')" style="width:auto">
+              </div>
+            </div>
+          </div>
+        </ng-template>
+
+        <!-- Header area (col name, col sort icons, filter fields) -->
+        <ng-template pTemplate="header" let-columns>
+          <tr [class.reports-table-header]="true">
+            <th [class.header-col-button]="true" [ngStyle]="styleColEdit" *ngIf="showButtonCol"></th>
+            <ng-container *ngFor="let col of columns; let i=index">
+              <th [class.header-col]="true" [ngClass]="col?.class" [pSortableColumn]="col?.field" [ngStyle]="col?.style" [title]="col?.tooltip" pResizableColumn>
+                {{col?.header}}
+                <p-sortIcon [field]="col?.field"></p-sortIcon>
+              </th>
+            </ng-container>
+          </tr>
+          <tr class="reports-table-filter-row" *ngIf="showFilterRow">
+            <th [class.header-col-button]="true" *ngIf="showButtonCol"></th>
+            <ng-container *ngFor="let col of columns; let i=index">
+              <th [class.filter-col]="true" [ngClass]="col?.class" [title]="col?.tooltip">
+                <!-- <input [class.reports-col-filter]="true" pInputText type="text" [placeholder]="col?.filterPlaceholder" (input)="maintenancesTable.filter($event.target.value, col.field, 'contains')" *ngIf="col.filter"> -->
+                <input [class.reports-col-filter]="true" pInputText type="text" [placeholder]="col?.filterPlaceholder" (input)="maintenancesTable.filter($event.target.value, col.field, 'contains')" *ngIf="col.filter">
+                <input [class.reports-col-filter-disabled]="true" pInputText type="text" [placeholder]="'--'" [disabled]="true" *ngIf="!col.filter">
+              </th>
+            </ng-container>
+          </tr>
+        </ng-template>
+
+        <!-- Maintenance Reports table body rows and columns (actual data) -->
+        <ng-template pTemplate="body" let-rowData let-columns="columns" let-rowIndex="rowIndex">
+          <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex">
+            <td [class.button-col]="true" title="View Maintenance Report" (click)="showReportMaintenance(rowData, $event)" *ngIf="showButtonCol">
+              <span class="icon-button-wrapper">
+                <i class="fal fa-edit work-reports-button-icon"></i>
+              </span>
+            </td>
+            <td *ngFor="let col of columns; let i=index" [class.body-col]="true" [ngClass]="col?.class" [ngStyle]="col?.style">
+              <span class="cell-body-data notes-wrapper" [title]="rowData[col?.field]" *ngIf="col.field === 'notes'">
+                {{rowData[col?.field]}}
+              </span>
+              <span class="cell-body-data" *ngIf="col.field !== 'notes' && !col?.type && !col?.format">
+                {{rowData[col?.field]}}
+              </span>
+              <span class="cell-body-data" *ngIf="col.field !== 'notes' && !col?.type && col?.format">
+                <!-- {{moment(rowData[col?.field]).format(col?.format)}} -->
+                {{getMomentString(rowData[col?.field], col.format)}}
+              </span>
+            </td>
+          </tr>
+        </ng-template>
+
+      </p-table>
+      <!-- Table ended -->
+
+    </div>
+  </p-panel>
+
   <p-panel #timecardsPanel id="panel-timecards" [styleClass]="'reports-panel timecards'" [toggleable]="true">
     <p-header>
       <span class="panel-header">
         <span class="button-left">
-          <span class="panel-header-button db-download" title="Load time cards from database" (click)="possibleUpdateReports(3, $event)"></span>
+          <span class="panel-header-button db-download" title="Load time cards from database" (click)="possibleUpdateReports(TABLEINDEX.timecards, $event)"></span>
         </span>
         <span class="button-left">
           <span class="panel-header-button" title="Calculate total timecard hours shown" (click)="calculateTimeCardHoursShown($event)"><i class="fal fa-calculator-alt"></i></span>
         </span>
         <span class="button-left" *ngIf="data.status.role === 'dev'">
-          <span class="panel-header-button button-dev" title="Change all selected time card reports (still in development)" (click)="bulkEdit(4, $event)"><i class="fal fa-pencil-ruler"></i></span>
+          <span class="panel-header-button button-dev" title="Change all selected time card reports (still in development)" (click)="bulkEdit(TABLEINDEX.timecards, $event)"><i class="fal fa-pencil-ruler"></i></span>
         </span>
         <span class="panel-title">
           Time Cards<span class="report-count"> ({{timecards?.length}} loaded<span class="report-count-filtered" *ngIf="filteredCountTimeCards">, {{filteredCountTimeCards}} matches</span>)</span>
         </span>
         <span class="button-right">
-          <span class="panel-header-button right" title="Reset this table (clear filters, selected rows, etc.)" (click)="resetTable(4, $event)"><i class="fal fa-history"></i></span>
+          <span class="panel-header-button right" title="Reset this table (clear filters, selected rows, etc.)" (click)="resetTable(TABLEINDEX.timecards, $event)"><i class="fal fa-history"></i></span>
         </span>
       </span>
     </p-header>
     <div #printAreaTimeCards class="table-wrapper" id="print-area-timecards">
 
       <!-- Begin TimeCard Reports table -->
-      <p-table #timecardsTable [styleClass]="'timecards-table'" [columns]="selectedColumnsTimeCards" [value]="timecards" [resizableColumns]="true" [reorderableColumns]="colsReorder" [autoLayout]="autoLayout" [rows]="rowCount" [paginator]="showTableFoot" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" selectionMode="multiple" [(selection)]="selectedTimeCards"  sortMode="multiple" [multiSortMeta]="timeCardsMultiSortMeta" [(contextMenuSelection)]="selectedTimeCards" [contextMenu]="reportsCM4">
+      <p-table #timecardsTable [styleClass]="'timecards-table'" [columns]="selectedColumnsTimeCards" [value]="timecards" [resizableColumns]="true" [reorderableColumns]="colsReorder" [autoLayout]="autoLayout" [rows]="rowCount" [paginator]="showTableFoot" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" selectionMode="multiple" [(selection)]="selectedTimeCards" sortMode="multiple" [multiSortMeta]="timeCardsMultiSortMeta" [(contextMenuSelection)]="selectedTimeCards" [contextMenu]="reportsCM6">
 
         <!-- Caption area (column multiselect, date range filter, global search input) -->
         <ng-template pTemplate="caption">
@@ -392,10 +495,10 @@
             <div class="caption-right">
               <div class="date-wrapper">
                 <span class="date-range-calendar-wrapper">
-                  <p-calendar #dateRangeCalendarTimeCards [styleClass]="'date-range-calendar'" [(ngModel)]="dateRanges[3]" (onSelect)="checkDateRange(4, dateRangeCalendarTimeCards, $event)" (onClose)="checkDateRangeOnClose(4, dateRangeCalendarTimeCards, $event)" selectionMode="range" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true" placeholder="Date Range" title="Filter reports by this date range"></p-calendar>
+                  <p-calendar #dateRangeCalendarTimeCards [styleClass]="'date-range-calendar'" [(ngModel)]="dateRanges[TABLEINDEX.timecards - 1]" (onSelect)="checkDateRange(TABLEINDEX.timecards, dateRangeCalendarTimeCards, $event)" (onClose)="checkDateRangeOnClose(TABLEINDEX.timecards, dateRangeCalendarTimeCards, $event)" selectionMode="range" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true" placeholder="Date Range" title="Filter reports by this date range"></p-calendar>
                 </span>
                 <!-- <span class="header-button" title="Clear date filters" (click)="clearDates(timecardsTable, $event)"><i class="fa fa-times"></i></span> -->
-                <span class="header-button" title="Clear date filters" (click)="clearTableDates(4, timecardsTable, $event)"><i class="fa fa-times"></i></span>
+                <span class="header-button" title="Clear date filters" (click)="clearTableDates(TABLEINDEX.timecards, timecardsTable, $event)"><i class="fa fa-times"></i></span>
               </div>
               <div class="global-filter-wrapper">
                 <i class="global-filter-icon fa fa-search" style="margin:4px 4px 0 0"></i>
@@ -451,12 +554,16 @@
   </p-panel>
 </ion-content>
 
-<report-view-beta #reportView *ngIf="reportViewVisible" [class.report-view-component]="true" [report]="report" [reports]="editReports" [tech]="tech" [site]="site" [sites]="sites" (save)="reportViewSave($event)" (cancel)="reportViewCancel($event)"></report-view-beta>
-<report-other-view #otherView *ngIf="reportOtherViewVisible" [class.report-view-component]="true" [other]="other" [others]="editOthers" [tech]="tech" [site]="site" [sites]="sites" (save)="otherViewSave($event)" (cancel)="otherViewCancel($event)"></report-other-view>
-<report-logistics-view #logisticsView *ngIf="reportLogisticsViewVisible" [class.report-view-component]="true" [report]="logistic" [reports]="editLogistics" [tech]="tech" [site]="site" [sites]="sites" (save)="logisticsViewSave($event)" (cancel)="logisticsViewCancel($event)"></report-logistics-view>
-<report-timecard-view #timecardView *ngIf="reportTimeCardViewVisible" [class.report-view-component]="true" [report]="timecard" [reports]="editTimeCards" [tech]="tech" [site]="site" [sites]="sites" (save)="timeCardViewSave($event)" (cancel)="timeCardViewCancel($event)"></report-timecard-view>
+<report-view #reportView *ngIf="reportViewVisible" [class.report-view-component]="true" [report]="report" [reports]="editReports" [tech]="tech" [site]="site" [sites]="sites" (save)="reportViewSave($event)" (cancel)="reportViewCancel($event)" (deleted)="reportViewDeleted($event)"></report-view>
+<report-other-view #otherView *ngIf="reportOtherViewVisible" [class.report-view-component]="true" [other]="other" [others]="editOthers" [tech]="tech" [site]="site" [sites]="sites" (save)="otherViewSave($event)" (cancel)="otherViewCancel($event)" (deleted)="otherViewDeleted($event)"></report-other-view>
+<report-logistics-view #logisticsView *ngIf="reportLogisticsViewVisible" [class.report-view-component]="true" [report]="logistic" [reports]="editLogistics" [tech]="tech" [site]="site" [sites]="sites" (save)="logisticsViewSave($event)" (cancel)="logisticsViewCancel($event)" (deleted)="logisticsViewDeleted($event)"></report-logistics-view>
+<report-maintenance-view #maintenanceView *ngIf="reportMaintenanceViewVisible" [class.report-maintenance-component]="true" [report]="maintenance" [reports]="editMaintenance" [tech]="tech" [site]="site" [sites]="sites" (save)="maintenanceViewSave($event)" (cancel)="maintenanceViewCancel($event)" (deleted)="maintenanceViewDeleted($event)"></report-maintenance-view>
+<report-driving-view #drivingView *ngIf="reportDrivingViewVisible" [class.report-driving-component]="true" [report]="driving" [reports]="editDriving" [tech]="tech" [site]="site" [sites]="sites" (save)="drivingViewSave($event)" (cancel)="drivingViewCancel($event)" (deleted)="drivingViewDeleted($event)"></report-driving-view>
+<report-timecard-view #timecardView *ngIf="reportTimeCardViewVisible" [class.report-view-component]="true" [report]="timecard" [reports]="editTimeCards" [tech]="tech" [site]="site" [sites]="sites" (save)="timeCardViewSave($event)" (cancel)="timeCardViewCancel($event)" (deleted)="timeCardViewDeleted($event)"></report-timecard-view>
 
 <p-contextMenu #reportsCM1 [model]="reportsMenu1"></p-contextMenu>
 <p-contextMenu #reportsCM2 [model]="reportsMenu2"></p-contextMenu>
 <p-contextMenu #reportsCM3 [model]="reportsMenu3"></p-contextMenu>
 <p-contextMenu #reportsCM4 [model]="reportsMenu4"></p-contextMenu>
+<p-contextMenu #reportsCM5 [model]="reportsMenu5"></p-contextMenu>
+<p-contextMenu #reportsCM6 [model]="reportsMenu6"></p-contextMenu>

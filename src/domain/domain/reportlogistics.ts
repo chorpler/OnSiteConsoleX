@@ -1,8 +1,14 @@
 /**
  * Name: ReportLogistics domain class
- * Vers: 1.8.1
- * Date: 2018-12-13
+ * Vers: 2.1.1
+ * Date: 2019-08-22
  * Auth: David Sargeant
+ * Logs: 2.1.1 2019-08-22: Added getTotalTimeStringHoursMinutes() method
+ * Logs: 2.1.0 2019-08-20: Added getLastTimeBlocked() method
+ * Logs: 2.0.2 2019-08-08: Added getType() method
+ * Logs: 2.0.1 2019-08-07: Added optional formatting to getReportDateString() method
+ * Logs: 2.0.0 2019-07-24: Changed genReportID() method to use English locale for current Moment string
+ * Logs: 1.8.2 2019-07-18: Minor corrections to fix TSLint errors
  * Logs: 1.8.1 2018-12-13: Refactored imports to remove circular dependencies; added standard OnSite methods
  * Logs: 1.7.2 2018-11-29: Added isTest property; added
  * Logs: 1.7.1 2018-11-14: Added getLocations(), getTimes(), getMiles() methods; updated readFromDoc() method to generate new OnSiteGeolocation objects for from, to, final Locations
@@ -68,16 +74,16 @@ export type LogisticsLocationType = "from"|"to"|"final";
 export type LogisticsAllType = LogisticsType | LogisticsLocationType;
 
 
-export type OnSitePhoto = {
-  type: LogisticsMileageType,
-  uri: string,
-  blob: Blob,
-};
+export interface OnSitePhoto {
+  type : LogisticsMileageType ;
+  uri  : string               ;
+  blob : Blob                 ;
+}
 
-export type ReportTime = {
-  start : string,
-  end  ?: string,
-};
+export interface ReportTime {
+  start : string ;
+  end  ?: string ;
+}
 
 export type ReportTimes = ReportTime[];
 
@@ -212,7 +218,7 @@ export class ReportLogistics {
         }
       }
     }
-    if(doc._rev == "") {
+    if(doc._rev === "") {
       delete doc._rev;
     }
     Log.l(`ReportLogistics.serialize(): Serialized report is:\n`, doc);
@@ -242,29 +248,24 @@ export class ReportLogistics {
     return this._id ? this._id : "";
   }
 
-  // public genReportID(tech:Employee):string {
-  //   let now = moment();
-  //   let idDateTime = now.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
-  //   let docID = tech.getUsername() + '_' + idDateTime;
-  //   Log.l("genReportID(): Generated ID:\n", docID);
-  //   return docID;
-  // }
-
-  public genReportID(tech?:Employee):string {
+  public genReportID(tech:Employee, lang?:string):string {
     let username:string = tech && tech instanceof Employee ? tech.getUsername() : this.username && typeof this.username === 'string' ? this.username : "";
     if(username) {
       let now:Moment = moment();
+      let i8nCode = typeof lang === 'string' ? lang : "en";
+      let localNow = moment(now).locale(i8nCode);
       // let idDateTime = now.format("dddDDMMMYYYYHHmmss");
-      let idDateTime:string = now.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
       // let idDateTime:string = now.format("YYYY-MM-DD");
+      // let idDateTime:string = now.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
+      let idDateTime = localNow.format("YYYY-MM-DD_HH-mm-ss_ZZ_ddd");
       let docID:string = `${username}_${idDateTime}`;
-      Log.l("ReportTimeCard.genReportID(): Generated ID:\n", docID);
+      Log.l("REPORTLOGISTICS.genReportID(): Generated ID:", docID);
       if(!this._id) {
         this._id = docID;
       }
       return docID;
     } else {
-      let errText:string = `ReportTimeCard.genReportID(): No username found and no Employee object provided as parameter 1, cannot generate ID!`;
+      let errText:string = `REPORTLOGISTICS.genReportID(): No username found and no Employee object provided as parameter 1, cannot generate ID!`;
       Log.e(errText);
       throw new Error(errText);
     }
@@ -303,7 +304,7 @@ export class ReportLogistics {
       let now:Moment = moment();
       report.setTimeStamp(now);
       // report.setTimeStamp(now);
-      this.genReportID();
+      this.genReportID(tech);
     } else {
       Log.w(`ReportLogistics.initializeReportLogistics(): Must be provided valid Employee and Jobsite objects. These were:`);
       Log.l(tech);
@@ -440,12 +441,21 @@ export class ReportLogistics {
     return this.report_date;
   }
 
-  public getReportDateString():string {
-    return this.getReportDate();
+  /**
+   * Returns report date as a YYYY-MM-DD string (or with optional formatting)
+   *
+   * @param {string} [format] Optional Moment.js formatting string to use
+   * @returns {string} Report date as string
+   * @memberof ReportLogistics
+   */
+  public getReportDateString(format?:string):string {
+    let fmt = format && typeof format === 'string' ? format : "YYYY-MM-DD";
+    let date = this.getReportDateMoment();
+    return date.format(fmt);
   }
 
   public getReportDateMoment():Moment {
-    let date:string = this.getReportDateString();
+    let date:string = this.getReportDate();
     let mo:Moment = moment(date, "YYYY-MM-DD", true);
     if(isMoment(mo)) {
       // this.report_dateM = moment(mo);
@@ -458,7 +468,7 @@ export class ReportLogistics {
 
 
   /**
-   *getStartTime() returns a string representing a particular date and time, corresponding to the Logistics report's startTime property
+   * Returns a string representing a particular date and time, corresponding to the Logistics report's startTime property
    *
    * @returns {string} A string representing a date and time, corresponding to the Logistics report's startTime property
    * @memberof ReportLogistics
@@ -468,7 +478,7 @@ export class ReportLogistics {
   }
 
   /**
-   *getStartTimeMoment() returns a Moment object corresponding to the Logistics report's startTime property
+   * Returns a Moment object corresponding to the Logistics report's startTime property
    *
    * @returns {Moment} A Moment object corresponding to the report's startTime property
    * @memberof ReportLogistics
@@ -488,7 +498,7 @@ export class ReportLogistics {
   }
 
   /**
-   *getEndTime() returns a string representing a particular date and time, corresponding to the Logistics report's endTime property
+   * Returns a string representing a particular date and time, corresponding to the Logistics report's endTime property
    *
    * @returns {string} A string representing a date and time, corresponding to the Logistics report's endTime property
    * @memberof ReportLogistics
@@ -498,7 +508,7 @@ export class ReportLogistics {
   }
 
   /**
-   *getEndTimeMoment() returns a Moment object corresponding to the Logistics report's endTime property
+   * Returns a Moment object corresponding to the Logistics report's endTime property
    *
    * @returns {Moment} A Moment object corresponding to the report's endTime property
    * @memberof ReportLogistics
@@ -518,7 +528,7 @@ export class ReportLogistics {
   }
 
   /**
-   *getFinalTime() returns a string representing a particular date and time, corresponding to the Logistics report's finalTime property
+   * Returns a string representing a particular date and time, corresponding to the Logistics report's finalTime property
    *
    * @returns {string} A string representing a date and time, corresponding to the Logistics report's finalTime property
    * @memberof ReportLogistics
@@ -528,7 +538,7 @@ export class ReportLogistics {
   }
 
   /**
-   *getFinalTimeMoment() returns a Moment object corresponding to the Logistics report's finalTime property
+   * Returns a Moment object corresponding to the Logistics report's finalTime property
    *
    * @returns {Moment} A Moment object corresponding to the report's finalTime property
    * @memberof ReportLogistics
@@ -548,7 +558,7 @@ export class ReportLogistics {
   }
 
   /**
-   *setTime() sets the Logistics report startTime or endTime properties to the provided Moment-appropriate input (string, Date, or Moment)
+   * Sets the Logistics report startTime or endTime properties to the provided Moment-appropriate input (string, Date, or Moment)
    *
    * @param {MileageType} type Must be 'start' or 'end' or 'final'
    * @param {(string|Date|Moment)} value A properly Moment-able string, or a Date or Moment object
@@ -579,7 +589,7 @@ export class ReportLogistics {
 
 
   /**
-   *setStartTime() sets the Logistics report startTime property
+   * Sets the Logistics report startTime property
    *
    * @param {(string|Date|Moment)} value A properly Moment-able string, or a Date/Moment object
    * @returns {string} The ISO8601-formatted value corresponding to the provided input value
@@ -590,7 +600,7 @@ export class ReportLogistics {
   }
 
   /**
-   * setEndTime() sets the Logistics report endTime property
+   * Sets the Logistics report endTime property
    *
    * @param {(string|Date|Moment)} value A properly Moment-able string, or a Date/Moment object
    * @returns {string} The ISO8601-formatted value corresponding to the provided input value
@@ -601,7 +611,7 @@ export class ReportLogistics {
   }
 
   /**
-   * setFinalTime() sets the Logistics report finalTime property
+   * Sets the Logistics report finalTime property
    *
    * @param {(string|Date|Moment)} value A properly Moment-able string, or a Date/Moment object
    * @returns {string} The ISO8601-formatted value corresponding to the provided input value
@@ -612,7 +622,7 @@ export class ReportLogistics {
   }
 
   /**
-   * startTimer() starts the timer running
+   * Starts the timer running
    *
    * @returns {ReportTimes} The current ReportTimes array (an array of objects with start and optional end properties, both of which are ISO8601-formatted strings representing times)
    * @memberof ReportLogistics
@@ -643,7 +653,7 @@ export class ReportLogistics {
   }
 
   /**
-   * stopTimer() starts the timer running
+   * Starts the timer running
    *
    * @returns {ReportTimes} The current ReportTimes array (an array of objects with start and optional end properties, both of which are ISO8601-formatted strings representing times)
    * @memberof ReportLogistics
@@ -777,7 +787,7 @@ export class ReportLogistics {
           let hrs:number = endTime.diff(startTime, units, true);
           hours += hrs;
         } else {
-          Log.w(`ReportLogistics.getTotalTime(): Invalid endTime found:\n`, time.end);
+          Log.w(`ReportLogistics.getTotalTime(): Invalid endTime found:`, time.end);
           return null;
         }
       } else {
@@ -790,12 +800,19 @@ export class ReportLogistics {
 
   public getTotalTimeString(seconds?:number):string {
     let total:number = seconds != undefined ? seconds : this.getTotalTime('seconds');
-
-
     let hrs:number = Math.trunc(total / 3600);
     let min:number = Math.trunc((total/60) - (hrs*60));
     let sec:number = Math.round(total - (hrs * 3600) - (min * 60));
     let out:string = sprintf("%02d:%02d:%02d", hrs, min, sec);
+    return out;
+  }
+
+  public getTotalTimeStringHoursMinutes(seconds?:number):string {
+    let total:number = seconds != undefined ? seconds : this.getTotalTime('seconds');
+    let hrs:number = Math.trunc(total / 3600);
+    let min:number = Math.trunc((total/60) - (hrs*60));
+    // let sec:number = Math.round(total - (hrs * 3600) - (min * 60));
+    let out:string = sprintf("%02d:%02d", hrs, min);
     return out;
   }
 
@@ -839,7 +856,7 @@ export class ReportLogistics {
       } else if(type === 'final') {
         this.finalLocation = location;
       } else {
-        Log.w(`ReportLogistics.setLocation(): Location is not a valid type:\n`, type);
+        Log.w(`ReportLogistics.setLocation(): Location is not a valid type:`, type);
       }
     }
     return null;
@@ -860,7 +877,7 @@ export class ReportLogistics {
         let newVal:OnSiteGeolocation = new OnSiteGeolocation(value);
         out.push(newVal);
       } else {
-        Log.w(`ReportLogistics.getLocations(): Location '${key}' is not an OnSiteGeolocation or anything similar:\n`, value);
+        Log.w(`ReportLogistics.getLocations(): Location '${key}' is not an OnSiteGeolocation or anything similar:`, value);
       }
     }
     return out;
@@ -879,7 +896,7 @@ export class ReportLogistics {
       if(typeof value === 'string') {
         out.push(value);
       } else {
-        Log.w(`ReportLogistics.getTimes(): Time '${key}' is not a datetime string:\n`, value);
+        Log.w(`ReportLogistics.getTimes(): Time '${key}' is not a datetime string:`, value);
       }
     }
     return out;
@@ -901,6 +918,31 @@ export class ReportLogistics {
       }
     }
     return out;
+  }
+
+  /**
+   * Returns last time this report occupies, if any
+   *
+   * @returns {string} ISO8601 string representing the latest time this report has a record of
+   * @memberof ReportLogistics
+   */
+  public getLastTimeBlocked():string {
+    let lastTime:Moment;
+    if(this.finalTime) {
+      lastTime = moment(this.finalTime);
+    } else if(this.endTime) {
+      lastTime = moment(this.endTime);
+    }
+    if(isMoment(lastTime)) {
+      return lastTime.format();
+    } else {
+      Log.w(`ReportLogistics.getLastTimeBlocked(): Could not find last time, apparently this report does not have any time recorded`);
+      return null;
+    }
+  }
+
+  public getType():string {
+    return this.type;
   }
 
   public getKeys():string[] {
@@ -927,6 +969,6 @@ export class ReportLogistics {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 
 }

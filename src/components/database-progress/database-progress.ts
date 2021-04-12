@@ -36,11 +36,12 @@ export class DatabaseProgressComponent implements OnInit,OnDestroy {
   public getKeys:any;
   public sprintf:any = sprintf;
 
-  public isVisible   : boolean = true              ;
-  public isDraggable : boolean = true              ;
-  public isResizable : boolean = true              ;
-  public isClosable  : boolean = false             ;
-  public isModal     : boolean = false             ;
+  public isVisible      : boolean = true              ;
+  public isDraggable    : boolean = true              ;
+  public isResizable    : boolean = true              ;
+  public isClosable     : boolean = false             ;
+  public isModal        : boolean = false             ;
+  public progressPaused : boolean = false             ;
 
   constructor(
     public zone     : NgZone          ,

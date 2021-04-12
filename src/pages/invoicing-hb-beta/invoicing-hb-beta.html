@@ -291,7 +291,8 @@
   </div>
 </ion-content> -->
 
-<report-view-beta #reportViewComponent *ngIf="reportViewVisible" [report]="report" [reports]="reports" [tech]="tech" [site]="site" [sites]="sites" (finished)="updateReport($event)" (reportChange)="changeReport($event)"></report-view-beta>
+<report-view #reportView *ngIf="reportViewVisible" [class.report-view-component]="true" [report]="report" [reports]="editReports" [tech]="tech" [site]="site" [sites]="sites" (save)="reportViewSave($event)" (cancel)="reportViewCancel($event)"></report-view>
+<!-- <report-view-beta #reportViewComponent *ngIf="reportViewVisible" [report]="report" [reports]="reports" [tech]="tech" [site]="site" [sites]="sites" (finished)="updateReport($event)" (reportChange)="changeReport($event)"></report-view-beta> -->
 <!-- <div #reportViewTarget id="report-view-target" class="report-view-target"></div> -->
 <!-- <p-dialog #reportViewDialog styleClass="report-view-dialog" [header]="reportViewTitle" [(visible)]="reportViewVisible" [modal]="false" [responsive]="true" [draggable]="true" [resizable]="true" [positionLeft]="dialogLeft" [positionTop]="dialogTop" *ngIf="dataReady && data.ready() && reportViewVisible"> -->
   <!-- <report-view-beta #reportViewComponent [report]="report" [reports]="reports" [tech]="tech" [site]="site" [sites]="sites" (finished)="updateReport($event)" (reportChange)="changeReport($event)"></report-view-beta> -->

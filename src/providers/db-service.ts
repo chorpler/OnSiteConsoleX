@@ -1,20 +1,23 @@
 import { sprintf                                          } from 'sprintf-js'           ;
 import { Injectable, NgZone                               } from '@angular/core'        ;
 import { Loading                                          } from 'ionic-angular'        ;
-import { Log, moment, Moment, isMoment                    } from 'domain/onsitexdomain' ;
+import { Log, moment, Moment, isMoment,                   } from 'domain/onsitexdomain' ;
 import { PouchDBService,                                  } from './pouchdb-service'    ;
 import { Database, PDBInfo,                               } from './pouchdb-service'    ;
 import { UpsertResponse, UpsertDiffCallback,              } from './pouchdb-service'    ;
 import { AuthService                                      } from './auth-service'       ;
 import { AlertService                                     } from './alert-service'      ;
 import { NotifyService                                    } from './notify-service'     ;
-import { Jobsite, Employee,Shift, PayrollPeriod, Schedule } from 'domain/onsitexdomain' ;
+import { Jobsite, Employee, PayrollPeriod, Schedule       } from 'domain/onsitexdomain' ;
+import { Shift                                            } from 'domain/onsitexdomain' ;
 import { Report,                                          } from 'domain/onsitexdomain' ;
 import { ReportOther,                                     } from 'domain/onsitexdomain' ;
 import { ReportLogistics,                                 } from 'domain/onsitexdomain' ;
+import { ReportMaintenance,                               } from 'domain/onsitexdomain' ;
+import { ReportDriving,                                   } from 'domain/onsitexdomain' ;
 import { ReportTimeCard,                                  } from 'domain/onsitexdomain' ;
 import { DPS, Invoice, PreAuth, blobUtil,                 } from 'domain/onsitexdomain' ;
-import { Preferences                                      } from './preferences'        ;
+import { Preferences, DatabaseKey                         } from './preferences'        ;
 import { SESAClient, SESALocation, SESALocID, SESACLL,    } from 'domain/onsitexdomain' ;
 
 type CLLNames = "client" | "location" | "locID";
@@ -30,6 +33,41 @@ const delay = (ms:number):Promise<boolean> => {
     }
   });
 };
+
+export type TranslationLanguage = 'en'|'es';
+export type TranslationTableRecordKey = TranslationLanguage|'key'|'maint_type'|'_meta';
+export interface TranslationRecord {
+  [propName:string]:string[];
+}
+export type TranslationLanguageRecord = {
+  [propName in TranslationLanguage]?:string
+};
+export type TranslationTableRecord = {
+  [propName in TranslationTableRecordKey]?: string|any;
+};
+export type TranslationTable = TranslationTableRecord[];
+export interface TranslationDocument {
+  _id?:string;
+  _rev?:string;
+  keys?:string[];
+  translations?:TranslationRecord;
+}
+
+export interface OnSiteDataRecords {
+  sites         : Jobsite[]           ;
+  employees     : Employee[]          ;
+  reports       : Report[]            ;
+  others        : ReportOther[]       ;
+  logistics     : ReportLogistics[]   ;
+  maintenances  : ReportMaintenance[] ;
+  drivings      : ReportDriving[]     ;
+  timecards     : ReportTimeCard[]    ;
+  periods       : PayrollPeriod[]     ;
+  shifts        : any[]               ;
+  old_reports   : Report[]            ;
+  schedules     : any[]               ;
+  dps          ?: DPS                 ;
+}
 
 @Injectable()
 export class DBService {
@@ -251,17 +289,33 @@ export class DBService {
 
   public async getAllConfigData():Promise<any> {
     try {
-      Log.l("getAllConfigData(): Retrieving clients, locations, locIDs, loc2nd's, shiftRotations, and shiftTimes...");
+      Log.l("DB.getAllConfigData(): Retrieving clients, locations, locIDs, loc2nd's, shiftRotations, and shiftTimes …");
+      let configKeys = [
+        'client',
+        'location',
+        'locid',
+        'rotation',
+        'shift',
+        'shiftlength',
+        'shiftstarttime',
+        'other_reports',
+        'maintenance_enouns',
+        'maintenance_mnouns',
+        'maintenance_verbs',
+      ];
       let dbname = this.prefs.getDB('config');
       let db1 = this.addDB(dbname);
       // return new Promise((resolve, reject) => {
         // rdb1.allDocs({ keys: ['client', 'location', 'locid', 'loc2nd', 'rotation', 'shift', 'shiftlength', 'shiftstarttime', 'other_reports'], include_docs: true }).then((records) => {
-      let records:any = await db1.allDocs({ keys: ['client', 'location', 'locid', 'rotation', 'shift', 'shiftlength', 'shiftstarttime', 'other_reports'], include_docs: true });
-      Log.l("getAllConfigData(): Retrieved documents:\n", records);
-      let results = { clients: [], locations: [], locids: [], loc2nds: [], rotations: [], shifts: [], shiftlengths: [], shiftstarttimes: [], report_types: [], training_types: [] };
+      let records:any = await db1.allDocs({ keys: configKeys, include_docs: true });
+      Log.l("DB.getAllConfigData(): Retrieved documents:", records);
+      let results = { clients: [], locations: [], locids: [], loc2nds: [], rotations: [], shifts: [], shiftlengths: [], shiftstarttimes: [], report_types: [], training_types: [], maintenance_enouns: [], maintenance_mnouns: [], maintenance_verbs: [], };
       for(let record of records.rows) {
         let type = record.id;
         let types = record.id + "s";
+        if(type.includes('maintenance')) {
+          types = type;
+        }
         if(type === 'other_reports') {
           let doc                = record.doc         ;
           let report_types       = doc.report_types   ;
@@ -269,9 +323,9 @@ export class DBService {
           results.report_types   = report_types       ;
           results.training_types = training_types     ;
         } else {
-          Log.l(`getAllConfigData(): Now retrieving type '${type}'...`);
+          Log.l(`DB.getAllConfigData(): Now retrieving type '${type}'...`);
           let doc = record.doc;
-          if (doc) {
+          if(doc) {
             if(doc[types]) {
               for(let result of doc[types]) {
                 results[types].push(result);
@@ -302,7 +356,7 @@ export class DBService {
       results.clients = clients;
       results.locations = locations;
       results.locids = locIDs;
-      Log.l("getAllConfigData(): Final config data retrieved is:\n", results);
+      Log.l("DB.getAllConfigData(): Final config data retrieved is:", results);
       return results;
     } catch(err) {
       Log.l(`DB.getAllConfigData(): Error getting config data!`);
@@ -310,45 +364,6 @@ export class DBService {
       throw err;
     }
   }
-
-  // public getAllConfig() {
-  //   Log.l("getAllConfig(): Retrieving clients, locations, locIDs, loc2nd's, shiftRotations, shiftTimes, shiftLengths, shiftTypes, and shiftStartTimes...");
-  //   let db1 = this.addDB('sesa-config');
-  //   return new Promise((resolve, reject) => {
-  //     db1.allDocs({ keys: ['client', 'location', 'locid', 'loc2nd', 'rotation', 'shift', 'shiftlength', 'shifttype', 'shiftstarttime'], include_docs: true }).then((docs) => {
-  //       let results = { client: [], location: [], locid: [], loc2nd: [], rotation: [], shift: [], shiftlength: [], shifttype: [], shiftstarttime: [] };
-  //       for(let type in docs.rows[0].doc) {
-  //         let item = docs[type];
-  //         if (item.doc) {
-  //           results[type].push(item.doc);
-  //         }
-  //       }
-  //       let clients:SESAClient[] = [];
-  //       let locations:SESALocation[] = [];
-  //       let locIDs:SESALocID[] = [];
-  //       for(let row of results.client) {
-  //         let item:SESAClient = new SESAClient(row);
-  //         clients.push(item);
-  //       }
-  //       for(let row of results.location) {
-  //         let item:SESALocation = new SESALocation(row);
-  //         locations.push(item);
-  //       }
-  //       for(let row of results.locid) {
-  //         let item:SESALocID = new SESALocID(row);
-  //         locIDs.push(item);
-  //       }
-  //       results.client = clients;
-  //       results.location = locations;
-  //       results.locid = locIDs;
-  //       resolve(results);
-  //     }).catch((err) => {
-  //       Log.l("getAllConfig(): Error getting all config docs!");
-  //       Log.e(err);
-  //       resolve([]);
-  //     });
-  //   });
-  // }
 
   public async getEmployees():Promise<Employee[]> {
     try {
@@ -369,7 +384,7 @@ export class DBService {
   }
 
   public getEmployeeDocs():Promise<any[]> {
-    Log.l("getEmployees(): Now retrieving employees...");
+    Log.l("getEmployees(): Now retrieving employees …");
     return new Promise((resolve, reject) => {
       let dbname = this.prefs.getDB('employees');
       let db1 = this.addDB(dbname);
@@ -391,12 +406,12 @@ export class DBService {
   }
 
   public async getJobsites():Promise<Jobsite[]> {
-    Log.l("getJobsites(): Retrieving job sites...");
+    Log.l("getJobsites(): Retrieving job sites …");
     try {
       let dbname = this.prefs.getDB('jobsites');
       let db1 = this.addDB(dbname);
       let res:any = await db1.allDocs({ include_docs: true })
-      Log.l("getJobsites(): Got allDocs for jobsites:\n", res);
+      Log.l("getJobsites(): Got allDocs for jobsites:", res);
       let sites:Jobsite[] = [];
       for(let row of res.rows) {
         let doc = row.doc;
@@ -405,7 +420,7 @@ export class DBService {
           sites.push(site);
         }
       }
-      Log.l("getJobsites(): Created jobsite array:\n", sites);
+      Log.l("getJobsites(): Created jobsite array:", sites);
       return sites;
     } catch(err) {
       Log.l(`getJobsites(): Error getting allDocs from jobsites!`);
@@ -417,13 +432,13 @@ export class DBService {
     //   let db1 = this.addDB('sesa-jobsites');
     //   db1.allDocs({ include_docs: true }).then((docs) => {
     //     let docArray = [];
-    //     Log.l("getJobsites(): Got allDocs for jobsites:\n", docs);
+    //     Log.l("getJobsites(): Got allDocs for jobsites:", docs);
     //     for (let item of docs.rows) {
     //       if (item.doc && item.id[0] !== '_') {
     //         docArray.push(item.doc);
     //       }
     //     }
-    //     Log.l("getJobsites(): Created docArray:\n", docArray);
+    //     Log.l("getJobsites(): Created docArray:", docArray);
     //     resolve(docArray);
     //   }).catch((err) => {
     //     Log.l("getJobsites(): Error getting allDocs from jobsites!");
@@ -433,7 +448,7 @@ export class DBService {
     // });
   }
 
-  public async getDBDocCount(dbtype:string):Promise<number> {
+  public async getDBDocCount(dbtype:DatabaseKey):Promise<number> {
     try {
       let dbname:string = this.prefs.getDB(dbtype);
       if(dbname) {
@@ -478,7 +493,7 @@ export class DBService {
       db1.createIndex(query).then(res => {
         return db1.find(query);
       }).then((res:any) => {
-        Log.l("DB.getReports(): Got documents:\n", res);
+        Log.l("DB.getReports(): Got documents:", res);
         let docArray:Report[] = [];
         for (let row of res.rows) {
           if (row.id[0] !== "_" && row['doc'] !== undefined) {
@@ -488,7 +503,7 @@ export class DBService {
             docArray.push(tmpReport);
           }
         }
-        Log.l("DB.getReports(): Got reports:\n", docArray);
+        Log.l("DB.getReports(): Got reports:", docArray);
         resolve(docArray);
       }).catch(err => {
         Log.l("DB.getReports(): Error getting all work reports!");
@@ -504,7 +519,7 @@ export class DBService {
     if(elem) {
       elem.innerHTML = loadText + text + " …";
     } else {
-      Log.l("updateStatusSync(): Fake loading controller text:\n", text);
+      Log.l("updateStatusSync(): Fake loading controller text:", text);
     }
   }
 
@@ -513,29 +528,29 @@ export class DBService {
     if(loading && typeof loading.setContent === 'function') {
       loading.setContent(loadText + text + " …");
     } else {
-      Log.l("updateStatus(): Fake loading controller text:\n", text);
+      Log.l("updateStatus(): Fake loading controller text:", text);
     }
   }
 
   public updateStatusTick(text:string, loading:Loading) {
     let loadText:string = "Retrieving data from:<br>\n";
     // if(loading && typeof loading.setContent === 'function') {
-    // Log.l("updateStatusTick(): Fake loading controller text:\n", text);
+    // Log.l("updateStatusTick(): Fake loading controller text:", text);
     loading.setContent(loadText + text + " …");
     this.thisApp.tick();
     // } else {
-      // Log.l("updateStatus(): Fake loading controller text:\n", text);
+      // Log.l("updateStatus(): Fake loading controller text:", text);
     // }
   }
 
   public async updateStatusTickAsync(text:string, loading:Loading):Promise<any> {
     let loadText:string = "Retrieving data from:<br>\n";
     // if(loading && typeof loading.setContent === 'function') {
-    // Log.l("updateStatusTick(): Fake loading controller text:\n", text);
+    // Log.l("updateStatusTick(): Fake loading controller text:", text);
     loading.setContent(loadText + text + " …");
     this.thisApp.tick();
     // } else {
-      // Log.l("updateStatus(): Fake loading controller text:\n", text);
+      // Log.l("updateStatus(): Fake loading controller text:", text);
     // }
   }
 
@@ -553,7 +568,7 @@ export class DBService {
         if(loading && typeof loading.setContent === 'function') {
           loading.setContent(loadText + text + "…");
         } else {
-          Log.l("Fake loading controller text:\n", text);
+          Log.l("Fake loading controller text:", text);
         }
       }
 
@@ -562,7 +577,7 @@ export class DBService {
       let res:any, reports:Report[] = [];
       // if(fetchCount && !fetchCount) {
       if(this.useQuery) {
-        // Log.l(`DB.getWorkReports(): Attempting to load last ${fetchCount} reports...`);
+        // Log.l(`DB.getWorkReports(): Attempting to load last ${fetchCount} reports …`);
         let total:number = await this.getDocCount(reportsDB);
         let fetch:number = typeof fetchCount === 'number' ? fetchCount : 1000000;
         Log.l(`DB.getWorkReports(): Attempting to load last ${total} reports …`);
@@ -586,7 +601,7 @@ export class DBService {
           Log.l(`DB.getWorkReports(): Queried and created array of ${newCount} reports.`);
         }
       } else {
-        Log.l(`DB.getWorkReports(): Attempting to load all reports...`);
+        Log.l(`DB.getWorkReports(): Attempting to load all reports …`);
         if(!this.testDocs) {
           res = await db1.allDocs(options);
         } else {
@@ -730,7 +745,7 @@ export class DBService {
           i++;
         // }
       }
-      // Log.l("getAllReports(): Got reports:\n", docArray);
+      // Log.l("getAllReports(): Got reports:", docArray);
       let newCount = docArray.length;
       Log.l(`DB.getAllReports(): Created array of ${newCount} reports.`);
       return docArray;
@@ -758,7 +773,7 @@ export class DBService {
     try {
       let dbname:string = this.prefs.getDB('reports_other');
       let db1 = this.addDB(dbname);
-      // this.loading.setContent("Processing non-work reports...");
+      // this.loading.setContent("Processing non-work reports …");
       let res:any = await db1.allDocs({ include_docs: true });
       Log.l(`DB.getReportOthers(): Successfully retrieved other reports:\n`, res);
       let others:ReportOther[] = [];
@@ -786,7 +801,7 @@ export class DBService {
     try {
       let dbname:string = this.prefs.getDB('logistics');
       let db1:Database = this.addDB(dbname);
-      // this.loading.setContent("Processing logistics reports...");
+      // this.loading.setContent("Processing logistics reports …");
       let res:any = await db1.allDocs({ include_docs: true });
       Log.l(`DB.getReportLogistics(): Successfully retrieved logistics reports:`, res);
       let logistics:ReportLogistics[] = [];
@@ -794,13 +809,13 @@ export class DBService {
         for(let row of res.rows) {
           if(row['id'][0] !== '_' && row['doc'] !== undefined) {
             let doc = row['doc'];
-            let logisticsReport:ReportLogistics = new ReportLogistics(doc);
-            // logisticsReport.readFromDoc(doc);
-            logistics.push(logisticsReport);
+            let report = new ReportLogistics(doc);
+            // report.readFromDoc(doc);
+            logistics.push(report);
           }
         }
       }
-      Log.l("DB.getReportLogistics(): Returning array of logistics reports:\n", logistics);
+      Log.l("DB.getReportLogistics(): Returning array of logistics reports:", logistics);
       return logistics;
     } catch(err) {
       Log.l(`DB.getReportLogistics(): Error retrieving ReportLogistics list!`);
@@ -811,13 +826,73 @@ export class DBService {
 
   public getLogisticsReports = this.getReportLogistics;
 
+  public async getReportMaintenances(fetchCount?:number, spinnerID?:string):Promise<ReportMaintenance[]> {
+    // let loading = spinnerID ? this.alert.getSpinner(spinnerID) : {setContent: (input:string) => {Log.l("DB.getReportMaintenances(): Fake loading text: %s", input)}, data: { set content(input:string) {Log.l("getReportLogistics(): Fake loading text: %s", input);}, get content():string { return "Fake";}}};
+    try {
+      let dbname:string = this.prefs.getDB('maintenances');
+      let db1:Database = this.addDB(dbname);
+      // this.loading.setContent("Processing logistics reports …");
+      let res:any = await db1.allDocs({ include_docs: true });
+      Log.l(`DB.getReportMaintenances(): Successfully retrieved logistics reports:`, res);
+      let maintenances:ReportMaintenance[] = [];
+      if(res && Array.isArray(res['rows'])) {
+        for(let row of res.rows) {
+          if(row['id'][0] !== '_' && row['doc'] !== undefined) {
+            let doc = row['doc'];
+            let report = new ReportMaintenance(doc);
+            // logisticsReport.readFromDoc(doc);
+            maintenances.push(report);
+          }
+        }
+      }
+      Log.l("DB.getReportMaintenances(): Returning array of maintenance reports:", maintenances);
+      return maintenances;
+    } catch(err) {
+      Log.l(`DB.getReportMaintenances(): Error retrieving ReportMaintenance list!`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public getMaintenanceReports = this.getReportMaintenances;
+
+  public async getReportDrivings(fetchCount?:number, spinnerID?:string):Promise<ReportDriving[]> {
+    // let loading = spinnerID ? this.alert.getSpinner(spinnerID) : {setContent: (input:string) => {Log.l("DB.getReportDrivings(): Fake loading text: %s", input)}, data: { set content(input:string) {Log.l("getReportLogistics(): Fake loading text: %s", input);}, get content():string { return "Fake";}}};
+    try {
+      let dbname:string = this.prefs.getDB('drivings');
+      let db1:Database = this.addDB(dbname);
+      // this.loading.setContent("Processing logistics reports …");
+      let res:any = await db1.allDocs({ include_docs: true });
+      Log.l(`DB.getReportDrivings(): Successfully retrieved logistics reports:`, res);
+      let drivings:ReportDriving[] = [];
+      if(res && Array.isArray(res['rows'])) {
+        for(let row of res.rows) {
+          if(row['id'][0] !== '_' && row['doc'] !== undefined) {
+            let doc = row['doc'];
+            let report = new ReportDriving(doc);
+            // logisticsReport.readFromDoc(doc);
+            drivings.push(report);
+          }
+        }
+      }
+      Log.l("DB.getReportDrivings(): Returning array of driving reports:", drivings);
+      return drivings;
+    } catch(err) {
+      Log.l(`DB.getReportDrivings(): Error retrieving ReportDriving list!`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public getDrivingReports = this.getReportDrivings;
+
   public async getReportTimeCards(spinnerID?:string):Promise<ReportTimeCard[]> {
     // let loading = spinnerID ? this.alert.getSpinner(spinnerID) : {setContent: (input:string) => {Log.l("getReportTimeCards(): Fake loading text: %s", input)}, data: { set content(input:string) {Log.l("getReportTimeCards(): Fake loading text: %s", input);}, get content():string { return "Fake";}}};
     let reports:ReportTimeCard[] = [];
     try {
       let dbname:string = this.prefs.getDB('timecards');
       let db1:Database = this.addDB(dbname);
-      // this.loading.setContent("Processing timecard reports...");
+      // this.loading.setContent("Processing timecard reports …");
       let res:any = await db1.allDocs({ include_docs: true });
       Log.l(`DB.getReportTimeCards(): Successfully retrieved timecard reports:\n`, res);
       if(res && Array.isArray(res['rows'])) {
@@ -830,7 +905,7 @@ export class DBService {
           }
         }
       }
-      Log.l("DB.getReportTimeCards(): Returning array of timecard reports:\n", reports);
+      Log.l("DB.getReportTimeCards(): Returning array of timecard reports:", reports);
       return reports;
       // let u:string = this.ud.getUsername();
       // let p:string = this.ud.getPassword();
@@ -852,7 +927,7 @@ export class DBService {
       //   let report:ReportTimeCard = new ReportTimeCard(doc);
       //   reports.push(report);
       // }
-      // Log.l("getTimecardsForTech(): Returning final reports array:\n", reports);
+      // Log.l("getTimecardsForTech(): Returning final reports array:", reports);
       // return reports;
     } catch(err) {
       Log.l(`DB.getReportTimeCards(): Error retrieving TimeCard report list`);
@@ -870,7 +945,7 @@ export class DBService {
     try {
       let loading:Loading|{setContent:Function} = this.alert.getSpinner(spinnerID);
       loading = loading && typeof loading.setContent === 'function' ? loading : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
-    // this.loading.setContent("Processing old reports...");
+    // this.loading.setContent("Processing old reports …");
       let reports:Report[] = [];
       for(let dbname of dbnames) {
         try {
@@ -896,15 +971,18 @@ export class DBService {
 
   // public async getSchedules(archives?:boolean, employees?:Employee[]):Promise<Schedule[]> {
   public async getSchedules(archives?:boolean, employees?:Employee[], spinnerID?:string):Promise<Schedule[]> {
-      try {
+    try {
       Log.l("DB.getSchedules(): Firing up, spinnerID is:", spinnerID);
       let dbname:string = this.prefs.getDB('scheduling');
       let db1 = this.addDB(dbname);
       let now = moment().startOf('day');
-      let startDate:Moment = moment(now).subtract(12, 'weeks').startOf('week');
+      let weeks = this.prefs.getPastScheduleWeeksCount();
+      let startDate:Moment = moment(now).subtract(weeks, 'weeks').startOf('week');
+      let endDate:Moment = moment(now).add(10, 'years').startOf('week');
       let start:string = startDate.format("YYYY-MM-DD");
-      let res:any = await db1.allDocs({ include_docs: true, startkey: start});
-      Log.l("DB.getSchedules(): Got initial schedule results:\n", res);
+      let end:string = endDate.format("YYYY-MM-DD");
+      let res:any = await db1.allDocs({ include_docs: true, startkey: start, endkey: end});
+      Log.l("DB.getSchedules(): Got initial schedule results:", res);
       let schedules:Schedule[] = [];
       if(res && res.rows && Array.isArray(res.rows)) {
         for(let row of res.rows) {
@@ -914,14 +992,14 @@ export class DBService {
           } else {
             if(doc && row.id && row.id[0] !== '_' && doc.schedule) {
               let schedule = new Schedule(doc);
-              if(employees) {
+              if(employees && employees.length) {
                 schedule.loadTechs(employees);
               }
               schedules.push(schedule);
             }
           }
         }
-        Log.l("DB.getSchedules(): Final result array is:\n", schedules);
+        Log.l("DB.getSchedules(): Final result array is:", schedules);
       }
       return schedules;
     } catch(err) {
@@ -943,7 +1021,7 @@ export class DBService {
   //   }
   // }
 
-  public async getAllNonScheduleData(getReports:boolean, spinnerID?:string):Promise<any> {
+  public async getAllNonScheduleData(getReports:boolean, spinnerID?:string):Promise<OnSiteDataRecords> {
     try {
       // let loading = spinnerID ? this.alert.getSpinner(spinnerID) : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
       // let loading:any = this.alert.getSpinner(spinnerID);
@@ -960,48 +1038,81 @@ export class DBService {
         if(loading && typeof loading.setContent === 'function') {
           loading.setContent(loadText + text + "…");
         } else {
-          Log.l("Fake loading controller text:\n", text);
+          Log.l("Fake loading controller text:", text);
         }
       }
       // let reportDate:Moment = moment().subtract(2, 'weeks');
       // let data:any = { sites: [], employees: [], reports: [], others: [], logistics:[], timecards: [], periods: [], shifts: [], old_reports: [], schedules: [] };
-      let data:{ sites:Jobsite[], employees:Employee[], reports:Report[], others:ReportOther[], logistics:ReportLogistics[], timecards:ReportTimeCard[], periods:PayrollPeriod[], shifts:any[], old_reports:Report[], schedules:any[] } = {
-        sites: [], employees: [], reports: [], others: [], logistics:[], timecards: [], periods: [], shifts: [], old_reports: [], schedules: [],
+      // let data:{ sites:Jobsite[], employees:Employee[], reports:Report[], others:ReportOther[], logistics:ReportLogistics[], timecards:ReportTimeCard[], periods:PayrollPeriod[], shifts:any[], old_reports:Report[], schedules:any[] } = {
+      let data:OnSiteDataRecords = {
+        sites        : [] ,
+        employees    : [] ,
+        reports      : [] ,
+        others       : [] ,
+        logistics    : [] ,
+        maintenances : [] ,
+        drivings     : [] ,
+        timecards    : [] ,
+        periods      : [] ,
+        shifts       : [] ,
+        old_reports  : [] ,
+        schedules    : [] ,
       };
-      // if(loading && loading.setContent) { loading.setContent(loadText + "sesa-jobsites..."); }
+      // if(loading && loading.setContent) { loading.setContent(loadText + "sesa-jobsites …"); }
       // let text:string = "sesa-jobsites";
       // updateLoaderStatus(text);
       // loading.setContent(loadText + text);
       // let res:any = await this.getJobsites();
-      updateLoaderStatus("sesa-jobsites");
       let res:any;
-      let sites:Jobsite[] = await this.getJobsites();
-      data.sites = sites;
+      if(this.prefs.shouldLoadAtStartup('sites')) {
+        updateLoaderStatus("sesa-jobsites");
+        let sites:Jobsite[] = await this.getJobsites();
+        data.sites = sites;
+      }
       // for(let doc of res) {
       //   let site = new Jobsite();
       //   site.readFromDoc(doc);
       //   data.sites.push(site);
       // }
       // data.sites = res;
-      updateLoaderStatus("sesa-employees");
-      data.employees = await this.getEmployees();
       // data.employees = 
       // for(let doc of res) {
       //   let user = new Employee();
       //   user.readFromDoc(doc);
       //   data.employees.push(user);
       // }
-      updateLoaderStatus("sesa-logistics");
-      res = await this.getReportLogistics();
-      data.logistics = res;
+      if(this.prefs.shouldLoadAtStartup('employees')) {
+        updateLoaderStatus("sesa-employees");
+        data.employees = await this.getEmployees();
+      }
 
-      updateLoaderStatus("sesa-timecards");
-      res = await this.getReportTimeCards();
-      data.timecards = res;
+      if(this.prefs.shouldLoadAtStartup('logistics')) {
+        updateLoaderStatus("sesa-reports-logistics");
+        res = await this.getReportLogistics();
+        data.logistics = res;
+      }
 
-      if(this.prefs.CONSOLE.global.loadMiscReports) {
+      if(this.prefs.shouldLoadAtStartup('maintenances')) {
+        updateLoaderStatus("sesa-reports-maintenance");
+        res = await this.getReportMaintenances();
+        data.maintenances = res;
+      }
+
+      if(this.prefs.shouldLoadAtStartup('drivings')) {
+        updateLoaderStatus("sesa-reports-driving");
+        res = await this.getReportDrivings();
+        data.drivings = res;
+      }
+
+      if(this.prefs.shouldLoadAtStartup('timecards')) {
+        updateLoaderStatus("sesa-timecards");
+        res = await this.getReportTimeCards();
+        data.timecards = res;
+      }
+
+      if(this.prefs.shouldLoadAtStartup('others')) {
         updateLoaderStatus("sesa-reports-other");
-        // loading.setContent(loadText + "sesa-reports-other...");
+        // loading.setContent(loadText + "sesa-reports-other …");
         let ros:ReportOther[] = await this.getReportOthers();
         data.others = ros.sort((a:ReportOther, b:ReportOther) => {
           // let dA = a.report_date.format("YYYYMMDD");
@@ -1015,23 +1126,23 @@ export class DBService {
           return dA > dB ? -1 : dA < dB ? 1 : tA > tB ? -1 : tA < tB ? 1 : uA < uB ? -1 : uA > uB ? 1 : 0;
         });
       }
-      if(this.prefs.CONSOLE.global.loadOldReports) {
+      if(this.prefs.shouldLoadAtStartup('oldReports')) {
         updateLoaderStatus("sesa-reports-old");
         // loading.setContent(loadText + "sesa-reports-old ...");
         let ors:Report[] = await this.getOldReports();
         data.old_reports = ors;
       }
-      // loading.setContent(loadText + "sesa-scheduling...");
+      // loading.setContent(loadText + "sesa-scheduling …");
       // res = await this.getSchedules();
       // data.schedules = res;
       if(!getReports) {
-        Log.l("getAllNonScheduleData(): Success, final data to be returned is:\n", data);
+        Log.l("getAllNonScheduleData(): Success, final data to be returned is:", data);
         return data;
       } else {
         let fetchCount:number = this.prefs.CONSOLE.global.reportsToLoad || 1000000;
         updateLoaderStatus("sesa-reports");
         let rpts:Report[] = await this.getReportsData(fetchCount, spinnerID);
-        Log.l("getAllNonScheduleData(): Success plus reports, final data to be returned is:\n", data);
+        Log.l("getAllNonScheduleData(): Success plus reports, final data to be returned is:", data);
         data.reports = rpts;
         return data;
       }
@@ -1048,15 +1159,15 @@ export class DBService {
     let loadText = "Retrieving data from:<br>\n"
     return new Promise((resolve, reject) => {
       let reportDate = moment().subtract(2, 'weeks');
-      let data = { sites: [], employees: [], reports: [], others: [], logistics:[], timecards: [], periods: [], shifts: [], schedules: [] };
-      loading.setContent(loadText + "sesa-jobsites...");
+      let data = { sites: [], employees: [], reports: [], others: [], logistics:[], maintenances: [], drivings: [], timecards: [], periods: [], shifts: [], schedules: [] };
+      loading.setContent(loadText + "sesa-jobsites …");
       this.getJobsites().then(res => {
         for (let doc of res) {
           let site = new Jobsite();
           site.readFromDoc(doc);
           data.sites.push(site);
         }
-        loading.setContent(loadText + "sesa-employees...");
+        loading.setContent(loadText + "sesa-employees …");
         return this.getEmployees();
       }).then(res => {
         for (let doc of res) {
@@ -1064,7 +1175,7 @@ export class DBService {
           user.readFromDoc(doc);
           data.employees.push(user);
         }
-        loading.setContent(loadText + "sesa-reports-other...");
+        loading.setContent(loadText + "sesa-reports-other …");
         return this.getReportOthers();
       }).then((res:ReportOther[]) => {
         data.others = res.sort((a:ReportOther, b:ReportOther) => {
@@ -1078,18 +1189,18 @@ export class DBService {
           let uB = b.username;
           return dA > dB ? -1 : dA < dB ? 1 : tA > tB ? -1 : tA < tB ? 1 : uA < uB ? -1 : uA > uB ? 1 : 0;
         });
-        // Log.l("getAllData(): Success, final data to be returned is:\n", data);
-        loading.setContent(loadText + "sesa-scheduling...");
+        // Log.l("getAllData(): Success, final data to be returned is:", data);
+        loading.setContent(loadText + "sesa-scheduling …");
         return this.getSchedules();
       }).then(res => {
         data.schedules = res;
         if(!getReports) {
-          Log.l("getAllData(): Success, final data to be returned is:\n", data);
+          Log.l("getAllData(): Success, final data to be returned is:", data);
           resolve(data);
         } else {
           let count:number = this.prefs.CONSOLE.global.reportsToLoad || 1000000;
           this.getReportsData(count, spinnerID).then(res => {
-            Log.l("getAllData(): Success plus reports, final data to be returned is:\n", data);
+            Log.l("getAllData(): Success plus reports, final data to be returned is:", data);
             data.reports = res;
             resolve(data);
           }).catch(err => {
@@ -1108,7 +1219,7 @@ export class DBService {
     // let loading = spinnerID ? this.alert.getSpinner(spinnerID) : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
     try {
       // let loadText = "Retrieving data from:<br>\n";
-      // if(loading && loading.setContent) { loading.setContent(loadText + "reports_ver101100..."); }
+      // if(loading && loading.setContent) { loading.setContent(loadText + "reports_ver101100 …"); }
       let res:Report[] = await this.getWorkReports(fetchCount, spinnerID);
       return res;
     } catch(err) {
@@ -1210,9 +1321,9 @@ export class DBService {
       //   }
       //   // });
       // };
-      Log.l("getSounds(): Now attempting to get sounds from server....");
+      Log.l("getSounds(): Now attempting to get sounds from server ….");
       let res:any = await db1.allDocs({ include_docs: true, attachments: true, binary:true });
-      Log.l("getSounds(): Successfully got sounds back from server:\n", res);
+      Log.l("getSounds(): Successfully got sounds back from server:", res);
       let out:any = {};
       let docs:any[] = res.rows.map((a:any) => {return a.doc;});
       // for(let row of res.rows) {
@@ -1287,9 +1398,9 @@ export class DBService {
   //       }
   //       // });
   //     };
-  //     Log.l("getSounds(): Now attempting to get sounds from server....");
+  //     Log.l("getSounds(): Now attempting to get sounds from server ….");
   //     db1.allDocs({ include_docs: true, attachments: true }).then(res => {
-  //       Log.l("getSounds(): Successfully got sounds back from server:\n", res);
+  //       Log.l("getSounds(): Successfully got sounds back from server:", res);
   //       let out = {};
   //       for (let row of res.rows) {
   //         let doc = row.doc;
@@ -1306,14 +1417,14 @@ export class DBService {
   //       for (let key of keys) {
   //         output[key] = [];
   //       }
-  //       Log.l("getSounds(): Calling data2blob with out and finalout:\n", out, JSON.stringify(output));
+  //       Log.l("getSounds(): Calling data2blob with out and finalout:", out, JSON.stringify(output));
   //       return data2blob(out, output);
   //     }).then(output => {
 
-  //       Log.l("getSounds(): Final output will be:\n", output);
+  //       Log.l("getSounds(): Final output will be:", output);
   //       resolve(output);
   //       // }).then(res => {
-  //       //   Log.l("getSounds(): Success! Got sounds:\n", res);
+  //       //   Log.l("getSounds(): Success! Got sounds:", res);
   //       //   resolve(res);
   //     }).catch(err => {
   //       Log.l("getSounds(): Error getting sounds back from server!");
@@ -1355,13 +1466,15 @@ export class DBService {
         }
         return doc;
       });
-      if(!res['ok'] && !res.updated) {
-        Log.l(`saveReport(): Upsert error saving report ${report._id}.`, res);
+      if(!res.ok && !res.updated) {
+        Log.l(`DB.saveReport(): Upsert error saving report ${report._id}.`, res);
         throw res;
       } else {
-        Log.l(`saveReport(): Successfully saved report ${report._id}.`, res);
+        Log.l(`DB.saveReport(): Successfully saved report ${report._id}.`, res);
+        let rev = res.rev;
+        report._rev = rev;
+        return res;
       }
-      return res;
     } catch(err) {
       Log.l(`DB.saveReport(): Error saving report '${report._id}'`);
       Log.e(err);
@@ -1370,8 +1483,8 @@ export class DBService {
   }
 
   public deleteReport(report:Report) {
-    let db = this.prefs.getDB();
-    let db1 = this.addDB(db.reports);
+    let dbname = this.prefs.getDB('reports');
+    let db1 = this.addRDB(dbname);
     return new Promise((resolve, reject) => {
       db1.upsert(report._id, (doc:any) => {
         doc._deleted = true;
@@ -1393,67 +1506,74 @@ export class DBService {
     });
   }
 
-  public saveOtherReport(other:ReportOther) {
-    return new Promise((resolve, reject) => {
-      let db = this.prefs.getDB();
-      let db1 = this.addDB(db.reports_other);
-      db1.upsert(other._id, (doc:any) => {
-        if (doc && doc._id) {
+  public async saveOtherReport(other:ReportOther, username?:string) {
+    try {
+      let dbname = this.prefs.getDB('reports_other');
+      let db1 = this.addRDB(dbname);
+      let newDoc = other.serialize();
+      let user:string = username ? username : window['onsiteconsoleusername'] ? window['onsiteconsoleusername'] : "unknown_user";
+      let res = await db1.upsert(newDoc._id, (doc:any) => {
+        if(doc && doc._id) {
           let rev = doc._rev;
-          other._rev = rev;
-          doc = other;
+          newDoc._rev = rev;
+          doc = newDoc;
         } else {
-          doc = other;
+          doc = newDoc;
         }
         return doc;
-      }).then(res => {
-        if (!res['ok'] && !res.updated) {
-          Log.l(`saveOtherReport(): Upsert error saving ReportOther ${other._id}.\n`, res);
-          reject(res);
-        } else {
-          Log.l(`saveOtherReport(): Successfully saved ReportOther ${other._id}.\n`, res);
-          resolve(res);
-        }
-      }).catch(err => {
-        Log.l(`saveOtherReport(): Error saving ReportOther ${other._id}.`);
-        Log.e(err);
-        reject(err);
       });
-    });
+      if(!res.ok && !res.updated) {
+        let text = `DB.saveOtherReport(): Upsert error saving ReportOther '${other._id}'`;
+        Log.w(text + ":", other);
+        Log.w(res);
+        let err = new Error(text);
+        throw err;
+      } else {
+        Log.l(`DB.saveOtherReport(): Successfully saved ReportOther ${other._id}:`, res);
+        return res;
+      }
+    } catch(err) {
+      Log.l(`DB.saveOtherReport(): Error saving ReportOther ${other._id}.`);
+      Log.e(err);
+      throw err;
+    }
   }
 
-  public deleteOtherReport(other:ReportOther) {
-    let db = this.prefs.getDB();
-    let db1 = this.addRDB(db.reports);
-    return new Promise((resolve, reject) => {
-      db1.upsert(other._id, (doc:any) => {
-        doc._deleted = true;
-        return doc;
-      }).then(res => {
-        if (!res['ok'] && !res.updated) {
-          Log.l(`deleteOtherReport(): Upsert error trying to delete doc ${other._id}.`);
-          Log.e(res);
-          reject(res);
-        } else {
-          Log.l(`deleteOtherReport(): Successfully deleted doc ${other._id}.`);
-          resolve(res);
+  public async deleteOtherReport(other:ReportOther):Promise<any> {
+    try {
+      let dbname = this.prefs.getDB('reports_other');
+      let db1 = this.addRDB(dbname);
+      let res = await db1.upsert(other._id, (doc:any) => {
+        if(doc && doc._id && doc._rev) {
+          doc._deleted = true;
         }
-      }).catch(err => {
-        Log.l(`deleteOtherReport(): Could not delete doc ${other._id}.`);
-        Log.e(err);
-        reject(err);
+        return doc;
       });
-    });
+      if(!res.ok && !res.updated) {
+        let text = `DB.deleteOtherReport(): Upsert error trying to delete doc ${other._id}`;
+        Log.w(text + ":", other);
+        Log.w(res);
+        let err = new Error(text);
+        throw err;
+      } else {
+        Log.l(`DB.deleteOtherReport(): Successfully deleted doc ${other._id}.`);
+        return res;
+      }
+    } catch(err) {
+      Log.l(`DB.deleteOtherReport(): Error deleting misc. report`, other);
+      Log.e(err);
+      throw err;
+    }
   }
 
   public async saveJobsite(jobsite:Jobsite):Promise<UpsertResponse> {
     try {
-      Log.l("saveJobsite(): Saving job site:", jobsite);
+      Log.l("DB.saveJobsite(): Saving job site:", jobsite);
       let db1 = this.addDB('sesa-jobsites');
       if(!jobsite._id) {
         jobsite._id = jobsite.getSiteID();
       }
-      Log.l(`saveJobsite(): Now attempting to save jobsite '${jobsite._id}:\n`,jobsite);
+      Log.l(`DB.saveJobsite(): Now attempting to save jobsite '${jobsite._id}:\n`,jobsite);
       let siteDoc = jobsite.serialize();
       let res:UpsertResponse = await db1.upsert(siteDoc._id, (doc:any) => {
         if(doc._id && doc._rev) {
@@ -1464,7 +1584,7 @@ export class DBService {
         return siteDoc;
       });
       if(!res.ok && !res.updated) {
-        Log.l(`saveJobsite(): Upsert error saving jobsite '${jobsite._id}:`, res);
+        Log.l(`DB.saveJobsite(): Upsert error saving jobsite '${jobsite._id}:`, res);
         let text:string = res && typeof res.message === 'string' ? res.message : "unknown_upsert_error";
         let err = new Error(text);
         throw err;
@@ -1472,7 +1592,7 @@ export class DBService {
         return res;
       }
     } catch(err) {
-      Log.l(`saveJobsite(): Error saving jobsite:`, jobsite);
+      Log.l(`DB.saveJobsite(): Error saving jobsite:`, jobsite);
       Log.e(err);
       throw err;
     }
@@ -1480,9 +1600,10 @@ export class DBService {
 
   public saveInvoice(type:string, invoice: Invoice) {
     return new Promise((resolve, reject) => {
-      let db = this.prefs.getDB();
-      let dbname = `invoices_${type.toLowerCase()}`;
-      let db1 = this.addDB(db[dbname]);
+      let invoiceType = type.toLowerCase();
+      let dbkey = (`invoices_${invoiceType}` as DatabaseKey);
+      let dbname = this.prefs.getDB(dbkey);
+      let db1 = this.addDB(dbname);
       let ts = moment().format();
       // let user = username ? username : window['onsiteconsoleusername'] ? window['onsiteconsoleusername'] : "unknown_user";
       let inv:any = invoice.serialize();
@@ -1520,15 +1641,16 @@ export class DBService {
       let saveResult = await this.saveInvoice(type, invoice);
       results.push(saveResult);
     }
-    Log.l("saveInvoices(): Results are:\n", results);
+    Log.l("saveInvoices(): Results are:", results);
     return results;
   }
 
   public getInvoices(type:string, start:string, end:string) {
     return new Promise((resolve,reject) => {
-      let db = this.prefs.getDB();
-      let dbname = `invoices_${type.toLowerCase()}`;
-      let db1 = this.addDB(db[dbname]);
+      let invoiceType = type.toLowerCase();
+      let dbkey = (`invoices_${invoiceType}` as DatabaseKey);
+      let dbname = this.prefs.getDB(dbkey);
+      let db1 = this.addDB(dbname);
       db1.allDocs({include_docs: true}).then(res => {
         Log.l(`getInvoices(): Successfully retrieved invoices, raw results are:\n`, res);
         let invoices:Invoice[] = [];
@@ -1590,14 +1712,14 @@ export class DBService {
       let saveResult = await this.savePreauth(preauth);
       results.push(saveResult);
     }
-    Log.l("savePreauths(): Results are:\n", results);
+    Log.l("savePreauths(): Results are:", results);
     return results;
   }
 
   public getPreauths(start:string, end:string):Promise<PreAuth[]> {
     return new Promise((resolve,reject) => {
-      let db = this.prefs.getDB();
-      let db1 = this.addDB(db.preauths);
+      let dbname = this.prefs.getDB('preauths');
+      let db1 = this.addDB(dbname);
       db1.allDocs({include_docs: true}).then(res => {
         Log.l(`getPreauths(): Successfully retrieved preauths, raw results are:\n`, res);
         let preauths:PreAuth[] = [];
@@ -1627,7 +1749,7 @@ export class DBService {
       db1.get(id).then(res => {
         let dps = new DPS();
         dps.deserialize(res);
-        Log.l("getDPSSettings(): Successfully retrieved DPS settings:\n", dps);
+        Log.l("getDPSSettings(): Successfully retrieved DPS settings:", dps);
         resolve(dps);
       }).catch(err => {
         Log.l("getDPSSettings(): Error getting DPS settings!");
@@ -1651,7 +1773,7 @@ export class DBService {
           doc = dpsDoc;
           doc._id = id;
         }
-        Log.l("saveDPSSettings(): Now upserting doc:\n", doc);
+        Log.l("saveDPSSettings(): Now upserting doc:", doc);
         return doc;
       }).then(res => {
         if(!res['ok'] && !res.updated) {
@@ -1669,11 +1791,11 @@ export class DBService {
   }
 
   public getTechPhones():Promise<any[]> {
-    Log.l("getTechPhones(): Firing up...");
+    Log.l("getTechPhones(): Firing up …");
     return new Promise((resolve, reject) => {
       let db1 = this.addDB('sesa-tech-phones');
       db1.allDocs({ include_docs: true }).then(res => {
-        Log.l("getTechPhones(): Got initial doc list:\n", res);
+        Log.l("getTechPhones(): Got initial doc list:", res);
         let techPhones: any[] = [];
         for (let row of res.rows) {
           if (row.id[0] !== '_' && row.doc) {
@@ -1681,7 +1803,7 @@ export class DBService {
             techPhones.push(doc);
           }
         }
-        Log.l("getTechPhones(): Final result array is:\n", techPhones);
+        Log.l("getTechPhones(): Final result array is:", techPhones);
         resolve(techPhones);
       }).catch((err) => {
         Log.l("getTechPhones(): Error retrieving tech phones list!");
@@ -1730,9 +1852,9 @@ export class DBService {
         docid = 'locid';
       }
       record = `${docid}s`;
-      Log.l(`getAllCLL(): Getting list of ${type}s ...`);
+      Log.l(`DB.getAllCLL(): Getting list of ${type}s ...`);
       let doc:any = await db1.get(docid);
-      Log.l(`getAllCLL(): Got ${type} list:\n`, doc);
+      Log.l(`DB.getAllCLL(): Got ${type} list:\n`, doc);
       let out:SESACLL[] = [];
       if(doc && doc[record] && Array.isArray(doc[record])) {
         for(let cll of doc[record]) {
@@ -1749,7 +1871,7 @@ export class DBService {
       }
       return out;
     } catch(err) {
-      Log.l(`getAllCLL(): Error getting ${type} list.`);
+      Log.l(`DB.getAllCLL(): Error getting ${type} list.`);
       Log.e(err);
       return [];
     }
@@ -1800,17 +1922,17 @@ export class DBService {
         return doc;
       });
       if(!res['ok'] && !res.updated) {
-        Log.l(`saveCLL(): Error saving ${type}:`, newCLL);
+        Log.l(`DB.saveCLL(): Error saving ${type}:`, newCLL);
         Log.e(res);
         let text:string = `saveCLL(): Error saving '${type}'`;
         throw new Error(text);
       } else {
-        Log.l(`saveCLL(): ${type} saved:\n`, res);
+        Log.l(`DB.saveCLL(): ${type} saved:\n`, res);
         let out:CLLS[] = await this.getAllCLL(type);
         return out;
       }
     } catch(err) {
-      Log.l(`saveCLL(): Error saving ${type}:\n`, newCLL);
+      Log.l(`DB.saveCLL(): Error saving ${type}:\n`, newCLL);
       Log.e(err);
       throw err;
     }
@@ -1832,7 +1954,7 @@ export class DBService {
         docid = 'locid';
         record = 'locids';
       } else {
-        let text:string = `saveCLLs(): Type invalid: ${type}`;
+        let text:string = `DB.saveCLLs(): Type invalid: ${type}`;
         Log.w(text);
         throw new Error(text);
       }
@@ -1845,17 +1967,17 @@ export class DBService {
         return doc;
       });
       if(!res['ok'] && !res.updated) {
-        let text:string = `saveCLLs(): Error saving type '${type}'`;
+        let text:string = `DB.saveCLLs(): Error saving type '${type}'`;
         Log.l(text, newCLLs);
         Log.e(res);
         throw new Error(text);
       } else {
-        Log.l(`saveCLLs(): ${type}s saved:\n`, res);
+        Log.l(`DB.saveCLLs(): ${type}s saved:\n`, res);
         let out:CLLS[] = await this.getAllCLL(type);
         return out;
       }
     } catch(err) {
-      Log.l(`saveCLLs(): Error saving ${type}s:\n`, newCLLs);
+      Log.l(`DB.saveCLLs(): Error saving ${type}s:\n`, newCLLs);
       Log.e(err);
       throw err;
     }
@@ -1867,7 +1989,7 @@ export class DBService {
       let res:SESAClient[] = await this.getAllCLL(type);
       return res;
     } catch(err) {
-      Log.l(`getClients(): Error getting ${type} list!`);
+      Log.l(`DB.getClients(): Error getting ${type} list!`);
       Log.e(err);
       return [];
     }
@@ -1879,7 +2001,7 @@ export class DBService {
       let res:SESAClient[] = await this.saveCLL(type, item);
       return res;
     } catch(err) {
-      Log.l(`saveClient(): Error saving ${type}:\n`, item);
+      Log.l(`DB.saveClient(): Error saving ${type}:\n`, item);
       Log.e(err);
       return [];
     }
@@ -1891,7 +2013,7 @@ export class DBService {
       let res:SESAClient[] = await this.saveCLLs(type, items);
       return res;
     } catch(err) {
-      Log.l(`saveClients(): Error saving ${type}s:\n`, items);
+      Log.l(`DB.saveClients(): Error saving ${type}s:\n`, items);
       Log.e(err);
       return [];
     }
@@ -1903,7 +2025,7 @@ export class DBService {
       let res:SESALocation[] = await this.getAllCLL(type);
       return res;
     } catch(err) {
-      Log.l(`getLocations(): Error getting ${type} list!`);
+      Log.l(`DB.getLocations(): Error getting ${type} list!`);
       Log.e(err);
       return [];
     }
@@ -1915,7 +2037,7 @@ export class DBService {
       let res:SESALocation[] = await this.saveCLL(type, item);
       return res;
     } catch(err) {
-      Log.l(`saveLocation(): Error saving ${type}:\n`, item);
+      Log.l(`DB.saveLocation(): Error saving ${type}:\n`, item);
       Log.e(err);
       return [];
     }
@@ -1927,7 +2049,7 @@ export class DBService {
       let res:SESALocation[] = await this.saveCLLs(type, items);
       return res;
     } catch(err) {
-      Log.l(`saveLocations(): Error saving ${type}s:\n`, items);
+      Log.l(`DB.saveLocations(): Error saving ${type}s:\n`, items);
       Log.e(err);
       return [];
     }
@@ -1945,7 +2067,7 @@ export class DBService {
       }
       return out;
     } catch(err) {
-      Log.l(`getLocIDs(): Error getting ${type} list!`);
+      Log.l(`DB.getLocIDs(): Error getting ${type} list!`);
       Log.e(err);
       return [];
     }
@@ -1963,14 +2085,14 @@ export class DBService {
       }
       return out;
     } catch(err) {
-      Log.l(`saveLocation(): Error saving ${type}:\n`, item);
+      Log.l(`DB.saveLocID(): Error saving ${type}:\n`, item);
       Log.e(err);
       return [];
     }
   }
 
   public async saveLocIDs(items:SESALocID[]):Promise<SESALocID[]> {
-    let type:CLLNames = 'location';
+    let type:CLLNames = 'locID';
     try {
       let out:SESALocID[] = [];
       let res:CLLS[] = await this.saveCLLs(type, items);
@@ -1981,7 +2103,7 @@ export class DBService {
       }
       return out;
     } catch(err) {
-      Log.l(`saveLocIDs(): Error saving ${type}s:\n`, items);
+      Log.l(`DB.saveLocIDs(): Error saving ${type}s:`, items);
       Log.e(err);
       return [];
     }
@@ -1993,7 +2115,7 @@ export class DBService {
   //     let db1 = this.addDB(db.reports_old01);
   //     Log.l(`DB.getOldReports(): retrieving all reports from '${db.reports_old01}'...`)
   //     let res:any = await db1.allDocs({include_docs:true});
-  //     Log.l("getOldReports(): Successfully retrieved old reports, raw list is:\n", res);
+  //     Log.l("getOldReports(): Successfully retrieved old reports, raw list is:", res);
   //     let reports:Report[] = [];
   //     for (let row of res.rows) {
   //       if (row.id[0] !== '_' && row.doc) {
@@ -2003,7 +2125,7 @@ export class DBService {
   //         reports.push(rpt);
   //       }
   //     }
-  //     Log.l("getOldReports(): Final array of old reports is:\n", reports);
+  //     Log.l("getOldReports(): Final array of old reports is:", reports);
   //     return reports;
   //   } catch(err) {
   //     Log.l(`DB.getOldReports(): Error retrieving reports.`);
@@ -2018,7 +2140,7 @@ export class DBService {
   //     let db1 = this.addDB(db.reports_old01);
   //     Log.l(`DB.getOldReports(): retrieving all reports from '${db.reports_old01}'...`)
   //     let res = await db1.allDocs({include_docs:true});
-  //     Log.l("getOldReports(): Successfully retrieved old reports, raw list is:\n", res);
+  //     Log.l("getOldReports(): Successfully retrieved old reports, raw list is:", res);
   //     let reports:Report[] = [];
   //     for (let row of res.rows) {
   //       if (row.id[0] !== '_' && row.doc) {
@@ -2028,7 +2150,7 @@ export class DBService {
   //         reports.push(rpt);
   //       }
   //     }
-  //     Log.l("getOldReports(): Final array of old reports is:\n", reports);
+  //     Log.l("getOldReports(): Final array of old reports is:", reports);
   //     return reports;
   //   } catch (err) {
   //     Log.l("getOldReports(): Error retrieving reports.");
@@ -2037,14 +2159,72 @@ export class DBService {
   //   }
   // }
 
-  public async saveReportLogistics(report:ReportLogistics):Promise<any> {
+  public async saveReportLogistics(report:ReportLogistics, username?:string):Promise<any> {
     try {
-      Log.l(`saveReportLogistics(): Now attempting to save report:\n`, report);
-      let reportDoc:any = report.serialize();
-      Log.l(`saveReportLogistics(): Now attempting to save serialized report:\n`, reportDoc);
+      Log.l(`DB.saveReportLogistics(): Now attempting to save report:`, report);
+      let user:string = username ? username : window['onsiteconsoleusername'] ? window['onsiteconsoleusername'] : "unknown_user";
+      let ts = moment().format();
+      // report.change_log.push({
+      //   change: "updated",
+      //   user: user,
+      //   timestamp: ts,
+      // });
+      let nr:any = report.serialize();
+      Log.l(`DB.saveReportLogistics(): Now attempting to save serialized report:`, nr);
       let dbname:string = this.prefs.getDB('logistics');
       let db1 = this.addDB(dbname);
-      let res:any = await db1.upsert(reportDoc._id, (doc:any) => {
+      // nr.time_start = report.time_start.format();
+      // nr.time_end = report.time_end.format();
+      // let rpt:any = JSON.stringify(report);
+      let res = await db1.upsert(nr._id, (doc:any) => {
+        if(doc && doc._id) {
+          let rev = doc._rev;
+          nr._rev = rev;
+          let change_log = doc.change_log || [];
+          // let report_change_log = nr.change_log || [];
+          change_log.push({
+            change: "updated",
+            user: user,
+            timestamp: ts,
+          });
+          doc = nr;
+          doc.change_log = change_log;
+        } else {
+          let change_log = doc.change_log || [];
+          change_log.push({
+            change: "created",
+            user: user,
+            timestamp: ts,
+          });
+          doc = nr;
+          delete doc._rev;
+          doc.change_log = change_log;
+        }
+        return doc;
+      });
+      if(!res.ok && !res.updated) {
+        let text:string = `DB.saveReportLogistics(): Upsert error for report '${report._id}'`;
+        throw new Error(text);
+      } else {
+        let rev = res.rev;
+        report._rev = rev;
+        return res;
+      }
+    } catch(err) {
+      Log.l(`DB.saveReportLogistics(): Error saving report '${report._id}'`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public async saveReportMaintenance(report:ReportMaintenance, username?:string):Promise<any> {
+    try {
+      Log.l(`DB.saveReportMaintenance(): Now attempting to save report:`, report);
+      let reportDoc:any = report.serialize();
+      Log.l(`DB.saveReportMaintenance(): Now attempting to save serialized report:`, reportDoc);
+      let dbname:string = this.prefs.getDB('maintenances');
+      let db1 = this.addDB(dbname);
+      let res = await db1.upsert(reportDoc._id, (doc:any) => {
         if(doc && doc._rev) {
           let rev = doc._rev;
           doc = reportDoc;
@@ -2056,19 +2236,54 @@ export class DBService {
         return doc;
       });
       if(!res.ok && !res.updated) {
-        let text:string = `saveReportLogistics(): Upsert error for report '${report._id}'`;
+        let text:string = `DB.saveReportMaintenance(): Upsert error for report '${report._id}'`;
         throw new Error(text);
       } else {
+        let rev = res.rev;
+        report._rev = rev;
         return res;
       }
     } catch(err) {
-      Log.l(`saveReportLogistics(): Error saving report '${report._id}'`);
+      Log.l(`DB.saveReportMaintenance(): Error saving report '${report._id}'`);
       Log.e(err);
       throw err;
     }
   }
 
-  public async saveReportTimecard(report:ReportTimeCard):Promise<any> {
+  public async saveReportDriving(report:ReportDriving, username?:string):Promise<any> {
+    try {
+      Log.l(`DB.saveReportDriving(): Now attempting to save report:`, report);
+      let reportDoc:any = report.serialize();
+      Log.l(`DB.saveReportDriving(): Now attempting to save serialized report:`, reportDoc);
+      let dbname:string = this.prefs.getDB('drivings');
+      let db1 = this.addDB(dbname);
+      let res = await db1.upsert(reportDoc._id, (doc:any) => {
+        if(doc && doc._rev) {
+          let rev = doc._rev;
+          doc = reportDoc;
+          doc._rev = rev;
+        } else {
+          doc = reportDoc;
+          delete doc._rev;
+        }
+        return doc;
+      });
+      if(!res.ok && !res.updated) {
+        let text:string = `DB.saveReportDriving(): Upsert error for report '${report._id}'`;
+        throw new Error(text);
+      } else {
+        let rev = res.rev;
+        report._rev = rev;
+        return res;
+      }
+    } catch(err) {
+      Log.l(`DB.saveReportDriving(): Error saving report '${report._id}'`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public async saveReportTimecard(report:ReportTimeCard, username?:string):Promise<any> {
     try {
       let reportDoc:any = report.serialize();
       let dbname:string = this.prefs.getDB('timecards');
@@ -2085,13 +2300,15 @@ export class DBService {
         return doc;
       });
       if(!res.ok && !res.updated) {
-        let text:string = `saveReportTimecard(): Upsert error for report '${report._id}'`;
+        let text:string = `DB.saveReportTimecard(): Upsert error for report '${report._id}'`;
         throw new Error(text);
       } else {
+        let rev = res.rev;
+        report._rev = rev;
         return res;
       }
     } catch(err) {
-      Log.l(`saveReportTimecard(): Error saving report '${report._id}'`);
+      Log.l(`DB.saveReportTimecard(): Error saving report '${report._id}'`);
       Log.e(err);
       throw err;
     }
@@ -2116,6 +2333,54 @@ export class DBService {
       }
     } catch(err) {
       Log.l(`DB.deleteLogisticsReport(): Error deleting report '${report._id}'`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public async deleteMaintenanceReport(report:ReportMaintenance):Promise<any> {
+    try {
+      let dbname:string = this.prefs.getDB('maintenances');
+      let db1 = this.addDB(dbname);
+      let res = await db1.upsert(report._id, (doc:any) => {
+        doc._deleted = true;
+        return doc;
+      });
+      if(!res.ok && !res.updated) {
+        Log.l(`DB.deleteMaintenanceReport(): Upsert error trying to delete report ${report._id}.`);
+        Log.e(res);
+        let text:string = `DB.deleteMaintenanceReport(): Upsert error with report '${report._id}'.`;
+        throw new Error(text);
+      } else {
+        Log.l(`DB.deleteMaintenanceReport(): Successfully deleted doc ${report._id}.`);
+        return res;
+      }
+    } catch(err) {
+      Log.l(`DB.deleteMaintenanceReport(): Error deleting report '${report._id}'`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public async deleteDrivingReport(report:ReportDriving):Promise<any> {
+    try {
+      let dbname:string = this.prefs.getDB('drivings');
+      let db1 = this.addDB(dbname);
+      let res = await db1.upsert(report._id, (doc:any) => {
+        doc._deleted = true;
+        return doc;
+      });
+      if(!res.ok && !res.updated) {
+        Log.l(`DB.deleteDrivingReport(): Upsert error trying to delete report ${report._id}.`);
+        Log.e(res);
+        let text:string = `DB.deleteDrivingReport(): Upsert error with report '${report._id}'.`;
+        throw new Error(text);
+      } else {
+        Log.l(`DB.deleteDrivingReport(): Successfully deleted doc ${report._id}.`);
+        return res;
+      }
+    } catch(err) {
+      Log.l(`DB.deleteDrivingReport(): Error deleting report '${report._id}'`);
       Log.e(err);
       throw err;
     }

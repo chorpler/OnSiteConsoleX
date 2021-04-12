@@ -61,6 +61,7 @@ export * from "./tech-phones";
 export * from "./tech-shift-reports";
 export * from "./training";
 export * from "./training-select";
+export * from "./translations";
 // export * from "./work-site";
 export * from "./work-sites";
 // export * from "./work-sites-beta";

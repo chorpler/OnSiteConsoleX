@@ -15,8 +15,11 @@ import { DispatchService                                                        
 import { Log, Moment, moment, _matchCLL, _matchSite                             } from 'domain/onsitexdomain'                       ;
 import { Jobsite, Employee, Report, ReportOther, PayrollPeriod, Shift, Schedule } from 'domain/onsitexdomain'                       ;
 import { ReportLogistics                                                        } from 'domain/onsitexdomain'                       ;
+import { ReportDriving                                                          } from 'domain/onsitexdomain'                       ;
+import { ReportMaintenance                                                      } from 'domain/onsitexdomain'                       ;
+import { ReportAny, ReportReal,                                                 } from 'domain/onsitexdomain'                       ;
 import { OSData                                                                 } from 'providers/data-service'                     ;
-import { Preferences                                                            } from 'providers/preferences'                      ;
+import { Preferences, DatabaseKey,                                              } from 'providers/preferences'                      ;
 import { SelectItem, MenuItem                                                   } from 'primeng/api'                                ;
 import { Command, KeyCommandService                                             } from 'providers/key-command-service'              ;
 import { OptionsGenericComponent                                                } from 'components/options-generic/options-generic' ;
@@ -55,6 +58,8 @@ export class PayrollPage implements OnInit,OnDestroy {
   public reports  : Report[]        = []         ;
   public others   : ReportOther[]   = []         ;
   public logistics: ReportLogistics[] = []       ;
+  public maintenances: ReportMaintenance[] = []       ;
+  public drivings : ReportDriving[] = []       ;
   public periods  : PayrollPeriod[] = []         ;
   public sites    : Jobsite[]       = []         ;
   public schedules: Schedule[]      = []         ;
@@ -73,15 +78,19 @@ export class PayrollPage implements OnInit,OnDestroy {
   public ePeriod  : Map<Employee,PayrollPeriod>       ;
   public eSite    : Map<Employee,Jobsite>             ;
   public alerts   : Map<Employee,Boolean>             ;
-  public allData  : any = {employees: [], reports: [], others: [], logistics: [], periods: [], sites: [] };
+  public allData  : any = {employees: [], reports: [], others: [], logistics: [], drivings: [], maintenances: [], periods: [], sites: [] };
   public eRot     : Map<Employee,string> = new Map()  ;
   public periodList: SelectItem[]        = []         ;
   public loading  : any                               ;
   public moment   : any                  = moment     ;
-  public sprintf  : any                  = sprintf    ;
   public scheduleMissing:boolean         = false      ;
   public spinnerLabel:string = "Initializing payroll page …";
   public dataReady: boolean              = false      ;
+  // public statusBarEnabled:boolean        = true       ;
+  public statusBarEnabled:boolean        = false      ;
+  public reportsLocalTotal  : number       = 0        ;
+  public reportsRemoteTotal : number       = 0        ;
+  public reportsRemaining   : number       = 0        ;
 
   constructor(
     public application    : ApplicationRef    ,
@@ -160,8 +169,8 @@ export class PayrollPage implements OnInit,OnDestroy {
       }
     });
     // this.dsSubscription = this.dispatch.datastoreUpdated().subscribe(async (data:{type:string, payload:any}) => {
-    this.dsSubscription = this.dispatch.datastoreUpdated().subscribe(async (data:{type:string, payload:any}) => {
-      Log.l("PayrollPage: Received datastoreUpdated() event from dispatch service:\n", data);
+    this.dsSubscription = this.dispatch.datastoreUpdated().subscribe(async (data:{type:DatabaseKey, payload:any}) => {
+      Log.l("PayrollPage: Received datastoreUpdated() event from dispatch service:", data);
       try {
         let key = data.type;
         let payload = data.payload;
@@ -184,7 +193,8 @@ export class PayrollPage implements OnInit,OnDestroy {
             }
             this.updateView();
           }
-        } else if(key === 'reports' || key === 'reports_ver101100' || key.indexOf('reports') > -1) {
+        // } else if(key === 'reports' || key === 'reports_ver101100' || key.indexOf('reports') > -1) {
+        } else if(key === 'reports') {
           let tempReports = this.allData.reports;
           let oldReportCount:number = tempReports.length;
           if(Array.isArray(payload) && payload.length) {
@@ -203,15 +213,6 @@ export class PayrollPage implements OnInit,OnDestroy {
             }
             this.updateView();
           }
-          // this.data.setData('reports', payload);
-          // let res:any = this.setupData();
-          // this.setupData().then((res:any) => {
-          //   // this.updateView();
-          //   // let period:PayrollPeriod = this.period;
-          //   // this.updatePeriod(period);
-          //   Log.l(`Payroll: DataStore update event received and setupData() finished.`);
-          // });
-        // throw err;
         }
       } catch(err) {
         Log.l(`PayrollPage(): datastoreUpdated() but got error processing it! `);
@@ -273,7 +274,19 @@ export class PayrollPage implements OnInit,OnDestroy {
         return date >= start && date <= end;
       }
     });
-    let counts:number[] = [this.reports.length, this.others.length, this.logistics.length];
+    this.drivings = this.allData.drivings.filter((a:ReportDriving) => {
+      if(a instanceof ReportDriving) {
+        let date:string = a.report_date;
+        return date >= start && date <= end;
+      }
+    });
+    this.maintenances = this.allData.maintenances.filter((a:ReportMaintenance) => {
+      if(a instanceof ReportMaintenance) {
+        let date:string = a.report_date;
+        return date >= start && date <= end;
+      }
+    });
+    let counts:number[] = [this.reports.length, this.others.length, this.logistics.length, this.drivings.length, this.maintenances.length];
     Log.l(`updateReportMatches(): Matches: ${counts[0]} reports, ${counts[1]} others, ${counts[2]} logistics.`);
   }
 
@@ -404,7 +417,7 @@ export class PayrollPage implements OnInit,OnDestroy {
         let rsB = (rotB === 'UNASSIGNED') ? 5 : (rotB === 'FIRST WEEK') ? 1 : (rotB === 'CONTN WEEK') ? 2 : (rotB === 'FINAL WEEK') ? 3 : (rotB === 'DAYS OFF') ? 4 : 6;
         return cliA < cliB ? -1 : cliA > cliB ? 1 : locA < locB ? -1 : locA > locB ? 1 : lidA < lidB ? -1 : lidA > lidB ? 1 : rsA < rsB ? -1 : rsA > rsB ? 1 : usrA < usrB ? -1 : usrA > usrB ? 1 : 0;
       }
-      let _sortReports = (a:Report|ReportOther|ReportLogistics, b:Report|ReportOther|ReportLogistics) => {
+      let _sortReports = (a:ReportReal, b:ReportReal) => {
         if(a instanceof Report && b instanceof Report) {
           return a.report_date > b.report_date ? 1 : a.report_date < b.report_date ? -1 : 0;
         } else if(a instanceof ReportOther && b instanceof ReportOther) {
@@ -414,6 +427,10 @@ export class PayrollPage implements OnInit,OnDestroy {
           let dB:string = b.getReportDateAsString();
           return dA > dB ? 1 : dA < dB ? -1 : 0;
         } else if(a instanceof ReportLogistics && b instanceof ReportLogistics) {
+          return a.report_date > b.report_date ? 1 : a.report_date < b.report_date ? -1 : 0;
+        } else if(a instanceof ReportDriving && b instanceof ReportDriving) {
+          return a.report_date > b.report_date ? 1 : a.report_date < b.report_date ? -1 : 0;
+        } else if(a instanceof ReportMaintenance && b instanceof ReportMaintenance) {
           return a.report_date > b.report_date ? 1 : a.report_date < b.report_date ? -1 : 0;
         } else {
           return 0;
@@ -438,7 +455,9 @@ export class PayrollPage implements OnInit,OnDestroy {
 
       this.reports   = this.allData.reports.sort(_sortReports);
       this.others    = this.allData.others.sort(_sortReports);
-      this.logistics = this.allData.others.sort(_sortReports);
+      this.logistics = this.allData.logistics.sort(_sortReports);
+      this.drivings = this.allData.drivings.sort(_sortReports);
+      this.maintenances = this.allData.maintenances.sort(_sortReports);
       this.sites     = this.allData.sites.slice(0);
       this.schedules = this.allData.schedules.sort((a:Schedule, b:Schedule) => {
         return a.startXL < b.startXL ? 1 : a.startXL > b.startXL ? -1 : 0;
@@ -618,7 +637,7 @@ export class PayrollPage implements OnInit,OnDestroy {
 
     this.updateReportMatches();
 
-    Log.l(`periodChanged(): For period ${start} - ${end}, reports is:\n`, this.reports);
+    Log.l(`periodChanged(): For period ${start} - ${end}, reports is:`, this.reports);
 
     let pDate = moment(period.start_date);
     this.eRot = new Map();
@@ -628,25 +647,34 @@ export class PayrollPage implements OnInit,OnDestroy {
       this.eRot.set(tech, rotSeq);
     }
     for(let tech of this.employees) {
+      let username = tech.getUsername();
       let date:Moment = moment(period.start_date);
       let techPeriod:PayrollPeriod = this.data.createPeriodForTech(tech, date);
       let shifts:Shift[] = techPeriod.getPayrollShifts();
       for(let shift of shifts) {
-        let shiftDate:string = shift.getShiftDate().format("YYYY-MM-DD");
+        let shiftDate:string = shift.getShiftDateString();
         let reports:Report[] = this.reports.filter((a:Report) => {
-          return a.report_date === shiftDate && a.username === tech.username;
+          return a.report_date === shiftDate && a.username === username;
         });
         let others:ReportOther[] = this.others.filter((a:ReportOther) => {
           // let otherDate = a.report_date.format("YYYY-MM-DD");
           let date:string = a.getReportDateAsString();
-          return date === shiftDate && a.username === tech.username;
+          return date === shiftDate && a.username === username;
         });
         let logistics:ReportLogistics[] = this.logistics.filter((a:ReportLogistics) => {
-          return a.report_date === shiftDate && a.username === tech.username;
+          return a.report_date === shiftDate && a.username === username;
+        });
+        let drivings:ReportDriving[] = this.drivings.filter((a:ReportDriving) => {
+          return a.report_date === shiftDate && a.username === username;
+        });
+        let maintenances:ReportMaintenance[] = this.maintenances.filter((a:ReportMaintenance) => {
+          return a.report_date === shiftDate && a.username === username;
         });
         shift.setShiftReports([]);
         shift.setOtherReports([]);
         shift.setLogisticsReports([]);
+        shift.setDrivingReports([]);
+        shift.setMaintenanceReports([]);
         for(let report of reports) {
           shift.addShiftReport(report);
         }
@@ -655,6 +683,12 @@ export class PayrollPage implements OnInit,OnDestroy {
         }
         for(let report of logistics) {
           shift.addLogisticsReport(report);
+        }
+        for(let report of drivings) {
+          shift.addDrivingReport(report);
+        }
+        for(let report of maintenances) {
+          shift.addMaintenanceReport(report);
         }
       }
 
@@ -980,7 +1014,9 @@ export class PayrollPage implements OnInit,OnDestroy {
       let loc = site.location.name;
       let lid = site.locID.name;
       let shiftLen = site.getSiteShiftLength(rotation, shift, pDate);
-      let shiftStart = site.getShiftStartTime(shift);
+      // let shiftStart = site.getShiftStartTime(shift);
+      let shiftStart = site.getShiftStartTimeString(shift);
+      // let shiftStart = site.getShiftStartTimeNumber(shift);
       let usr = "";
       let rate = !isNaN(Number(tech.payRate)) ? Number(tech.payRate) : 0;
       if(this.prefs.CONSOLE.payroll.exportUseQuickbooksName) {
@@ -1122,17 +1158,26 @@ export class PayrollPage implements OnInit,OnDestroy {
       // this.notify.addInfo("OK", "Refreshing data and recalculating payroll...", 5000);
       // setTimeout(async () => {
       await this.data.delay(500);
-      let dbname1:string = this.prefs.getDB('reports');
-      let dbname2:string = this.prefs.getDB('reports_other');
-      let dbname3:string = this.prefs.getDB('logistics');
+      let dbname1 = this.prefs.getDB('reports');
+      let dbname2 = this.prefs.getDB('reports_other');
+      let dbname3 = this.prefs.getDB('logistics');
+      let dbname4 = this.prefs.getDB('drivings');
+      let dbname5 = this.prefs.getDB('maintenances');
       let count1:number = await this.db.getDocCount(dbname1);
       let count2:number = await this.db.getDocCount(dbname2);
       let count3:number = await this.db.getDocCount(dbname3);
-      let text:string = `Reading ${count1} work reports, ${count2} misc reports, and ${count3} logistics reports ...`;
+      let count4:number = await this.db.getDocCount(dbname4);
+      let count5:number = await this.db.getDocCount(dbname5);
+      let text:string = `Reading ${count1} work reports, ${count2} misc reports, ${count3} logistics reports, ${count4} driving reports, ${count5} maintenance reports …`;
       spinnerID = await this.alert.showSpinner(text);
-      let j = await this.data.getReports(1000000);
-      let k = await this.data.getReportOthers();
-      let n = await this.data.getReportLogistics();
+      this.dispatch.triggerAppEvent('updatefromdb', {db: 'reports'});
+      this.dispatch.triggerAppEvent('updatefromdb', {db: 'others'});
+      this.dispatch.triggerAppEvent('updatefromdb', {db: 'logistics'});
+      this.dispatch.triggerAppEvent('updatefromdb', {db: 'drivings'});
+      this.dispatch.triggerAppEvent('updatefromdb', {db: 'maintenances'});
+      // let j = await this.data.getReports(1000000);
+      // let k = await this.data.getReportOthers();
+      // let n = await this.data.getReportLogistics();
       // let M = await this.runWhenReady();
       let M:any;
       M = await this.alert.hideSpinnerPromise(spinnerID);
@@ -1164,9 +1209,12 @@ export class PayrollPage implements OnInit,OnDestroy {
         text = `Reading ${count} reports. Payroll must be recalculated after this is done.`;
       }
       spinnerID = await this.alert.showSpinnerPromise(text);
-      let j = await this.data.getReports(1000000);
+      
+      // let j = await this.data.getReports(1000000);
       // let k = await this.data.getReportOthers();
       // let M = await this.runWhenReady();
+      let j = await this.data.updateFromDB('reports');
+      let k = await this.data.updateFromDB('reports_other');
       let M:any;
       if(recalc) {
         M = await this.runWhenSubscriptionsAreAlreadyInitialized();
@@ -1175,7 +1223,7 @@ export class PayrollPage implements OnInit,OnDestroy {
       this.notify.addSuccess("SUCCESS", "Refreshed work reports", 3000);
       // }, 500);
     } catch (err) {
-      Log.l("refreshReports(): Error refreshing data!");
+      Log.l("Payroll.refreshReports(): Error refreshing data!");
       Log.e(err);
       await this.alert.hideSpinnerPromise(spinnerID);
       this.notify.addError("Error", `Error refreshing reports: '${err.message}'`, 10000);
@@ -1199,7 +1247,8 @@ export class PayrollPage implements OnInit,OnDestroy {
         text = `Reading ${count} misc reports. Payroll must be recalculated after this is done.`;
       }
       spinnerID = await this.alert.showSpinnerPromise(text);
-      let j = await this.data.getReportOthers();
+      // let j = await this.data.getReportOthers();
+      let j = await this.data.updateFromDB('reports_other');
       // let k = await this.runWhenReady();
       let M:any;
       if(recalc) {
@@ -1209,7 +1258,7 @@ export class PayrollPage implements OnInit,OnDestroy {
       this.notify.addSuccess("SUCCESS", "Refreshed misc reports", 3000);
       // }, 500);
     } catch (err) {
-      Log.l("refreshOthers(): Error refreshing misc reports!");
+      Log.l("Payroll.refreshOthers(): Error refreshing misc reports!");
       Log.e(err);
       await this.alert.hideSpinnerPromise(spinnerID);
       this.notify.addError("Error", `Error refreshing misc reports: '${err.message}'`, 10000);
@@ -1233,7 +1282,8 @@ export class PayrollPage implements OnInit,OnDestroy {
         text = `Reading ${count} logistics reports. Payroll must be recalculated after this is done.`;
       }
       spinnerID = await this.alert.showSpinnerPromise(text);
-      let j = await this.data.getReportLogistics();
+      // let j = await this.data.getReportLogistics();
+      let j = await this.data.updateFromDB('logistics');
       // let k = await this.runWhenReady();
       let M:any;
       if(recalc) {
@@ -1252,6 +1302,61 @@ export class PayrollPage implements OnInit,OnDestroy {
 
   public toggleFlags(evt?:any) {
     this.prefs.CONSOLE.payroll.showAlerts = !this.prefs.CONSOLE.payroll.showAlerts;
+  }
+
+  public printf(...params):string {
+    return sprintf(...params);
+  }
+
+  public async getReportsStatus(dbkey?:DatabaseKey):Promise<any> {
+    let dbTotal = 0, rdbTotal = 0, dbDiff = 0;
+    let key = dbkey && typeof dbkey === 'string' ? dbkey : 'reports';
+    let spinnerID:string;
+    try {
+      Log.l(`Payroll.getReportsStatus(): Called with dbkey:`, dbkey);
+      let dbname  = this.prefs.getDB(key);
+      let db1     = this.db.addDB(dbname);
+      let dbInfo  = await db1.info();
+      dbTotal     = dbInfo.doc_count;
+      let rdb1    = this.server.addRDB(dbname);
+      let rdbInfo = await rdb1.info();
+      rdbTotal    = rdbInfo.doc_count;
+      dbDiff      = rdbTotal - dbTotal;
+      if(dbDiff < 0) {
+        dbDiff = Math.abs(dbDiff);
+      }
+      this.reportsLocalTotal = dbTotal;
+      this.reportsRemoteTotal = rdbTotal;
+      this.reportsRemoteTotal = dbDiff;
+      Log.l(`Payroll.getReportsStatus(): For '${key}', local: ${dbTotal}, remote: ${rdbTotal}, remaining: ${dbDiff}`);
+      // spinnerID = await this.alert.showSpinner(`readReports(): Reading reports for week '${date.format("DD MMM YYYY")}'...`);
+      // let spinner = this.alert.getSpinner(spinnerID);
+      // let res = await this.db.getAllReportsPlusNew(date)
+      // Log.l("Payroll.readReports(): Read in:", res);
+      // this.reports = res;
+      // this.data.setData('reports', res);
+      // this.updatePeriod(period);
+      // await this.alert.hideSpinner(spinnerID);
+      // }).catch(err => {
+      //   Log.l("readReports(): Error reading reports for PayrollPeriod.");
+      //   Log.e(err);
+      //   this.alert.hideSpinner(spinnerID);
+      //   this.notify.addError("ERROR", "Error reading reports for payroll period:<br>\n<br>\n" + err.message, 10000);
+      // });
+    } catch(err) {
+      Log.l("Payroll.readReports(): Error reading reports for PayrollPeriod.");
+      Log.e(err);
+      this.alert.hideSpinner(spinnerID);
+      this.notify.addError("ERROR", "Error reading reports for payroll period:<br>\n<br>\n" + err.message, 10000);
+    }
+  }
+  
+  public toggleStatusBar(evt?:Event):boolean {
+    this.statusBarEnabled = !this.statusBarEnabled;
+    Log.l("Payroll.toggleStatusBar(): Toggling status bar to:", this.statusBarEnabled);
+    this.updateView();
+    return this.statusBarEnabled;
+    
   }
 
 }

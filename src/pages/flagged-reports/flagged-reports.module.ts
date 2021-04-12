@@ -3,7 +3,7 @@ import { IonicPageModule               } from 'ionic-angular'               ;
 import { FlaggedReportsPage            } from './flagged-reports'           ;
 import { DataTableModule, SharedModule } from 'primeng/primeng'             ;
 import { CalendarModule                } from 'primeng/primeng'             ;
-import { ReportViewBetaComponentModule } from 'components/report-view-beta' ;
+import { ReportViewComponentModule     } from 'components/report-view'      ;
 
 @NgModule({
   declarations: [
@@ -14,7 +14,7 @@ import { ReportViewBetaComponentModule } from 'components/report-view-beta' ;
     DataTableModule,
     SharedModule,
     CalendarModule,
-    ReportViewBetaComponentModule,
+    ReportViewComponentModule,
   ],
   exports: [
     FlaggedReportsPage

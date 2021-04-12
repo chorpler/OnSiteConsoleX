@@ -4,7 +4,7 @@ import { IonicPageModule               } from 'ionic-angular'                   
 import { HBPreauthPage                 } from './invoicing-hb-preauth'                              ;
 import { DropdownModule                } from 'primeng/dropdown'                                    ;
 import { MultiSelectModule,            } from 'primeng/multiselect'                                 ;
-import { ReportViewBetaComponentModule } from 'components/report-view-beta/report-view-beta.module' ;
+import { ReportViewComponentModule     } from 'components/report-view'                              ;
 import { PreauthOpenComponentModule    } from 'components/preauth-open/preauth-open.module'         ;
 import { OptionsGenericComponentModule } from 'components/options-generic'                          ;
 
@@ -19,7 +19,7 @@ import { OptionsGenericComponentModule } from 'components/options-generic'      
     IonicPageModule.forChild(HBPreauthPage),
     DropdownModule,
     MultiSelectModule,
-    ReportViewBetaComponentModule,
+    ReportViewComponentModule,
     PreauthOpenComponentModule,
     OptionsGenericComponentModule,
   ],

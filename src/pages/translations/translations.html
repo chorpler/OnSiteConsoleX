@@ -1,0 +1,262 @@
+<ion-header>
+  <ion-navbar [class.dirty-in-page]="pageDirty">
+    <ion-buttons left>
+      <button ion-button menuToggle *ngIf="!modalMode && !data.currentlyOpeningPage">
+        <ion-icon name="menu"></ion-icon>
+      </button>
+      <!-- <button type="button" ion-button icon-only (click)="cancelAndExitModal($event)" *ngIf="modalMode && !data.currentlyOpeningPage">
+        <ion-icon name="close"></ion-icon>
+      </button> -->
+      <ion-spinner name="bubbles" [class.spinner-opening-page]="true" *ngIf="data.currentlyOpeningPage"></ion-spinner>
+    </ion-buttons>
+    <ion-title>
+      <span class="page-title">{{title}}<span class="dirty-caption" *ngIf="pageDirty"> (unsaved changes)</span></span>
+    </ion-title>
+    <ion-buttons right>
+      <span class="menubar-buttons">
+        <span class="menubar-button" (click)="resetAllTables($event)" title="Reset all translation tables (clear filters, sorting, etc.)">
+          <i class="fa fa-ban clear-button"></i>
+        </span>
+        <span class="menubar-button" (click)="addTranslation($event)" title="Add new translation. For HTML editor, hold down SHIFT key while clicking.">
+          <i class="fal fa-plus-square"></i>
+        </span>
+        <span class="menubar-button" (click)="possibleSaveTranslations($event)" title="Save translations">
+          <i class="fal fa-save"></i>
+        </span>
+        <!-- <span class="menubar-button" title="Run Tech Shift Reports for visible reports" (click)="openTechShiftReports($event)">
+          <i class="icomoon-shift-reports"></i>
+        </span>
+        <span class="menubar-button" title="Load old reports (can be slow)" (click)="downloadOldReports($event)">
+          <i class="fa fa-database"></i>
+        </span>
+        <span class="menubar-button" title="Load all reports fresh from server" (click)="refreshData($event)">
+          <i class="fa fa-refresh"></i>
+        </span>
+        <span class="menubar-button" title="Export Reports for Payroll" (click)="exportWorkReportsForPayroll($event)">
+          <i class="icomoon-payroll"></i>
+        </span>
+        <span class="menubar-button" title="Export reports table to CSV file" (click)="exportReportsTableAsCSV($event)">
+          <i class="fa fa-cloud-download"></i>
+        </span>
+        <span class="menubar-button" title="Copy reports list to clipboard (to paste in Excel, etc.)" (click)="copyTable($event)">
+          <i class="fa fa-clipboard"></i>
+        </span> -->
+      </span>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<!-- <ion-content padding *ngIf="dataReady && data.ready()"> -->
+<ion-content padding #translationsContent id="translations-content" *ngIf="dataReady" (paste)="onPaste($event)">
+  <!-- <p-panel #translationsPanel id="panel-translations" [styleClass]="'translations-panel'" [class.dirty-in-panel]="panelDirty[0]" [toggleable]="true"> -->
+  <p-panel #translationsPanel id="panel-translations" [styleClass]="'translations-panel'" [class.dirty-in-panel]="panelDirty[0]" [toggleable]="true">
+    <p-header>
+      <span class="panel-header">
+        <span class="button-left">
+          <span class="fal fa-trash-alt panel-header-button" [class.highlighted]="deleteModes[0]" title="Enable delete mode" (click)="toggleDeleteMode(0, $event)"></span>
+        </span>
+        <!-- <span class="button-left">
+          <span class="panel-header-button db-download" title="Load work reports from database" (click)="possibleUpdateReports(0, $event)"></span>
+        </span>
+        <span class="button-left">
+          <span class="panel-header-button" title="Calculate total hours shown" (click)="calculateHoursShown($event)"><i class="fal fa-calculator-alt"></i></span>
+        </span>
+        <span class="button-left" *ngIf="data.status.role === 'dev'">
+          <span class="panel-header-button button-dev" title="Change all selected reports (still in development)" (click)="bulkEdit(1, $event)"><i class="fal fa-pencil-ruler"></i></span>
+        </span> -->
+        <!-- <span class="panel-title">
+          OnSiteX Translations<span class="translation-count"> ({{translations?.length}} loaded<span class="translation-count-filtered" *ngIf="filteredCount">, {{filteredCount}} matches</span>)</span>
+        </span> -->
+        <span class="panel-title">
+          OnSiteX Translations<span class="translation-count"> ({{translations?.length}} loaded<span class="translation-count-filtered" *ngIf="filteredCount">, {{filteredCount}} matches</span>)</span>
+          <span class="dirty-panel-caption" *ngIf="panelDirty[0]"> (unsaved changes)</span>
+        </span>
+        <span class="button-right">
+          <span class="panel-header-button right" title="Reset this table (clear filters, selected rows, etc.)" (click)="resetTable(dt, $event)"><i class="fal fa-history"></i></span>
+        </span>
+      </span>
+    </p-header>
+
+    <div #printArea class="table-wrapper" id="print-area">
+
+      <!-- Begin Translations table -->
+      <p-table #dt [styleClass]="'translations-table'" [columns]="selectedColumns" [value]="translations" [resizableColumns]="true" [autoLayout]="autoLayout" [rows]="rowCount" [paginator]="showTableFoot" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" sortMode="multiple" [multiSortMeta]="multiSortMetaTrans" stateStorage="local" stateKey="onsiteconsolex-tablestate-translations-main">
+
+        <!-- Caption area (column multiselect, date range filter, global search input) -->
+        <ng-template pTemplate="caption">
+          <div class="table-caption">
+            <div class="column-choose-wrapper">
+              <p-multiSelect #columnSelect [styleClass]="'column-multiselect'" optionLabel="header" defaultLabel="Choose columns" [options]="cols" [(ngModel)]="selectedColumns" [selectedItemsLabel]="selectedLabel" (onChange)="selectionChanged($event)"></p-multiSelect>
+            </div>
+            <div class="caption-right">
+              <div class="global-filter-wrapper">
+                <i class="global-filter-icon fa fa-search" style="margin:4px 4px 0 0"></i>
+                <input #globalFilterInput class="global-filter-input" type="text" pInputText size="50" placeholder="Global Search" (input)="dt.filterGlobal($event.target.value, 'contains')" style="width:auto">
+              </div>
+            </div>
+          </div>
+        </ng-template>
+
+        <!-- Header area (col name, col sort icons, filter fields) -->
+        <ng-template pTemplate="header" let-columns>
+          <tr [class.reports-table-header]="true">
+            <th [class.header-col-button]="true" [ngStyle]="styleColEdit" *ngIf="showButtonCol"></th>
+            <th [class.header-col-index]="true" [ngStyle]="styleColIndex">#</th>
+            <th *ngFor="let col of columns; let i=index" [class.header-col]="true" [ngClass]="col?.class" [pSortableColumn]="col?.field" [ngStyle]="col?.style" [title]="col?.tooltip" pResizableColumn>
+              {{col?.header}}
+              <p-sortIcon [field]="col?.field"></p-sortIcon>
+            </th>
+          </tr>
+          <tr class="reports-table-filter-row" *ngIf="showFilterRow">
+            <th [class.header-col-button]="true" *ngIf="showButtonCol"></th>
+            <th [class.header-col-index]="true" [ngStyle]="styleColIndex"></th>
+            <th *ngFor="let col of columns" [class.filter-col]="true" [ngClass]="col?.class" [title]="col?.tooltip">
+              <input [class.translations-col-filter]="true" pInputText type="text" [placeholder]="col?.filterPlaceholder" (input)="dt.filter($event.target.value, col.field, 'contains')">
+            </th>
+          </tr>
+        </ng-template>
+
+        <!-- Translation table body rows and columns (actual data) -->
+        <ng-template pTemplate="body" let-rowData let-columns="columns" let-rowIndex="rowIndex">
+          <!-- <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex" [class.translation-row]="true" [class.dirty-row]="dirtyRows[0][rowIndex]"> -->
+          <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex" [class.translation-row]="true" [class.dirty-row]="rowData._meta.dirty" [class.new-row]="rowData._meta.new" [class.duplicate-row]="isDuplicate(rowData)">
+            <td [class.button-col]="true" title="Edit translation record" (click)="editTranslation(rowData, $event)" *ngIf="showButtonCol && !deleteModes[0]">
+              <span class="icon-button-wrapper">
+                <i class="fal fa-edit translation-button-icon"></i>
+              </span>
+            </td>
+            <td [class.button-col]="true" title="Delete translation record" (click)="possibleDeleteTranslation(rowData, $event)" *ngIf="showButtonCol && deleteModes[0]">
+              <span class="icon-button-wrapper">
+                <i class="fal fa-trash-alt translation-button-icon delete-icon"></i>
+              </span>
+            </td>
+            <td [class.col-index]="true">{{rowIndex+1}}</td>
+            <!-- <td *ngFor="let col of columns; let i=index" [class.body-col]="true" [ngClass]="col?.class" [ngStyle]="col?.style">
+              <span class="cell-body-data">
+                {{rowData[col?.field]}}
+              </span>
+            </td> -->
+            <td pEditableColumn *ngFor="let col of columns; let i=index" class="editable-col-{{rowIndex|number:'3.0-0'}}-{{i|number:'3.0-0'}}" [class.brand-new]="rowData._meta.new" [class.body-col]="true" [ngClass]="col?.class" [ngStyle]="col?.style">
+              <p-cellEditor>
+                <ng-template pTemplate="input">
+                  <input pInputText type="text" [(ngModel)]="rowData[col.field]" (input)="dirtyUpRow(0, rowData, rowIndex)">
+                </ng-template>
+                <ng-template pTemplate="output">{{rowData[col?.field]}}</ng-template>
+              </p-cellEditor>
+            </td>
+          </tr>
+        </ng-template>
+
+      </p-table>
+      <!-- Table ended -->
+    </div>
+  </p-panel>
+
+  <p-panel #maintenancePanel id="panel-maintenance-translations" [styleClass]="'translations-panel'" [class.dirty-in-panel]="panelDirty[1]" [toggleable]="true">
+    <p-header>
+      <span class="panel-header">
+        <span class="button-left">
+          <span class="fal fa-trash-alt panel-header-button" [class.highlighted]="deleteModes[1]" title="Enable delete mode" (click)="toggleDeleteMode(1, $event)"></span>
+        </span>
+        <!-- <span class="button-left">
+          <span class="panel-header-button" title="Calculate total hours shown" (click)="calculateHoursShown($event)"><i class="fal fa-calculator-alt"></i></span>
+        </span> -->
+        <!-- <span class="button-left" *ngIf="data.status.role === 'dev'">
+          <span class="panel-header-button button-dev" title="Change all selected reports (still in development)" (click)="bulkEdit(1, $event)"><i class="fal fa-pencil-ruler"></i></span>
+        </span> -->
+        <!-- <span class="panel-title">
+          OnSiteX Translations<span class="translation-count"> ({{translations?.length}} loaded<span class="translation-count-filtered" *ngIf="filteredCount">, {{filteredCount}} matches</span>)</span>
+        </span> -->
+        <span class="panel-title">
+          Maintenance Translations<span class="translation-count"> ({{maint_words?.length}} loaded<span class="translation-count-filtered" *ngIf="filteredMaintCount">, {{filteredMaintCount}} matches</span>)</span>
+          <span class="dirty-panel-caption" *ngIf="panelDirty[1]"> (unsaved changes)</span>
+        </span>
+        <span class="button-right">
+          <span class="panel-header-button right" title="Reset this table (clear filters, selected rows, etc.)" (click)="resetTable(maintTable, $event)"><i class="fal fa-history"></i></span>
+        </span>
+      </span>
+    </p-header>
+
+    <div #printAreaMaintenance class="table-wrapper" id="print-area">
+
+      <!-- Begin Translations table -->
+      <p-table #maintTable [styleClass]="'translations-table'" [columns]="selectedColumnsMaint" [value]="maint_words" [resizableColumns]="true" [autoLayout]="autoLayout" [rows]="rowCount" [paginator]="showTableFoot" [pageLinks]="3" [rowsPerPageOptions]="pageSizeOptions" sortMode="multiple" [multiSortMeta]="multiSortMetaMaint" stateStorage="local" stateKey="onsiteconsolex-tablestate-translations-maintenance">
+
+        <!-- Caption area (column multiselect, date range filter, global search input) -->
+        <ng-template pTemplate="caption">
+          <div class="table-caption">
+            <div class="column-choose-wrapper">
+              <p-multiSelect #columnSelectMaint [styleClass]="'column-multiselect'" optionLabel="header" defaultLabel="Choose columns" [options]="colsMaint" [(ngModel)]="selectedColumnsMaint" [selectedItemsLabel]="selectedLabelMaint" (onChange)="selectionChangedMaint($event)"></p-multiSelect>
+            </div>
+            <div class="caption-right">
+              <div class="global-filter-wrapper">
+                <i class="global-filter-icon fa fa-search" style="margin:4px 4px 0 0"></i>
+                <input #globalFilterInput class="global-filter-input" type="text" pInputText size="50" placeholder="Global Search" (input)="maintTable.filterGlobal($event.target.value, 'contains')" style="width:auto">
+              </div>
+            </div>
+          </div>
+        </ng-template>
+
+        <!-- Header area (col name, col sort icons, filter fields) -->
+        <ng-template pTemplate="header" let-columns>
+          <tr [class.reports-table-header]="true">
+            <th [class.header-col-button]="true" [ngStyle]="styleColEdit" *ngIf="showButtonCol"></th>
+            <th [class.header-col-index]="true" [ngStyle]="styleColIndex">#</th>
+            <th *ngFor="let col of columns; let i=index" [class.header-col]="true" [ngClass]="col?.class" [pSortableColumn]="col?.field" [ngStyle]="col?.style" [title]="col?.tooltip" pResizableColumn>
+              {{col?.header}}
+              <p-sortIcon [field]="col?.field"></p-sortIcon>
+            </th>
+          </tr>
+          <tr class="reports-table-filter-row" *ngIf="showFilterRow">
+            <th [class.header-col-button]="true" *ngIf="showButtonCol"></th>
+            <th [class.header-col-index]="true" [ngStyle]="styleColIndex"></th>
+            <th *ngFor="let col of columns" [class.filter-col]="true" [ngClass]="col?.class" [title]="col?.tooltip">
+              <input [class.translations-col-filter]="true" pInputText type="text" [placeholder]="col?.filterPlaceholder" (input)="maintTable.filter($event.target.value, col.field, 'contains')">
+            </th>
+          </tr>
+        </ng-template>
+
+        <!-- Report table body rows and columns (actual data) -->
+        <ng-template pTemplate="body" let-rowData let-columns="columns" let-rowIndex="rowIndex">
+          <!-- <tr [pEditableRow]="rowData" [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex"> -->
+          <!-- <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex" [class.translation-row]="true" [class.dirty-row]="dirtyRows[1][rowIndex]"> -->
+          <tr [pSelectableRow]="rowData" [pSelectableRowIndex]="rowIndex" [class.translation-row]="true" [class.dirty-row]="rowData._meta.dirty" [class.new-row]="rowData._meta.new" [class.duplicate-row]="isDuplicate(rowData)">
+            <td [class.button-col]="true" title="View maintenance translation record" (click)="editMaintenance(rowData, $event)" *ngIf="showButtonCol && !deleteModes[1]">
+              <span class="icon-button-wrapper">
+                <i class="fal fa-edit translation-button-icon"></i>
+              </span>
+            </td>
+            <td [class.button-col]="true" title="Delete maintenance translation record" (click)="possibleDeleteMaintenance(rowData, $event)" *ngIf="showButtonCol && deleteModes[1]">
+              <span class="icon-button-wrapper">
+                <i class="fal fa-trash-alt translation-button-icon delete-icon"></i>
+              </span>
+            </td>
+            <td [class.col-index]="true">{{rowIndex+1}}</td>
+            <!-- <td *ngFor="let col of columns; let i=index" [class.body-col]="true" [ngClass]="col?.class" [ngStyle]="col?.style">
+              <span class="cell-body-data">
+                {{rowData[col?.field]}}
+              </span>
+            </td> -->
+            <td pEditableColumn *ngFor="let col of columns; let i=index" [class.body-col]="true" [class.dropdown-col]="true" [ngClass]="col?.class" [ngStyle]="col?.style">
+              <p-cellEditor>
+                <ng-template pTemplate="input">
+                  <input pInputText type="text" [(ngModel)]="rowData[col.field]" (input)="dirtyUpRow(1, rowData, rowIndex)" *ngIf="col.field !== 'maint_type'">
+                  <!-- <p-dropdown #maintTypeDropdown [options]="maintenanceTypes" [(ngModel)]="rowData[col.field]" [style]="{'width':'100%'}" (onChange)="dirtyUpRow(1, rowData, rowIndex)" *ngIf="col.field === 'maint_type'"></p-dropdown> -->
+                  <p-dropdown #maintTypeDropdown [options]="maintenanceTypes" [(ngModel)]="rowData[col.field]" [style]="{'width':'100%'}" (onChange)="maintenanceTypeChanged(rowData, 1, rowIndex)" *ngIf="col.field === 'maint_type'"></p-dropdown>
+                </ng-template>
+                <ng-template pTemplate="output">{{rowData[col?.field]}}</ng-template>
+              </p-cellEditor>
+            </td>
+          </tr>
+        </ng-template>
+
+      </p-table>
+      <!-- Table ended -->
+    </div>
+  </p-panel>
+  
+
+</ion-content>
+
+<translation-editor [record]="editRecord" [translations]="editTranslations" [maintTranslations]="maint_words" [allTranslations]="translations" [mode]="editorMode" (close)="editorClosed($event)" (cancel)="editorClosed($event)" *ngIf="visibleEditor"></translation-editor>
+<translation-import [imports]="importTranslations" [translations]="translations" [maintTranslations]="maint_words" [allTranslations]="translations" (close)="importClosed($event)" (cancel)="importClosed($event)" *ngIf="visibleImport"></translation-import>

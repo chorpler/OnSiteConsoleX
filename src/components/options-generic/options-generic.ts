@@ -8,7 +8,7 @@ import { SelectItem                                  } from 'primeng/api'       
 
 @Component({
   selector: 'options-generic',
-  templateUrl: 'options-generic.html'
+  templateUrl: 'options-generic.html',
 })
 export class OptionsGenericComponent implements OnInit,OnDestroy {
   @Input('type') optionType:string = 'payroll';
@@ -17,6 +17,7 @@ export class OptionsGenericComponent implements OnInit,OnDestroy {
   @Output('onSave') onSave = new EventEmitter<any>();
   public showAllSites:boolean = false;
   public firstPeriodDate:Moment;
+  public firstScheduleDate:Moment;
   public tableResizeModes:SelectItem[] = [
     { label: 'fit'   , value: 'fit'    },
     { label: 'expand', value: 'expand' },
@@ -36,13 +37,26 @@ export class OptionsGenericComponent implements OnInit,OnDestroy {
   }
 
   ngOnInit() {
-    Log.l("OptionsGenericComponent: ngOnInit() called...");
-    this.firstPeriodDate = this.updateStartDate();
-    this.dataReady = true;
+    Log.l("OptionsGenericComponent: ngOnInit() called …");
+    if(this.data.isAppReady()) {
+      this.runWhenReady();
+    }
   }
 
   ngOnDestroy() {
     Log.l("OptionsGenericComponent: ngOnDestroy() called...");
+  }
+
+  public async runWhenReady():Promise<any> {
+    try {
+      this.firstPeriodDate = this.updateStartDate();
+      this.firstScheduleDate = this.initializeSchedulesStartDate();
+      this.dataReady = true;
+    } catch(err) {
+      Log.l(`OptionsGeneric.runWhenReady(): Error loading options page`);
+      Log.e(err);
+      // throw err;
+    }
   }
 
   public cancel(event:any) {
@@ -53,6 +67,35 @@ export class OptionsGenericComponent implements OnInit,OnDestroy {
   public save(event:any) {
     Log.l("OptionsGeneric: save() called");
     this.onSave.emit(this.prefs);
+  }
+
+  public initializeSchedulesStartDate():Moment {
+    let defaultCount = 12;
+    let val = Number(this.prefs.CONSOLE.scheduling.pastSchedulesToLoad);
+    if(isNaN(val) || val <= 0) {
+      val = defaultCount;
+      this.prefs.CONSOLE.scheduling.pastSchedulesToLoad = defaultCount;
+    }
+    this.firstScheduleDate = this.data.getStartDateForPayrollPeriodCount(val).add(1, 'weeks');
+    return this.firstScheduleDate;
+  }
+
+  public async updateSchedulesStartDate(evt?:any):Promise<Moment> {
+    try {
+      let defaultCount = 12;
+      let val = Number(this.prefs.CONSOLE.scheduling.pastSchedulesToLoad);
+      if(isNaN(val) || val <= 0) {
+        val = defaultCount;
+        this.prefs.CONSOLE.scheduling.pastSchedulesToLoad = defaultCount;
+      }
+      this.firstScheduleDate = this.data.getStartDateForPayrollPeriodCount(val).add(1, 'weeks');
+      let res = await this.data.savePreferences();
+      return this.firstScheduleDate;
+    } catch(err) {
+      Log.l(`updateScheduleStartDate(): Error updating schedule start date`);
+      Log.e(err);
+      throw err;
+    }
   }
 
   public updateStartDate(evt?:any):Moment {

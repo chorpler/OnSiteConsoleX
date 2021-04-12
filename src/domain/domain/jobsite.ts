@@ -1,8 +1,13 @@
 /**
  * Name: Jobsite domain class
- * Vers: 7.3.1
- * Date: 2019-07-01
+ * Vers: 8.0.0
+ * Date: 2019-08-13
  * Auth: David Sargeant
+ * Logs: 8.0.0 2019-08-13: Changed parameter order and add types for getHoursList(),getShiftLengthForDate(),getSiteShiftLength() methods
+ * Logs: 7.4.3 2019-07-18: Added matchesClient(),matchesLocation(),matchesLocID(),matchesOneCLL(),matchesCLL methods; fixed small TSLint errors
+ * Logs: 7.4.2 2019-07-17: Added isValidForReports() method
+ * Logs: 7.4.1 2019-07-17: Added billable property, isBillable() method
+ * Logs: 7.3.2 2019-07-03: Added getShiftStartTimeNumber() method
  * Logs: 7.3.1 2019-07-01: Added SESAShiftRotation, SESAShiftStartTime, SiteScheduleType, ShiftTimes, and other type info; minor TSLint warning fixes
  * Logs: 7.2.1 2019-03-15: Added getClient(), getLocation(), getLocID() methods
  * Logs: 7.1.2 2018-12-13: Added getKeys() and isOnSite() methods; refactored imports
@@ -34,6 +39,8 @@ import { SESAClient         } from '../config/config.types'  ;
 import { SESALocation       } from '../config/config.types'  ;
 import { SESALocID          } from '../config/config.types'  ;
 import { SESAAux            } from '../config/config.types'  ;
+import { SESACLL            } from '../config/config.types'  ;
+import { SESACLLCompare     } from '../config/config.types'  ;
 import { Street             } from './street'                ;
 import { Address            } from './address'               ;
 import { SESAShiftRotation  } from '../config/config.types'  ;
@@ -55,16 +62,24 @@ export type SESAShiftRotationKey = "FIRST WEEK" | "CONTN WEEK" | "FINAL WEEK" | 
 export type SiteHoursList = {
   [propName in SESAShiftRotationKey]?: SiteRotationStartTimes;
 };
+// export interface SESAJobsiteCLL {
+//   name:string;
+//   fullName:string;
+//   code?:string;
+//   value?:string;
+// }
+// export type JobsiteCLL = SESAJobsiteCLL|string;
 
 const matchesCI = function(str1:string, str2:string):boolean {
   let lc1:string = typeof str1 === 'string' ? str1.toLowerCase() : "";
   let lc2:string = typeof str2 === 'string' ? str2.toLowerCase() : "";
   let out:boolean = false;
+  // tslint:disable-next-line: triple-equals
   if(lc1 == lc2) {
     out = true;
   }
   return out;
-}
+};
 
 export class Jobsite {
   public _id                       : string  = "";
@@ -97,12 +112,13 @@ export class Jobsite {
   public has_standby               : boolean  = false;
   public sort_number               : number   = 0;
   public site_number               : number = -1001;
-  public shift_start_times         : ShiftTimes = {"AM" :"06:00", "PM": "18:00"} ;
+  public shift_start_times         : ShiftTimes = {AM :"06:00", PM: "18:00"} ;
   public lunch_hour_time           : number = 1;
   public test_site                 : boolean = false;
   public inactive_users            : boolean = false;
   public premium_hours             : boolean = true ;
   public is_office                 : boolean = false;
+  public billable                  : boolean = true ;
 
   constructor(doc?:any) {
     if(doc) {
@@ -356,7 +372,7 @@ export class Jobsite {
     // }
 
     if(this.locID.code !== "MNSHOP") {
-      siteName += ` ${lid}`
+      siteName += ` ${lid}`;
     }
 
     return siteName;
@@ -428,7 +444,6 @@ export class Jobsite {
   }
 
   public getShiftStartTime(key:SiteScheduleType):SESAShiftStartTime {
-    // let doc:any = new SESAShiftStartTime(0);
     if(this.shift_start_times[key] != undefined) {
       let val = this.shift_start_times[key];
       // let sst = new SESAShiftStartTime(val);
@@ -541,59 +556,64 @@ export class Jobsite {
   }
 
 //  public getHoursList(shiftRotation:string|object, shiftTime?:string):{AM:string[],PM:string[]} {
-  public getHoursList(shiftRotation:string|object, shiftTime?:string):SiteRotationStartTimes {
+  public getHoursList(rotation:string, shift_type?:SiteScheduleType):SiteRotationStartTimes {
     let match = "", oneHourList = null, singleShiftList = null;
-    if(typeof shiftRotation === 'string') {
-      match = shiftRotation;
-    } else if(shiftRotation && typeof shiftRotation === 'object' && typeof shiftRotation['name'] === 'string') {
-      match = shiftRotation['name'];
+    if(typeof rotation === 'string') {
+      match = rotation;
+    } else if(rotation && typeof rotation === 'object' && typeof rotation['name'] === 'string') {
+      match = rotation['name'];
     }
     if(this.hoursList[match] !== undefined) {
       oneHourList = this.hoursList[match];
     } else {
       // if (shiftRotation === 'UNASSIGNED' || shiftRotation === 'DAYS OFF') {
-      if(shiftRotation === 'UNASSIGNED') {
+      if(rotation === 'UNASSIGNED') {
         oneHourList = { AM: ["0", "0", "0", "0", "0", "0", "0"], PM: ["0", "0", "0", "0", "0", "0", "0"] };
         return oneHourList;
       } else if(this.site_number === 1) {
         oneHourList = { AM: ["0", "0", "0", "0", "0", "0", "0"], PM: ["0", "0", "0", "0", "0", "0", "0"] };
         return oneHourList;
       } else {
-        Log.e("Jobsite.getHoursList('%s', '%s'): Index not found!", match, shiftTime);
+        Log.e("Jobsite.getHoursList('%s', '%s'): Index not found!", match, shift_type);
         Log.l(this);
         return null;
       }
     }
-    if(shiftTime) {
-      singleShiftList = oneHourList[shiftTime];
+    if(shift_type) {
+      singleShiftList = oneHourList[shift_type];
       return singleShiftList;
     } else {
       return oneHourList;
     }
   }
 
-  public getShiftLengthForDate(shiftRotation:string|object, shiftTime:string, date:Moment|Date):number {
+  public getShiftLengthForDate(date:Moment|Date|string, rotation:string, shift_type:SiteScheduleType):number {
     // Log.l(`Jobsite.getShiftLengthForDate(): Called with shift '${shiftTime}' and shiftRotation:\n`, shiftRotation);
+    let day = moment(date);
+    if(!isMoment(day)) {
+      Log.w(`Jobsite.getShiftLengthForDate(): Not provided with valid date to check shift length on!`);
+      return null;
+    }
     let list;
     if(this.site_number === 1) {
       list = [ "0", "0", "0", "0", "0", "0", "0" ];
     } else {
-      list = this.getHoursList(shiftRotation, shiftTime);
+      list = this.getHoursList(rotation, shift_type);
     }
-    let day = moment(date);
     let dayIndex = day.isoWeekday();
     let hoursIndex = (dayIndex + 4) % 7;
     let shiftLength;
       shiftLength = list[hoursIndex];
     let output = shiftLength;
+    // tslint:disable-next-line: triple-equals
     if(shiftLength == 0) {
       output = "OFF";
     }
     return output;
   }
 
-  public getSiteShiftLength(shiftType: string | object, shiftTime: string, date: Moment | Date) {
-    return this.getShiftLengthForDate(shiftType, shiftTime, date);
+  public getSiteShiftLength(rotation:string, shiftTime:SiteScheduleType, date:Moment|Date|string) {
+    return this.getShiftLengthForDate(date, rotation, shiftTime);
   }
 
   public getSiteNumber() {
@@ -680,6 +700,69 @@ export class Jobsite {
     return Jobsite.isDuplicateOf(this, site);
   }
 
+  public isBillable():boolean {
+    return this.billable;
+  }
+
+  public isValidForReports():boolean {
+    if(this.site_number < 0) {
+      Log.w(`Jobsite.isValidForReports(): Called with site_number property < 0, probably not initialized`);
+      return false;
+    } else if(this.site_number < 1000) {
+      return false;
+    }
+    return true;
+  }
+
+  public matchesClient(cll:SESACLLCompare):boolean {
+    return this.matchesOneCLL('client', cll);
+  }
+
+  public matchesLocation(cll:SESACLLCompare):boolean {
+    return this.matchesOneCLL('location', cll);
+  }
+
+  public matchesLocID(cll:SESACLLCompare):boolean {
+    return this.matchesOneCLL('locID', cll);
+  }
+
+  public matchesOneCLL(type:"client"|"location"|"locID"|"location_id", cll:SESACLLCompare):boolean {
+    let me:SESACLL;
+    if(type === 'client') {
+      // me = this.client.toUpperCase();
+      me = this.client;
+    } else if(type === 'location') {
+      // me = this.location.toUpperCase();
+      me = this.location;
+    } else if(type === 'locID' || type === 'location_id') {
+      // me = this.locID.toUpperCase();
+      me = this.locID;
+    } else {
+      let text:string = `Jobsite.matchesCLL(): Parameter 1 must be type: 'client'|'location'|'locID'. Supplied type incorrect`;
+      Log.w(text + ":", type);
+      let err = new Error(text);
+      throw err;
+    }
+    if(typeof cll === 'object') {
+      // let cll1 = typeof cll.name === 'string' ? cll.name.toUpperCase() : "";
+      // let cll2 = typeof cll.fullName === 'string' ? cll.fullName.toUpperCase() : "";
+      // return me.matches(cll1) || me.matches(cll2);
+      return me.matches(cll);
+    } else if(typeof cll === 'string') {
+      let cll1 = cll.toUpperCase();
+      return me.matches(cll1);
+    } else {
+      let text:string = `Jobsite.matchesCLL(): Parameter 2 must be SESACLL object "{name:string,fullName:string}" or string. Supplied value invalid`;
+      Log.w(text + ":", cll);
+      let err = new Error(text);
+      throw err;
+    }
+  }
+
+  public matchesCLL(client:SESACLLCompare, location:SESACLLCompare, locID:SESACLLCompare):boolean {
+    return this.matchesClient(client) && this.matchesLocation(location) && this.matchesLocID(locID);
+  }
+
   public toJSON():any {
     return this.serialize();
   }
@@ -705,5 +788,5 @@ export class Jobsite {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }

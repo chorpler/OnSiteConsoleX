@@ -1,0 +1,206 @@
+<div class="report-maintenance-wrapper">
+  <!-- <p-dialog #reportViewDialog [styleClass]="'report-maintenance-dialog'" [class.time-error]="report.times_error" [class.date-error]="report.date_error" [header]="header" [(visible)]="visible" [contentStyle]="{'overflow':'visible'}" [modal]="false" [responsive]="true" [draggable]="true" [resizable]="true" [positionLeft]="dialogLeft" [positionTop]="dialogTop" (onHide)="cancelClicked($event)"> -->
+  <p-dialog #reportViewDialog [styleClass]="'report-maintenance-dialog'" [header]="header" [(visible)]="visible" [contentStyle]="dialogStyle" [modal]="false" [responsive]="true" [draggable]="true" [resizable]="true" [positionLeft]="dialogLeft" [positionTop]="dialogTop" [appendTo]="dialogTarget" (onHide)="cancelClicked($event)">
+    <table class="report-maintenance-button-table top">
+      <tr class="report-maintenance-button-row">
+        <!-- <td class="cell-button-like" (click)="splitReport($event)"  title="Split work report" ><span class="svg-icon"></span></td> -->
+        <!-- <td class="cell-button-like" (click)="splitReport($event)"  title="Split work report" ><svg viewBox="0 0 26 26" class="icon svg-icon"></svg></td> -->
+        <td class="cell-button-like" (click)="deleteReport($event)" title="Delete maintenance report"><i class="fal fa-trash-alt icon-button-like"></i></td>
+        <td class="cell-button-like" (click)="saveNoExitClicked($event)" title="Save, don't exit"><i class="fa fa-save icon-button-like"></i></td>
+        <div *ngIf="idx+1 > 1; then previousAvailable; else previousUnavailable"></div>
+        <div *ngIf="idx+1 < count; then nextAvailable; else nextUnavailable"></div>
+        <ng-template #previousAvailable>
+          <td class="cell-button-like" (click)="previous($event)" title="Previous maintenance report">
+            <i class="icon-button-like fa fa-chevron-circle-left"></i>
+          </td>
+        </ng-template>
+        <ng-template #previousUnavailable>
+          <td class="cell-button-disabled" title="No previous maintenance reports">
+            <i class="fa fa-chevron-circle-left icon-greyed-out"></i>
+          </td>
+        </ng-template>
+        <ng-template #nextAvailable>
+          <td class="cell-button-like" (click)="next($event)" title="Next maintenance report">
+            <i class="icon-button-like fa fa-chevron-circle-right"></i>
+          </td>
+        </ng-template>
+        <ng-template #nextUnavailable>
+          <td class="cell-button-disabled" title="No next maintenance report">
+            <i class="fa fa-chevron-circle-right icon-greyed-out"></i>
+          </td>
+        </ng-template>
+      </tr>
+    </table>
+    <table class="report-maintenance-table">
+      <tr class="report-maintenance-row">
+        <td class="label">ID</td>
+        <td class="data" ><input class="report-maintenance-input" [(ngModel)]="report._id" /></td>
+      </tr>
+      <tr class="report-maintenance-row">
+        <td class="label">Rev</td>
+        <td class="data" ><input class="report-maintenance-input" [readonly]="true" [(ngModel)]="report._rev" /></td>
+      </tr>
+      <tr class="report-maintenance-row">
+        <td class="label">Timestamp</td>
+        <td class="data" ><input class="report-maintenance-input" [(ngModel)]="report.timestamp" /></td>
+      </tr>
+      <!-- <tr class="report-maintenance-row" [class.date-error]="report.date_error"> -->
+      <tr class="report-maintenance-row">
+        <td class="label">Date</td>
+        <!-- <td class="data" ><p-calendar [class.report-maintenance-calendar]="true" dateFormat="dd M yy" [(ngModel)]="report_date" (onSelect)="updateDate(report_date)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar></td> -->
+        <td class="data" ><p-calendar [class.report-maintenance-calendar]="true" dateFormat="dd M yy" [(ngModel)]="report_date" [dataType]="reportDateDataType" (onSelect)="updateDate(report_date)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar></td>
+      </tr>
+      <tr class="report-maintenance-row">
+        <td class="label detailed-button" (click)="toggleDetailedSiteView($event)" title="Toggle client/location/locID editing"><span class="label-text">Work Site</span></td>
+        <td class="data" ><p-dropdown [class.report-maintenance-dropdown]="true" [disabled]="detailedSite" [appendTo]="dropdownTarget" [options]="siteList" [(ngModel)]="site" [autoDisplayFirst]="firstIfNull" (onChange)="updateReportSite(site)" [scrollHeight]="dropdownScroll"></p-dropdown></td>
+        <!-- <div class="grid-col grid-col-2 label">Work Site</div><div class="grid-col grid-col-10 data"><p-dropdown appendTo="body" [options]="jobsiteList" [(ngModel)]="jobsite" (onChange)="updateEmployee('jobsite', jobsite)"></p-dropdown></div> -->
+      </tr>
+      <tr class="report-maintenance-row">
+        <td class="label">Client</td>
+        <td class="data" ><p-dropdown [class.report-maintenance-dropdown]="true" [disabled]="!detailedSite" [appendTo]="dropdownTarget" [options]="clientList" [(ngModel)]="client" [autoDisplayFirst]="firstIfNull" (onChange)="updateReportCLL('client', client)" [scrollHeight]="dropdownScroll"></p-dropdown></td>
+      </tr>
+      <tr class="report-maintenance-row">
+        <td class="label">Location</td>
+        <td class="data" ><p-dropdown [class.report-maintenance-dropdown]="true" [disabled]="!detailedSite" [appendTo]="dropdownTarget" [options]="locationList" [(ngModel)]="location" [autoDisplayFirst]="firstIfNull" (onChange)="updateReportCLL('location', location)" [scrollHeight]="dropdownScroll"></p-dropdown></td>
+      </tr>
+      <tr class="report-maintenance-row">
+        <td class="label">LocID</td>
+        <td class="data" ><p-dropdown [class.report-maintenance-dropdown]="true" [disabled]="!detailedSite" [appendTo]="dropdownTarget" [options]="locIDList" [(ngModel)]="locID" [autoDisplayFirst]="firstIfNull" (onChange)="updateReportCLL('locID', locID)" [scrollHeight]="dropdownScroll"></p-dropdown></td>
+      </tr>
+      <tr class="report-maintenance-row">
+        <td class="label">VIN</td>
+        <td class="data" ><input class="report-maintenance-input" type="text" [(ngModel)]="report.vin" /></td>
+      </tr>
+      <tr class="report-maintenance-row">
+        <td class="label">Unit #</td>
+        <td class="data" ><input class="report-maintenance-input" type="text" [(ngModel)]="report.unit_number" /></td>
+      </tr>
+      <tr class="report-maintenance-row">
+        <td class="label">Engine Mileage</td>
+        <td class="data" ><input class="report-maintenance-input" type="number" min="0" step="0.1" [(ngModel)]="report.mileage" /></td>
+      </tr>
+      <tr class="report-maintenance-row">
+        <td class="label">Engine Hours</td>
+        <td class="data" ><input class="report-maintenance-input" type="number" min="0" step="0.1" [(ngModel)]="report.engine_hours" /></td>
+      </tr>
+      <tr class="report-maintenance-row">
+        <td class="label">Notes</td>
+        <td class="data" ><textarea pInputTextArea [class.report-maintenance-textarea]="true" [(ngModel)]="report.notes"></textarea></td>
+      </tr>
+    </table>
+    <div class="tasks-header">
+      <div class="tasks-header-title"><span class="tasks-header-quantity" *ngIf="report.tasks && report.tasks.length">{{report.tasks.length}} </span>Tasks<span class="tasks-header-hours" *ngIf="report.tasks && report.tasks.length"> ({{report.getTotalTime()|number:'1.0-2'}} hours)</span></div>
+      <span class="tasks-header-button" (click)="possibleAddTask($event)">
+        <i class="fal fa-plus-square"></i>
+      </span>
+    </div>
+    <div class="tasks-scroller" #tasksScroller>
+      <div class="tasks-container">
+        <div class="maintenance-task-record actual" *ngFor="let task of report.tasks; index as idx">
+          <div class="maintenance-task-header">
+            <div class="maintenance-task-row">
+              <span class="maintenance-task-header-button" (click)="toggleTaskVisible(idx, $event)">
+                <span class="fal fa-caret-circle-down maintenance-task-header-icon show-hide-icon" [class.closed]="!tasksVisible[idx]"></span>
+                <!-- <span class="fal fa-caret-circle-down maintenance-task-header-icon"  *ngIf="tasksVisible[idx]"></span> -->
+                <!-- <span class="fal fa-caret-circle-right maintenance-task-header-icon" *ngIf="!tasksVisible[idx]"></span> -->
+              </span>
+              <span class="maintenance-task-header-dropdown">
+                <p-dropdown [class.maintenance-task-dropdown]="true" [appendTo]="dropdownTarget" [options]="taskTypesMenu" [(ngModel)]="task.type" [autoDisplayFirst]="firstIfNull" (onChange)="taskTypeUpdate(task, $event)"></p-dropdown>
+              </span>
+              <!-- <span class="maintenance-task-header-text" *ngIf="task.type === 'mechanical'">Mechanical Task</span>
+                <span class="maintenance-task-header-text" *ngIf="task.type === 'electronic'">Electronic Task</span> -->
+              <span class="maintenance-task-header-text numeric">{{report.getTaskHours(task)|number:'1.2-2'}} hours</span>
+              <span class="maintenance-task-header-button right-side" (click)="possibleRemoveTask(task, $event)">
+                <span class="fal fa-trash-alt driving-trip-header-icon"></span>
+              </span>
+            </div>
+          </div>
+          <!-- <div class="maintenance-task-body" [class.closed]="!tasksVisible[idx]" *ngIf="tasksVisible[idx]"> -->
+          <div class="maintenance-task-body" [class.closed]="!tasksVisible[idx]">
+            <div class="maintenance-task-row">
+              <span class="label">Part</span>
+              <span class="data">
+                <!-- <p-dropdown [class.maintenance-task-dropdown]="true" [options]="getTaskNouns(task)" [(ngModel)]="task.noun" (onChange)="taskWordUpdate('noun', task, $event)"></p-dropdown> -->
+                <p-dropdown [class.maintenance-task-dropdown]="true" [appendTo]="dropdownTarget" [options]="taskMNounsMenu" [(ngModel)]="task.noun" [autoDisplayFirst]="firstIfNull" (onChange)="taskWordUpdate('noun', task, $event)" *ngIf="task.type === 'mechanical'"></p-dropdown>
+                <p-dropdown [class.maintenance-task-dropdown]="true" [appendTo]="dropdownTarget" [options]="taskENounsMenu" [(ngModel)]="task.noun" [autoDisplayFirst]="firstIfNull" (onChange)="taskWordUpdate('noun', task, $event)" *ngIf="task.type === 'electronic'"></p-dropdown>
+              </span>
+            </div>
+            <div class="maintenance-task-row">
+              <span class="label">Action</span>
+              <span class="data">
+                <!-- <p-dropdown [class.maintenance-task-dropdown]="true" [options]="getTaskNouns(task)" [(ngModel)]="task.noun" (onChange)="taskWordUpdate('noun', task, $event)"></p-dropdown> -->
+                <p-dropdown [class.maintenance-task-dropdown]="true" [appendTo]="dropdownTarget" [options]="taskVerbsMenu" [(ngModel)]="task.verb" [autoDisplayFirst]="firstIfNull" (onChange)="taskWordUpdate('verb', task, $event)"></p-dropdown>
+              </span>
+            </div>
+            <div class="maintenance-task-row">
+              <span class="label">Start Time</span>
+              <span class="data">
+                <!-- <p-calendar #startTimeCal [class.report-maintenance-calendar]="true" dateFormat="dd M yy" showTime="true" [stepMinute]="stepMinute" [appendTo]="calendarTarget" [(ngModel)]="taskTimes[idx].start" (onSelect)="updateTaskTime(task, 'start', taskTimes[idx].start, $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar> -->
+                <!-- <p-calendar #startTimeCal [class.report-maintenance-calendar]="true" dateFormat="dd M yy" showTime="true" [stepMinute]="stepMinute" [appendTo]="calendarTarget" [defaultDate]="defaultStartDate" [dataType]="calendarDataType" [(ngModel)]="task.start" (onSelect)="updateTaskTime(task, 'start', $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar> -->
+                <!-- <p-calendar #startTimeCal [class.report-maintenance-calendar]="true" dateFormat="dd M yy" showTime="true" [stepMinute]="stepMinute" [appendTo]="calendarTarget" [defaultDate]="defaultStartDate" [(ngModel)]="task.start" (onSelect)="updateTaskTime(task, 'start', $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar> -->
+                <!-- <p-calendar #startTimeCal [class.report-maintenance-calendar]="true" dateFormat="dd M yy" showTime="true" [stepMinute]="stepMinute" [appendTo]="calendarTarget" [dataType]="calendarDataType" [(ngModel)]="task.start" (onSelect)="updateTaskTime(task, 'start', $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar> -->
+                <p-calendar #startTimeCal [class.report-maintenance-calendar]="true" dateFormat="dd M yy" showTime="true" [stepMinute]="stepMinute" [appendTo]="calendarTarget" [defaultDate]="defaultStartDate" [(ngModel)]="taskTimes[idx].start" (onSelect)="updateTaskTime(task, idx, 'start', taskTimes[idx].start, $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true" (click)="openTaskTime(task, idx, 'start', startTimeCal, $event)"></p-calendar>
+                <!-- <p-calendar #startTimeCal [class.report-maintenance-calendar]="true" dateFormat="dd M yy" showTime="true" [stepMinute]="stepMinute" [appendTo]="calendarTarget" [defaultDate]="getDefaultTaskTime(task)" [(ngModel)]="taskTimes[idx].start" (onSelect)="updateTaskTime(task, 'start', taskTimes[idx].start, $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar> -->
+              </span>
+            </div>
+            <div class="maintenance-task-row">
+              <span class="label">End Time</span>
+              <span class="data">
+                <!-- <p-calendar #endTimeCal [class.report-maintenance-calendar]="true" dateFormat="dd M yy" showTime="true" [stepMinute]="stepMinute" [appendTo]="calendarTarget" [(ngModel)]="taskTimes[idx].end" (onSelect)="updateTaskTime(task, 'end', taskTimes[idx].end, $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar> -->
+                <!-- <p-calendar #endTimeCal [class.report-maintenance-calendar]="true" dateFormat="dd M yy" showTime="true" [stepMinute]="stepMinute" [appendTo]="calendarTarget" [defaultDate]="defaultEndDate" [dataType]="calendarDataType" [(ngModel)]="task.end" (onSelect)="updateTaskTime(task, 'end', $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar> -->
+                <!-- <p-calendar #endTimeCal [class.report-maintenance-calendar]="true" dateFormat="dd M yy" showTime="true" [stepMinute]="stepMinute" [appendTo]="calendarTarget" [defaultDate]="defaultEndDate" [(ngModel)]="task.end" (onSelect)="updateTaskTime(task, 'end', $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar> -->
+                <!-- <p-calendar #endTimeCal [class.report-maintenance-calendar]="true" dateFormat="dd M yy" showTime="true" [stepMinute]="stepMinute" [appendTo]="calendarTarget" [dataType]="calendarDataType" [(ngModel)]="task.end" (onSelect)="updateTaskTime(task, 'end', $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar> -->
+                <p-calendar #endTimeCal [class.report-maintenance-calendar]="true" dateFormat="dd M yy" showTime="true" [stepMinute]="stepMinute" [appendTo]="calendarTarget" [defaultDate]="defaultEndDate" [(ngModel)]="taskTimes[idx].end" (onSelect)="updateTaskTime(task, 'end', taskTimes[idx].end, $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true" (click)="openTaskTime(task, idx, 'end', endTimeCal, $event)"></p-calendar>
+                <!-- <p-calendar #endTimeCal [class.report-maintenance-calendar]="true" dateFormat="dd M yy" showTime="true" [stepMinute]="stepMinute" [appendTo]="calendarTarget" [defaultDate]="getDefaultTaskTime(task)" [(ngModel)]="taskTimes[idx].end" (onSelect)="updateTaskTime(task, 'end', taskTimes[idx].end, $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar> -->
+              </span>
+            </div>
+            <div class="maintenance-task-row">
+              <span class="label">Techs</span>
+              <!-- <span class="data"><input class="maintenance-task-input" [(ngModel)]="task.techs" /></span> -->
+              <span class="data">
+                <!-- <p-multiSelect #techsSelect [styleClass]="'maintenance-task-techs-multiselect'" optionLabel="username" defaultLabel="Choose columns" [options]="cols" [(ngModel)]="selectedColumns" [selectedItemsLabel]="selectedLabel" (onChange)="selectionChanged($event)"></p-multiSelect> -->
+                <p-multiSelect #taskTechsSelect [styleClass]="'maintenance-task-techs-multiselect'" [appendTo]="dropdownTarget" defaultLabel="Choose techs" [options]="techsMenu" [(ngModel)]="task.techs" [selectedItemsLabel]="selectedTechsLabel" (onChange)="taskTechsChanged(task, $event)" [filter]="true">
+                  <ng-template let-selectedTechs pTemplate="selectedItems">
+                    <!-- <span *ngFor="let tech of selectedTechs"></span> -->
+                    <span class="multiselect-output">{{formatMultipleTechs(selectedTechs)}}</span>
+                  </ng-template>
+                </p-multiSelect>
+
+              </span>
+            </div>
+            <div class="maintenance-task-row">
+              <span class="label">Notes</span>
+              <span class="data"><textarea pInputTextArea [class.maintenance-task-textarea]="true" [(ngModel)]="task.notes"></textarea></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p-footer>
+      <table class="report-maintenance-button-table bottom">
+        <tr class="report-maintenance-button-row">
+          <td class="report-maintenance-button-td cell-button-like" (click)="cancelClicked($event)" title="Cancel without saving"><i class="fal fa-times-circle icon-button-like"></i></td>
+          <td class="report-maintenance-button-td"></td>
+          <td class="report-maintenance-button-td cell-button-like" (click)="saveNoExitClicked($event)" title="Save but keep report open"><i class="fal fa-save icon-button-like"></i></td>
+          <td class="report-maintenance-button-td"></td>
+          <td class="report-maintenance-button-td cell-button-like" (click)="saveClicked($event)" title="Save and close report viewer"><i class="fal fa-check-circle icon-button-like"></i></td>
+        </tr>
+      </table>
+    </p-footer>
+  </p-dialog>
+</div>
+
+<!-- <ion-footer>
+  <ion-toolbar>
+    <ion-buttons left>
+      <button type="button" ion-button icon-only color="royal" (click)="cancel()">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-buttons right>
+      <button type="button" ion-button icon-only color="favorite" (click)="save()">
+        <ion-icon name="checkmark"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer> -->

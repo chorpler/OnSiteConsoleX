@@ -134,8 +134,8 @@
         <div class="grid-col grid-col-10 data"><textarea class="employee-view-notes" [(ngModel)]="employee.notes"></textarea></div>
       </div>
       <div class="grid-row">
-        <div class="grid-col grid-col-4 labeldata">
-          <p-checkbox binary="true" [(ngModel)]="employee.active" label="Active"></p-checkbox>
+        <div class="grid-col grid-col-4 labeldata" title="Please use thumbs up/down button on Employees page to activate or deactivate employees" (click)="undoActiveChange($event)">
+          <p-checkbox #activeCheckbox binary="true" [(ngModel)]="employee.active" label="Active" [disabled]="disableActiveCheckbox"></p-checkbox>
         </div>
         <div class="grid-col grid-col-4 labeldata">
           <p-checkbox binary="true" [(ngModel)]="employee.salaried" label="Salaried"></p-checkbox>

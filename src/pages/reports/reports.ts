@@ -1,5 +1,5 @@
 import { Subscription                                                } from 'rxjs'                               ;
-import { Log, Moment, moment, isMoment,                              } from 'domain/onsitexdomain'               ;
+import { Log, Moment, moment, isMoment, ReportAny,                              } from 'domain/onsitexdomain'               ;
 import { _matchCLL, _matchSite, _matchReportSite,                    } from 'domain/onsitexdomain'               ;
 import { Component, OnInit, OnDestroy, NgZone, ViewChild, ElementRef } from '@angular/core'                      ;
 import { IonicPage, NavController, NavParams                         } from 'ionic-angular'                      ;
@@ -7,12 +7,15 @@ import { ViewController, ModalController, Content, Scroll,           } from 'ion
 import { PayrollPeriod, Shift, Jobsite, Employee                     } from 'domain/onsitexdomain'               ;
 import { Report, ReportOther,                                        } from 'domain/onsitexdomain'               ;
 import { ReportLogistics,                                            } from 'domain/onsitexdomain'               ;
+import { ReportDriving,                                              } from 'domain/onsitexdomain'               ;
+import { ReportMaintenance,                                          } from 'domain/onsitexdomain'               ;
 import { ReportTimeCard,                                             } from 'domain/onsitexdomain'               ;
 import { OSData                                                      } from 'providers/data-service'             ;
+import { DispatchService, AppEvents                                  } from 'providers/dispatch-service'         ;
 import { DBService                                                   } from 'providers/db-service'               ;
 import { ServerService                                               } from 'providers/server-service'           ;
 import { AlertService                                                } from 'providers/alert-service'            ;
-import { Preferences                                                 } from 'providers/preferences'              ;
+import { Preferences, DatabaseKey,                                   } from 'providers/preferences'              ;
 import { NotifyService                                               } from 'providers/notify-service'           ;
 import { SpinnerService                                              } from 'providers/spinner-service'          ;
 import { Calendar,                                                   } from 'primeng/calendar'                   ;
@@ -27,6 +30,35 @@ import { ClipboardService                                            } from 'pro
 // import { faArrowAltCircleDown                                        } from '@fortawesome/pro-light-svg-icons'   ;
 // import { faArrowAltCircleDown as farArrowAltCircleDown               } from '@fortawesome/pro-regular-svg-icons' ;
 // import { faArrowAltCircleDown as fasArrowAltCircleDown               } from '@fortawesome/pro-solid-svg-icons'   ;
+
+export type ReportsTableKey = 'reports' | 'others' | 'logistics' | 'drivings' | 'maintenances' | 'timecards';
+export type ReportsTableNumIndex = 1|2|3|4|5|6;
+export type ReportsTableIndex = '1'|'2'|'3'|'4'|'5'|'6';
+// export type TableIndexKey = ReportsTableKey|ReportsTableNumIndex;
+export type TableIndexKey = ReportsTableNumIndex;
+export type ITABLEKEYS = {
+  [propName in ReportsTableKey]: ReportsTableNumIndex;
+}
+export type ITABLEINDEXES = {
+  [propIdx in ReportsTableIndex]: ReportsTableKey;
+}
+export const TABLEINDEX:ITABLEKEYS = {
+  reports             : 1              ,
+  others              : 2              ,
+  logistics           : 3              ,
+  drivings            : 4              ,
+  maintenances        : 5              ,
+  timecards           : 6              ,
+};
+export const TABLEINDEXTOKEY:ITABLEINDEXES = {
+  1                   : 'reports'      ,
+  2                   : 'others'       ,
+  3                   : 'logistics'    ,
+  4                   : 'drivings'     ,
+  5                   : 'maintenances' ,
+  6                   : 'timecards'    ,
+};
+export type TESTENUM = ITABLEKEYS&ITABLEINDEXES;
 
 const copyStringToClipboard = (url:string, mimeType?:string):any => {
   document.addEventListener('copy', (e:ClipboardEvent) => {
@@ -64,6 +96,8 @@ export class ReportsPage implements OnInit,OnDestroy {
   @ViewChild('dt') dt:Table;
   @ViewChild('othersTable') othersTable:Table;
   @ViewChild('logisticsTable') logisticsTable:Table;
+  @ViewChild('drivingsTable') drivingsTable:Table;
+  @ViewChild('maintenancesTable') maintenancesTable:Table;
   @ViewChild('timecardsTable') timecardsTable:Table;
   @ViewChild('reportsPanel') reportsPanel:Panel;
   @ViewChild('othersPanel') othersPanel:Panel;
@@ -72,22 +106,30 @@ export class ReportsPage implements OnInit,OnDestroy {
   @ViewChild('columnSelect') columnSelect:MultiSelect;
   @ViewChild('columnSelectOthers') columnSelectOthers:MultiSelect;
   @ViewChild('columnSelectLogistics') columnSelectLogistics:MultiSelect;
+  @ViewChild('columnSelectDriving') columnSelectDriving:MultiSelect;
+  @ViewChild('columnSelectMaintenance') columnSelectMaintenance:MultiSelect;
   @ViewChild('columnSelectTimeCards') columnSelectTimeCards:MultiSelect;
   @ViewChild('globalFilterInput') globalFilterInput:ElementRef;
   @ViewChild('globalFilterInputOthers') globalFilterInputOthers:ElementRef;
   @ViewChild('globalFilterInputLogistics') globalFilterInputLogistics:ElementRef;
+  @ViewChild('globalFilterInputDriving') globalFilterInputDriving:ElementRef;
+  @ViewChild('globalFilterInputMaintenance') globalFilterInputMaintenance:ElementRef;
   @ViewChild('globalFilterInputTimeCards') globalFilterInputTimeCards:ElementRef;
   // @ViewChild('dateFrom') dateFrom:Calendar;
   // @ViewChild('dateTo') dateTo:Calendar;
   @ViewChild('dateRangeCalendar') dateRangeCalendar:Calendar;
   @ViewChild('dateRangeCalendarOthers') dateRangeCalendarOthers:Calendar;
   @ViewChild('dateRangeCalendarLogistics') dateRangeCalendarLogistics:Calendar;
+  @ViewChild('dateRangeCalendarDriving') dateRangeCalendarDriving:Calendar;
+  @ViewChild('dateRangeCalendarMaintenance') dateRangeCalendarMaintenance:Calendar;
   @ViewChild('dateRangeCalendarTimeCards') dateRangeCalendarTimeCards:Calendar;
   @ViewChild('printArea') printArea:ElementRef;
   @ViewChild('reportsCM1') reportsCM1:ContextMenu;
   @ViewChild('reportsCM2') reportsCM2:ContextMenu;
   @ViewChild('reportsCM3') reportsCM3:ContextMenu;
   @ViewChild('reportsCM4') reportsCM4:ContextMenu;
+  @ViewChild('reportsCM5') reportsCM5:ContextMenu;
+  @ViewChild('reportsCM6') reportsCM6:ContextMenu;
   public title         : string    = "Reports"                 ;
   public mode          : string    = 'page'                    ;
   public modalMode     : boolean   = false                     ;
@@ -122,12 +164,31 @@ export class ReportsPage implements OnInit,OnDestroy {
   // public faIcon3Styles : any = {'color': 'white'}   ;
   // public faLayerClass  : any = ['fa-fw', 'icon-layer-datadl']  ;
 
+  public TABLEINDEX:ITABLEKEYS = {
+    reports             : 1              ,
+    others              : 2              ,
+    logistics           : 3              ,
+    drivings            : 4              ,
+    maintenances        : 5              ,
+    timecards           : 6              ,
+  };
+  public TABLEINDEXTOKEY:ITABLEINDEXES = {
+    1                   : 'reports'      ,
+    2                   : 'others'       ,
+    3                   : 'logistics'    ,
+    4                   : 'drivings'     ,
+    5                   : 'maintenances' ,
+    6                   : 'timecards'    ,
+  };
   public pageSizeOptions:number[]  = [50,100,200,500,1000,2000];
-  public dateFormat    : string    = "DD MMM YYYY HH:mm"      ;
+  public dateFormat       : string    = "DD MMM YYYY HH:mm"   ;
   public prefsSub         : Subscription                      ;
+  public dataSub          : Subscription                      ;
   public report           : Report                            ;
   public other            : ReportOther                       ;
   public logistic         : ReportLogistics                   ;
+  public driving          : ReportDriving                     ;
+  public maintenance      : ReportMaintenance                 ;
   public timecard         : ReportTimeCard                    ;
   public tech             : Employee                          ;
   public techs            : Employee[]         = []           ;
@@ -136,23 +197,33 @@ export class ReportsPage implements OnInit,OnDestroy {
   public editReports      : Report[]           = []           ;
   public editOthers       : ReportOther[]      = []           ;
   public editLogistics    : ReportLogistics[]  = []           ;
-  public editTimeCards       : ReportTimeCard[]   = []           ;
+  public editDriving       : ReportDriving[]  = []           ;
+  public editMaintenance    : ReportMaintenance[]  = []           ;
+  public editTimeCards      : ReportTimeCard[]   = []           ;
   public reports          : Report[]           = []           ;
   public others           : ReportOther[]      = []           ;
   public logistics        : ReportLogistics[]  = []           ;
+  public drivings         : ReportDriving[]  = []           ;
+  public maintenances     : ReportMaintenance[]  = []           ;
   public timecards        : ReportTimeCard[]   = []           ;
-  public selectedReports          : Report[]           = []   ;
-  public selectedReportsOther     : ReportOther[]      = []   ;
-  public selectedReportsLogistics : ReportLogistics[]  = []   ;
+  public selectedReports            : Report[]           = []   ;
+  public selectedReportsOther       : ReportOther[]      = []   ;
+  public selectedReportsLogistics   : ReportLogistics[]  = []   ;
+  public selectedReportsDriving     : ReportDriving[]  = []   ;
+  public selectedReportsMaintenance : ReportMaintenance[]  = []   ;
   public selectedTimeCards        : ReportTimeCard[]   = []   ;
   public allReports       : Report[]           = []           ;
   public allOthers        : ReportOther[]      = []           ;
   public allLogistics     : ReportLogistics[]  = []           ;
+  public allMaintenances  : ReportMaintenance[]  = []           ;
+  public allDrivings      : ReportDriving[]  = []           ;
   public allTimeCards     : ReportTimeCard[]   = []           ;
   public selectedReport   : Report             = null         ;
   public reportViewVisible: boolean            = false        ;
   public reportOtherViewVisible: boolean       = false        ;
   public reportLogisticsViewVisible: boolean   = false        ;
+  public reportDrivingViewVisible: boolean   = false        ;
+  public reportMaintenanceViewVisible: boolean   = false        ;
   public reportTimeCardViewVisible : boolean   = false        ;
   public globalSearch     : string             = ""           ;
   public fromDate         : Date                              ;
@@ -176,6 +247,10 @@ export class ReportsPage implements OnInit,OnDestroy {
   public maxDateOthersString     : string             = "2025-12-31" ;
   public minDateLogisticsString  : string             = "2017-01-01" ;
   public maxDateLogisticsString  : string             = "2025-12-31" ;
+  public minDateDrivingString    : string             = "2017-01-01" ;
+  public maxDateDrivingString    : string             = "2017-01-01" ;
+  public minDateMaintenanceString  : string             = "2025-12-31" ;
+  public maxDateMaintenanceString  : string             = "2025-12-31" ;
   public minDateTimeCardsString  : string             = "2017-01-01" ;
   public maxDateTimeCardsString  : string             = "2025-12-31" ;
   public minDate          : Date                              ;
@@ -184,11 +259,17 @@ export class ReportsPage implements OnInit,OnDestroy {
   public maxDateOthers    : Date                              ;
   public minDateLogistics    : Date               = new Date()   ;
   public maxDateLogistics    : Date               = new Date()   ;
+  public minDateDriving      : Date               = new Date()   ;
+  public maxDateDriving      : Date               = new Date()   ;
+  public minDateMaintenance  : Date               = new Date()   ;
+  public maxDateMaintenance  : Date               = new Date()   ;
   public minDateTimeCards    : Date               = new Date()   ;
   public maxDateTimeCards    : Date               = new Date()   ;
   public allFields        : any[]         = []           ;
   public allFieldsOthers  : any[]         = []           ;
   public allFieldsLogistics  : any[]         = []           ;
+  public allFieldsDriving      : any[]         = []           ;
+  public allFieldsMaintenance  : any[]         = []           ;
   public allFieldsTimeCards  : any[]         = []           ;
   public cols             : any[]         = []           ;
   public selectedColumns  : any[]         = []           ;
@@ -197,11 +278,17 @@ export class ReportsPage implements OnInit,OnDestroy {
   public selectedColumnsOthers  : any[]   = []           ;
   public colsLogistics            : any[]   = []           ;
   public selectedColumnsLogistics : any[]   = []           ;
+  public colsDriving              : any[]   = []           ;
+  public selectedColumnsDriving   : any[]   = []           ;
+  public colsMaintenance          : any[]   = []           ;
+  public selectedColumnsMaintenance : any[]   = []           ;
   public colsTimeCards            : any[]   = []           ;
   public selectedColumnsTimeCards : any[]   = []           ;
-  public selectedLabelOthers    : string       = "{0} columns shown";
-  public selectedLabelLogistics : string       = "{0} columns shown";
-  public selectedLabelTimeCards : string       = "{0} columns shown";
+  public selectedLabelOthers      : string       = "{0} columns shown";
+  public selectedLabelLogistics   : string       = "{0} columns shown";
+  public selectedLabelDriving     : string       = "{0} columns shown";
+  public selectedLabelMaintenance : string       = "{0} columns shown";
+  public selectedLabelTimeCards   : string       = "{0} columns shown";
   public styleColIndex    : any                               ;
   public styleColEdit     : any                               ;
   public colsReorder      : boolean            = true         ;
@@ -217,9 +304,13 @@ export class ReportsPage implements OnInit,OnDestroy {
   public reportsMenu2     : MenuItem[]      = []              ;
   public reportsMenu3     : MenuItem[]      = []              ;
   public reportsMenu4     : MenuItem[]      = []              ;
+  public reportsMenu5     : MenuItem[]      = []              ;
+  public reportsMenu6     : MenuItem[]      = []              ;
   public reportsMultiSortMeta:any;
   public othersMultiSortMeta:any;
   public logisticsMultiSortMeta:any;
+  public drivingsMultiSortMeta:any;
+  public maintenancesMultiSortMeta:any;
   public timeCardsMultiSortMeta:any;
   public scrollTo:string;
   public scrollDelay:number = 500;
@@ -230,6 +321,8 @@ export class ReportsPage implements OnInit,OnDestroy {
   public set rowCount(val:number) { this.prefs.CONSOLE.pages.reports = val; };
   public get filteredCountOthers():number { return this.getFilteredCountOthers(); };
   public get filteredCountLogistics():number { return this.getFilteredCountLogistics(); };
+  public get filteredCountDriving():number { return this.getFilteredCountDriving(); };
+  public get filteredCountMaintenance():number { return this.getFilteredCountMaintenance(); };
   public get filteredCountTimeCards():number { return this.getFilteredCountTimeCards(); };
 
   constructor(
@@ -240,6 +333,7 @@ export class ReportsPage implements OnInit,OnDestroy {
     public zone      : NgZone           ,
     public prefs     : Preferences      ,
     public db        : DBService        ,
+    public dispatch  : DispatchService  ,
     public server    : ServerService    ,
     public data      : OSData           ,
     public alert     : AlertService     ,
@@ -281,6 +375,8 @@ export class ReportsPage implements OnInit,OnDestroy {
       let reports:Report[] = this.data.getData('reports');
       let others:ReportOther[] = this.data.getData('others');
       let logistics:ReportLogistics[] = this.data.getData('logistics');
+      let maintenances:ReportMaintenance[] = this.data.getData('maintenances');
+      let drivings:ReportDriving[] = this.data.getData('drivings');
       let timecards:ReportTimeCard[] = this.data.getData('timecards');
       let sites:Jobsite[] = this.data.getData('sites');
       let techs:Employee[] = this.data.getData('employees');
@@ -290,6 +386,10 @@ export class ReportsPage implements OnInit,OnDestroy {
       this.others = others.slice(0);
       this.allLogistics = logistics;
       this.logistics = logistics.slice(0);
+      this.allMaintenances = maintenances;
+      this.maintenances = maintenances.slice(0);
+      this.allDrivings = drivings;
+      this.drivings = drivings.slice(0);
       this.allTimeCards = timecards;
       this.timecards = timecards.slice(0);
       this.sites = sites;
@@ -348,7 +448,16 @@ export class ReportsPage implements OnInit,OnDestroy {
   }
 
   public initializeSubscriptions() {
-
+    // this.dataSub = this.dispatch.updatedFromDB().subscribe((eventdata:{type:string, payload?:any}) => {
+    //   // Log.l(`appSubscription: received event:\n`, data);
+    //   if(eventdata) {
+    //     let dbtype:string = eventdata.type;
+    //     let payload:any =  eventdata && eventdata.payload ? eventdata.payload : null;
+    //     if(dbtype === 'reports') {
+          
+    //     } else if(dbtype === '')
+    //   }
+    // });
   }
 
   public cancelSubscriptions() {
@@ -410,20 +519,26 @@ export class ReportsPage implements OnInit,OnDestroy {
 
   public createContextMenus() {
     this.reportsMenu1 = [
-      { label: 'Update Work Reports …', icon: 'fal fa-edit', command: (event) => { this.updateReports(1, event); } },
+      { label: 'Update Work Reports …', icon: 'fal fa-edit', command: (event) => { this.updateReports(TABLEINDEX.reports, event); } },
     ];
     this.reportsMenu2 = [
-      { label: 'Update Misc Reports …', icon: 'fal fa-edit', command: (event) => { this.updateReports(2, event); } },
+      { label: 'Update Misc Reports …', icon: 'fal fa-edit', command: (event) => { this.updateReports(TABLEINDEX.others, event); } },
     ];
     this.reportsMenu3 = [
-      { label: 'Update Logistics Reports …', icon: 'fal fa-edit', command: (event) => { this.updateReports(3, event); } },
+      { label: 'Update Logistics Reports …', icon: 'fal fa-edit', command: (event) => { this.updateReports(TABLEINDEX.logistics, event); } },
     ];
     this.reportsMenu4 = [
-      { label: 'Update TimeCards …', icon: 'fal fa-edit', command: (event) => { this.updateReports(4, event); } },
+      { label: 'Update Maintenance Reports …', icon: 'fal fa-edit', command: (event) => { this.updateReports(TABLEINDEX.maintenances, event); } },
+    ];
+    this.reportsMenu5 = [
+      { label: 'Update Driving Reports …', icon: 'fal fa-edit', command: (event) => { this.updateReports(TABLEINDEX.drivings, event); } },
+    ];
+    this.reportsMenu6 = [
+      { label: 'Update TimeCards …', icon: 'fal fa-edit', command: (event) => { this.updateReports(TABLEINDEX.timecards, event); } },
     ];
   }
 
-  public async updateReports(val:number, event?:any):Promise<any> {
+  public async updateReports(val:TableIndexKey, event?:any):Promise<any> {
     try {
       Log.l(`updateReports(${val}): Event is:`, event);
       // return res;
@@ -434,10 +549,11 @@ export class ReportsPage implements OnInit,OnDestroy {
     }
   }
 
-  public async possibleUpdateReports(type:number, evt?:Event):Promise<any> {
+  public async possibleUpdateReports(type:TableIndexKey, evt?:Event):Promise<any> {
     try {
-      Log.l(`possibleUpdateReports(): Called with arguments:\n`, arguments);
-      if(type == 0) {
+      let typeKey = TABLEINDEXTOKEY[type];
+      Log.l(`possibleUpdateReports(): Called for type '${type}', which should be table '${typeKey}'`);
+      if(type == TABLEINDEX.reports) {
         let dbname:string = this.prefs.getDB('reports');
         let count:number = await this.db.getDocCount(dbname);
         count = count > 7 ? count - 7 : count;
@@ -445,7 +561,7 @@ export class ReportsPage implements OnInit,OnDestroy {
         if(confirm) {
           let res:any = await this.getReports();
         }
-      } else if(type == 1) {
+      } else if(type == TABLEINDEX.others) {
         let dbname:string = this.prefs.getDB('reports_other');
         let count:number = await this.db.getDocCount(dbname);
         count = count > 7 ? count - 7 : count;
@@ -453,7 +569,7 @@ export class ReportsPage implements OnInit,OnDestroy {
         if(confirm) {
           let res:any = await this.getOthers();
         }
-      } else if(type == 2) {
+      } else if(type == TABLEINDEX.logistics) {
         let dbname:string = this.prefs.getDB('logistics');
         let count:number = await this.db.getDocCount(dbname);
         count = count > 7 ? count - 7 : count;
@@ -461,7 +577,23 @@ export class ReportsPage implements OnInit,OnDestroy {
         if(confirm) {
           let res:any = await this.getLogistics();
         }
-      } else if(type == 3) {
+      } else if(type == TABLEINDEX.maintenances) {
+        let dbname:string = this.prefs.getDB('maintenances');
+        let count:number = await this.db.getDocCount(dbname);
+        count = count > 7 ? count - 7 : count;
+        let confirm:boolean = await this.alert.showConfirmYesNo('LOAD MAINTENANCE REPORTS', `Do you want to load all ${count} maintenance reports from database?`);
+        if(confirm) {
+          let res:any = await this.getMaintenances();
+        }
+      } else if(type == TABLEINDEX.drivings) {
+        let dbname:string = this.prefs.getDB('drivings');
+        let count:number = await this.db.getDocCount(dbname);
+        count = count > 7 ? count - 7 : count;
+        let confirm:boolean = await this.alert.showConfirmYesNo('LOAD DRIVING REPORTS', `Do you want to load all ${count} driving reports from database?`);
+        if(confirm) {
+          let res:any = await this.getDrivings();
+        }
+      } else if(type == TABLEINDEX.timecards) {
         let dbname:string = this.prefs.getDB('timecards');
         let count:number = await this.db.getDocCount(dbname);
         count = count > 7 ? count - 7 : count;
@@ -470,10 +602,10 @@ export class ReportsPage implements OnInit,OnDestroy {
           let res:any = await this.getTimeCards();
         }
       } else {
-        Log.w(`possibleUpdateReports(): Type is not valid:\n`, type);
+        Log.w(`possibleUpdateReports(): Type is not valid:`, type);
       }
     } catch(err) {
-      Log.l(`possibleUpdateReports(): Error running with arguments:\n`, arguments);
+      Log.l(`possibleUpdateReports(): Error running with arguments:`, arguments);
       Log.e(err);
       throw err;
     }
@@ -481,8 +613,9 @@ export class ReportsPage implements OnInit,OnDestroy {
 
 
   public updatePageSizes() {
-    let newPageSizes = this.prefs.CONSOLE.pageSizes.reports;
-    let rowCount = Number(this.prefs.CONSOLE.pages.reports);
+    let newPageSizes = this.prefs.getTablePageSizes('reports');
+    // let rowCount = Number(this.prefs.CONSOLE.pages.reports);
+    let rowCount = this.prefs.getTablePageSize('reports');
     if(newPageSizes.indexOf(rowCount) === -1) {
       newPageSizes.push(rowCount);
       this.pageSizeOptions = newPageSizes.slice(0).sort((a,b) => a > b ? 1 : a < b ? -1 : 0);
@@ -497,21 +630,27 @@ export class ReportsPage implements OnInit,OnDestroy {
     this.getReportsFields();
     this.getOthersFields();
     this.getLogisticsFields();
+    this.getMaintenanceFields();
+    this.getDrivingFields();
     this.getTimeCardsFields();
   }
 
-  public resetTableSorted(tableNumber:number, dt:Table) {
+  public resetTableSorted(tableNumber:TableIndexKey, dt:Table) {
     let sortMeta = [
       { field: 'report_date', order: -1 },
       { field: '_id', order: -1 },
     ];
-    if(tableNumber === 1) {
+    if(tableNumber === TABLEINDEX.reports) {
       this.reportsMultiSortMeta = sortMeta.slice(0);
-    } else if(tableNumber === 2) {
+    } else if(tableNumber === TABLEINDEX.others) {
       this.othersMultiSortMeta = sortMeta.slice(0);
-    } else if(tableNumber === 3) {
+    } else if(tableNumber === TABLEINDEX.logistics) {
       this.logisticsMultiSortMeta = sortMeta.slice(0);
-    } else if(tableNumber === 4) {
+    } else if(tableNumber === TABLEINDEX.maintenances) {
+      this.maintenancesMultiSortMeta = sortMeta.slice(0);
+    } else if(tableNumber === TABLEINDEX.drivings) {
+      this.drivingsMultiSortMeta = sortMeta.slice(0);
+    } else if(tableNumber === TABLEINDEX.timecards) {
       this.timeCardsMultiSortMeta = sortMeta.slice(0);
     } else {
       let text:string = `resetTableSorted(): Could not find table at index '${tableNumber}' to reset it with sorting`;
@@ -523,29 +662,29 @@ export class ReportsPage implements OnInit,OnDestroy {
 
   public getReportsFields():any[] {
     let fields:any[] = [
-      { field: '_id'              , header: 'ID'          , filter: true, filterPlaceholder: "ID"          , order:  1 , style: "", class: "col-nowrap col-00 col-id"        , format: ""      , tooltip: "ID"          , },
-      { field: 'report_date'      , header: 'Date'        , filter: true, filterPlaceholder: "Date"        , order:  2 , style: "", class: "col-wrap   col-01 col-date"      , format: ""      , tooltip: "Date"        , },
-      { field: 'timestamp'        , header: "Timestamp"   , filter: true, filterPlaceholder: "Timestamp"   , order:  3 , style: "", class: "col-wrap   col-02 col-time"      , format: ""      , tooltip: "Timestamp"   , },
-      { field: 'last_name'        , header: 'Last Name'   , filter: true, filterPlaceholder: "Last Name"   , order:  4 , style: "", class: "col-wrap   col-03 col-last"      , format: ""      , tooltip: "Last Name"   , },
-      { field: 'first_name'       , header: 'First Name'  , filter: true, filterPlaceholder: "First Name"  , order:  5 , style: "", class: "col-wrap   col-04 col-first"     , format: ""      , tooltip: "First Name"  , },
-      { field: 'time_start'       , header: 'Start'       , filter: true, filterPlaceholder: "Start"       , order:  6 , style: "", class: "col-wrap   col-05 col-start"     , format: "HH:mm" , tooltip: "Start"       , },
-      { field: 'time_end'         , header: 'End'         , filter: true, filterPlaceholder: "End"         , order:  7 , style: "", class: "col-wrap   col-06 col-end"       , format: "HH:mm" , tooltip: "End"         , },
-      { field: 'repair_hours'     , header: 'Hrs'         , filter: true, filterPlaceholder: "Hrs"         , order:  8 , style: "", class: "col-wrap   col-07 col-hours"     , format: ""      , tooltip: "Repair hours", },
-      { field: 'client'           , header: 'Client'      , filter: true, filterPlaceholder: "Client"      , order:  9 , style: "", class: "col-wrap   col-08 col-cli"       , format: ""      , tooltip: "Client"      , },
-      { field: 'location'         , header: 'Location'    , filter: true, filterPlaceholder: "Location"    , order: 10 , style: "", class: "col-wrap   col-09 col-loc"       , format: ""      , tooltip: "Location"    , },
-      { field: 'location_id'      , header: 'LocID'       , filter: true, filterPlaceholder: "LocID"       , order: 11 , style: "", class: "col-wrap   col-10 col-lid"       , format: ""      , tooltip: "LocID"       , },
-      { field: 'unit_number'      , header: 'Unit #'      , filter: true, filterPlaceholder: "Unit #"      , order: 12 , style: "", class: "col-nowrap col-11 col-unitno"    , format: ""      , tooltip: "Unit #"      , },
-      { field: 'work_order_number', header: 'Work Order'  , filter: true, filterPlaceholder: "WO #"        , order: 13 , style: "", class: "col-nowrap col-12 col-wonum"     , format: ""      , tooltip: "WO #"        , },
-      { field: 'notes'            , header: 'Notes'       , filter: true, filterPlaceholder: "Notes"       , order: 14 , style: "", class: "col-nowrap col-13 col-notes"     , format: ""      , tooltip: "Notes"       , },
-      { field: 'site_number'      , header: 'Site#'       , filter: true, filterPlaceholder: "Site#"       , order: 15 , style: "", class: "col-nowrap col-14 col-sitenum"   , format: ""      , tooltip: "Site#"       , },
-      { field: 'workSite'         , header: 'Site'        , filter: true, filterPlaceholder: "Site"        , order: 16 , style: "", class: "col-nowrap col-15 col-worksite"  , format: ""      , tooltip: "Site"        , },
-      { field: 'change_log'       , header: 'Log'         , filter: true, filterPlaceholder: "Log"         , order: 17 , style: "", class: "col-nowrap col-16 col-changelog" , format: ""      , tooltip: "Log"         , },
-      { field: 'flagged_fields'   , header: 'Flags'       , filter: true, filterPlaceholder: "Flags"       , order: 18 , style: "", class: "col-nowrap col-17 col-flgd"      , format: ""      , tooltip: "Flags"       , },
-      { field: 'preauthed'        , header: 'Preauthed'   , filter: true, filterPlaceholder: "Preauthed"   , order: 19 , style: "", class: "col-nowrap col-18  col-preauthed" , format: ""      , tooltip: "Preauthed"   , },
-      { field: 'preauth_dates'    , header: 'PA Dates'    , filter: true, filterPlaceholder: "PA Dates"    , order: 20 , style: "", class: "col-nowrap col-19 col-padates"   , format: ""      , tooltip: "PA Dates"    , },
-      { field: 'invoiced'         , header: 'Invoiced'    , filter: true, filterPlaceholder: "Invoiced"    , order: 21 , style: "", class: "col-nowrap col-20 col-invoiced"  , format: ""      , tooltip: "Invoiced"    , },
-      { field: 'invoiced_dates'   , header: 'Inv Dates'   , filter: true, filterPlaceholder: "Inv Dates"   , order: 22 , style: "", class: "col-nowrap col-21 col-invdates"  , format: ""      , tooltip: "Inv Dates"   , },
-      { field: 'invoice_numbers'  , header: 'Inv #\'s'    , filter: true, filterPlaceholder: "Inv #'s"     , order: 23 , style: "", class: "col-nowrap col-22 col-invno"     , format: ""      , tooltip: "Inv #'s"     , },
+      { field: '_id'              , header: 'ID'          , filter: true, filterPlaceholder: "ID"          , order:  1 , show: true , style: "", class: "col-nowrap col-00 col-id"        , format: ""      , tooltip: "ID"          , },
+      { field: 'report_date'      , header: 'Date'        , filter: true, filterPlaceholder: "Date"        , order:  2 , show: true , style: "", class: "col-wrap   col-01 col-date"      , format: ""      , tooltip: "Date"        , },
+      { field: 'timestamp'        , header: "Timestamp"   , filter: true, filterPlaceholder: "Timestamp"   , order:  3 , show: true , style: "", class: "col-wrap   col-02 col-time"      , format: ""      , tooltip: "Timestamp"   , },
+      { field: 'last_name'        , header: 'Last Name'   , filter: true, filterPlaceholder: "Last Name"   , order:  4 , show: true , style: "", class: "col-wrap   col-03 col-last"      , format: ""      , tooltip: "Last Name"   , },
+      { field: 'first_name'       , header: 'First Name'  , filter: true, filterPlaceholder: "First Name"  , order:  5 , show: true , style: "", class: "col-wrap   col-04 col-first"     , format: ""      , tooltip: "First Name"  , },
+      { field: 'time_start'       , header: 'Start'       , filter: true, filterPlaceholder: "Start"       , order:  6 , show: true , style: "", class: "col-wrap   col-05 col-start"     , format: "HH:mm" , tooltip: "Start"       , },
+      { field: 'time_end'         , header: 'End'         , filter: true, filterPlaceholder: "End"         , order:  7 , show: true , style: "", class: "col-wrap   col-06 col-end"       , format: "HH:mm" , tooltip: "End"         , },
+      { field: 'repair_hours'     , header: 'Hrs'         , filter: true, filterPlaceholder: "Hrs"         , order:  8 , show: true , style: "", class: "col-wrap   col-07 col-hours"     , format: ""      , tooltip: "Repair hours", },
+      { field: 'client'           , header: 'Client'      , filter: true, filterPlaceholder: "Client"      , order:  9 , show: true , style: "", class: "col-wrap   col-08 col-cli"       , format: ""      , tooltip: "Client"      , },
+      { field: 'location'         , header: 'Location'    , filter: true, filterPlaceholder: "Location"    , order: 10 , show: true , style: "", class: "col-wrap   col-09 col-loc"       , format: ""      , tooltip: "Location"    , },
+      { field: 'location_id'      , header: 'LocID'       , filter: true, filterPlaceholder: "LocID"       , order: 11 , show: true , style: "", class: "col-wrap   col-10 col-lid"       , format: ""      , tooltip: "LocID"       , },
+      { field: 'unit_number'      , header: 'Unit #'      , filter: true, filterPlaceholder: "Unit #"      , order: 12 , show: true , style: "", class: "col-nowrap col-11 col-unitno"    , format: ""      , tooltip: "Unit #"      , },
+      { field: 'work_order_number', header: 'Work Order'  , filter: true, filterPlaceholder: "WO #"        , order: 13 , show: true , style: "", class: "col-nowrap col-12 col-wonum"     , format: ""      , tooltip: "WO #"        , },
+      { field: 'notes'            , header: 'Notes'       , filter: true, filterPlaceholder: "Notes"       , order: 14 , show: true , style: "", class: "col-nowrap col-13 col-notes"     , format: ""      , tooltip: "Notes"       , },
+      { field: 'site_number'      , header: 'Site#'       , filter: true, filterPlaceholder: "Site#"       , order: 15 , show: false, style: "", class: "col-nowrap col-14 col-sitenum"   , format: ""      , tooltip: "Site#"       , },
+      { field: 'workSite'         , header: 'Site'        , filter: true, filterPlaceholder: "Site"        , order: 16 , show: false, style: "", class: "col-nowrap col-15 col-worksite"  , format: ""      , tooltip: "Site"        , },
+      { field: 'change_log'       , header: 'Log'         , filter: true, filterPlaceholder: "Log"         , order: 17 , show: false, style: "", class: "col-nowrap col-16 col-changelog" , format: ""      , tooltip: "Log"         , },
+      { field: 'flagged_fields'   , header: 'Flags'       , filter: true, filterPlaceholder: "Flags"       , order: 18 , show: false, style: "", class: "col-nowrap col-17 col-flgd"      , format: ""      , tooltip: "Flags"       , },
+      { field: 'preauthed'        , header: 'Preauthed'   , filter: true, filterPlaceholder: "Preauthed"   , order: 19 , show: false, style: "", class: "col-nowrap col-18  col-preauthed" , format: ""      , tooltip: "Preauthed"   , },
+      { field: 'preauth_dates'    , header: 'PA Dates'    , filter: true, filterPlaceholder: "PA Dates"    , order: 20 , show: false, style: "", class: "col-nowrap col-19 col-padates"   , format: ""      , tooltip: "PA Dates"    , },
+      { field: 'invoiced'         , header: 'Invoiced'    , filter: true, filterPlaceholder: "Invoiced"    , order: 21 , show: false, style: "", class: "col-nowrap col-20 col-invoiced"  , format: ""      , tooltip: "Invoiced"    , },
+      { field: 'invoiced_dates'   , header: 'Inv Dates'   , filter: true, filterPlaceholder: "Inv Dates"   , order: 22 , show: false, style: "", class: "col-nowrap col-21 col-invdates"  , format: ""      , tooltip: "Inv Dates"   , },
+      { field: 'invoice_numbers'  , header: 'Inv #\'s'    , filter: true, filterPlaceholder: "Inv #'s"     , order: 23 , show: false, style: "", class: "col-nowrap col-22 col-invno"     , format: ""      , tooltip: "Inv #'s"     , },
     ];
     this.allFields = fields;
     this.cols      = fields;
@@ -566,12 +705,13 @@ export class ReportsPage implements OnInit,OnDestroy {
       "notes"             ,
     ];
     let visibleCols = this.cols.filter((a:any) => {
-      let field:string = a.field ? a.field : "";
-      if(field && initialColumns.indexOf(field) > -1) {
-        return true;
-      } else {
-        return false;
-      }
+      // let field:string = a.field ? a.field : "";
+      // if(field && initialColumns.indexOf(field) > -1) {
+      //   return true;
+      // } else {
+      //   return false;
+      // }
+      return a.show;
     });
     // this.selectedColumns = initialColumns;
     this.selectedColumns = visibleCols;
@@ -626,16 +766,21 @@ export class ReportsPage implements OnInit,OnDestroy {
 
   public getOthersFields():any[] {
     let fields:any[] = [
-      { field: '_id'              , header: 'ID'          , filter: true, filterPlaceholder: "ID"          , order:  1 , style: "", class: "col-nowrap col-00 col-id"       , format: ""      , tooltip: "ID"              , },
-      { field: 'report_date'      , header: 'Date'        , filter: true, filterPlaceholder: "Date"        , order:  2 , style: "", class: "col-wrap   col-01 col-date"     , format: "YYYY-MM-DD"      , tooltip: "Date"            , },
-      { field: 'type'             , header: 'Type'        , filter: true, filterPlaceholder: "Type"        , order:  3 , style: "", class: "col-wrap   col-02 col-type"     , format: ""      , tooltip: "Report Type"     , },
-      { field: 'timestamp'        , header: "Timestamp"   , filter: true, filterPlaceholder: "Timestamp"   , order:  4 , style: "", class: "col-wrap   col-03 col-time"     , format: ""      , tooltip: "Timestamp"       , },
-      { field: 'last_name'        , header: 'Last Name'   , filter: true, filterPlaceholder: "Last Name"   , order:  5 , style: "", class: "col-wrap   col-04 col-last"     , format: ""      , tooltip: "Last Name"       , },
-      { field: 'first_name'       , header: 'First Name'  , filter: true, filterPlaceholder: "First Name"  , order:  6 , style: "", class: "col-wrap   col-05 col-first"    , format: ""      , tooltip: "First Name"      , },
-      { field: 'time'             , header: 'Hrs'         , filter: true, filterPlaceholder: "Hrs"         , order:  7 , style: "", class: "col-wrap   col-06 col-hours"    , format: ""      , tooltip: "Repair hours"    , },
-      { field: 'training_type'    , header: 'Trn. Type'   , filter: true, filterPlaceholder: "Trn. Type"   , order:  8 , style: "", class: "col-nowrap col-07 col-training" , format: ""      , tooltip: "Training Type"   , },
-      { field: 'travel_location'  , header: 'Travel Loc.' , filter: true, filterPlaceholder: "Travel Loc." , order:  9 , style: "", class: "col-nowrap col-08 col-travel"   , format: ""      , tooltip: "Travel Location" , },
-      { field: 'site_number'      , header: 'Site#'       , filter: true, filterPlaceholder: "Site#"       , order: 10 , style: "", class: "col-nowrap col-09 col-sitenum"  , format: ""      , tooltip: "Site#"           , },
+      { field: '_id'              , header: 'ID'          , filter: true , filterPlaceholder: "ID"          , order:  1 , show: true , style: "", class: "col-nowrap col-00 col-id"       , format: ""      , tooltip: "ID"              , },
+      { field: 'report_date'      , header: 'Date'        , filter: true , filterPlaceholder: "Date"        , order:  2 , show: true , style: "", class: "col-wrap   col-01 col-date"     , format: "YYYY-MM-DD"      , tooltip: "Date"            , },
+      { field: 'type'             , header: 'Type'        , filter: true , filterPlaceholder: "Type"        , order:  3 , show: true , style: "", class: "col-wrap   col-02 col-type"     , format: ""      , tooltip: "Report Type"     , },
+      { field: 'timestamp'        , header: "Timestamp"   , filter: true , filterPlaceholder: "Timestamp"   , order:  4 , show: true , style: "", class: "col-wrap   col-03 col-time"     , format: ""      , tooltip: "Timestamp"       , },
+      { field: 'last_name'        , header: 'Last Name'   , filter: true , filterPlaceholder: "Last Name"   , order:  5 , show: true , style: "", class: "col-wrap   col-04 col-last"     , format: ""      , tooltip: "Last Name"       , },
+      { field: 'first_name'       , header: 'First Name'  , filter: true , filterPlaceholder: "First Name"  , order:  6 , show: true , style: "", class: "col-wrap   col-05 col-first"    , format: ""      , tooltip: "First Name"      , },
+      { field: 'time'             , header: 'Hrs'         , filter: true , filterPlaceholder: "Hrs"         , order:  7 , show: true , style: "", class: "col-wrap   col-06 col-hours"    , format: ""      , tooltip: "Repair hours"    , },
+      { field: 'training_type'    , header: 'Trn. Type'   , filter: true , filterPlaceholder: "Trn. Type"   , order:  8 , show: true , style: "", class: "col-nowrap col-07 col-training" , format: ""      , tooltip: "Training Type"   , },
+      { field: 'travel_location'  , header: 'Travel Loc.' , filter: true , filterPlaceholder: "Travel Loc." , order:  9 , show: true , style: "", class: "col-nowrap col-08 col-travel"   , format: ""      , tooltip: "Travel Location" , },
+      { field: 'site_number'      , header: 'Site#'       , filter: true , filterPlaceholder: "Site#"       , order: 10 , show: true , style: "", class: "col-nowrap col-09 col-sitenum"  , format: ""      , tooltip: "Site#"           , },
+      { field: 'notes'            , header: 'Notes'       , filter: true , filterPlaceholder: "Notes"       , order: 11 , show: false, style: "", class: "col-nowrap col-10 col-notes"    , format: ""      , tooltip: "Notes"           , },
+      { field: 'client'           , header: 'Client'      , filter: true , filterPlaceholder: "Client"      , order: 12 , show: false, style: "", class: "col-nowrap col-11 col-client"   , format: ""      , tooltip: "Client"          , },
+      { field: 'location'         , header: 'Location'    , filter: true , filterPlaceholder: "Location"    , order: 13 , show: false, style: "", class: "col-nowrap col-12 col-location" , format: ""      , tooltip: "Location"        , },
+      { field: 'location_id'      , header: 'LocID'       , filter: true , filterPlaceholder: "Location ID" , order: 14 , show: false, style: "", class: "col-nowrap col-13 col-locid"    , format: ""      , tooltip: "Location ID"     , },
+      { field: 'flags'            , header: 'Flags'       , filter: false, filterPlaceholder: "Flags"       , order: 15 , show: false, style: "", class: "col-nowrap col-14 col-flags"    , format: ""      , tooltip: "Number of flags" , },
     ];
     this.allFieldsOthers = fields;
     this.colsOthers      = fields;
@@ -665,7 +810,10 @@ export class ReportsPage implements OnInit,OnDestroy {
     // });
     // // this.selectedColumns = initialColumns;
     // this.selectedColumns = visibleCols;
-    this.selectedColumnsOthers = fields;
+    this.selectedColumnsOthers = fields.filter(a => {
+      // return a.field !== 'notes' && a.field !== 'client' && a.field !== 'location' && a.field !== 'location_id';
+      return a.show;
+    });
     this.columnsChangedOthers();
     this.othersMultiSortMeta = [
       { field: 'report_date', order: -1 },
@@ -756,6 +904,88 @@ export class ReportsPage implements OnInit,OnDestroy {
     }
   }
 
+  public getMaintenanceFields():any[] {
+    let fields:any[] = [
+      { field: '_id'              , header: 'ID'          , filter: true , filterPlaceholder: "ID"          , order:  1 , style: "", class: "col-nowrap col-00 col-id"       , format: ""      , tooltip: "ID"              , },
+      { field: 'report_date'      , header: 'Date'        , filter: true , filterPlaceholder: "Date"        , order:  2 , style: "", class: "col-wrap   col-01 col-date"     , format: "YYYY-MM-DD"      , tooltip: "Date"            , },
+      { field: 'last_name'        , header: 'Last Name'   , filter: true , filterPlaceholder: "Last Name"   , order:  3 , style: "", class: "col-wrap   col-02 col-last"     , format: ""      , tooltip: "Last Name"       , },
+      { field: 'first_name'       , header: 'First Name'  , filter: true , filterPlaceholder: "First Name"  , order:  4 , style: "", class: "col-wrap   col-03 col-first"    , format: ""      , tooltip: "First Name"      , },
+      // { field: 'startTime'        , header: 'Start Time'  , filter: true , filterPlaceholder: "Start Time"  , order:  5 , style: "", class: "col-wrap   col-04 col-start"    , format: "MMM DD YYYY HH:mm"      , tooltip: "Start Time"      , },
+      // { field: 'endTime'          , header: 'Dest Time'   , filter: true , filterPlaceholder: "Dest Time"   , order:  6 , style: "", class: "col-wrap   col-05 col-end"      , format: "MMM DD YYYY HH:mm"      , tooltip: "Destination Time", },
+      // { field: 'finalTime'        , header: 'Final Time'  , filter: true , filterPlaceholder: "Final Time"  , order:  7 , style: "", class: "col-wrap   col-06 col-final"    , format: "MMM DD YYYY HH:mm"      , tooltip: "Final Time"      , },
+      // { field: 'startMiles'       , header: 'Start Miles' , filter: true , filterPlaceholder: "Start Miles" , order:  8 , style: "", class: "col-wrap   col-07 col-startm"   , format: ""      , tooltip: "Start Miles"      , },
+      // { field: 'endMiles'         , header: 'Dest Miles'  , filter: true , filterPlaceholder: "Dest Miles"  , order:  9 , style: "", class: "col-wrap   col-08 col-endm"     , format: ""      , tooltip: "Destination Miles", },
+      // { field: 'finalMiles'       , header: 'Final Miles' , filter: true , filterPlaceholder: "Final Miles" , order:  10, style: "", class: "col-wrap   col-09 col-finalm"   , format: ""      , tooltip: "Final Miles"      , },
+      // { field: 'fromLocation'     , header: 'From Loc.'   , filter: false, filterPlaceholder: "From"        , order:  11, style: "", class: "col-wrap   col-10 col-fromloc"  , format: ""      , tooltip: "From Location"    , type: "location" },
+      // { field: 'toLocation'       , header: 'To Loc.'     , filter: false, filterPlaceholder: "To"          , order:  12, style: "", class: "col-wrap   col-11 col-toloc"    , format: ""      , tooltip: "To Location"      , type: "location" },
+      // { field: 'finalLocation'    , header: 'Final Loc.'  , filter: false, filterPlaceholder: "Final"       , order:  13, style: "", class: "col-wrap   col-12 col-finalloc" , format: ""      , tooltip: "Final Location"   , type: "location" },
+      { field: 'notes'            , header: 'Notes'       , filter: true , filterPlaceholder: "Notes"       , order:  14, style: "", class: "col-wrap   col-13 col-notes"    , format: ""      , tooltip: "Notes"            , },
+    ];
+    this.allFieldsMaintenance = fields;
+    this.colsMaintenance      = fields;
+    this.selectedColumnsMaintenance = fields;
+    this.columnsChangedMaintenance();
+    this.maintenancesMultiSortMeta = [
+      { field: 'report_date', order: -1 },
+      { field: '_id', order: -1 },
+    ];
+    return fields;
+  }
+
+  public columnsChangedMaintenance(colList?:string[]) {
+    let vCols = colList ? colList : this.selectedColumnsMaintenance;
+    // let cols = this.cols;
+    // Log.l("columnsChangedMaintenance(): Items now selected:\n", vCols);
+    this.selectedColumnsMaintenance = vCols.sort((a:any, b:any) => {
+      return a.order > b.order ? 1 : a.order < b.order ? -1 : 0;
+    });
+    // Log.l("columnsChangedMaintenance(): Now field list is:\n", this.colsMaintenance);
+    if(this.columnSelectMaintenance) {
+      this.columnSelectMaintenance.updateLabel();
+    }
+  }
+
+  public getDrivingFields():any[] {
+    let fields:any[] = [
+      { field: '_id'              , header: 'ID'          , filter: true , filterPlaceholder: "ID"          , order:  1 , style: "", class: "col-nowrap col-00 col-id"       , format: ""      , tooltip: "ID"              , },
+      { field: 'report_date'      , header: 'Date'        , filter: true , filterPlaceholder: "Date"        , order:  2 , style: "", class: "col-wrap   col-01 col-date"     , format: "YYYY-MM-DD"      , tooltip: "Date"            , },
+      { field: 'last_name'        , header: 'Last Name'   , filter: true , filterPlaceholder: "Last Name"   , order:  3 , style: "", class: "col-wrap   col-02 col-last"     , format: ""      , tooltip: "Last Name"       , },
+      { field: 'first_name'       , header: 'First Name'  , filter: true , filterPlaceholder: "First Name"  , order:  4 , style: "", class: "col-wrap   col-03 col-first"    , format: ""      , tooltip: "First Name"      , },
+      { field: 'startTime'        , header: 'Start Time'  , filter: true , filterPlaceholder: "Start Time"  , order:  5 , style: "", class: "col-wrap   col-04 col-start"    , format: "MMM DD YYYY HH:mm"      , tooltip: "Start Time"      , },
+      { field: 'endTime'          , header: 'Dest Time'   , filter: true , filterPlaceholder: "Dest Time"   , order:  6 , style: "", class: "col-wrap   col-05 col-end"      , format: "MMM DD YYYY HH:mm"      , tooltip: "Destination Time", },
+      { field: 'finalTime'        , header: 'Final Time'  , filter: true , filterPlaceholder: "Final Time"  , order:  7 , style: "", class: "col-wrap   col-06 col-final"    , format: "MMM DD YYYY HH:mm"      , tooltip: "Final Time"      , },
+      { field: 'startMiles'       , header: 'Start Miles' , filter: true , filterPlaceholder: "Start Miles" , order:  8 , style: "", class: "col-wrap   col-07 col-startm"   , format: ""      , tooltip: "Start Miles"      , },
+      { field: 'endMiles'         , header: 'Dest Miles'  , filter: true , filterPlaceholder: "Dest Miles"  , order:  9 , style: "", class: "col-wrap   col-08 col-endm"     , format: ""      , tooltip: "Destination Miles", },
+      { field: 'finalMiles'       , header: 'Final Miles' , filter: true , filterPlaceholder: "Final Miles" , order:  10, style: "", class: "col-wrap   col-09 col-finalm"   , format: ""      , tooltip: "Final Miles"      , },
+      { field: 'fromLocation'     , header: 'From Loc.'   , filter: false, filterPlaceholder: "From"        , order:  11, style: "", class: "col-wrap   col-10 col-fromloc"  , format: ""      , tooltip: "From Location"    , type: "location" },
+      { field: 'toLocation'       , header: 'To Loc.'     , filter: false, filterPlaceholder: "To"          , order:  12, style: "", class: "col-wrap   col-11 col-toloc"    , format: ""      , tooltip: "To Location"      , type: "location" },
+      { field: 'finalLocation'    , header: 'Final Loc.'  , filter: false, filterPlaceholder: "Final"       , order:  13, style: "", class: "col-wrap   col-12 col-finalloc" , format: ""      , tooltip: "Final Location"   , type: "location" },
+      { field: 'notes'            , header: 'Notes'       , filter: true , filterPlaceholder: "Notes"       , order:  14, style: "", class: "col-wrap   col-13 col-notes"    , format: ""      , tooltip: "Notes"            , },
+    ];
+    this.allFieldsDriving = fields;
+    this.colsDriving      = fields;
+    this.selectedColumnsDriving = fields;
+    this.columnsChangedDriving();
+    this.drivingsMultiSortMeta = [
+      { field: 'report_date', order: -1 },
+      { field: '_id', order: -1 },
+    ];
+    return fields;
+  }
+
+  public columnsChangedDriving(colList?:string[]) {
+    let vCols = colList ? colList : this.selectedColumnsDriving;
+    // let cols = this.cols;
+    // Log.l("columnsChangedDriving(): Items now selected:\n", vCols);
+    this.selectedColumnsDriving = vCols.sort((a:any, b:any) => {
+      return a.order > b.order ? 1 : a.order < b.order ? -1 : 0;
+    });
+    // Log.l("columnsChangedMaintenance(): Now field list is:\n", this.colsDriving);
+    if(this.columnSelectDriving) {
+      this.columnSelectDriving.updateLabel();
+    }
+  }
+
   public getTimeCardsFields():any[] {
     let fields:any[] = [
       { field: '_id'              , header: 'ID'          , filter: true, filterPlaceholder: "ID"          , order:  1 , style: "", class: "col-nowrap col-00 col-id"       , format: ""      , tooltip: "ID"              , },
@@ -821,6 +1051,20 @@ export class ReportsPage implements OnInit,OnDestroy {
     this.dataReady = true;
   }
 
+  public selectionChangedMaintenance(evt?:Event) {
+    Log.l(`selectionChangedMaintenance(): Event is:\n`, evt);
+    this.dataReady = false;
+    this.columnsChangedMaintenance();
+    this.dataReady = true;
+  }
+
+  public selectionChangedDriving(evt?:Event) {
+    Log.l(`selectionChangedDrivings(): Event is:\n`, evt);
+    this.dataReady = false;
+    this.columnsChangedDriving();
+    this.dataReady = true;
+  }
+
   public selectionChangedTimeCards(evt?:Event) {
     Log.l(`selectionChangedTimeCards(): Event is:\n`, evt);
     this.dataReady = false;
@@ -858,6 +1102,26 @@ export class ReportsPage implements OnInit,OnDestroy {
     return out;
   }
 
+  public getFilteredCountDriving():number {
+    // let out:number = this.reports.length;
+    let out:number = 0;
+    let dt:Table = this.drivingsTable ? this.drivingsTable : null;
+    if(dt && dt.filteredValue && dt.filteredValue.length) {
+      out = dt.filteredValue.length;
+    }
+    return out;
+  }
+
+  public getFilteredCountMaintenance():number {
+    // let out:number = this.reports.length;
+    let out:number = 0;
+    let dt:Table = this.maintenancesTable ? this.maintenancesTable : null;
+    if(dt && dt.filteredValue && dt.filteredValue.length) {
+      out = dt.filteredValue.length;
+    }
+    return out;
+  }
+
   public getFilteredCountTimeCards():number {
     // let out:number = this.reports.length;
     let out:number = 0;
@@ -874,6 +1138,8 @@ export class ReportsPage implements OnInit,OnDestroy {
       let res:any[] = await this.getReports();
       res = await this.getOthers();
       res = await this.getLogistics();
+      res = await this.getDrivings();
+      res = await this.getMaintenances();
       res = await this.getTimeCards();
       // this.allReports = res;
       // res = await this.
@@ -899,9 +1165,12 @@ export class ReportsPage implements OnInit,OnDestroy {
       spinnerID = await this.alert.showSpinnerPromise(text);
       // this.dataReady = false;
       // this.resetReportsTable();
-      this.resetTable(1);
-      let res:Report[] = await this.data.getReports(1000000, spinnerID);
-      Log.l("getReports(): Got reports:\n", res);
+      this.resetTable(TABLEINDEX.reports);
+      // this.dispatch.triggerAppEvent('updatefromdb', {db: 'reports', count: 1000000});
+      // let res:Report[] = await this.data.getReports(1000000, spinnerID);
+      let res1 = await this.data.updateFromDB('reports');
+      let res:Report[] = res1.payload;
+      Log.l("ReportsPage.getReports(): Got reports:", res);
       this.allReports = res;
       // this.data.setData('reports', res.slice(0));
       this.reports = this.allReports.slice(0);
@@ -909,7 +1178,7 @@ export class ReportsPage implements OnInit,OnDestroy {
       let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       return this.reports;
     } catch (err) {
-      Log.l(`getReports(): Error downloading reports.`);
+      Log.l(`ReportsPage.getReports(): Error downloading reports.`);
       Log.e(err);
       let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       throw err;
@@ -921,13 +1190,15 @@ export class ReportsPage implements OnInit,OnDestroy {
     try {
       // let res:Report[] = await this.db.getAllReportsPlusNew();
       // this.resetReportsTable();
-      this.resetTable(2);
+      this.resetTable(TABLEINDEX.others);
       // this.dataReady = false;
       let count:number = await this.db.getDBDocCount('reports_other');
       let text:string = `Retrieving ${count} misc reports from database …`;
       spinnerID = await this.alert.showSpinnerPromise(text);
-      let res:ReportOther[] = await this.data.getReportOthers(true);
-      Log.l("getOthers(): Got others:\n", res);
+      // let res:ReportOther[] = await this.data.getReportOthers(true);
+      let res1 = await this.data.updateFromDB('reports_other');
+      let res:ReportOther[] = res1.payload;
+      Log.l("ReportsPage.getOthers(): Got others:", res);
       this.allOthers = res;
       // this.data.setData('others', res.slice(0));
       this.others = this.allOthers.slice(0);
@@ -935,7 +1206,7 @@ export class ReportsPage implements OnInit,OnDestroy {
       this.dataReady = true;
       return this.others;
     } catch (err) {
-      Log.l(`getOthers(): Error downloading others.`);
+      Log.l(`ReportsPage.getOthers(): Error downloading others.`);
       Log.e(err);
       let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       throw err;
@@ -947,13 +1218,15 @@ export class ReportsPage implements OnInit,OnDestroy {
     try {
       // let res:Report[] = await this.db.getAllReportsPlusNew();
       // this.resetReportsTable();
-      this.resetTable(3);
+      this.resetTable(TABLEINDEX.logistics);
       // this.dataReady = false;
-      let count:number = await this.db.getDBDocCount('reports_other');
+      let count:number = await this.db.getDBDocCount('logistics');
       let text:string = `Retrieving ${count} logistics reports from database …`;
       spinnerID = await this.alert.showSpinnerPromise(text);
-      let res:ReportLogistics[] = await this.data.getReportLogistics(true);
-      Log.l("getLogistics(): Got logistics:\n", res);
+      // let res:ReportLogistics[] = await this.data.getReportLogistics(true);
+      let res1 = await this.data.updateFromDB('logistics');
+      let res:ReportLogistics[] = res1.payload;
+      Log.l("ReportsPage.getLogistics(): Got logistics:", res);
       this.allLogistics = res;
       // this.data.setData('logistics', res.slice(0));
       this.logistics = this.allLogistics.slice(0);
@@ -961,9 +1234,67 @@ export class ReportsPage implements OnInit,OnDestroy {
       let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       return this.logistics;
     } catch (err) {
-      Log.l(`getLogistics(): Error downloading logistics reports.`);
+      Log.l(`ReportsPage.getLogistics(): Error downloading logistics reports.`);
       Log.e(err);
       let out:any = await this.alert.hideSpinnerPromise(spinnerID);
+      throw err;
+    }
+  }
+
+  public async getDrivings():Promise<ReportDriving[]> {
+    let spinnerID;
+    try {
+      // let res:Report[] = await this.db.getAllReportsPlusNew();
+      let count:number = await this.db.getDBDocCount('drivings');
+      let text:string = `Retrieving ${count} driving reports from database …`;
+      spinnerID = await this.alert.showSpinnerPromise(text);
+      // this.dataReady = false;
+      // this.resetReportsTable();
+      this.resetTable(TABLEINDEX.drivings);
+      // this.dispatch.triggerAppEvent('updatefromdb', {db: 'reports', count: 1000000});
+      // let res:Report[] = await this.data.getReports(1000000, spinnerID);
+      let res1 = await this.data.updateFromDB('drivings');
+      let res:ReportDriving[] = res1.payload;
+      Log.l("ReportsPage.getDrivings(): Got reports:", res);
+      this.allDrivings = res;
+      // this.data.setData('reports', res.slice(0));
+      this.drivings = this.allDrivings.slice(0);
+      this.dataReady = true;
+      let out:any = await this.alert.hideSpinnerPromise(spinnerID);
+      return this.drivings;
+    } catch (err) {
+      Log.l(`ReportsPage.getDrivings(): Error downloading reports.`);
+      Log.e(err);
+      await this.alert.hideSpinnerPromise(spinnerID);
+      throw err;
+    }
+  }
+
+  public async getMaintenances():Promise<ReportMaintenance[]> {
+    let spinnerID;
+    try {
+      // let res:Report[] = await this.db.getAllReportsPlusNew();
+      let count:number = await this.db.getDBDocCount('maintenances');
+      let text:string = `Retrieving ${count} maintenance reports from database …`;
+      spinnerID = await this.alert.showSpinnerPromise(text);
+      // this.dataReady = false;
+      // this.resetReportsTable();
+      this.resetTable(TABLEINDEX.maintenances);
+      // this.dispatch.triggerAppEvent('updatefromdb', {db: 'reports', count: 1000000});
+      // let res:Report[] = await this.data.getReports(1000000, spinnerID);
+      let res1 = await this.data.updateFromDB('maintenances');
+      let res:ReportMaintenance[] = res1.payload;
+      Log.l("ReportsPage.getMaintenances(): Got reports:", res);
+      this.allMaintenances = res;
+      // this.data.setData('reports', res.slice(0));
+      this.maintenances = this.allMaintenances.slice(0);
+      this.dataReady = true;
+      let out:any = await this.alert.hideSpinnerPromise(spinnerID);
+      return this.maintenances;
+    } catch (err) {
+      Log.l(`ReportsPage.getMaintenances(): Error downloading reports.`);
+      Log.e(err);
+      await this.alert.hideSpinnerPromise(spinnerID);
       throw err;
     }
   }
@@ -973,11 +1304,15 @@ export class ReportsPage implements OnInit,OnDestroy {
     try {
       // let res:Report[] = await this.db.getAllReportsPlusNew();
       // this.resetReportsTable();
-      this.resetTable(4);
+      this.resetTable(TABLEINDEX.timecards);
       // this.dataReady = false;
-      spinnerID = await this.alert.showSpinnerPromise('Retrieving time cards from database...');
-      let res:ReportTimeCard[] = await this.data.getTimeCards(true);
-      Log.l("getTimeCards(): Got others:\n", res);
+      let count:number = await this.db.getDBDocCount('timecards');
+      let text:string = `Retrieving ${count} timecards from database …`;
+      spinnerID = await this.alert.showSpinnerPromise(text);
+      // let res:ReportTimeCard[] = await this.data.getTimeCards(true);
+      let res1 = await this.data.updateFromDB('timecards');
+      let res:ReportTimeCard[] = res1.payload;
+      Log.l("ReportsPage.getTimeCards(): Got timecards:", res);
       this.allTimeCards = res;
       // this.data.setData('others', res.slice(0));
       this.logistics = this.allLogistics.slice(0);
@@ -985,7 +1320,7 @@ export class ReportsPage implements OnInit,OnDestroy {
       let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       return this.timecards;
     } catch (err) {
-      Log.l(`getTimeCards(): Error downloading time cards.`);
+      Log.l(`ReportsPage.getTimeCards(): Error downloading time cards.`);
       Log.e(err);
       let out:any = await this.alert.hideSpinnerPromise(spinnerID);
       throw err;
@@ -1001,14 +1336,14 @@ export class ReportsPage implements OnInit,OnDestroy {
       res1 = await this.downloadOldReports();
       return this.reports;
     } catch(err) {
-      Log.l(`refreshData(): Error downloading reports.`);
+      Log.l(`ReportsPage.refreshData(): Error downloading reports.`);
       Log.e(err);
       this.notify.addError("ERROR", `Error refreshing reports: '${err.message}'`, 10000);
     }
   }
 
   public async loadOldReports(event?: any):Promise<Report[]> {
-    Log.l("loadOldReports() clicked.");
+    Log.l("ReportsPage.loadOldReports() clicked.");
     this.notify.addInfo("RETRIEVING", `Downloading old reports...`, 3000);
     try {
       // let res = await this.db.getOldReports();
@@ -1019,7 +1354,7 @@ export class ReportsPage implements OnInit,OnDestroy {
       this.notify.addSuccess("SUCCESS", `Loadeded ${len} old reports.`, 3000);
       return res;
     } catch (err) {
-      Log.l(`loadOldReports(): Error loading reports!`);
+      Log.l(`ReportsPage.loadOldReports(): Error loading reports!`);
       Log.e(err);
       this.notify.addError("ERROR", `Error loading old reports: '${err.message}'`, 10000);
     }
@@ -1028,10 +1363,10 @@ export class ReportsPage implements OnInit,OnDestroy {
   public async downloadOldReports(event?:Event):Promise<Report[]> {
     try {
       this.notify.addInfo("RETRIEVING", "Starting download of old reports...", 3000);
-      Log.l("downloadOldReports(): Retrieving old reports...");
+      Log.l("ReportsPage.downloadOldReports(): Retrieving old reports...");
       // let res:Report[] = await this.db.getOldReports();
       let res:Report[] = await this.server.getOldReports();
-      Log.l("downloadOldReports(): Success!");
+      Log.l("ReportsPage.downloadOldReports(): Success!");
 
       this.data.setData('oldreports', res);
       for(let report of res) {
@@ -1049,23 +1384,23 @@ export class ReportsPage implements OnInit,OnDestroy {
       this.reports = allReports;
       this.allReports = allReports;
       let len:number = res.length;
-      Log.l(`downloadOldReports(): Done downloading ${len} old reports.`);;
+      Log.l(`ReportsPage.downloadOldReports(): Done downloading ${len} old reports.`);;
       this.notify.addSuccess("SUCCESS!", `Downloaded ${len} old reports.`, 3000);
       return res;
     } catch(err) {
-      Log.l(`downloadOldReports(): Error while getting old reports!`);
+      Log.l(`ReportsPage.downloadOldReports(): Error while getting old reports!`);
       Log.e(err);
       this.notify.addError("ERROR", `Error downloading old reports: '${err.message}'`, 10000);
     }
   }
 
   public onRowSelect(event:any) {
-    Log.l("onRowSelect(): Event passed is:\n", event);
+    Log.l("ReportsPage.onRowSelect(): Event passed is:\n", event);
     this.showReport(event.data);
   }
 
   public onRowSelectOther(event:any) {
-    Log.l("onRowSelectOther(): Event passed is:\n", event);
+    Log.l("ReportsPage.onRowSelectOther(): Event passed is:\n", event);
     this.showReportOther(event.data);
   }
 
@@ -1147,25 +1482,31 @@ export class ReportsPage implements OnInit,OnDestroy {
   public checkDateRange(tableNumber:number, cal:Calendar, evt?:Event) {
     let dt:Table;
     let dateRange:Date[];
-    if(tableNumber === 1) {
+    if(tableNumber === TABLEINDEX.reports) {
       dt = this.dt;
-      dateRange = this.dateRanges[0];
-    } else if(tableNumber === 2) {
+      dateRange = this.dateRanges[TABLEINDEX.reports - 1];
+    } else if(tableNumber === TABLEINDEX.others) {
       dt = this.othersTable;
-      dateRange = this.dateRanges[1];
-    } else if(tableNumber === 3) {
+      dateRange = this.dateRanges[TABLEINDEX.others - 1];
+    } else if(tableNumber === TABLEINDEX.logistics) {
       dt = this.logisticsTable;
-      dateRange = this.dateRanges[2];
-    } else if(tableNumber === 4) {
+      dateRange = this.dateRanges[TABLEINDEX.logistics - 1];
+    } else if(tableNumber === TABLEINDEX.maintenances) {
+      dt = this.maintenancesTable;
+      dateRange = this.dateRanges[TABLEINDEX.maintenances - 1];
+    } else if(tableNumber === TABLEINDEX.drivings) {
+      dt = this.drivingsTable;
+      dateRange = this.dateRanges[TABLEINDEX.drivings - 1];
+    } else if(tableNumber === TABLEINDEX.timecards) {
       dt = this.timecardsTable;
-      dateRange = this.dateRanges[3];
+      dateRange = this.dateRanges[TABLEINDEX.timecards - 1];
     } else {
-      let text:string = `checkDateRange(): Could not find table at index '${tableNumber}' to reset it`;
+      let text:string = `ReportsPage.checkDateRange(): Could not find table at index '${tableNumber}' to reset it`;
       Log.w(text);
       // this.notify.addWarning("TABLE RESET ERROR", text, 5000);
       return;
     }
-    Log.l(`checkDateRange(): dateRange[${tableNumber}] is now:`, dateRange);
+    Log.l(`ReportsPage.checkDateRange(): dateRange[${tableNumber}] is now:`, dateRange);
     // let cal:Calendar = this.dateRangeCalendar;
     let dates:Date[] = dateRange;
     if(dates && Array.isArray(dates) && dates.length === 2) {
@@ -1180,28 +1521,41 @@ export class ReportsPage implements OnInit,OnDestroy {
     }
   }
 
-  public checkDateRangeOnClose(tableNumber:number, cal:Calendar, table:Table, evt?:Event) {
+  public checkDateRangeOnClose(tableNumber:TableIndexKey, cal:Calendar, table:Table, evt?:Event) {
     let dt:Table;
     let dateRange:Date[];
-    if(tableNumber === 1) {
+    let idx:number;
+    if(tableNumber === TABLEINDEX.reports) {
       dt = this.dt;
-      dateRange = this.dateRanges[0];
-    } else if(tableNumber === 2) {
+      idx = (TABLEINDEX.reports as number)
+      dateRange = this.dateRanges[idx - 1];
+    } else if(tableNumber === TABLEINDEX.others) {
       dt = this.othersTable;
-      dateRange = this.dateRanges[1];
-    } else if(tableNumber === 3) {
+      idx = (TABLEINDEX.others as number)
+      dateRange = this.dateRanges[idx - 1];
+    } else if(tableNumber === TABLEINDEX.logistics) {
       dt = this.logisticsTable;
-      dateRange = this.dateRanges[2];
-    } else if(tableNumber === 4) {
+      idx = (TABLEINDEX.logistics as number)
+      dateRange = this.dateRanges[idx - 1];
+    } else if(tableNumber === TABLEINDEX.maintenances) {
+      dt = this.maintenancesTable;
+      idx = (TABLEINDEX.maintenances as number)
+      dateRange = this.dateRanges[idx - 1];
+    } else if(tableNumber === TABLEINDEX.drivings) {
+      dt = this.drivingsTable;
+      idx = (TABLEINDEX.drivings as number)
+      dateRange = this.dateRanges[idx - 1];
+    } else if(tableNumber === TABLEINDEX.timecards) {
       dt = this.timecardsTable;
-      dateRange = this.dateRanges[3];
+      idx = (TABLEINDEX.timecards as number)
+      dateRange = this.dateRanges[idx - 1];
     } else {
-      let text:string = `checkDateRangeOnClose(): Could not find table at index '${tableNumber}' to check dates`;
+      let text:string = `ReportsPage.checkDateRangeOnClose(): Could not find table at index '${tableNumber}' to check dates`;
       Log.w(text);
       // this.notify.addWarning("TABLE RESET ERROR", text, 5000);
       return;
     }
-    Log.l(`checkDateRangeOnClose(): dateRange[${tableNumber}] is now:`, dateRange);
+    Log.l(`ReportsPage.checkDateRangeOnClose(): dateRange[${idx}] is now:`, dateRange);
     // let cal:Calendar = this.dateRangeCalendar;
     // let dates:Date[] = this.dateRange;
     let dates:Date[] = dateRange;
@@ -1217,7 +1571,7 @@ export class ReportsPage implements OnInit,OnDestroy {
       } else if(dStart || dEnd) {
         // dateRange = null;
         dateRange = null;
-        let i:number = tableNumber - 1;
+        let i:number = idx - 1;
         if(i >= 0 && i < this.dateRanges.length) {
           this.dateRanges[i] = null;
         }
@@ -1227,16 +1581,17 @@ export class ReportsPage implements OnInit,OnDestroy {
     }
   }
 
-  public updateDateRange(tableNumber:number, dateRange:Date[], cal:Calendar, table:Table, evt?:Event) {
-    // Log.l(`updateDateRange(): Arguments are:\n`, arguments);
-    Log.l(`updateDateRange(): provided date range is:`, dateRange);
+  public updateDateRange(tableNumber:TableIndexKey, dateRange:Date[], cal:Calendar, table:Table, evt?:Event) {
+    // Log.l(`ReportsPage.updateDateRange(): Arguments are:\n`, arguments);
+    Log.l(`ReportsPage.updateDateRange(): for table '${tableNumber}', provided date range is:`, dateRange);
+    let idx:number = (tableNumber as number);
     if(!(cal && cal instanceof Calendar)) {
-      let text:string = `updateDateRange(): Provided calendar is invalid`;
+      let text:string = `ReportsPage.updateDateRange(): Provided calendar is invalid`;
       Log.w(text, cal);
       return;
     }
     if(!(table && table instanceof Table)) {
-      let text:string = `updateDateRange(): Provided Table is invalid`;
+      let text:string = `ReportsPage.updateDateRange(): Provided Table is invalid`;
       Log.w(text, table);
       return;
     }
@@ -1249,7 +1604,7 @@ export class ReportsPage implements OnInit,OnDestroy {
       let to:Moment = moment(dEnd);
       let fromDate:string = from.format("YYYY-MM-DD");
       let toDate:string   = to.format("YYYY-MM-DD");
-      Log.l(`updateDateRange(): Now filtering from ${fromDate} - ${toDate}...`);
+      Log.l(`ReportsPage.updateDateRange(): Now filtering from ${fromDate} - ${toDate}...`);
       let dateRange:string[] = this.getDateRangeStrings(from, to);
       // this.minDate = from.toDate();
       // this.maxDate = to.toDate();
@@ -1262,7 +1617,7 @@ export class ReportsPage implements OnInit,OnDestroy {
       }, 250);
     } else {
       dateRange = null;
-      let i:number = tableNumber - 1;
+      let i:number = idx - 1;
       if(i >= 0 && i < this.dateRanges.length) {
         this.dateRanges[i] = null;
       }
@@ -1270,17 +1625,27 @@ export class ReportsPage implements OnInit,OnDestroy {
   }
 
   public onRowSelectOthers(event:any) {
-    Log.l("onRowSelectOthers(): Event passed is:\n", event);
+    Log.l("ReportsPage.onRowSelectOthers(): Event passed is:", event);
     this.showReportOther(event.data);
   }
 
   public onRowSelectLogistics(event:any) {
-    Log.l("onRowSelectLogistics(): Event passed is:\n", event);
+    Log.l("ReportsPage.onRowSelectLogistics(): Event passed is:", event);
     this.showReportLogistics(event.data);
   }
 
+  public onRowSelectDriving(event:any) {
+    Log.l("ReportsPage.onRowSelectDriving(): Event passed is:", event);
+    this.showReportDriving(event.data);
+  }
+
+  public onRowSelectMaintenance(event:any) {
+    Log.l("ReportsPage.onRowSelectMaintenance(): Event passed is:", event);
+    this.showReportMaintenance(event.data);
+  }
+
   public onRowSelectTimeCards(event:any) {
-    Log.l("onRowSelectTimeCards(): Event passed is:\n", event);
+    Log.l("ReportsPage.onRowSelectTimeCards(): Event passed is:", event);
     this.showReportTimeCard(event.data);
   }
 
@@ -1408,20 +1773,26 @@ export class ReportsPage implements OnInit,OnDestroy {
   //   }
   // }
 
-  public async bulkEdit(type:number, event?:Event):Promise<any> {
+  public async bulkEdit(type:TableIndexKey, event?:Event):Promise<any> {
     try {
-      let docs:Array<Report|ReportOther|ReportLogistics|ReportTimeCard>;
+      let docs:ReportAny[];
       let description:string;
-      if(type === 1) {
+      if(type === TABLEINDEX.reports) {
         docs = this.selectedReports;
         description = "work reports";
-      } else if(type === 2) {
+      } else if(type === TABLEINDEX.others) {
         docs = this.selectedReportsOther;
         description = "misc. reports";
-      } else if(type === 3) {
+      } else if(type === TABLEINDEX.logistics) {
         docs = this.selectedReportsLogistics;
         description = "logistics reports";
-      } else if(type === 4) {
+      } else if(type === TABLEINDEX.maintenances) {
+        docs = this.selectedReportsMaintenance;
+        description = "maintenance reports";
+      } else if(type === TABLEINDEX.drivings) {
+        docs = this.selectedReportsDriving;
+        description = "driving reports";
+      } else if(type === TABLEINDEX.timecards) {
         docs = this.selectedTimeCards;
         description = "time card reports";
       }
@@ -1454,7 +1825,7 @@ export class ReportsPage implements OnInit,OnDestroy {
     }
   }
 
-  public findUsedKeys(docs:Array<Report|ReportOther|ReportLogistics|ReportTimeCard>):string[] {
+  public findUsedKeys(docs:ReportAny[]):string[] {
     let allkeys:Set<string> = new Set();
     docs.forEach(a => a.getKeys().forEach((b:string) => allkeys.add(b)));
     let out:string[] = Array.from(allkeys);
@@ -1462,7 +1833,7 @@ export class ReportsPage implements OnInit,OnDestroy {
   }
 
   public showReport(report:Report, event?:Event) {
-    Log.l(`showReport(): Called with report:\n`, report);
+    Log.l(`showReport(): Called with report:`, report);
     let reportList = this.dt.hasFilter() ? this.dt.filteredValue : this.dt.value;
     let site:Jobsite = this.sites.find((a:Jobsite) => {
       // return _matchReportSite(report, a);
@@ -1497,8 +1868,7 @@ export class ReportsPage implements OnInit,OnDestroy {
   }
 
   public showReportOther(other:ReportOther, event?:Event) {
-    Log.l(`showReportOther(): Called with report:pwd
-    `, other);
+    Log.l(`showReportOther(): Called with report:`, other);
     let reportList:ReportOther[] = this.othersTable.hasFilter() ? this.othersTable.filteredValue : this.othersTable.value;
     // let site = this.sites.find((a:Jobsite) => {
     //   // return _matchReportSite(report, a);
@@ -1539,7 +1909,7 @@ export class ReportsPage implements OnInit,OnDestroy {
   }
 
   public showReportLogistics(logistic:ReportLogistics, event?:Event) {
-    Log.l(`showReportLogistics(): Called with report:\n`, logistic);
+    Log.l(`showReportLogistics(): Called with report:`, logistic);
     let reportList:ReportLogistics[] = this.logisticsTable && this.logisticsTable.hasFilter() ? this.logisticsTable.filteredValue : this.logisticsTable.value;
     if(logistic && logistic instanceof ReportLogistics) {
       let username:string = logistic.username;
@@ -1564,8 +1934,60 @@ export class ReportsPage implements OnInit,OnDestroy {
     }
   }
 
+  public showReportMaintenance(report:ReportMaintenance, event?:Event) {
+    Log.l(`showReportMaintenance(): Called with report:`, report);
+    let reportList:ReportMaintenance[] = this.maintenancesTable && this.maintenancesTable.hasFilter() ? this.maintenancesTable.filteredValue : this.maintenancesTable.value;
+    if(report && report instanceof ReportMaintenance) {
+      let username:string = report.username;
+      let techs:Employee[] = this.techs;
+      let tech:Employee = techs.find((a:Employee) => {
+        let techUsername:string = a.getUsername();
+        return username === techUsername;
+      });
+      if(!tech) {
+        this.notify.addWarn("TECH ERROR", "Could not determine what tech created this maintenance report!", 6000);
+        return;
+      }
+      // this.site        = site;
+      this.tech          = tech;
+      this.editMaintenance = reportList;
+      this.maintenance      = report;
+      this.reportMaintenanceViewVisible = true;
+      return;
+    } else {
+      this.notify.addWarn("MAINTENANCE REPORT ERROR", "Maintenance report not found, cannot view/edit it");
+      return;
+    }
+  }
+
+  public showReportDriving(report:ReportDriving, event?:Event) {
+    Log.l(`showReportMaintenance(): Called with report:`, report);
+    let reportList:ReportDriving[] = this.drivingsTable && this.drivingsTable.hasFilter() ? this.drivingsTable.filteredValue : this.drivingsTable.value;
+    if(report && report instanceof ReportDriving) {
+      let username:string = report.username;
+      let techs:Employee[] = this.techs;
+      let tech:Employee = techs.find((a:Employee) => {
+        let techUsername:string = a.getUsername();
+        return username === techUsername;
+      });
+      if(!tech) {
+        this.notify.addWarn("TECH ERROR", "Could not determine what tech created this driving report!", 6000);
+        return;
+      }
+      // this.site        = site;
+      this.tech          = tech;
+      this.editDriving  = reportList;
+      this.driving      = report;
+      this.reportDrivingViewVisible = true;
+      return;
+    } else {
+      this.notify.addWarn("DRIVING REPORT ERROR", "Driving report not found, cannot view/edit it");
+      return;
+    }
+  }
+
   public showReportTimeCard(timecard:ReportTimeCard, event?:Event) {
-    Log.l(`showReportTimeCard(): Called with report:\n`, timecard);
+    Log.l(`showReportTimeCard(): Called with report:`, timecard);
     let reportList:ReportTimeCard[] = this.timecardsTable && this.timecardsTable.hasFilter() ? this.timecardsTable.filteredValue : this.timecardsTable.value;
     if(timecard && timecard instanceof ReportTimeCard) {
       let username:string = timecard.username;
@@ -1769,13 +2191,37 @@ export class ReportsPage implements OnInit,OnDestroy {
   }
 
   public logisticsViewCancel(event?:Event) {
-    Log.l("logisticsViewCancel(): Event is:\n", event);
+    Log.l("logisticsViewCancel(): Event is:", event);
     this.reportLogisticsViewVisible = false;
     window['p'] = this;
   }
 
+  public maintenanceViewSave(event?:Event) {
+    Log.l("maintenanceViewSave(): Event is:", event);
+    this.reportMaintenanceViewVisible = false;
+    window['p'] = this;
+  }
+
+  public maintenanceViewCancel(event?:Event) {
+    Log.l("maintenanceViewCancel(): Event is:", event);
+    this.reportMaintenanceViewVisible = false;
+    window['p'] = this;
+  }
+
+  public drivingViewSave(event?:Event) {
+    Log.l("drivingViewSave(): Event is:\n", event);
+    this.reportDrivingViewVisible = false;
+    window['p'] = this;
+  }
+
+  public drivingViewCancel(event?:Event) {
+    Log.l("drivingViewCancel(): Event is:", event);
+    this.reportDrivingViewVisible = false;
+    window['p'] = this;
+  }
+
   public timeCardViewSave(event?:Event) {
-    Log.l("timeCardViewSave(): Event is:\n", event);
+    Log.l("timeCardViewSave(): Event is:", event);
     this.reportTimeCardViewVisible = false;
     window['p'] = this;
   }
@@ -1784,6 +2230,66 @@ export class ReportsPage implements OnInit,OnDestroy {
     Log.l("timeCardViewCancel(): Event is:\n", event);
     this.reportTimeCardViewVisible = false;
     window['p'] = this;
+  }
+
+  public reportViewDeleted(report:Report) {
+    Log.l(`ReportsPage.reportViewDeleted(): called for report:`, report);
+    let reports = this.reports;
+    let idx = reports.indexOf(report);
+    if(idx > -1) {
+      Log.l(`ReportsPage.reportViewDeleted(): Found report at ${idx}`);
+      window['onsitelastdeletedreport'] = reports.splice(idx, 1);
+    }
+  }
+
+  public otherViewDeleted(report:ReportOther) {
+    Log.l(`ReportsPage.otherViewDeleted(): called for report:`, report);
+    let reports = this.others;
+    let idx = reports.indexOf(report);
+    if(idx > -1) {
+      Log.l(`ReportsPage.otherViewDeleted(): Found report at ${idx}`);
+      window['onsitelastdeletedreport'] = reports.splice(idx, 1);
+    }
+  }
+
+  public logisticsViewDeleted(report:ReportLogistics) {
+    Log.l(`ReportsPage.logisticsViewDeleted(): called for report:`, report);
+    let reports = this.logistics;
+    let idx = reports.indexOf(report);
+    if(idx > -1) {
+      Log.l(`ReportsPage.logisticsViewDeleted(): Found report at ${idx}`);
+      window['onsitelastdeletedreport'] = reports.splice(idx, 1);
+    }
+  }
+  
+  public maintenanceViewDeleted(report:ReportMaintenance) {
+    Log.l(`ReportsPage.maintenanceViewDeleted(): called for report:`, report);
+    let reports = this.maintenances;
+    let idx = reports.indexOf(report);
+    if(idx > -1) {
+      Log.l(`ReportsPage.maintenanceViewDeleted(): Found report at ${idx}`);
+      window['onsitelastdeletedreport'] = reports.splice(idx, 1);
+    }
+  }
+  
+  public drivingViewDeleted(report:ReportDriving) {
+    Log.l(`ReportsPage.drivingViewDeleted(): called for report:`, report);
+    let reports = this.drivings;
+    let idx = reports.indexOf(report);
+    if(idx > -1) {
+      Log.l(`ReportsPage.drivingViewDeleted(): Found report at ${idx}`);
+      window['onsitelastdeletedreport'] = reports.splice(idx, 1);
+    }
+  }
+  
+  public timeCardViewDeleted(report:ReportTimeCard) {
+    Log.l(`ReportsPage.timeCardViewDeleted(): called for report:`, report);
+    let reports = this.timecards;
+    let idx = reports.indexOf(report);
+    if(idx > -1) {
+      Log.l(`ReportsPage.timeCardViewDeleted(): Found report at ${idx}`);
+      window['onsitelastdeletedreport'] = reports.splice(idx, 1);
+    }
   }
 
   public openTechShiftReports(event?:Event) {
@@ -1968,10 +2474,12 @@ export class ReportsPage implements OnInit,OnDestroy {
       this.dt,
       this.othersTable,
       this.logisticsTable,
+      this.maintenancesTable,
+      this.drivingsTable,
       this.timecardsTable,
     ];
     for(let dt of tables) {
-      let tableNumber:number = tables.indexOf(dt) + 1;
+      let tableNumber = (tables.indexOf(dt) + 1 as TableIndexKey);
       this.resetTable(tableNumber);
     }
     // for(let dt of tables) {
@@ -2006,15 +2514,19 @@ export class ReportsPage implements OnInit,OnDestroy {
     // this.clearAllDates(evt);
   }
 
-  public resetTable(tableNumber:number, evt?:Event) {
+  public resetTable(tableNumber:TableIndexKey, evt?:Event) {
     let dt:Table;
-    if(tableNumber === 1) {
+    if(tableNumber === TABLEINDEX.reports) {
       dt = this.dt;
-    } else if(tableNumber === 2) {
+    } else if(tableNumber === TABLEINDEX.others) {
       dt = this.othersTable;
-    } else if(tableNumber === 3) {
+    } else if(tableNumber === TABLEINDEX.logistics) {
       dt = this.logisticsTable;
-    } else if(tableNumber === 4) {
+    } else if(tableNumber === TABLEINDEX.maintenances) {
+      dt = this.maintenancesTable;
+    } else if(tableNumber === TABLEINDEX.drivings) {
+      dt = this.drivingsTable;
+    } else if(tableNumber === TABLEINDEX.timecards) {
       dt = this.timecardsTable;
     } else {
       let text:string = `resetTable(): Could not find table at index '${tableNumber}' to reset it`;
@@ -2103,8 +2615,9 @@ export class ReportsPage implements OnInit,OnDestroy {
     return dt;
   }
 
-  public clearTableDates(tableNumber:number, dt:Table, evt?:Event) {
-    Log.l(`clearTableDates(): Clearing date filters for table '${tableNumber}':`, dt);
+  public clearTableDates(tableNumber:TableIndexKey, dt:Table, evt?:Event) {
+    let tableKey = TABLEINDEXTOKEY[tableNumber];
+    Log.l(`clearTableDates(): Clearing date filters for table '${tableNumber}', which is '${tableKey}':`, dt);
     if(!(dt && dt instanceof Table)) {
       let text:string = `clearTableDates(): Must provide a Table to clear dates of. Provided parameter was not a table`;
       Log.w(text, dt);
@@ -2128,17 +2641,19 @@ export class ReportsPage implements OnInit,OnDestroy {
       this.dt,
       this.othersTable,
       this.logisticsTable,
+      this.maintenancesTable,
+      this.drivingsTable,
       this.timecardsTable,
     ];
     for(let table of tables) {
-      let i:number = tables.indexOf(table) + 1;
+      let i = ((tables.indexOf(table) + 1) as TableIndexKey);
       if(table && table instanceof Table) {
         this.clearDates(i, table, event);
       }
     }
   }
 
-  public clearDates(tableNumber:number, dt:Table, evt?:Event) {
+  public clearDates(tableNumber:TableIndexKey, dt:Table, evt?:Event) {
     Log.l(`clearDates(): Clearing from and to search fields.`);
     let i:number = tableNumber - 1;
     if(i >= 0 && i < this.dateRanges.length) {
@@ -2268,6 +2783,50 @@ export class ReportsPage implements OnInit,OnDestroy {
     }
   }
   
+  public async calculateMaintenanceHoursShown(evt?:MouseEvent):Promise<number> {
+    try {
+      Log.l(`calculateMaintenanceHoursShown(): Called event:`, evt);
+      let table:Table = this.maintenancesTable;
+      let reports:ReportMaintenance[];
+      reports = table && typeof table.hasFilter === 'function' && table.hasFilter() ? table.filteredValue : table && Array.isArray(table.value) ? table.value : [];
+      let total:number = 0;
+      let count:number = reports.length;
+      for(let report of reports) {
+        let hours:number = report.getTotalTime();
+        // let hours:number = report.getTotalWorkHours();
+        total += hours;
+      }
+      await this.showTotalHours(total, count);
+      return total;
+    } catch(err) {
+      Log.l(`calculateMaintenanceHoursShown(): Error calculating visible report hours`);
+      Log.e(err);
+      throw err;
+    }
+  }
+  
+  public async calculateDrivingHoursShown(evt?:MouseEvent):Promise<number> {
+    try {
+      Log.l(`calculateDrivingHoursShown(): Called event:`, evt);
+      let table:Table = this.drivingsTable;
+      let reports:ReportDriving[];
+      reports = table && typeof table.hasFilter === 'function' && table.hasFilter() ? table.filteredValue : table && Array.isArray(table.value) ? table.value : [];
+      let total:number = 0;
+      let count:number = reports.length;
+      for(let report of reports) {
+        let hours:number = report.getTotalTime();
+        // let hours:number = report.getTotalWorkHours();
+        total += hours;
+      }
+      await this.showTotalHours(total, count);
+      return total;
+    } catch(err) {
+      Log.l(`calculateDrivingHoursShown(): Error calculating visible report hours`);
+      Log.e(err);
+      throw err;
+    }
+  }
+  
   public async calculateTimeCardHoursShown(evt?:MouseEvent):Promise<number> {
     try {
       Log.l(`calculateTimecardHoursShown(): Called event:`, evt);
@@ -2305,6 +2864,27 @@ export class ReportsPage implements OnInit,OnDestroy {
       return total;
     } catch(err) {
       Log.l(`calculateLogisticsMilesShown(): Error calculating visible report hours`);
+      Log.e(err);
+      throw err;
+    }
+  }
+  
+  public async calculateDrivingMilesShown(evt?:MouseEvent):Promise<number> {
+    try {
+      Log.l(`calculateDrivingMilesShown(): Called event:`, evt);
+      let table:Table = this.drivingsTable;
+      let reports:ReportDriving[];
+      reports = table && typeof table.hasFilter === 'function' && table.hasFilter() ? table.filteredValue : table && Array.isArray(table.value) ? table.value : [];
+      let total:number = 0;
+      let count:number = reports.length;
+      for(let report of reports) {
+        let miles:number = report.getTotalMiles();
+        total += miles;
+      }
+      await this.showTotalMiles(total, count);
+      return total;
+    } catch(err) {
+      Log.l(`calculateDrivingMilesShown(): Error calculating visible report hours`);
       Log.e(err);
       throw err;
     }

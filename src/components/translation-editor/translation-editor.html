@@ -1,0 +1,107 @@
+<div class="translation-editor-wrapper">
+  <!-- <p-dialog #translationEditorDialog styleClass="translation-editor-dialog" [header]="header" [(visible)]="visible" [contentStyle]="{'overflow':'visible'}" [modal]="false" [responsive]="true" [draggable]="true" [resizable]="true" [positionLeft]="dialogLeft" [positionTop]="dialogTop" (onHide)="cancelClicked($event)"> -->
+  <!-- <p-dialog #translationEditorDialog styleClass="translation-editor-dialog" [header]="header" [(visible)]="visible" [modal]="false" [responsive]="true" [draggable]="true" [resizable]="true" (onHide)="cancelClicked($event)"> -->
+  <p-dialog #translationEditorDialog styleClass="translation-editor-dialog" [(visible)]="visible" [modal]="false" [responsive]="true" [draggable]="true" [resizable]="true" [closable]="panelClosable" [closeOnEscape]="panelESCable" (onHide)="cancelClicked($event)">
+    <p-header>
+      <div class="header-row">
+        <div class="header-buttons start">
+          <span class="header-button"          title="Delete this translation"  (click)="deleteTranslation($event)"><i class="fal fa-trash-alt"></i></span>
+
+        </div>
+        <div class="header-title">{{header}}</div>
+        <div class="header-buttons">
+          <span class="header-button"          title="Add new translation"      (click)="addTranslation($event)"><i class="fal fa-plus-circle"></i></span>
+          <span class="header-button"          title="Save but don't exit page" (click)="saveNoExitClicked($event)"><i class="fal fa-check-circle"></i></span>
+          <span class="header-button"          title="Previous translation"     (click)="previous($event)" *ngIf="recordIndex > 1"><i class="fas fa-caret-left"></i></span>
+          <span class="header-button disabled" title="(No previous translation)" *ngIf="!(recordIndex > 1)"><i class="fas fa-caret-left icon-greyedout"></i></span>
+          <span class="header-button"          title="Next translation"          (click)="next($event)" *ngIf="recordIndex < recordCount"><i class="fas fa-caret-right"></i></span>
+          <span class="header-button disabled" title="(No next translation)"     *ngIf="!(recordIndex < recordCount)"><i class="fas fa-caret-right icon-greyedout"></i></span>
+        </div>
+        <div class="header-close">
+          <span class="header-close-button" (click)="cancelClicked($event)"><i class="fa fa-times"></i></span>
+        </div>
+      </div>
+    </p-header>
+
+    <div class="editor-table">
+      <div class="editor-key-row">
+        <div class="key-label">Key</div>
+        <div class="key-data">
+          <input #inputKey [class.key-input]="true" type="text" pInputText [(ngModel)]="record.key" (input)="textChanged('key', record.key, inputKey, $event)" />
+        </div>
+      </div>
+      <!-- <div class="editor-key-row" *ngIf="record.maint_type != null"> -->
+      <div class="editor-key-row">
+        <div class="key-label">Maint. Type</div>
+        <div class="key-data">
+          <p-dropdown [options]="maint_types" [showClear]="true" [(ngModel)]="record.maint_type" (onChange)="updateMaintenanceType(record.maint_type, $event)"></p-dropdown>
+          <!-- <input [class.key-input]="true" type="text" pInputText [(ngModel)]="record.key" (input)="textChanged('key', $event)" /> -->
+        </div>
+      </div>
+      <div class="editor-key-row">
+        <div class="key-label">HTML</div>
+        <div class="key-data"><p-inputSwitch [(ngModel)]="htmlMode"></p-inputSwitch></div>
+      </div>
+      <div class="editor-wrapper">
+        <div class="editor-row">
+          <div class="editor-label">English</div>
+          <!-- <div class="html-switch-wrapper">
+            <div class="switch-label">HTML</div>
+            <div class="switch-data"><p-inputSwitch [(ngModel)]="htmlModes.en"></p-inputSwitch></div>
+            <div class="switch-data"><p-inputSwitch [(ngModel)]="htmlMode"></p-inputSwitch></div>
+          </div> -->
+        </div>
+        <div class="editor-row">
+          <div class="editor-data">
+            <!-- <textarea class="editor-textarea" #textareaEnglish pInputTextarea [(ngModel)]="record.en" placeholder="Enter English translation here" [rows]="5" [autoResize]="autoResize" (ngModelChange)="textChanged('en', $event)" *ngIf="htmlMode.en !== true"></textarea> -->
+            <!-- <textarea class="editor-textarea" #textareaEnglish pInputTextarea [(ngModel)]="record.en" placeholder="Enter English translation here" (ngModelChange)="textChanged('en', $event)" *ngIf="htmlModes.en !== true"></textarea>
+            <p-editor #editorEnglish [(ngModel)]="record.en" [styleClass]="'translation-record-editor'" placeholder="Enter English translation here" (onTextChange)="textChanged('en', $event)" [style]="editorStyle" *ngIf="htmlModes.en === true"></p-editor> -->
+            <textarea class="editor-textarea" #textareaEnglish pInputTextarea [(ngModel)]="record.en" placeholder="Enter English translation here" (ngModelChange)="textChanged('en', record.en, textareaEnglish, $event)" *ngIf="htmlMode !== true"></textarea>
+            <p-editor #editorEnglish [(ngModel)]="record.en" [styleClass]="'translation-record-editor'" placeholder="Enter English translation here" (onTextChange)="textChanged('en', record.en, editorEnglish, $event)" [style]="editorStyle" *ngIf="htmlMode === true">
+              <!-- <p-header>
+                <span class="ql-format-group">
+                  <span title="Bold" class="ql-format-button ql-bold"></span>
+                  <span class="ql-format-separator"></span>
+                  <span title="Italic" class="ql-format-button ql-italic"></span>
+                  <span class="ql-format-separator"></span>
+                  <span title="Underline" class="ql-format-button ql-underline"></span>
+                  <span class="ql-format-separator"></span>
+                  <span title="Strikethrough" class="ql-format-button ql-strike"></span>
+                  <span class="ql-format-separator"></span>
+                  <span title="Bullet list" class="ql-format-button ql-list-bullet"></span>
+                  <span title="Ordered list" class="ql-format-button ql-list-ordered"></span>
+                </span>
+              </p-header> -->
+            </p-editor>
+          </div>
+        </div>
+      </div>
+      <div class="editor-wrapper">
+        <div class="editor-row">
+          <div class="editor-label">Spanish</div>
+          <!-- <div class="html-switch-wrapper">
+            <div class="switch-label">HTML</div>
+            <div class="switch-data"><p-inputSwitch [(ngModel)]="htmlModes.es"></p-inputSwitch></div>
+            <div class="switch-data"><p-inputSwitch [(ngModel)]="htmlMode"></p-inputSwitch></div>
+          </div> -->
+        </div>
+        <div class="editor-row">
+          <div class="editor-data">
+            <!-- <textarea class="editor-textarea" #textareaSpanish pInputTextarea [(ngModel)]="record.es" placeholder="Enter Spanish translation here" [rows]="5" [autoResize]="autoResize" (ngModelChange)="textChanged('es', $event)" *ngIf="htmlMode.es !== true"></textarea> -->
+            <!-- <textarea class="editor-textarea" #textareaSpanish pInputTextarea [(ngModel)]="record.es" placeholder="Enter Spanish translation here" (ngModelChange)="textChanged('es', $event)" *ngIf="htmlModes.es !== true"></textarea>
+            <p-editor #editorSpanish [(ngModel)]="record.es" [styleClass]="'translation-record-editor'" placeholder="Enter Spanish translation here" (onTextChange)="textChanged('es', $event)" [style]="editorStyle" *ngIf="htmlModes.es === true"></p-editor> -->
+            <textarea class="editor-textarea" #textareaSpanish pInputTextarea [(ngModel)]="record.es" placeholder="Enter Spanish translation here" (ngModelChange)="textChanged('es', record.es, textareaSpanish, $event)" *ngIf="htmlMode !== true"></textarea>
+            <p-editor #editorSpanish [(ngModel)]="record.es" [styleClass]="'translation-record-editor'" placeholder="Enter Spanish translation here" (onTextChange)="textChanged('es', record.es, editorSpanish, $event)" [style]="editorStyle" *ngIf="htmlMode === true"></p-editor>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p-footer>
+      <div class="translation-editor-buttons">
+        <button class="ui-button-raised ui-button-rounded ui-button-info dialog-footer-button cancel"  pButton type="button" (click)="cancelClicked($event)" label="Cancel"></button>
+        <button class="ui-button-raised ui-button-rounded ui-button-success dialog-footer-button save-noexit" pButton type="button" (click)="saveNoExitClicked($event)" label="Save"></button>
+        <button class="ui-button-raised ui-button-rounded ui-button-success dialog-footer-button save" pButton type="button" (click)="saveClicked($event)" label="Save and Close"></button>
+      </div>
+    </p-footer>
+  </p-dialog>
+</div>

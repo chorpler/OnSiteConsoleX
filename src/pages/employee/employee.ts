@@ -278,7 +278,7 @@ export class EmployeePage implements OnInit {
       this.shift           = this.shifts.find(a => {return a['name']==shift || a['fullName']==shift;})         ;
 
       let len              = site.getSiteShiftLength(tech.rotation, tech.shift, moment())                      ;
-      let strt             = site.getShiftStartTime(tech.shift)                                                ;
+      let strt             = site.getShiftStartTimeString(tech.shift)                                          ;
       let shiftLength      = this.shiftlengths.find(a => {return a['name'] == len || a['fullName'] == len;})   ;
       let shiftStartTime   = this.shiftstarttimes.find(a => {return a['name'] == strt || a['fullName']==strt;});
       tech.shiftLength     = shiftLength                                                                       ;

@@ -1,8 +1,9 @@
 /**
  * Name: Various TypeScript types for OnSiteX/OnSiteConsoleX apps
- * Vers: 5.5.0
- * Date: 2018-12-13
+ * Vers: 5.6.0
+ * Date: 2019-08-19
  * Auth: David Sargeant
+ * Logs: 5.6.0 2019-08-19: Added VIN functions from vin-lib and vin-generator
  * Logs: 5.5.0 2018-12-13: Refactored imports to remove circular dependencies; added standard OnSite methods
  * Logs: 5.4.0 2018-08-01: Added Symbol.toStringTag properties to all classes
  * Logs: 5.3.0 2018-04-25: Added constructor options to SESAShiftLength and SESAShiftStartTime classes
@@ -26,9 +27,20 @@ import   * as JSON8Patch     from 'json8-patch'   ;
 import   * as JSON8Pointer   from 'json8-pointer' ;
 import   * as UUID0          from 'uuid'          ;
 import   * as FILE_SAVER     from 'file-saver'    ;
-import { sprintf           } from 'sprintf-js'    ;
-import { BigNumber         } from 'bignumber.js'  ;
-import { Log               } from './config.log'  ;
+import { sprintf            } from 'sprintf-js'    ;
+import { BigNumber          } from 'bignumber.js'  ;
+import { Log                } from './config.log'  ;
+// import * as VINLIB from 'vin-lib';
+import { getVinDetails      } from '@onsite/vin-lib-ts' ;
+import { isValidVin         } from '@onsite/vin-lib-ts' ;
+import { getModelYear       } from '@onsite/vin-lib-ts' ;
+import { getCountry         } from '@onsite/vin-lib-ts' ;
+import { getManufacturer    } from '@onsite/vin-lib-ts' ;
+import { getVinModelYear    } from '@onsite/vin-lib-ts' ;
+import { getVinCountry      } from '@onsite/vin-lib-ts' ;
+import { getVinManufacturer } from '@onsite/vin-lib-ts' ;
+
+import * as VINGEN from 'vin-generator';
 // import { roundMaxDecimals             } from './config.functions';
 
 // export const XLSX = XLSX0;
@@ -38,6 +50,18 @@ export const blobUtil      = blobsUtil    ;
 export const oo            = JSON8        ;
 export const json8         = JSON8        ;
 export const dec           = BigNumber    ;
+export const vinlib        = {
+  getModelYear: getModelYear,
+  getCountry: getCountry,
+  getManufacturer: getManufacturer,
+  getVinDetails: getVinDetails,
+  isValidVin: isValidVin,
+  generateVin: VINGEN.generateVin,
+  getVinModelYear: getVinModelYear,
+  getVinCountry: getVinCountry,
+  getVinManufacturer: getVinManufacturer,
+};
+// export const vingen        = VINGEN       ;
 // export const JSONPath      = JSONPathLib  ;
 export type  Decimal       = BigNumber;
 export type  DecimalConfig = BigNumber.Config;
@@ -125,6 +149,16 @@ export const FileSaverSaveAs = FILE_SAVER.saveAs;
 
 // export const moment = momentous;
 
+export type JSON8Operation = "replace"|"remove"|"add"|"move"|"test";
+export type JSON8Path = string;
+
+export interface JSON8DiffElement {
+  op: JSON8Operation;
+  path: JSON8Path;
+  value: any;
+}
+export type JSON8Diff = JSON8DiffElement[];
+
 export type Spinners = Map<string,any>;
 
 export interface SpinnerRecord {
@@ -133,15 +167,16 @@ export interface SpinnerRecord {
 }
 
 export interface Tab {
-  name     : string ;
-  fullName : string ;
-  url      : string ;
-  icon     : string ;
-  waiting ?: boolean;
-  active  ?: boolean;
-  badges  ?: number ;
-  show     : boolean;
-  role     : string ;
+  name         : string  ;
+  fullName     : string  ;
+  url          : string  ;
+  icon         : string  ;
+  waiting     ?: boolean ;
+  active      ?: boolean ;
+  badges      ?: number  ;
+  show         : boolean ;
+  role         : string  ;
+  is_settings ?: boolean ;
 }
 
 export interface SelectString {
@@ -153,14 +188,20 @@ export interface SelectString {
 }
 
 export interface CLL {
-  name          : string;
-  fullName      : string;
+  name         ?: string;
+  fullName     ?: string;
   value        ?: string;
   code         ?: string;
   capsName     ?: string;
   techClass    ?: string;
   scheduleName ?: string;
+  id           ?: number;
 }
+
+// export interface EMPTYOBJECT {
+// }
+
+export type CLLOrEmptyOrNull = CLL|null|undefined|{};
 
 export interface ISESAShiftSymbols extends CLL {
   sunChars  ?: string;
@@ -183,7 +224,7 @@ export class SESAShiftSymbols implements ISESAShiftSymbols {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 
   public sunChars   ?: string = "☀☼🌞🌣";
   public moonChars  ?: string = "☽🌛🌜" ;
@@ -298,7 +339,7 @@ export class SESAShift {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }
 
 // export class SESAShiftLength implements CLL {
@@ -314,21 +355,21 @@ export class SESAShiftLength {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 
   public name:number = NaN;
   public fullName:string = "";
-  public get code():number { return this.name;};
-  public set code(value:number) { this.name = value; };
-  public get value():string { return this.fullName; };
-  public set value(val:string) { this.fullName = val; };
+  public get code():number { return this.name;}
+  public set code(value:number) { this.name = value; }
+  public get value():string { return this.fullName; }
+  public set value(val:string) { this.fullName = val; }
   constructor(length?:number|string) {
     if(length != undefined) {
       // this.name = String(length);
       this.name = !isNaN(Number(length)) ? Number(length) : this.name;
       this.fullName = !isNaN(Number(this.name)) ? String(Number(this.name)) : this.fullName;
     } else {
-      this.name == this.name || 8;
+      this.name = this.name || 8;
       this.fullName = this.fullName || String(this.name);
     }
   }
@@ -346,8 +387,7 @@ export class SESAShiftRotation implements CLL {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
-
+  }
 
   public name: string = "";
   public fullName: string = "";
@@ -378,19 +418,19 @@ export class SESAShiftStartTime {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 
 
   // public name:string = "";
   public name:number = NaN;
   // public fullName:string = "";
   // public get fullName():string { return SESAShiftStartTime.formatted(this.name); } ;
-  public get fullName():string { Log.l("SESAShiftStartTime: getting full name"); return this.formatted(); } ;
-  public set fullName(val:string) { Log.l("SESAShiftStartTime: setting full name"); let hrs = SESAShiftStartTime.numericFromFormatted(val); if(!isNaN(hrs)) { this.name = hrs; } };
-  public get code():number { return this.name;};
-  public set code(value:number) { this.name = value; };
-  public get value():string { return this.fullName; };
-  public set value(val:string) { this.fullName = val; };
+  public get fullName():string { Log.l("SESAShiftStartTime: getting full name"); return this.formatted(); }
+  public set fullName(val:string) { Log.l("SESAShiftStartTime: setting full name"); let hrs = SESAShiftStartTime.numericFromFormatted(val); if(!isNaN(hrs)) { this.name = hrs; } }
+  public get code():number { return this.name;}
+  public set code(value:number) { this.name = value; }
+  public get value():string { return this.fullName; }
+  public set value(val:string) { this.fullName = val; }
   constructor(time?:number|string) {
     if(time != undefined) {
       // this.name = String(time);
@@ -478,6 +518,15 @@ export class SESAShiftStartTime {
   }
 }
 
+/**
+ * Name: SESACLL base domain class
+ * Vers: 3.0.1
+ * Date: 2019-07-18
+ * Auth: David Sargeant
+ * Logs: 3.0.1 2019-07-18: Added getCode(),getValue(),matches(),is() methods, plus new types for constructor parameter
+ * Logs: 2.0.1 2019-07-03: Updated significantly. Now just represents AM/PM, plus associated symbol
+ */
+export type SESACLLCompare = CLL|SESACLL|string;
 export class SESACLL implements CLL {
   public isOnSite():boolean {
     return true;
@@ -490,8 +539,7 @@ export class SESACLL implements CLL {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
-
+  }
 
   public name          : string = "";
   public fullName      : string = "";
@@ -510,8 +558,9 @@ export class SESACLL implements CLL {
     capsName     = "",
     scheduleName = "",
     id           = -1,
+    // tslint:disable-next-line: no-unnecessary-initializer
     techClass    = undefined,
-  }:{name?:string,fullName?:string,value?:string,code?:string,capsName?:string,scheduleName?:string,id?:number,techClass?:string}={}) {
+  }:CLL={}) {
     this.name         = name         ? name         : "";
     this.fullName     = fullName     ? fullName     : "";
     this.value        = value        ? value        : "";
@@ -569,7 +618,7 @@ export class SESACLL implements CLL {
     } else if(typeof this.capsName === 'string') {
       return this.capsName.toUpperCase();
     } else {
-      Log.w(`SESACLL.toUpperCase(): Could not find Employee field value, fullName, or capsName for object:\n`, this);
+      Log.w(`SESACLL.toUpperCase(): Could not find field 'value', 'fullName', or 'capsName' for object:`, this);
       return "";
     }
   }
@@ -582,9 +631,74 @@ export class SESACLL implements CLL {
     } else if(typeof this.capsName === 'string') {
       return this.capsName.toLowerCase();
     } else {
-      Log.w(`SESACLL.toLowerCase(): Could not find Employee field value, fullName, or capsName for object:\n`, this);
+      Log.w(`SESACLL.toLowerCase(): Could not find field 'value', 'fullName', or 'capsName' for object:`, this);
       return "";
     }
+  }
+
+  public getCode():string {
+    if(typeof this.name === 'string') {
+      return this.name;
+    } else if(typeof this.code === 'string') {
+      return this.code;
+    } else {
+      Log.w(`SESACLL.getCode(): Could not find 'name' or 'code' properties of:`, this);
+      return "";
+    }
+  }
+
+  public getValue():string {
+    if(typeof this.fullName === 'string') {
+      return this.fullName;
+    } else if(typeof this.value === 'string') {
+      return this.value;
+    } else {
+      Log.w(`SESACLL.getValue(): Could not find 'fullName' or 'value' properties of:`, this);
+      return "";
+    }
+  }
+
+  public matches(item:SESACLLCompare):boolean {
+    if(this === item) {
+      return true;
+    }
+    let me1:string = this.getCode().trim().toUpperCase();
+    let me2:string = this.getValue().trim().toUpperCase();
+    if(!(me1 && me2)) {
+      return false;
+    }
+    if(typeof item === 'object') {
+      if(item.name && item.fullName && typeof item.name === 'string' && typeof item.fullName === 'string') {
+        let item1:string = item.name.trim().toUpperCase();
+        let item2:string = item.fullName.trim().toUpperCase();
+        // return item1 === me1 || item2 === me2;
+        return item1 === me1 && item2 === me2;
+      } else if(item.code && item.value && typeof item.code === 'string' && typeof item.value === 'string') {
+        let item1:string = item.code.trim().toUpperCase();
+        let item2:string = item.value.trim().toUpperCase();
+        // return item1 === me1 || item2 === me2;
+        return item1 === me1 && item2 === me2;
+      } else {
+        let text:string = `SESACLL.matches(): Error 1, parameter must be SESACLL item or string. Provided parameter invalid.`;
+        Log.w(text + ":", item);
+        // let err = new Error(text);
+        // throw err;
+        return false;
+      }
+    } else if(typeof item === 'string') {
+      let val = item.trim().toUpperCase();
+      return val === me1 || val === me2;
+    } else {
+      let text:string = `SESACLL.matches(): Error 2, parameter must be SESACLL item or string. Provided parameter invalid.`;
+      Log.w(text + ":", item);
+      // let err = new Error(text);
+      // throw err;
+      return false;
+    }
+  }
+
+  public is(item:SESACLLCompare):boolean {
+    return this.matches(item);
   }
 }
 
@@ -600,8 +714,7 @@ export class SESAClient extends SESACLL {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
-
+  }
 
   constructor({
     name         = "",
@@ -633,7 +746,7 @@ export class SESALocation extends SESACLL {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 
 
   // constructor(name?:string, fullName?:string, value?:string, code?:string, capsName?:string) {
@@ -667,7 +780,7 @@ export class SESALocID extends SESACLL {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 
 
   public techClass:string = "";
@@ -704,7 +817,7 @@ export class SESAAux extends SESACLL {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 
 
   constructor({
@@ -758,11 +871,12 @@ export enum Pages {
 }
 
 export enum Icons {
-  'box-check-no'   = 0,
-  'box-check-yes'  = 1,
-  'flag-blank'     = 2,
-  'flag-checkered' = 3,
-  'unknown'        = 4,
+  'box-check-no'       = 0,
+  'box-check-yes'      = 1,
+  'flag-blank'         = 2,
+  'flag-checkered'     = 3,
+  'flag-checkered-box' = 4,
+  'unknown'            = 5,
 }
 
 export const enum ReportType {
@@ -772,7 +886,7 @@ export const enum ReportType {
   'holiday'  = 3,
   'vacation' = 4,
   'sick'     = 5,
-};
+}
 
 export const enum reportType {
   'Standby'     = 0,
@@ -782,7 +896,7 @@ export const enum reportType {
   'Vacation'    = 4,
   'Sick'        = 5,
   'Work Report' = 6,
-};
+}
 
 export const SVGIcons = {
    'checkboxno'    : `<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50" version="1.1" preserveAspectRatio="xMidYMid meet" id="box-check-no">\n   <path d="M 45.833333,4.166667 V 45.833333 H 4.1666667 V 4.166667 Z M 50,0 H 0 v 50 h 50 z m -12.5,34.454167 -9.566667,-9.475 9.470834,-9.55625 -2.95,-2.922917 -9.46875,9.560417 L 15.427083,12.595833 12.5,15.522917 22.06875,25.00625 12.595833,34.572917 15.522917,37.5 25.0125,27.925 l 9.564583,9.479167 z" />\n</svg>`,
@@ -790,7 +904,7 @@ export const SVGIcons = {
    'flagblank'     : `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="50" viewBox="0 0 40 50" version="1.1" preserveAspectRatio="xMidYMid meet" id="flag-blank">\n   <path d="m 31.657777,6.790993 c -7.466667,0 -7.635555,-4.863905 -16.304444,-4.863905 -4.684444,0 -9.055555,1.646505 -10.9088886,2.846103 V 0 H 0 V 50 H 4.4444444 V 25.078958 C 7.075555,23.702948 11.064444,22.25471 15.384444,22.25471 c 8.186667,0 9.335555,4.62702 16.631111,4.62702 C 36.731111,26.88173 40,24.598447 40,24.598447 V 4.390126 c 0,0 -3.602223,2.400867 -8.342223,2.400867 z m 3.897778,16.034942 c -0.888889,0.347799 -2.131111,0.695571 -3.54,0.695571 -2.16,0 -3.328889,-0.60988 -5.268889,-1.619632 -2.435555,-1.26848 -5.768889,-3.007387 -11.362222,-3.007387 -4.397778,0 -8.244444,1.140786 -10.9399996,2.249668 V 8.56351 C 6.708889,7.048057 10.811111,5.288976 15.353333,5.288976 c 2.962222,0 4.208889,0.737577 6.091111,1.853162 2.146667,1.270155 5.084444,3.010744 10.213333,3.010744 1.393334,0 2.700001,-0.144488 3.897778,-0.374645 z" />\n</svg>`,
    'flagcheckered' : `<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50" preserveAspectRatio="xMidYMid meet" id="flag-checkered">\n   <path d="m 35.200566,6.315625 c -6.533349,0 -6.681132,-4.5234375 -14.266395,-4.5234375 -4.098888,0 -7.923605,1.53125 -9.545282,2.646875 V 0 H 7.5 v 50 h 3.888889 V 23.323437 C 13.691106,22.04375 17.181394,20.696875 20.961394,20.696875 28.124717,20.696875 29.13,25 35.513606,25 39.639717,25 42.5,22.876562 42.5,22.876562 V 4.0828125 c 0,0 -3.151934,2.2328125 -7.299434,2.2328125 z m 3.41054,8.160938 C 33.911394,17.253125 28.8325,13.945313 26.263894,12.582812 v 5.732813 l 0.0061,0.0016 c -1.471946,-0.435935 -3.198612,-0.74531 -5.308336,-0.74531 -3.848051,0 -7.213888,1.060937 -9.572499,2.092188 V 13.742228 C 15.78331,10.660977 22.17081,10.253165 26.263875,12.582852 V 6.640625 c 1.878328,1.18125 4.448893,2.8 8.93666,2.8 1.219168,0 2.3625,-0.134375 3.410562,-0.3484375 z" />\n</svg>`,
    'unknown'       : `<span class="fake-svg">?</span>`,
-}
+};
 
 export interface ScheduleListItem {
   tech     : string;
@@ -888,7 +1002,7 @@ export interface IDatabaseStatus {
   state      ?: DatabaseStatusState ;
 }
 
-export var STRINGS = {
+export const STRINGS = {
   NUMCHARS: ["⓪", "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨"],
-}
+};
 

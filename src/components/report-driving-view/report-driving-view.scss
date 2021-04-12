@@ -1,4 +1,4 @@
-report-view-beta {
+report-driving-view {
   .svg-icon {
     width: 20px;
     height: 24px;
@@ -22,11 +22,11 @@ report-view-beta {
     font-size: 24px;
     color: lightgrey;
   }
-  .report-view-beta-dialog {
+  .report-driving-dialog {
     width: 600px;
     max-height: 600px;
   }
-  .report-view-button-table {
+  .report-driving-button-table {
     width: 100%;
     table-layout: fixed;
     text-align: center;
@@ -60,11 +60,11 @@ report-view-beta {
     max-width: 500px;
     user-select: text;
   }
-  .report-view-wrapper {
+  .report-driving-wrapper {
     max-width: 50vw;
     width: 30vw;
   }
-  .report-view-table {
+  .report-driving-table {
     width: 100%;
     input {
       width: 100% !important;
@@ -72,7 +72,7 @@ report-view-beta {
     .inner-editor {
       width: 100% !important;
     }
-    .report-view-row {
+    .report-driving-row {
       // width: 100%;
       &.date-error {
         // border: 3px solid rgba(255, 0, 0, 0.5);
@@ -98,15 +98,22 @@ report-view-beta {
       font-weight: bold;
       padding-right: 4px;
       background-color: transparent;
+      &.detailed-button {
+        // border: 1px dotted rgba(128, 128, 128, 0.999);
+        @include button-like-block;
+        .label-text {
+          border-bottom: 1px solid rgba(128, 128, 128, 0.999);
+        }
+      }
     }
     .data {
       background-color: transparent;
       width: 80%;
-      .report-view-input {
+      .report-driving-input {
         background-color: transparent;
         width: 100%;
       }
-      .report-view-calendar {
+      .report-driving-calendar {
         // width: 100%;
         width: 100% !important;
         .ui-calendar {
@@ -127,13 +134,13 @@ report-view-beta {
           }
         }
       }
-      .report-view-dropdown {
+      .report-driving-dropdown {
         width: 100% !important;
         .ui-dropdown {
           width: 100% !important;
         }
       }
-      .report-view-textarea {
+      .report-driving-textarea {
         width: 100% !important;
       }
 

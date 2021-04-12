@@ -1,8 +1,9 @@
 /**
  * Name: Schedule Beta domain class
- * Vers: 5.1.1
- * Date: 2018-12-13
+ * Vers: 5.2.1
+ * Date: 2019-07-18
  * Auth: David Sargeant
+ * Logs: 5.2.1 2019-07-18: Changed some for..in statements to Object.keys() and for..of, and wondered why I'm bothering instead of just deleting this stupid class completely
  * Logs: 5.1.1 2018-12-13: Refactored imports to remove circular dependencies; added standard OnSite methods
  * Logs: 5.0.1 2018-02-26: Updated getScheduleStartDateFor() and getNextScheduleStartDateFor() methods, plus static and string methods
  * Logs: 4.0.0 2018-02-20: Added getTechUsernames(), isTechInSchedule(), isUsernameInSchedule(), getTechRotation(), getTechRotationSeq(), getRotationSeq() methods
@@ -236,10 +237,16 @@ export class ScheduleBeta {
   }
 
   public setSchedule(schedule:any):any {
-    for(let i1 in schedule) {
-      let el1 = schedule[i1];
-      for(let i2 in el1) {
-        let el2 = el1[i2];
+    let keys1 = Object.keys(schedule);
+    // for(let i1 in schedule) {
+      // let el1 = schedule[i1];
+    for(let key1 of keys1) {
+      let el1 = schedule[key1];
+      let keys2 = Object.keys(el1);
+      // for(let i2 in el1) {
+      for(let key2 of keys2) {
+        // let el2 = el1[i2];
+        let el2 = el1[key2];
         let employees = [];
         let replace = false;
         for(let entry of el2) {
@@ -709,6 +716,5 @@ export class ScheduleBeta {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
-
+  }
 }

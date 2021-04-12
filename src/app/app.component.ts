@@ -15,39 +15,46 @@ import { group, useAnimation, stagger,                                     } fro
 import { Nav, Platform, MenuController, ModalController,                   } from 'ionic-angular'                 ;
 import { NavOptions,                                                       } from 'ionic-angular'                 ;
 import { ModalOptions,                                                     } from 'ionic-angular'                 ;
+import { Loading                                                           } from 'ionic-angular'                 ;
+import { Menu as IonMenu                                                   } from 'ionic-angular'                 ;
 import { Log, CONSOLE, moment, Moment, oo, JSON5, blobUtil, Duration,      } from 'domain/onsitexdomain'          ;
 import { ooPatch, ooPointer, sizeOf, round, roundMaxDecimals,              } from 'domain/onsitexdomain'          ;
-import { Employee, Shift, Report, ReportOther, Invoice, DPS, PreAuth,      } from 'domain/onsitexdomain'          ;
+import { Employee, Shift, Invoice, DPS, PreAuth,                           } from 'domain/onsitexdomain'          ;
 import { Jobsite, Address, Street, OnSiteGeolocation, Schedule, Schedules, } from 'domain/onsitexdomain'          ;
 import { Timesheet,                                                        } from 'domain/onsitexdomain'          ;
 import { PayrollPeriod                                                     } from 'domain/onsitexdomain'          ;
 import { PayrollPeriods                                                    } from 'domain/onsitexdomain'          ;
 import { Message                                                           } from 'domain/onsitexdomain'          ;
 import { Jobsites,                                                         } from 'domain/onsitexdomain'          ;
+import { Report,                                                           } from 'domain/onsitexdomain'          ;
+import { ReportOther,                                                      } from 'domain/onsitexdomain'          ;
 import { ReportLogistics,                                                  } from 'domain/onsitexdomain'          ;
-import { ScheduleBeta,                                                     } from 'domain/onsitexdomain'          ;
+import { ReportDriving,                                                    } from 'domain/onsitexdomain'          ;
+import { ReportMaintenance,                                                } from 'domain/onsitexdomain'          ;
+import { ReportTimeCard,                                                   } from 'domain/onsitexdomain'          ;
+// import { ScheduleBeta,                                                     } from 'domain/onsitexdomain'          ;
 import { OnSiteCoordinates, OnSiteGeoposition,                             } from 'domain/onsitexdomain'          ;
 import { LatLng, LatLonLiteral,                                            } from 'domain/onsitexdomain'          ;
 import { DatabaseProgress,                                                 } from 'domain/onsitexdomain'          ;
 import { SESAShift                                                         } from 'domain/onsitexdomain'          ;
-import { Employee as NewEmployee,                                          } from 'domain/newdomain'              ;
-import { Jobsite as NewJobsite,                                            } from 'domain/newdomain'              ;
-import { Street as NewStreet,                                              } from 'domain/newdomain'              ;
-import { Address as NewAddress,                                            } from 'domain/newdomain'              ;
-import { Report as NewReport,                                              } from 'domain/newdomain'              ;
-import { SESAClient as NewSESAClient,                                      } from 'domain/newdomain'              ;
-import { SESALocation as NewSESALocation,                                  } from 'domain/newdomain'              ;
-import { SESALocID as NewSESALocID,                                        } from 'domain/newdomain'              ;
-import { SESACLL as NewSESACLL,                                            } from 'domain/newdomain'              ;
-import { SESAShift as NewSESAShift,                                        } from 'domain/newdomain'              ;
-import { SESAShiftLength as NewSESAShiftLength,                            } from 'domain/newdomain'              ;
-import { SESAShiftStartTime as NewSESAShiftStartTime,                      } from 'domain/newdomain'              ;
-import { SESAShiftSymbols as NewSESAShiftSymbols,                          } from 'domain/newdomain'              ;
-import { SESAShiftRotation as NewSESAShiftRotation,                        } from 'domain/newdomain'              ;
-import { SESAReportType as NewSESAReportType,                              } from 'domain/newdomain'              ;
-import { SESATrainingType as NewSESATrainingType,                          } from 'domain/newdomain'              ;
+// import { Employee as NewEmployee,                                          } from 'domain/newdomain'              ;
+// import { Jobsite as NewJobsite,                                            } from 'domain/newdomain'              ;
+// import { Street as NewStreet,                                              } from 'domain/newdomain'              ;
+// import { Address as NewAddress,                                            } from 'domain/newdomain'              ;
+// import { Report as NewReport,                                              } from 'domain/newdomain'              ;
+// import { SESAClient as NewSESAClient,                                      } from 'domain/newdomain'              ;
+// import { SESALocation as NewSESALocation,                                  } from 'domain/newdomain'              ;
+// import { SESALocID as NewSESALocID,                                        } from 'domain/newdomain'              ;
+// import { SESACLL as NewSESACLL,                                            } from 'domain/newdomain'              ;
+// import { SESAShift as NewSESAShift,                                        } from 'domain/newdomain'              ;
+// import { SESAShiftLength as NewSESAShiftLength,                            } from 'domain/newdomain'              ;
+// import { SESAShiftStartTime as NewSESAShiftStartTime,                      } from 'domain/newdomain'              ;
+// import { SESAShiftSymbols as NewSESAShiftSymbols,                          } from 'domain/newdomain'              ;
+// import { SESAShiftRotation as NewSESAShiftRotation,                        } from 'domain/newdomain'              ;
+// import { SESAReportType as NewSESAReportType,                              } from 'domain/newdomain'              ;
+// import { SESATrainingType as NewSESATrainingType,                          } from 'domain/newdomain'              ;
 import { OSData                                                            } from 'providers/data-service'        ;
-import { Preferences                                                       } from 'providers/preferences'         ;
+import { Preferences, DatabaseKey,                                         } from 'providers/preferences'         ;
 import { AuthService                                                       } from 'providers/auth-service'        ;
 import { StorageService                                                    } from 'providers/storage-service'     ;
 import { PouchDBService                                                    } from 'providers/pouchdb-service'     ;
@@ -162,6 +169,7 @@ declare const global:any;
 })
 export class OnSiteConsoleX implements OnInit,OnDestroy {
   @ViewChild(Nav) nav: Nav;
+  @ViewChild('ionMenu') ionMenu:IonMenu;
   @ViewChild('mainPanelMenu') mainPanelMenu:PanelMenu;
   @ViewChild('spinnerTemplate', { read: ViewContainerRef }) viewContainerRef: ViewContainerRef;
   @ViewChild('confirmTarget') confirmTarget:ElementRef;
@@ -354,7 +362,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
     classes['ReportLogistics']   = ReportLogistics   ;
     classes['ReportOther']       = ReportOther       ;
     classes['Schedule']          = Schedule          ;
-    classes['ScheduleBeta']      = ScheduleBeta      ;
+    // classes['ScheduleBeta']      = ScheduleBeta      ;
     classes['Schedules']         = Schedules         ;
     classes['Shift']             = Shift             ;
     classes['Street']            = Street            ;
@@ -374,25 +382,25 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
     g['consoleobjects'] = classes;
     g['consoleclasses'] = classes;
 
-    let newClasses:any = g['newdebug'] || {};
-    newClasses['Employee']           = NewEmployee           ;
-    newClasses['Address']            = NewAddress            ;
-    newClasses['Street']             = NewStreet             ;
-    newClasses['Report']             = NewReport             ;
-    newClasses['Jobsite']            = NewJobsite            ;
-    newClasses['SESAClient']         = NewSESAClient         ;
-    newClasses['SESALocation']       = NewSESALocation       ;
-    newClasses['SESALocID']          = NewSESALocID          ;
-    newClasses['SESACLL']            = NewSESACLL            ;
-    newClasses['SESAShift']          = NewSESAShift          ;
-    newClasses['SESAShiftLength']    = NewSESAShiftLength    ;
-    newClasses['SESAShiftStartTime'] = NewSESAShiftStartTime ;
-    newClasses['SESAShiftSymbols']   = NewSESAShiftSymbols   ;
-    newClasses['SESAShiftRotation']  = NewSESAShiftRotation  ;
-    newClasses['SESAReportType']     = NewSESAReportType     ;
-    newClasses['SESATrainingType']   = NewSESATrainingType   ;
+    // let newClasses:any = g['newdebug'] || {};
+    // newClasses['Employee']           = NewEmployee           ;
+    // newClasses['Address']            = NewAddress            ;
+    // newClasses['Street']             = NewStreet             ;
+    // newClasses['Report']             = NewReport             ;
+    // newClasses['Jobsite']            = NewJobsite            ;
+    // newClasses['SESAClient']         = NewSESAClient         ;
+    // newClasses['SESALocation']       = NewSESALocation       ;
+    // newClasses['SESALocID']          = NewSESALocID          ;
+    // newClasses['SESACLL']            = NewSESACLL            ;
+    // newClasses['SESAShift']          = NewSESAShift          ;
+    // newClasses['SESAShiftLength']    = NewSESAShiftLength    ;
+    // newClasses['SESAShiftStartTime'] = NewSESAShiftStartTime ;
+    // newClasses['SESAShiftSymbols']   = NewSESAShiftSymbols   ;
+    // newClasses['SESAShiftRotation']  = NewSESAShiftRotation  ;
+    // newClasses['SESAReportType']     = NewSESAReportType     ;
+    // newClasses['SESATrainingType']   = NewSESATrainingType   ;
 
-    g['newdebug'] = newClasses;
+    // g['newdebug'] = newClasses;
     g['t'] = this;
 
     this.initializeGoogleVariables();
@@ -474,25 +482,26 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
       }
     });
 
-    this.dsSubscription = this.dispatch.datastoreUpdated().subscribe((data:{type:string, payload:any}) => {
+    this.dsSubscription = this.dispatch.datastoreUpdated().subscribe((data:{type:DatabaseKey, payload:any}) => {
       let key = data.type;
       let payload = data.payload;
-      if(key === 'reports' || key === 'reports_ver101100') {
+      if(key === 'reports' || key.includes('ver101100')) {
         this.data.setData('reports', payload);
       }
     });
 
-    this.appSubscription = this.dispatch.appEventFired().subscribe((data:{channel:AppEvents, event?:any}) => {
+    this.appSubscription = this.dispatch.appEventFired().subscribe((eventdata:{channel:AppEvents, event?:any}) => {
       // Log.l(`appSubscription: received event:\n`, data);
-      if(data) {
-        let channel:AppEvents = data.channel;
-        let event:Event|MouseEvent|KeyboardEvent = data && data.event && data.event.event ? data.event.event : data && data.event ? data.event : null;
+      if(eventdata) {
+        let channel:AppEvents = eventdata.channel;
+        let event:Event|MouseEvent|KeyboardEvent = eventdata && eventdata.event && eventdata.event.event ? eventdata.event.event : eventdata && eventdata.event ? eventdata.event : null;
+        let data:any =  eventdata && eventdata.event && eventdata.event.data ? eventdata.event.data : eventdata && eventdata.event ? eventdata.event : null;
 
         if(channel === 'openpage') {
-          let event = data.event ? data.event : null;
+          let event = eventdata.event ? eventdata.event : null;
           Log.l(`AppComponent: Received event 'openpage':`, event);
-          if(data && data.event && data.event.page) {
-            let pageData = data.event;
+          if(eventdata && eventdata.event && eventdata.event.page) {
+            let pageData = eventdata.event;
             let page:string = pageData.page;
             let mode:boolean = pageData['modal'] ? pageData.modal : false;
             let navParams:any = pageData['params'] != undefined ? pageData.params : false;
@@ -507,70 +516,93 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
               this.openPage(page, mode);
             }
           } else {
-            Log.w(`AppComponent: unable to open page, no page provided in data packet:\n`, event);
-            this.notify.addWarning('NO PAGE', `Invalid page provided: ${JSON.stringify(data['event'])}`, 3000)
+            Log.w(`AppComponent: unable to open page, no page provided in data packet:`, event);
+            this.notify.addWarning('NO PAGE', `Invalid page provided: ${JSON.stringify(eventdata['event'])}`, 3000)
           }
         } else if(channel === 'find-in-page') {
-          Log.l(`AppComponent: Received event 'find-in-page' ...`);
+          Log.l(`AppComponent: Received event 'find-in-page' …`);
           this.toggleFindInPage(true);
         } else if(channel === 'changedetection') {
-          Log.l(`AppComponent: Received event 'changedetection' ...`);
+          Log.l(`AppComponent: Received event 'changedetection' …`);
           this.fireAppTick();
         } else if(channel === 'toggledevmode') {
-          Log.l(`AppComponent: Received event 'toggledevmode' ...`);
+          Log.l(`AppComponent: Received event 'toggledevmode' …`);
           this.toggleDeveloperMode();
         } else if(channel === 'showdbstatus') {
-          Log.l(`AppComponent: Received event 'showdbstatus' ...`);
+          Log.l(`AppComponent: Received event 'showdbstatus' …`);
           this.showDBStatus(event);
         } else if(channel === 'reinitializedb') {
-          Log.l(`AppComponent: Received event 'reinitializedb' ...`);
+          Log.l(`AppComponent: Received event 'reinitializedb' …`);
           this.reinitializeDatabases();
           // this.showDBStatus(event);
+        } else if(channel === 'updatefromdb' || channel === 'updatefromserver') {
+          Log.l(`AppComponent: Received event '${channel}' …`);
+          let dbtype:DatabaseKey = data && data.db ? data.db : null;
+
+          if(dbtype) {
+            if(dbtype === 'reports') {
+              let count = data && data.count && typeof data.count === 'number' ? data.count : 1000000;
+              this.getReports(count);
+            } else if(dbtype === 'reports_other') {
+              this.getReportOthers();
+            } else if(dbtype === 'logistics') {
+              this.getReportLogistics();
+            } else if(dbtype === 'drivings') {
+              this.getReportDrivings();
+            } else if(dbtype === 'maintenances') {
+              this.getReportMaintenances();
+            } else if(dbtype === 'scheduling') {
+              let server = data && data.server && typeof data.server === 'boolean' ? data.server : false;
+              this.getSchedulesFromDatabase(server);
+            }
+          } 
         } else if(channel === 'downloaddb') {
-          Log.l(`AppComponent: Received event 'downloaddb' ...`);
+          Log.l(`AppComponent: Received event 'downloaddb' …`);
           this.showDBStatus(event);
         // } else if(channel === 'optionsopened') {
-          // Log.l(`AppComponent: Received event 'optionsopened' ...`);
+          // Log.l(`AppComponent: Received event 'optionsopened' …`);
         // } else if(channel === 'optionsclosed') {
-          // Log.l(`AppComponent: Received event 'optionsclosed' ...`);
+          // Log.l(`AppComponent: Received event 'optionsclosed' …`);
         } else if(channel === 'saveprefs') {
-          Log.l(`AppComponent: Received event 'saveprefs' ...`);
+          Log.l(`AppComponent: Received event 'saveprefs' …`);
           this.savePreferences();
         } else if(channel === 'replicationerror') {
           let dbname:string = data && data.event ? data.event : "UNKNOWN";
-          Log.l(`AppComponent: Received event 'replicationerror' for '${dbname}' ...`);
+          Log.l(`AppComponent: Received event 'replicationerror' for '${dbname}' …`);
           this.notify.addError("ERROR", `Replication error for database '${dbname}'. Replication will retry.`, 5000);
         } else if(channel === 'elapsedtime') {
-          Log.l(`AppComponent: Received event 'elapsedtime' ...`);
+          Log.l(`AppComponent: Received event 'elapsedtime' …`);
 
         } else if(channel === 'logout') {
-          Log.l(`AppComponent: Received event 'logout' ...`);
+          Log.l(`AppComponent: Received event 'logout' …`);
           this.logoutClicked();
         } else if(channel === 'login') {
-          Log.l(`AppComponent: Received event 'login' ...`);
+          Log.l(`AppComponent: Received event 'login' …`);
           this.showLogin();
         } else if(channel === 'authenticate') {
-          Log.l(`AppComponent: Received event 'authenticate' ...`);
+          Log.l(`AppComponent: Received event 'authenticate' …`);
           this.reauthenticate();
         } else if(channel === 'updatedata') {
-          Log.l(`AppComponent: Received event 'updatedata' ...`);
+          Log.l(`AppComponent: Received event 'updatedata' …`);
           this.updateData();
         } else if(channel === 'updatelogistics') {
-          Log.l(`AppComponent: Received event 'updatelogistics' ...`);
+          Log.l(`AppComponent: Received event 'updatelogistics' …`);
           this.updateLogistics();
         } else if(channel === 'updatetimecards') {
-          Log.l(`AppComponent: Received event 'updatetimecards' ...`);
+          Log.l(`AppComponent: Received event 'updatetimecards' …`);
           this.updateTimeCards();
         } else if(channel === 'options') {
-          Log.l(`AppComponent: Received event 'options' ...`);
-          let type = data.event;
+          Log.l(`AppComponent: Received event 'options' …`);
+          let type = eventdata.event;
           this.showOptions(type);
         } else if(channel === 'testnotifications') {
-          Log.l(`AppComponent: Received event 'testnotifications' ...`);
+          Log.l(`AppComponent: Received event 'testnotifications' …`);
           this.testNotifications();
+        } else if(channel === 'killspinners') {
+          this.alert.clearSpinners();
         } else if(channel === 'replicationcomplete') {
           // let dbname = data && data.event && data.event.db ? data.event.db : "UNKNOWN";
-          // Log.l(`AppComponent: Received event 'replicationcomplete' for '${dbname}' ...`);
+          // Log.l(`AppComponent: Received event 'replicationcomplete' for '${dbname}' …`);
           // this.databaseUpdated(dbname);
         }
       }
@@ -899,7 +931,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
         //   setTimeout(() => {
         try {
           let count:number = this.prefs.getReportLoadCount();
-          let reports = await this.data.getReports(count);
+          let reports = await this.getReports(count);
           Log.l("initializeApp: Successfully authenticated and logged in AND got reports.");
           res = await this.audio.preloadSounds();
         } catch(err) {
@@ -1342,7 +1374,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
       text += ' …';
       spinnerID = await this.alert.showSpinnerPromise(text);
       let fetchCount:number = queued;
-      res = await this.data.getReports(fetchCount, spinnerID);
+      res = await this.getReports(fetchCount, spinnerID);
       // let newReports:Report[] = res;
       this.notify.addSuccess("FINISHED", "Updated report data!", 3000);
       let out:any = await this.alert.hideSpinnerPromise(spinnerID);
@@ -1423,7 +1455,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
       text += ' ...';
       spinnerID = await this.alert.showSpinnerPromise(text);
       let fetchCount:number = queued;
-      res = await this.data.getReports(fetchCount, spinnerID);
+      res = await this.getReports(fetchCount, spinnerID);
       // let newReports:Report[] = res;
       this.notify.addSuccess("FINISHED", "Updated report data!", 3000);
       let out:any = await this.alert.hideSpinnerPromise(spinnerID);
@@ -1574,14 +1606,556 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
   public async syncData():Promise<any> {
     try {
       let res:any = await this.setupAuthentication();
-      Log.l("syncData(): Authenticated and synchronization started. Now fetching actual data.");
-      res = await this.data.fetchAllData();
-      Log.l("syncData(): All data fetched.");
+      Log.l("OnSiteConsoleX.syncData(): Authenticated and synchronization started. Now fetching actual data.");
+      res = await this.fetchAllData();
+      Log.l("OnSiteConsoleX.syncData(): All data fetched.");
       return res;
     } catch(err) {
-      Log.l(`syncData(): Error with authentication of fetching data!`);
+      Log.l(`OnSiteConsoleX.syncData(): Error with authentication of fetching data!`);
       Log.e(err);
       throw err;
+    }
+  }
+
+  public async fetchAllData():Promise<any> {
+    try {
+      if(this.data.status.ready || this.data.status.loading) {
+        return true;
+      } else {
+        this.data.status.loading = true;
+        Log.l("OnSiteConsoleX.fetchAllData(): About to begin fetching data …");
+        let res:any = await this.fetchData();
+        Log.l("OnSiteConsoleX.fetchAllData(): done fetching data.");
+        res = await this.loadTranslations();
+        this.data.status.ready   = true;
+        this.data.status.loading = false;
+        return true;
+      }
+    } catch(err) {
+      Log.l(`OnSiteConsoleX.fetchAllData(): error fetching data.`);
+      Log.e(err);
+      this.data.status.ready   = false;
+      this.data.status.loading = false;
+      throw err;
+    }
+  }
+
+  public async fetchData():Promise<any> {
+    let spinnerID:string;
+    try {
+      if(this.data.status.ready) {
+        return true;
+      }
+      this.data.status.loading = true;
+      this.data.status.ready   = false;
+      // this.alert.clearSpinners();
+      spinnerID = await this.alert.showSpinnerPromise("Retrieving data from databases …");
+      // let loading:Loading|{setContent:Function} = this.alert.getSpinner(spinnerID);
+      // loading = loading && typeof loading.setContent === 'function' ? loading : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
+      // let loading:Loading|{setContent:Function} = this.alert.getSpinner(spinnerID);
+      // loading = loading && typeof loading.setContent === 'function' ? loading : {setContent: (input:string) => {Log.l("Fake loading controller text: %s", input);}};
+      let loading:Loading = this.alert.getSpinner(spinnerID);
+      function updateLoaderStatus(text:string) {
+        let loadText:string = "Retrieving data from:<br>\n";
+        if(loading && typeof loading.setContent === 'function') {
+          loading.setContent(loadText + text + "…");
+        } else {
+          Log.l("Fake loading controller text:\n", text);
+        }
+      }
+      let tech:Employee = await this.server.getEmployee(this.auth.getUser());
+      this.data.user = tech;
+      // let res:any = await this.server.getUserData(this.auth.getUser());
+      // this.user = new Employee();
+      // this.user.readFromDoc(res);
+
+      // });
+      let res = await this.db.getAllNonScheduleData(false, spinnerID);
+        // this.schedules = new Schedules();
+      for(let key in res) {
+        if(key !== 'schedules') {
+          this.data.dbdata[key] = res[key];
+        }
+        // else {
+          // this.schedules.setSchedules(res[key]);
+        // }
+      }
+      this.data.loaded.sites = true;
+      this.data.loaded.employees = true;
+      this.data.loaded.logistics = true;
+      this.data.loaded.timecards = true;
+      // loading.setContent("Retrieving data from:<br>\nsesa-scheduling …");
+      updateLoaderStatus("sesa-scheduling");
+      // res = await this.db.getSchedules(false, this.dbdata.employees);
+      // this.schedules = new Schedules();
+      // this.schedules.setSchedules(res);
+      // this.loaded.schedules = true;
+      await this.getSchedulesFromDatabase();
+      // loading.setContent("Retrieving data from:<br>\nsesa-config …");
+      updateLoaderStatus("sesa-config");
+      res = await this.db.getAllConfigData();
+      this.data.config.clients            = res['clients']            ;
+      this.data.config.locations          = res['locations']          ;
+      this.data.config.locIDs             = res['locids']             ;
+      this.data.config.rotations          = res['rotations']          ;
+      this.data.config.shifts             = res['shifts']             ;
+      this.data.config.shiftLengths       = res['shiftlengths']       ;
+      // this.data.config.shiftTypes         = res['shifttypes']         ;
+      this.data.config.shiftStartTimes    = res['shiftstarttimes']    ;
+      this.data.config.report_types       = res['report_types']       ;
+      this.data.config.training_types     = res['training_types']     ;
+      this.data.report_types              = res['report_types']       ;
+      this.data.training_types            = res['training_types']     ;
+      let EWORDS = res['maintenance_enouns'] ;
+      let MWORDS = res['maintenance_mnouns'] ;
+      let VERBS  = res['maintenance_verbs']  ;
+      this.data.config.maintenance_enouns = EWORDS ;
+      this.data.config.maintenance_mnouns = MWORDS ;
+      this.data.config.maintenance_verbs  = VERBS  ;
+      ReportMaintenance.EWORDS = EWORDS;
+      ReportMaintenance.MWORDS = MWORDS;
+      ReportMaintenance.VERBS = VERBS;
+  
+      // return this.db.getDPSSettings();
+      this.data.loaded.config = true;
+      updateLoaderStatus("sesa-dps-config");
+      let dpsSettings = await this.server.getDPSSettings();
+      // OSData.dps = res;
+      this.data.dps = dpsSettings;
+      this.data.loaded.dps = true;
+      await this.alert.hideSpinnerPromise(spinnerID);
+      Log.l("OnSiteConsoleX.fetchData(): All data fetched.");
+      this.data.status.ready   = true;
+      this.data.status.loading = false;
+      // let data = { sites: [], employees: [], reports: [], others: [], periods: [], shifts: [], schedules: [] };
+      return true;
+    } catch(err) {
+      Log.l("OnSiteConsoleX.fetchData(): Error fetching all data.");
+      Log.e(err);
+      await this.alert.hideSpinnerPromise(spinnerID);
+      // let errText:string = err && err.message ? err.message : typeof err === 'string' ? err : "UNKNOWN ERROR";
+      // this.alert.showAlert("ERROR", "Error retrieving data:<br>\n<br\n" + errText);
+      await this.alert.showErrorMessage("ERROR", "Error retrieving data", err);
+      this.data.status.ready   = false;
+      this.data.status.loading = false;
+      throw err;
+    }
+  }
+
+  public async getSchedulesFromDatabase(server?:boolean, evt?:Event):Promise<Schedule[]> {
+    try {
+      Log.l(`OnSiteConsoleX.getSchedulesFromServer(): Called with server '${server}' and event:`, evt);
+      let res;
+      let employees:Employee[] = this.data.getData('employees');
+      if(server === true) {
+        res = await this.server.getSchedules(false, employees);
+      } else {
+        res = await this.db.getSchedules(false, employees);
+      }
+      this.data.schedules = new Schedules();
+      this.data.schedules.setSchedules(res);
+      this.data.loaded.schedules = true;
+      this.dispatch.triggerUpdatedFromDB('scheduling', this.data.schedules);
+      return res;
+    } catch(err) {
+      Log.l(`OnSiteConsoleX.getSchedulesFromServer(): Error getting schedules from server`);
+      Log.e(err);
+      throw err;
+    }
+  }
+  
+  
+
+  public async getReports(fetchCount:number, existingSpinnerID?:string):Promise<Report[]> {
+    // let spinnerID:string = existingSpinnerID && typeof existingSpinnerID === 'string' ? existingSpinnerID : null;
+    try {
+      // let reportsDB = this.prefs.getDB('reports');
+      // spinnerID = await this.alert.showSpinnerPromise("Retrieving work reports …");
+      // let res:Report[] = await this.db.getReportsData(fetchCount, reportsDB);
+      let res:Report[] = await this.db.getWorkReports(fetchCount, existingSpinnerID);
+      this.data.dbdata.reports = res;
+      this.data.loaded.reports = true;
+      // let out:any = await this.alert.hideSpinnerPromise(spinnerID);
+      this.dispatch.updateDatastore('reports', this.data.dbdata.reports);
+      this.dispatch.triggerUpdatedFromDB('reports', this.data.dbdata.reports);
+      // let change = this.syncChanges(reportsDB);
+      // this.pouchChanges[reportsDB] = change;
+      return res;
+    } catch(err) {
+      Log.l("OnSiteConsoleX.getReports(): Error getting reports!");
+      Log.e(err);
+      // await this.alert.hideSpinnerPromise(spinnerID);
+      throw err;
+    }
+  }
+
+  public async getOldReports(hideSpinner?:boolean):Promise<Report[]> {
+    let spinnerID:string;
+    try {
+      if(!hideSpinner) {
+        spinnerID = await this.alert.showSpinnerPromise("Retrieving old work reports...");
+      }
+      let reports_old:string = "reports_old01";
+      // let db = this.prefs.getDB();
+      // let rdb1 = this.db.addDB(db.reports_old01);
+      // Log.l(`Server.getOldReports(): retrieving all reports from '${db.reports_old01}'...`)
+      // let res:any = await rdb1.allDocs({ include_docs: true });
+      let reports:Report[] = await this.db.getOldReports(spinnerID);
+      this.data.dbdata.oldreports = reports;
+      this.data.loaded.oldreports = true;
+      if(!hideSpinner) {
+        let out:any = await this.alert.hideSpinnerPromise(spinnerID);
+      }
+      this.dispatch.updateDatastore('reports_old', this.data.dbdata.oldreports)
+      this.dispatch.triggerUpdatedFromDB('reports_old', this.data.dbdata.oldreports)
+      // let change = this.syncChanges(reports_old);
+      // this.pouchChanges[reports_old] = change;
+      Log.l("OnSiteConsoleX.getOldReports(): Final array of old reports is:", reports);
+      return reports;
+    } catch(err) {
+      Log.l(`OnSiteConsoleX.getOldReports(): Error retrieving reports.`);
+      Log.e(err);
+      if(!hideSpinner) {
+        let out:any = await this.alert.hideSpinnerPromise(spinnerID);
+      }
+      throw err;
+    }
+  }
+
+  public async getReportOthers(hideSpinner?:boolean):Promise<ReportOther[]> {
+    let spinnerID:string;
+    try {
+      let dbname = this.prefs.getDB('reports_other');
+      let db1 = this.db.addDB(dbname);
+      let dbinfo:any = await db1.info();
+      let count:number = dbinfo.doc_count;
+      // let othersDB = this.prefs.DB.reports_other;
+      if(!hideSpinner) {
+        spinnerID = await this.alert.showSpinner(`Retrieving ${count} non-work reports...`);
+      }
+      let others:ReportOther[] = await this.db.getReportOthers(spinnerID);
+      this.data.dbdata.others = others;
+      this.data.loaded.others = true;
+      if(!hideSpinner) {
+        let out:any = await this.alert.hideSpinnerPromise(spinnerID);
+      }
+      // this.dispatch.updateDatastore('others', this.data.dbdata.others);
+      this.dispatch.updateDatastore('reports_other', this.data.dbdata.others);
+      this.dispatch.triggerUpdatedFromDB('reports_other', this.data.dbdata.others);
+      // let change = this.syncChanges(dbname);
+      // this.pouchChanges[dbname] = change;
+      Log.l("OnSiteConsoleX.getReportOthers(): Final ReportOther array is:", others);
+      return others;
+    } catch(err) {
+      Log.l("OnSiteConsoleX.getReportOthers(): Error getting reports!");
+      Log.e(err);
+      if(!hideSpinner) {
+        let out:any = await this.alert.hideSpinnerPromise(spinnerID);
+      }
+      throw err;
+    }
+  }
+
+  public async getReportLogistics(hideSpinner?:boolean):Promise<ReportLogistics[]> {
+    let spinnerID:string;
+    try {
+      let dbname = this.prefs.getDB('logistics');
+      let db1 = this.db.addDB(dbname);
+      let dbinfo:any = await db1.info();
+      let count:number = dbinfo.doc_count;
+      if(!hideSpinner) {
+        spinnerID = await this.alert.showSpinnerPromise(`Retrieving ${count} logistics reports...`);
+      }
+      let logistics:ReportLogistics[] = await this.server.getReportLogistics(spinnerID);
+      // let logistics:ReportLogistics[] = await this.db.getReportLogistics(spinnerID);
+      this.data.dbdata.logistics = logistics;
+      this.data.loaded.logistics = true;
+      if(!hideSpinner) {
+        let out:any = await this.alert.hideSpinnerPromise(spinnerID);
+      }
+      this.dispatch.updateDatastore('logistics', this.data.dbdata.logistics);
+      this.dispatch.triggerUpdatedFromDB('logistics', this.data.dbdata.logistics);
+      // let change = this.syncChanges(dbname);
+      // this.pouchChanges[dbname] = change;
+      Log.l("OnSiteConsoleX.getReportLogistics(): Final ReportLogistics array is:", dbname);
+      return logistics;
+    } catch(err) {
+      if(!hideSpinner) {
+        let out:any = await this.alert.hideSpinnerPromise(spinnerID);
+      }
+      Log.l("OnSiteConsoleX.getReportLogistics(): Error getting logistics reports!");
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public async getReportDrivings(hideSpinner?:boolean):Promise<ReportDriving[]> {
+    let spinnerID:string;
+    try {
+      let dbname = this.prefs.getDB('drivings');
+      let db1 = this.db.addDB(dbname);
+      let dbinfo:any = await db1.info();
+      let count:number = dbinfo.doc_count;
+      if(!hideSpinner) {
+        spinnerID = await this.alert.showSpinnerPromise(`Retrieving ${count} driving reports...`);
+      }
+      let drivings:ReportDriving[] = await this.server.getReportDrivings(spinnerID);
+      // let logistics:ReportLogistics[] = await this.db.getReportLogistics(spinnerID);
+      this.data.dbdata.drivings = drivings;
+      this.data.loaded.drivings = true;
+      if(!hideSpinner) {
+        let out:any = await this.alert.hideSpinnerPromise(spinnerID);
+      }
+      this.dispatch.updateDatastore('drivings', this.data.dbdata.drivings);
+      this.dispatch.triggerUpdatedFromDB('drivings', this.data.dbdata.drivings);
+      // let change = this.syncChanges(dbname);
+      // this.pouchChanges[dbname] = change;
+      Log.l("OnSiteConsoleX.getReportDrivings(): Final ReportDriving array is:", dbname);
+      return drivings;
+    } catch(err) {
+      if(!hideSpinner) {
+        let out:any = await this.alert.hideSpinnerPromise(spinnerID);
+      }
+      Log.l("OnSiteConsoleX.getReportDrivings(): Error getting driving reports!");
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public async getReportMaintenances(hideSpinner?:boolean):Promise<ReportMaintenance[]> {
+    let spinnerID:string;
+    try {
+      let dbname = this.prefs.getDB('maintenances');
+      let db1 = this.db.addDB(dbname);
+      let dbinfo:any = await db1.info();
+      let count:number = dbinfo.doc_count;
+      if(!hideSpinner) {
+        spinnerID = await this.alert.showSpinnerPromise(`Retrieving ${count} maintenance reports...`);
+      }
+      let maintenances:ReportMaintenance[] = await this.server.getReportMaintenances(spinnerID);
+      // let logistics:ReportLogistics[] = await this.db.getReportLogistics(spinnerID);
+      this.data.dbdata.maintenances = maintenances;
+      this.data.loaded.maintenances = true;
+      if(!hideSpinner) {
+        let out:any = await this.alert.hideSpinnerPromise(spinnerID);
+      }
+      this.dispatch.updateDatastore('maintenances', this.data.dbdata.maintenances);
+      this.dispatch.triggerUpdatedFromDB('maintenances', this.data.dbdata.maintenances);
+      // let change = this.syncChanges(dbname);
+      // this.pouchChanges[dbname] = change;
+      Log.l("OnSiteConsoleX.getReportMaintenances(): Final ReportMaintenance array is:", dbname);
+      return maintenances;
+    } catch(err) {
+      if(!hideSpinner) {
+        let out:any = await this.alert.hideSpinnerPromise(spinnerID);
+      }
+      Log.l("OnSiteConsoleX.getReportMaintenances(): Error getting maintenance reports!");
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public async getTimeCards(hideSpinner?:boolean):Promise<ReportTimeCard[]> {
+    let spinnerID:string;
+    try {
+      let dbname = this.prefs.getDB('timecards');
+      let db1 = this.db.addDB(dbname);
+      let dbinfo:any = await db1.info();
+      let count:number = dbinfo.doc_count;
+      if(!hideSpinner) {
+        spinnerID = await this.alert.showSpinnerPromise(`Retrieving ${count} time card reports...`);
+      }
+      let timecards:ReportTimeCard[] = await this.server.getReportTimeCards(spinnerID);
+      this.data.dbdata.timecards = timecards;
+      this.data.loaded.timecards = true;
+      if(!hideSpinner) {
+        let out:any = await this.alert.hideSpinnerPromise(spinnerID);
+      }
+      this.dispatch.updateDatastore('timecards', this.data.dbdata.timecards);
+      this.dispatch.triggerUpdatedFromDB('timecards', this.data.dbdata.timecards);
+      // let change = this.syncChanges(dbname);
+      // this.pouchChanges[dbname] = change;
+      Log.l("OnSiteConsoleX.getTimeCards(): Final ReportTimeCard array is:", dbname);
+      return timecards;
+    } catch(err) {
+      if(!hideSpinner) {
+        let out:any = await this.alert.hideSpinnerPromise(spinnerID);
+      }
+      Log.l("OnSiteConsoleX.getTimeCards(): Error getting reports!");
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public syncChanges(dbname:string) {
+    // return new Promise((resolve,reject) => {
+    Log.l(`OnSiteConsoleX.syncChanges(): Called for '${dbname}'`)
+    let a:boolean = false;
+    if(!a) {
+      return this.server.liveSyncWithServer(dbname);
+    }
+    let jobsitesDB:string = this.prefs.getDB('jobsites');
+    let employeesDB:string = this.prefs.getDB('employees');
+    let reportsDB:string = this.prefs.getDB('reports');
+    let othersDB:string = this.prefs.getDB('reports_other');
+    let logisticsDB:string = this.prefs.getDB('logistics');
+    let drivingsDB:string = this.prefs.getDB('drivings');
+    let maintenancesDB:string = this.prefs.getDB('maintenances');
+    let timecardsDB:string = this.prefs.getDB('timecards');
+    if(dbname === reportsDB) {
+      let reports:Report[] = this.data.dbdata.reports;
+      let db = this.db.addDB(dbname);
+      let changes = db.changes({live: true, since: 'now', include_docs: true})
+      .on('change', (change) => {
+
+        Log.l(`OnSiteConsoleX.syncChanges('${dbname}'): change event detected!`);
+        let reports = this.data.dbdata.reports;
+        if(change.deleted) {
+          // change.id holds the deleted id
+          let idx = reports.findIndex((a:Report) => {
+            return a._id === change.id;
+          });
+          if(idx > -1) {
+            let report = reports[idx];
+            reports.splice(idx, 1);
+            this.notify.addInfo("DELETED REPORT", `Deleted Report '${report._id}'.`, 3000);
+          }
+        } else { // updated/inserted
+          // change.doc holds the new doc
+          // onUpdatedOrInserted(change.doc);
+          let doc = change.doc;
+          if(doc._id[0] === '_') {
+            return;
+          }
+          let idx = reports.findIndex((a:Report) => {
+            return a._id === change.id;
+          });
+          let report = new Report();
+          report.readFromDoc(doc);
+          if(idx > -1) {
+            // report = reports[idx];
+            reports[idx] = report;
+            this.notify.addInfo("EDITED REPORT", `Edited Report '${report._id}'.`, 3000);
+          } else {
+            reports.push(report);
+            this.notify.addInfo("NEW REPORT", `New Report '${report._id}' added.`, 3000);
+          }
+        }
+        this.dispatch.updateDatastore('reports', this.data.dbdata.reports);
+      }).on('error', (err) => {
+        Log.l(`OnSiteConsoleX.syncChanges('${dbname}'): change subscription received error!`);
+        Log.e(err);
+      });
+      return changes;
+    } else if(dbname === othersDB) {
+      let others:ReportOther[] = this.data.dbdata.others;
+      let db = this.db.addDB(dbname);
+      let changes = db.changes({live: true, since: 'now', include_docs: true}).on('change', (change) => {
+        Log.l(`OnSiteConsoleX.syncChanges('${dbname}'): change event detected!`);
+        let reports = this.data.dbdata.reports;
+        if(change.deleted) {
+          // change.id holds the deleted id
+          let idx = others.findIndex((a:ReportOther) => {
+            return a._id === change.id;
+          });
+          others.splice(idx, 1);
+        } else { // updated/inserted
+          // change.doc holds the new doc
+          // onUpdatedOrInserted(change.doc);
+          let doc = change.doc;
+          let idx = others.findIndex((a:ReportOther) => {
+            return a._id === change.id;
+          });
+          let other = new ReportOther();
+          other.readFromDoc(doc);
+          if(idx > -1) {
+            // report = reports[idx];
+            others[idx] = other;
+            this.notify.addInfo("EDITED REPORTOTHER", `Edited ReportOther '${other._id}' added.`, 3000);
+          } else {
+            others.push(other);
+            this.notify.addInfo("NEW REPORTOTHER", `New ReportOther '${other._id}' added.`, 3000);
+          }
+        }
+        // this.dispatch.updateDatastore('others', this.data.dbdata.others);
+        this.dispatch.updateDatastore('reports_other', this.data.dbdata.others);
+      }).on('error', (err) => {
+        Log.l(`OnSiteConsoleX.syncChanges('${dbname}'): change subscription received error!`);
+        Log.e(err);
+      });
+    } else if(dbname === jobsitesDB) {
+      let sites:Jobsite[] = this.data.dbdata.sites;
+      let db = this.db.addDB(dbname);
+      let changes = db.changes({live: true, since: 'now', include_docs: true}).on('change', (change) => {
+        Log.l(`OnSiteConsoleX.syncChanges('${dbname}'): change event detected!`);
+        let reports = this.data.dbdata.sites;
+        if (change.deleted) {
+          // change.id holds the deleted id
+          let idx = sites.findIndex((a:Jobsite) => {
+            return a._id === change.id;
+          });
+          sites.splice(idx, 1);
+        } else { // updated/inserted
+          // change.doc holds the new doc
+          // onUpdatedOrInserted(change.doc);
+          let doc = change.doc;
+          let idx = sites.findIndex((a:Jobsite) => {
+            return a._id === change.id;
+          });
+          let site = new Jobsite();
+          site.readFromDoc(doc);
+          if(idx > -1) {
+            // report = reports[idx];
+            sites[idx] = site;
+            this.notify.addInfo("EDITED JOBSITE", `Edited Jobsite '${site._id}' added.`, 3000);
+          } else {
+            sites.push(site);
+            this.notify.addInfo("NEW JOBSITE", `New JOBSITE '${site._id}' added.`, 3000);
+          }
+        }
+        // this.dispatch.updateDatastore('sites', this.data.dbdata.sites);
+        this.dispatch.updateDatastore('jobsites', this.data.dbdata.sites);
+      }).on('error', (err) => {
+        Log.l(`OnSiteConsoleX.syncChanges('${dbname}'): change subscription received error!`);
+        Log.e(err);
+      });
+    } else if(dbname === employeesDB) {
+      let employees:Employee[] = this.data.dbdata.employees;
+      let db = this.db.addDB(dbname);
+      let changes = db.changes({live: true, since: 'now', include_docs: true}).on('change', (change) => {
+        Log.l(`OnSiteConsoleX.syncChanges('${dbname}'): change event detected!`);
+        if (change.deleted) {
+          // change.id holds the deleted id
+          let idx = employees.findIndex((a:Employee) => {
+            return a._id === change.id;
+          });
+          employees.splice(idx, 1);
+        } else { // updated/inserted
+          // change.doc holds the new doc
+          // onUpdatedOrInserted(change.doc);
+          let doc = change.doc;
+          let idx = employees.findIndex((a:Employee) => {
+            return a._id === change.id;
+          });
+          let tech = new Employee();
+          tech.readFromDoc(doc);
+          if(idx > -1) {
+            // report = reports[idx];
+            employees[idx] = tech;
+            this.notify.addInfo("EDITED JOBSITE", `Edited Jobsite '${tech._id}' added.`, 3000);
+          } else {
+            employees.push(tech);
+            this.notify.addInfo("NEW JOBSITE", `New JOBSITE '${tech._id}' added.`, 3000);
+          }
+        }
+        this.dispatch.updateDatastore('employees', this.data.dbdata.employees);
+      }).on('error', (err) => {
+        Log.l(`OnSiteConsoleX.syncChanges('${dbname}'): change subscription received error!`);
+        Log.e(err);
+      });
+    } else {
+      Log.l(`OnSiteConsoleX.syncChanges('${dbname}'): Can't sync to non-reports databases at the moment!`);
+      return undefined;
     }
   }
 
@@ -1752,11 +2326,11 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
       let storedPrefs:any = await this.storage.persistentGet('PREFS');
       let updatePrefs = storedPrefs;
       if(storedPrefs) {
-        Log.l(`checkPreferences(): Found stored preferences, comparing...`);
+        Log.l(`checkPreferences(): Found stored preferences, comparing …`);
         updatePrefs = this.prefs.comparePrefs(storedPrefs);
         this.prefs.setPrefs(updatePrefs);
       } else {
-        Log.l(`checkPreferences(): No stored preferences found, comparing...`);
+        Log.l(`checkPreferences(): No stored preferences found, comparing …`);
         updatePrefs = this.prefs.getPrefs();
       }
       let version:number = this.prefs.getPreferencesVersion();
@@ -1776,7 +2350,7 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
   public async savePreferences(updatedPrefs?:any) {
     let spinnerID;
     try {
-      spinnerID = await this.alert.showSpinner('Saving preferences...');
+      spinnerID = await this.alert.showSpinner('Saving preferences …');
       let prefs = updatedPrefs ? updatedPrefs : this.prefs.getPrefs();
       let res:any = await this.storage.persistentSet('PREFS', prefs);
       Log.l("savePreferences: Preferences stored:\n", this.prefs.getPrefs());
@@ -2044,4 +2618,47 @@ export class OnSiteConsoleX implements OnInit,OnDestroy {
     }
     return this.findVisible;
   }
+
+  public async loadTranslations():Promise<any> {
+    try {
+      Log.l(`OnSiteConsole.loadTranslations(): Called …`);
+      let res = await this.server.loadRawTranslations();
+      if(res && res.keys && res.translations) {
+        let keys = res.keys;
+        let translations = res.translations;
+        this.data.langKeys = keys;
+        this.data.translations = translations;
+        let table = this.data.translationsToTable(keys, translations);
+        this.data.translationsTable = table;
+      } else {
+        Log.l(`OnSiteConsole.loadTranslations(): Error, could not find proper structures in database record:`, res);
+      }
+      
+      // let translateKeys = Object.keys(translations);
+      // let allTranslations:any = {};
+      // for(let langKey of keys) {
+      //   let idx = keys.indexOf(langKey);
+      //   let langTranslations:any = {};
+      //   for(let key of translateKeys) {
+      //     langTranslations[key] = translations[key][idx];
+      //   }
+      //   this.translate.setTranslation(langKey, langTranslations);
+      //   allTranslations[langKey] = langTranslations;
+      // }
+      // let currentLang = this.translate.currentLang;
+      // this.ud.translations = allTranslations[currentLang];
+      // return res;
+    } catch(err) {
+      Log.l(`OnSiteConsole.loadTranslations(): Error loading translations`);
+      Log.e(err);
+      throw err;
+    }
+  }
+
+  public async showDatabaseStatus(event?:MouseEvent) {
+    Log.l("OnSiteConsole.showDatabaseStatus(): Event is:", event);
+    await this.menuCtrl.close();
+    this.dispatch.triggerAppEvent('showdbstatus', event);
+  }
+
 }

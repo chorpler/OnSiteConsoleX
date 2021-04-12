@@ -1,8 +1,10 @@
 /**
  * Name: Schedule domain class
- * Vers: 6.10.1
- * Date: 2019-07-01
+ * Vers: 6.11.0
+ * Date: 2019-07-23
  * Auth: David Sargeant
+ * Logs: 6.11.0 2019-07-23: Added getStartDateAsString() method
+ * Logs: 6.10.2 2019-07-18: Minor TSLint indent error fixed, probably introduced in 6.10.1
  * Logs: 6.10.1 2019-07-01: Minor TSLint fixes with for..in and whatnot
  * Logs: 6.10.0 2018-12-13: Refactored imports to remove circular dependencies; added standard OnSite methods
  * Logs: 6.9.0 2018-11-15: Added approved field
@@ -153,7 +155,7 @@ export class Schedule {
         doc[key] = this.end.toExcel(true);
       } else if(key === 'schedule') {
         let schDoc:any = {};
-	let siteNames = Object.keys(this.schedule);
+        let siteNames = Object.keys(this.schedule);
         for(let sitename of siteNames) {
           if(!sitename) {
             continue;
@@ -431,6 +433,12 @@ export class Schedule {
 
   public getStartDate(str?:boolean):Moment {
     return moment(this.start);
+  }
+
+  public getStartDateAsString(format?:string):string {
+    let start = moment(this.start);
+    let fmt:string = typeof format === "string" ? format : "YYYY-MM-DD";
+    return start.format(fmt);
   }
 
   public setStartDate(day:Date|Moment|string):Moment {

@@ -19,6 +19,8 @@ import { DatabaseStatus,      } from 'domain/onsitexdomain'       ;
 import { DatabaseStatusState, } from 'domain/onsitexdomain'       ;
 import { OSData               } from 'providers/data-service'     ;
 import { Preferences          } from 'providers/preferences'      ;
+import { DatabaseKey          } from 'providers/preferences'      ;
+import { DatabaseKeys         } from 'providers/preferences'      ;
 import { NotifyService        } from 'providers/notify-service'   ;
 import { DispatchService      } from 'providers/dispatch-service' ;
 import { AppEvents            } from 'providers/dispatch-service' ;
@@ -26,6 +28,8 @@ import { AlertService         } from 'providers/alert-service'    ;
 import { DomainService        } from 'providers/domain-service'   ;
 import { PouchDBService       } from 'providers/pouchdb-service'  ;
 import { Database             } from 'providers/pouchdb-service'  ;
+import { DBService            } from 'providers/db-service'       ;
+import { ServerService        } from 'providers/server-service'   ;
 import { Dialog               } from 'primeng/dialog'             ;
 import { ProgressBar          } from 'primeng/progressbar'        ;
 
@@ -61,8 +65,8 @@ export class DatabaseStatusComponent implements OnInit,OnDestroy {
   public elapsedTime  :Duration;
   public elapsedTimeString:string = "";
   public progressArray:DatabaseStatus[] = [];
-  public getKeys:any;
-  public sprintf:any = sprintf;
+  public getKeys:(o:Object) => string[] = Object.keys;
+  public sprintf:(...params) => string = sprintf;
 
   public isVisible   : boolean = true              ;
   public isDraggable : boolean = true              ;
@@ -80,6 +84,8 @@ export class DatabaseStatusComponent implements OnInit,OnDestroy {
     public notify   : NotifyService   ,
     public dispatch : DispatchService ,
     public pouchdb  : PouchDBService  ,
+    public db       : DBService       ,
+    public server   : ServerService   ,
   ) {
     window['onsiteDatabaseStatus'] = this;
     window['onsitedbstatus' ] = this;
@@ -190,6 +196,28 @@ export class DatabaseStatusComponent implements OnInit,OnDestroy {
     }
   }
 
+  public async forceSyncDatabase(dbkey:DatabaseKey, evt?:Event):Promise<any> {
+    let spinnerID;
+    try {
+      let dbname = this.prefs.getDB(dbkey);
+      Log.l(`DatabaseStatus.forceSyncDatabase(): Called for '${dbkey}' ('${dbname}') with event:`, evt);
+      // let res = await this.server.syncFromServerViaSelector(dbname);
+      let text = `Forcing sync from server for '${dbkey}' database …`;
+      spinnerID = await this.alert.showSpinnerPromise(text);
+      let res = await this.server.nonLiveSyncWithServer(dbname);
+      Log.l(`DatabaseStatus.forceSyncDatabase(): Finished for '${dbkey}' ('${dbname}') with result:`, res);
+      await this.alert.hideSpinnerPromise(spinnerID);
+      return res;
+    } catch(err) {
+      Log.l(`DatabaseStatus.forceSyncDatabase(): Error force syncing to database '${dbkey}'!`);
+      Log.e(err);
+      await this.alert.hideSpinnerPromise(spinnerID);
+      let title = "SYNC ERROR";
+      let text  = `Error synchronizing '${dbkey}' database`;
+      await this.alert.showErrorMessage(title, text, err);
+    }
+  }
+
   public async abort(evt?:Event) {
     try {
       Log.l("DatabaseStatus: abort() called");
@@ -276,9 +304,9 @@ export class DatabaseStatusComponent implements OnInit,OnDestroy {
   }
 
   public async createList(dbNameList?:string[]) {
-    let dbkeys:string[] = this.prefs.getSyncableDBKeys() || [];
+    let dbkeys = this.prefs.getSyncableDBKeys() || [];
     // let dbnames = Array.isArray(dbNameList) ? dbNameList : this.prefs.getSyncableDBList();
-    let dbnames:string[] = dbkeys.map((key:string) => {
+    let dbnames:string[] = dbkeys.map(key => {
       return this.prefs.getDB(key);
     });
     let now:Moment;
@@ -305,7 +333,7 @@ export class DatabaseStatusComponent implements OnInit,OnDestroy {
       progressDoc[key] = dbstatus;
     }
     this.dbProgress = progressDoc;
-    let keys:string[] = Object.keys(progressDoc);
+    let keys = (Object.keys(progressDoc) as DatabaseKeys);
     for(let key of keys) {
       let dbname:string = this.prefs.getDB(key);
       let dberror:boolean = false;
@@ -369,14 +397,14 @@ export class DatabaseStatusComponent implements OnInit,OnDestroy {
     return progressDoc;
   }
 
-  public async refreshDatabaseInfo(keys?:string[], evt?:Event):Promise<any> {
+  public async refreshDatabaseInfo(keys?:DatabaseKeys, evt?:Event):Promise<any> {
     try {
       this.title = this.titleString + " (updating …)";
-      let pkeys:string[] = Object.keys(this.dbProgress);
-      let dbkeys:string[] = Array.isArray(keys) ? keys : pkeys.length ? pkeys : [];
+      let pkeys = (Object.keys(this.dbProgress) as DatabaseKeys);
+      let dbkeys = Array.isArray(keys) ? keys : pkeys.length ? pkeys : [];
       // let dbkeys:string[] = Array.isArray(keys) ? keys : this.prefs.getSyncableDBKeys() || [];
       // let dbnames = Array.isArray(dbNameList) ? dbNameList : this.prefs.getSyncableDBList();
-      let dbnames:string[] = dbkeys.map((key:string) => {
+      let dbnames:string[] = dbkeys.map(key => {
         return this.prefs.getDB(key);
       });
       dbnames = dbnames.filter(a => typeof a === 'string');

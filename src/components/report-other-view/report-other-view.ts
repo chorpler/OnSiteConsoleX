@@ -16,6 +16,7 @@ import { Log, moment, Moment, isMoment, oo, _dedupe,               } from 'domai
 import { Message, SelectItem, InputTextarea, Dropdown,             } from 'primeng/primeng'               ;
 import { NotifyService                                             } from 'providers/notify-service'      ;
 import { Command, KeyCommandService                                } from 'providers/key-command-service' ;
+import { NullTemplateVisitor } from '@angular/compiler';
 
 // const _dedupe = (array, property?) => {
 //   let prop = "fullName";
@@ -26,6 +27,17 @@ import { Command, KeyCommandService                                } from 'provi
 //     return arr.map(mapObj => mapObj[prop]).indexOf(obj[prop]) === pos;
 //   });
 // }
+
+interface ReportTypeItem {
+  name:string;
+  value:string;
+}
+
+interface TrainingTypeItem {
+  name:string;
+  value:string;
+  hours:number;
+}
 
 @Component({
   selector: 'report-other-view',
@@ -41,7 +53,8 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
   @Input('site')       site : Jobsite                 ;
   @Input('sites')     sites : Jobsite[] = []          ;
   @Output('cancel') cancel = new EventEmitter<any>();
-  @Output('finished') finished = new EventEmitter<any>();
+  @Output('save') save = new EventEmitter<ReportOther>();
+  @Output('deleted') deleted = new EventEmitter<ReportOther>();
   @Output('reportChange') reportChange = new EventEmitter<any>();
   
   public visible    : boolean        = true               ;
@@ -59,10 +72,17 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
   public client     : any                                 ;
   public location   : any                                 ;
   public locID      : any                                 ;
+  public reportType : any                                 ;
+  public trainingType: any                                ;
+  public reportTypePlaceholder:string = " "               ;
+  public trainingTypePlaceholder:string = " "             ;
+  public travelDestinationPlaceholder:string = " "        ;
 
   public clients     :any[]     = []                      ;
   public locations   :any[]     = []                      ;
   public locIDs      :any[]     = []                      ;
+  public reportTypes :any[]     = []                      ;
+  public trainingTypes:any[]    = []                      ;
   public repair_hours:number = 0;
   public time_start  :Date           = new Date()         ;
   public time_end    :Date           = new Date()         ;
@@ -72,9 +92,12 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
   public locationList:SelectItem[]   = []                 ;
   public locIDList   :SelectItem[]   = []                 ;
   public timeList    :SelectItem[]   = []                 ;
+  public typeList    :SelectItem[]   = []                 ;
+  public trainingTypeList:SelectItem[]   = []                 ;
   public unassigned  :Jobsite                             ;
   public oldComponent:any                                 ;
   public reportUndo  :any[]     = []                      ;
+  public dropdownScroll : string     = "200px"            ;
   public dataReady   :boolean        = false              ;
 
   constructor(
@@ -131,6 +154,14 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
       return a.site_number == 1;
     });
     let other = this.other;
+    let allReportTypes:ReportTypeItem[] = this.data.getConfigData('report_types');
+    this.reportTypes = allReportTypes.filter(a => {
+      return a.name !== 'work_report' && a.name !== 'logistics' && a.name !== 'office';
+    });
+    let allTrainingTypes:TrainingTypeItem[] = this.data.getConfigData('training_types');
+    this.trainingTypes = allTrainingTypes.filter(a => {
+      return true;
+    });
 
     this.createMenuLists();
     this.updateDisplay(other);
@@ -156,6 +187,8 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
     let locationList: SelectItem[] = [] ;
     let locIDList   : SelectItem[] = [] ;
     let siteList    : SelectItem[] = [] ;
+    let typeList    : SelectItem[] = [] ;
+    let trainingTypeList:SelectItem[] = [] ;
     for(let val of this.clients) {
       let item:SelectItem = {label: val.fullName, value: val}
       clientList.push(item);
@@ -172,11 +205,21 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
       let item:SelectItem = { label: site.getSiteSelectName(), value: site };
       siteList.push(item);
     }
+    for(let type of this.reportTypes) {
+      let item:SelectItem = { label: type.value, value: type };
+      typeList.push(item);
+    }
+    for(let type of this.trainingTypes) {
+      let item:SelectItem = { label: type.value, value: type };
+      trainingTypeList.push(item);
+    }
     this.timeList     = timeList     ;
     this.clientList   = clientList   ;
     this.locationList = locationList ;
     this.locIDList    = locIDList    ;
     this.siteList     = siteList     ;
+    this.typeList     = typeList     ;
+    this.trainingTypeList = trainingTypeList;
   }
 
   public updateDisplay(other?:ReportOther) {
@@ -203,6 +246,7 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
     let client = this.data.getFullClient(rpt.client);
     let location = this.data.getFullLocation(rpt.location);
     let locID = this.data.getFullLocID(rpt.location_id);
+    let rptType = rpt.type.toLowerCase();
     let selClient = this.clientList.find((a:SelectItem) => {
       return a.value.name === client.name;
     });
@@ -212,16 +256,78 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
     let selLocID = this.locIDList.find((a:SelectItem) => {
       return a.value.name === locID.name;
     });
+    let selType = this.typeList.find((a:SelectItem) => {
+      let type = a.value;
+      let name  = type.name.toLowerCase();
+      let value = type.value.toLowerCase();
+      return rptType === name || rptType === value;
+    });
     this.client = selClient ? selClient.value : this.unassigned.client;
     this.location = selLocation ? selLocation.value : this.unassigned.location;
     this.locID = selLocID ? selLocID.value : this.unassigned.locID;
+    this.reportType = selType ? selType.value : null;
+    this.trainingType = null;
+    this.selectedSite = null;
+    if(rpt.travel_location) {
+      let site = this.sites.find(a => {
+        let siteName = a.getSiteSelectName();
+        return rpt.travel_location.toUpperCase() === siteName;
+      });
+      if(site) {
+        this.selectedSite = site;
+      }
+    }
+    if(rpt.training_type) {
+      let trnType = rpt.training_type.toLowerCase();
+      let selTrainingType = this.trainingTypeList.find((a:SelectItem) => {
+        let type = a.value;
+        let name  = type.name.toLowerCase();
+        let value = type.value.toLowerCase();
+        return trnType === name || trnType === value;
+      });
+      this.trainingType = selTrainingType ? selTrainingType.value : null;
+    }
+
+    let idx = this.others.indexOf(rpt);
+    let num = idx + 1;
+    let len = this.others.length;
+    let title = `View Misc Report (${num} / ${len})`;
+    this.header = title;
   }
 
-  public updateSite(site:Jobsite) {
-    let client   = site.client;
-    let location = site.location;
-    let locID    = site.locID;
+  public getReportOtherType(other:ReportOther):string {
+    if(other instanceof ReportOther) {
+      let type = typeof other.type === 'string' ? other.type.toLowerCase() : "";
+      return type;
+    }
+  }
+
+  public updateSite(site:Jobsite, evt?:Event) {
+    // let client   = site.client;
+    // let location = site.location;
+    // let locID    = site.locID;
+    Log.l(`ReportOtherView.updateSite(): Called with site:`, site);
     this.other.setSite(site);
+  }
+
+  public updateTravelDestination(site:Jobsite, evt?:Event) {
+    Log.l(`ReportOtherView.updateTravelDestination(): Called with site:`, site);
+    this.other.setTravelDestination(site);
+  }
+
+  public updateReportType(reportType:ReportTypeItem, other:ReportOther, event?:Event) {
+    if(other instanceof ReportOther && typeof reportType.value === 'string') {
+      // other.type = reportType.name;
+      other.type = reportType.value;
+    }
+  }
+
+  public updateTrainingType(trainingType:TrainingTypeItem, other:ReportOther, event?:Event) {
+    if(other instanceof ReportOther && typeof trainingType.value === 'string') {
+      // other.type = reportType.name;
+      other.training_type = trainingType.name;
+      other.time = trainingType.hours;
+    }
   }
 
   // public cancel(event?:any) {
@@ -230,55 +336,81 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
   //   this.finished.emit(event);
   // }
 
-  public saveNoExit() {
-    this.db.saveOtherReport(this.other).then(res => {
+  public async saveNoExit():Promise<any> {
+    try {
+      let res = await this.db.saveOtherReport(this.other);
       Log.l("saveNoExit(): Report successfully saved.");
-      if(this.period) {
-        this.period.addReportOther(this.other);
-      } else if(this.shift) {
-        this.shift.addOtherReport(this.other);
+      if(res.rev) {
+        this.other._rev = res.rev;
       }
-      this.reportChange.emit()
-      // this.viewCtrl.dismiss();
-    }).catch(err => {
-      Log.l("save(): Error saving report.");
+      // if(this.period) {
+      //   this.period.addReportOther(this.other);
+      // } else if(this.shift) {
+      //   this.shift.addOtherReport(this.other);
+      // }
+      this.reportChange.emit();
+    } catch(err) {
+      Log.l(`ReportOtherView.saveNoExit(): Error saving report`);
       Log.e(err);
       // this.alert.showAlert("ERROR", "Error saving report:<br>\n<br>\n" + err.message);
-      this.notify.addError("ERROR", `Error saving report: '${err.message}'`, 10000);
-    });
-
+      // this.notify.addError("ERROR", `Error saving report: '${err.message}'`, 10000);
+      await this.alert.showErrorMessage("ERROR", `Error saving misc. report`, err);
+    }
   }
 
-  public save(event?:any) {
-    this.db.saveOtherReport(this.other).then(res => {
-      Log.l("save(): Report successfully saved.");
-      if(this.period) {
-        this.period.addReportOther(this.other);
-      } else if(this.shift) {
-        this.shift.addOtherReport(this.other);
+  public async saveClicked(event?:any):Promise<any> {
+    try {
+      let res = await this.db.saveOtherReport(this.other);
+      if(res.rev) {
+        this.other._rev = res.rev;
       }
+      Log.l("ReportOtherView.saveClicked(): Report successfully saved.");
+      // if(this.period) {
+      //   this.period.addReportOther(this.other);
+      // } else if(this.shift) {
+      //   this.shift.addOtherReport(this.other);
+      // }
       // this.viewCtrl.dismiss();
-      this.finished.emit(event);
-    }).catch(err => {
-      Log.l("save(): Error saving report.");
+      // this.finished.emit(event);
+      this.save.emit(this.other);
+    } catch(err) {
+      Log.l("ReportOtherView.saveClicked(): Error saving report.");
       Log.e(err);
-      this.notify.addError("ERROR", `Error saving report: '${err.message}'`, 1000);
-    });
+      // this.notify.addError("ERROR", `Error saving report: '${err.message}'`, 1000);
+      await this.alert.showErrorMessage("ERROR", `Error saving misc. report`, err);
+    }
   }
 
-  public deleteReport(event:any) {
+  public async deleteReport(event:MouseEvent) {
     let report = this.other;
-    this.db.deleteOtherReport(report).then(res => {
-      Log.l("deleteReport(): Successfully deleted report.");
-      this.cancel.emit(event);
-    }).catch(err => {
-      Log.l("deleteReport(): Error deleting report.");
+    Log.l(`ReportOtherView.deleteReport(): Called with event:`, event);
+    try {
+      let confirm:boolean;
+      if(!(event && (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey))) {
+        confirm = await this.alert.showConfirmYesNo("DELETE MISC REPORT", "Really delete this report? This cannot be undone.");
+      } else {
+        confirm = true;
+      }
+      if(confirm) {
+        let res = await this.db.deleteOtherReport(report);
+        Log.l("ReportOtherView.deleteReport(): Successfully deleted report.");
+        let idx = this.others.indexOf(report);
+        if(idx > -1) {
+          this.others.splice(idx, 1);
+        }
+        this.deleted.emit(report);
+        this.cancel.emit(event);
+      }
+    } catch(err) {
+      Log.l(`ReportOtherView.deleteReport(): Error deleting report`);
       Log.e(err);
-      this.notify.addError("ERROR", `Error deleting ReportOther '${report._id}': '${err.message}'`, 10000);
-    });
+      // this.notify.addError("ERROR", `Error deleting ReportOther '${report._id}': '${err.message}'`, 10000);
+      await this.alert.showErrorMessage("ERROR", `Error deleting misc. report`, err);
+    }
   }
 
   public updateDate(newDate:Date) {
+    Log.l(`ReportOtherView.updateDate(): Called with date:`, newDate);
     let date:Moment = moment(newDate);
     let report:ReportOther = this.other;
     // report.report_date = moment(date);
@@ -373,6 +505,7 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
     }
     this.other = this.others[this.idx];
     this.reportChange.emit(this.idx);
+    this.updateDisplay();
   }
 
   public next() {
@@ -382,6 +515,8 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
     }
     this.other = this.others[this.idx];
     this.reportChange.emit(this.idx);
+    this.updateDisplay();
+
   }
 
   public toggleDateFormat() {
@@ -392,11 +527,11 @@ export class ReportOtherViewComponent implements OnInit,OnDestroy {
     }
   }
 
-  public cancelClicked(event?:Event) {
+  public async cancelClicked(event?:Event):Promise<any> {
     // this.viewCtrl.dismiss();
     Log.l("cancelClicked(): Clicked, event is:", event);
     this.cancel.emit(event);
-    this.finished.emit(event);
+    // this.finished.emit(event);
   }
 
   // public splitReport(event?:any) {

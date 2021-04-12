@@ -1,7 +1,9 @@
-import { NgModule                     } from '@angular/core'   ;
-import { IonicPageModule              } from 'ionic-angular'   ;
-import { ConfigValuesPage             } from './config-values' ;
-import { DataTableModule,SharedModule } from 'primeng/primeng' ;
+import { NgModule          } from '@angular/core'     ;
+import { IonicPageModule   } from 'ionic-angular'     ;
+import { ConfigValuesPage  } from './config-values'   ;
+import { SharedModule      } from 'primeng/shared'    ;
+import { TableModule,      } from 'primeng/table'     ;
+import { DataTableModule,  } from 'primeng/datatable' ;
 
 @NgModule({
   declarations: [
@@ -9,8 +11,9 @@ import { DataTableModule,SharedModule } from 'primeng/primeng' ;
   ],
   imports: [
     IonicPageModule.forChild(ConfigValuesPage),
-    DataTableModule,
     SharedModule,
+    TableModule,
+    DataTableModule,
   ],
 })
 export class ConfigValuesPageModule {}

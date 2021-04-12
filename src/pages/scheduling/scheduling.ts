@@ -11,7 +11,13 @@ import { AlertService                                       } from 'providers/al
 import { Preferences                                        } from 'providers/preferences'              ;
 import { NotifyService                                      } from 'providers/notify-service'           ;
 import { OSData                                             } from 'providers/data-service'             ;
-import { Log, Moment, moment, isMoment, oo, _dedupe, SiteShiftType,        } from 'domain/onsitexdomain'               ;
+import { Log                                                } from 'domain/onsitexdomain'               ;
+import { Moment                                             } from 'domain/onsitexdomain'               ;
+import { SiteShiftType                                      } from 'domain/onsitexdomain'               ;
+import { moment                                             } from 'domain/onsitexdomain'               ;
+import { isMoment                                           } from 'domain/onsitexdomain'               ;
+import { oo                                                 } from 'domain/onsitexdomain'               ;
+import { _dedupe                                            } from 'domain/onsitexdomain'               ;
 import { Jobsite, Employee, Schedule,                       } from 'domain/onsitexdomain'               ;
 import { OptionsGenericComponent                            } from 'components/options-generic'         ;
 import { Command, KeyCommandService                         } from 'providers/key-command-service'      ;
@@ -104,7 +110,7 @@ export class SchedulingPage implements OnInit,OnDestroy {
   public keySubscription : Subscription                                         ;
   public buttonLocation  : number          = 1                                  ;
   public updated         : boolean         = false                              ;
-  public items           : TechItem[]      = []                                 ;
+  // public items           : TechItem[]      = []                                 ;
   public stats           : any             = null                               ;
   public techs           : Employee[] = []                                 ;
   public allTechs        : Employee[] = []                                 ;
@@ -344,7 +350,7 @@ export class SchedulingPage implements OnInit,OnDestroy {
     let schedule:Schedule = this.schedule;
     if(schedule && schedule['schedule']) {
       let tempSchedule = Object.assign({}, schedule);
-      Log.l("Scheduling: got Schedule!\n", tempSchedule);
+      Log.l("Scheduling: got Schedule!", tempSchedule);
       this.doc = schedule;
 
       // schedule.createSchedulingObject(this.sites, this.techs);
@@ -415,7 +421,7 @@ export class SchedulingPage implements OnInit,OnDestroy {
       }
     }
     this.scheduleDatesMenu = scheduleMenu;
-    Log.l(`createDropdownMenus(): Dropdown menus created:\n`, scheduleMenu);
+    Log.l(`createDropdownMenus(): Dropdown menus created:`, scheduleMenu);
   }
 
   public openSchedule(id?:string):any {
@@ -1658,7 +1664,7 @@ export class SchedulingPage implements OnInit,OnDestroy {
       }
     }
   }
-z
+
   public editSite(site:Jobsite) {
     // this.alert.showAlert("SORRY", "Clicking here was going to allow you to edit the job site, but this feature is not implemented yet. Actually, it's only being implemented while Mike isn't watching. He said it was a stupid idea and I was stupid for thinking of it. And trust me, you don't want to mess with that guy. I saw him try to chop up a cat with a gate. <span class='alert-icons'>😨😿</span>");
     let modal = this.modalCtrl.create('Work Site', { mode: 'Edit', modal:true, source: 'scheduling', jobsite: site }, {cssClass: 'site-edit-modal'});
@@ -2057,7 +2063,7 @@ z
   }
 
   public scheduleChosen(event:any) {
-    Log.l(`scheduleChosen(): Event is:\n`, event);
+    Log.l(`scheduleChosen(): Event is:`, event);
     this.scheduleOpenVisible = false;
     window['p'] = this;
     let schedule:Schedule;
@@ -2231,6 +2237,8 @@ z
       // this.shiftsData = scheduleObject;
       // this.schedule.setSchedule(scheduleObject);
       let oldSchedule:Schedule = this.schedule;
+      window['onsiteschedule_old'] = oldSchedule;
+      this.schedules.unshift(schedule);
       this.schedule = schedule;
       this.removeUsedTechs();
       this.start = moment(start);
@@ -2554,17 +2562,67 @@ z
   }
 
   public showViewWorkSite(site:Jobsite, evt?:Event) {
-    Log.l(`showViewWorkSite(): Event is:`, evt);
+    Log.l(`Scheduling.showViewWorkSite(): Event is:`, evt);
     this.site = site;
     this.viewWorkSiteVisible = true;
   }
   public cancelViewWorkSite(evt?:Event) {
-    Log.l(`cancelViewWorkSite(): Event is:`, evt);
+    Log.l(`Scheduling.cancelViewWorkSite(): Event is:`, evt);
     this.viewWorkSiteVisible = false;
   }
   public saveViewWorkSite(evt?:Event) {
-    Log.l(`saveViewWorkSite(): Event is:`, evt);
+    Log.l(`Scheduling.saveViewWorkSite(): Event is:`, evt);
     this.viewWorkSiteVisible = false;
   }
 
+  public async refreshSchedulesFromDatabase(evt?:MouseEvent):Promise<any> {
+    let spinnerID;
+    try {
+      Log.l(`Scheduling.refreshSchedulesFromDatabase(): Called with event:`, evt);
+      let useServer:boolean = false;
+      if(evt && evt.shiftKey) {
+        useServer = true;
+      }
+      let currentScheduleDate = this.schedule.getStartDateAsString();
+      let source:string = useServer ? "server" : "local";
+      spinnerID = await this.alert.showSpinnerPromise(`Retrieving schedules from ${source} database…`);
+      // let schedules:Schedule[] = await this.data.getSchedulesFromDatabase(true);
+      // await this.data.getSchedulesFromDatabase(useServer);
+      let res1 = await this.data.updateFromDB('scheduling', {server: useServer});
+      let schedules = this.data.getSchedules().filter((a:Schedule) => {
+        // let result = (a.creator === filtername);
+        // if(name === 'Chorpler') {
+          // result = result || (a.creator === name);
+        // }
+        // return result;
+        // return a.creator === filtername;
+        return true;
+      }).sort((a:Schedule,b:Schedule) => {
+        let startA = a.start.format("YYYY-MM-DD");
+        let startB = b.start.format("YYYY-MM-DD");
+        return startA > startB ? -1 : startA < startB ? 1 : 0;
+      });
+      let schedule = schedules.find(a => {
+        return a.getStartDateAsString() === currentScheduleDate;
+      });
+      if(schedule) {
+        this.schedules = schedules;
+        this.createDropdownMenus();
+        await this.alert.hideSpinnerPromise(spinnerID);
+        this.scheduleChosen(schedule);
+      } else {
+        let text = "Scheduling.refreshSchedulesFromDatabase(): Unknown error loading schedules from server";
+        Log.w(text);
+        let err = new Error(text);
+        throw err;
+      }
+    } catch(err) {
+      Log.l(`refreshSchedulesFromDatabase(): Error loading schedules from database`);
+      Log.e(err);
+      await this.alert.hideSpinnerPromise(spinnerID);
+      await this.alert.showErrorMessage("REFRESH ERROR", "Error loading schedules from server database", err);
+    }
+  }
+  
+  
 }

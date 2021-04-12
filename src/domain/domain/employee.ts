@@ -1,8 +1,11 @@
 /**
  * Name: Employee domain class
- * Vers: 8.1.6
- * Date: 2019-07-03
+ * Vers: 8.3.1
+ * Date: 2019-09-19
  * Auth: David Sargeant
+ * Logs: 8.3.1 2019-09-19: Added getFullNameWithSuffix() method
+ * Logs: 8.3.0 2019-09-19: Added optional parameter to getFullNameNormal() method for including middle names; Added getSelectableDescription() method
+ * Logs: 8.2.0 2019-07-23: Added .trim() to all string fields created when using serialize() method
  * Logs: 8.1.6 2019-07-03: Changed shift property to use SiteScheduleType from Jobsite
  * Logs: 8.1.5 2019-06-27: Changed StatusUpdateType to EmployeeStatusUpdateType
  * Logs: 8.1.4 2019-02-01: Changed how isLevel1Manager() works to make it case-insensitive
@@ -52,14 +55,14 @@ export enum EmployeeType {
   FIELD     = 'FIELD'     ,
   OFFICE    = 'OFFICE'    ,
   LOGISTICS = 'LOGISTICS' ,
-};
+}
 
 export type EmployeeStatusUpdateType = "created" | "updated" | "activated" | "deactivated";
-export type EmployeeStatusLogEntry = {
-  type      : EmployeeStatusUpdateType ,
-  user      : string                   ,
-  timestamp : string                   ,
-};
+export interface EmployeeStatusLogEntry {
+  type      : EmployeeStatusUpdateType ;
+  user      : string                   ;
+  timestamp : string                   ;
+}
 
 export class Employee {
   public _id                 : string        = ""            ;
@@ -322,6 +325,9 @@ export class Employee {
       } else {
         doc[key] = this[key];
       }
+      if(typeof doc[key] === 'string') {
+        doc[key] = doc[key].trim();
+      }
     }
     doc['avtrNameAsUser'] = true;
     return doc;
@@ -358,9 +364,61 @@ export class Employee {
     return fullName;
   }
 
-  public getFullNameNormal():string {
-    let fullName = `${this.firstName} ${this.lastName}`;
+  /**
+   * Returns full name in FIRST [MIDDLE] LAST order. If optional parameter is true, includes middle name.
+   *
+   * @param {boolean} [includeMiddle] If true, middle name will be included
+   * @returns {string} String of user's full name
+   * @memberof Employee
+   */
+  public getFullNameNormal(includeMiddle?:boolean):string {
+    let fullName = `${this.firstName}`;
+    if(includeMiddle === true) {
+      fullName += ` ${this.middleName}`;
+    }
+    fullName += ` ${this.lastName}`;
     return fullName;
+  }
+
+  /**
+   * Returns full name in FIRST [MIDDLE] LAST SUFFIX order. If optional parameter is true, includes middle name.
+   * If user does not have a suffix, will be equivalent to getFullNameNormal() method
+   *
+   * @param {boolean} [includeMiddle] If true, middle name will be included
+   * @returns {string} String of user's full name, with optional suffix.
+   * @memberof Employee
+   */
+  public getFullNameWithSuffix(includeMiddle?:boolean):string {
+    let fullName = this.getFullNameNormal(includeMiddle);
+    if(this.suffix) {
+      fullName += ` ${this.suffix}`;
+    }
+    return fullName;
+  }
+
+  /**
+   * Returns string with username and full normal name.
+   * Optionally includes middle name.
+   * Optionally reverses order of username and full name.
+   *
+   * @param {boolean} [includeMiddle] If true, will include middle name.
+   * @param {boolean} [reversed] If true, output will have full name first, then username.
+   * @returns {string} String in format "USERNAME (FULL NAME)" or "FULL NAME (USERNAME)"
+   * @memberof Employee
+   */
+  public getSelectableDescription(includeMiddle?:boolean, reversed?:boolean):string {
+    let nameFirst = reversed === true ? true : false;
+    let username = this.getUsername();
+    let fullName = this.getFullNameWithSuffix(includeMiddle);
+    let out:string;
+    // let out:string = fullName + `(${username})`;
+    // let out:string = username + ` (${fullName})`;
+    if(nameFirst) {
+      out = fullName + ` (${username})`;
+    } else {
+      out = username + ` (${fullName})`;
+    }
+    return out;
   }
 
   public getClient():string {
@@ -370,7 +428,7 @@ export class Employee {
         let cli:string = this.client;
         return cli.toUpperCase();
       } else if(typeof this.client === 'object') {
-        let out:any;
+        // let out2:any;
         if(this.client && typeof this.client['fullName'] === 'string') {
           let client = this.client && typeof this.client['fullName'] === 'string' && (this.client['fullName'] as string).toUpperCase() ? (this.client['fullName'] as string).toUpperCase() : "UNKNOWN";
           out = client;
@@ -629,7 +687,7 @@ export class Employee {
   public findSite(sites:Jobsite[]):Jobsite {
     let unassigned_site = sites.find((a:Jobsite) => {
       return a.site_number === 1;
-    })
+    });
     for(let site of sites) {
       if(this.site_number && this.site_number === site.site_number) {
         // Log.l("Report: matched report to site:\n", this);
@@ -656,7 +714,7 @@ export class Employee {
       }
     }
     let out = this.getSiteInfo();
-    Log.w(`Employee.findSite(): Could not find employee site '${out}' for employee '${this.getUsername()}'!`)
+    Log.w(`Employee.findSite(): Could not find employee site '${out}' for employee '${this.getUsername()}'!`);
     return unassigned_site;
   }
 
@@ -756,6 +814,6 @@ export class Employee {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }
 

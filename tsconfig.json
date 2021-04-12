@@ -7,6 +7,7 @@
       "components/*" : [ "components/*" ] ,
       "config/*"     : [ "config/*"     ] ,
       "domain/*"     : [ "domain/*"     ] ,
+      "domain2/*"    : [ "../../domain/OnSiteDomain/src/*" ] ,
       "directives/*" : [ "directives/*" ] ,
       "pages/*"      : [ "pages/*"      ] ,
       "pipes/*"      : [ "pipes/*"      ] ,
@@ -43,6 +44,9 @@
     "lib",
     "dist",
     "www"
+  ],
+  "references": [
+    { "path": "../domain/OnSiteDomain" }
   ],
   "compileOnSave": false,
   "angularCompilerOptions": {

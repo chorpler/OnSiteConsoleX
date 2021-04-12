@@ -1,8 +1,9 @@
 /**
  * Name: Address domain class
- * Vers: 1.7.1
- * Date: 2018-08-08
+ * Vers: 1.7.2
+ * Date: 2019-07-18
  * Auth: David Sargeant
+ * Logs: 1.7.2 2019-07-18: Minor corrections to fix TSLint errors
  * Logs: 1.7.1 2018-08-27: Changed street1,street2 properties to get/set directly from/to street property
  * Logs: 1.6.1 2018-08-08: Added defaults to properties like street, city, state, country, zipcode
  * Logs: 1.5.1 2018-07-09: Added clone() method
@@ -15,15 +16,15 @@ import { Street } from './street';
 
 export class Address {
   public street:Street = new Street();
-  public get street1():string { if(this.street) { return this.street.street1; } else { this.street = new Street(); return this.street.street1; } };
-  public get street2():string { if(this.street) { return this.street.street2; } else { this.street = new Street(); return this.street.street2; } };
-  public set street1(val:string) { if(this.street) { this.street.street1 = val; } else { this.street = new Street(); this.street.street1 = val; }  };
-  public set street2(val:string) { if(this.street) { this.street.street2 = val; } else { this.street = new Street(); this.street.street2 = val; }  };
+  public get street1():string { if(this.street) { return this.street.street1; } else { this.street = new Street(); return this.street.street1; } }
+  public get street2():string { if(this.street) { return this.street.street2; } else { this.street = new Street(); return this.street.street2; } }
+  public set street1(val:string) { if(this.street) { this.street.street1 = val; } else { this.street = new Street(); this.street.street1 = val; }  }
+  public set street2(val:string) { if(this.street) { this.street.street2 = val; } else { this.street = new Street(); this.street.street2 = val; }  }
   public city:string = "";
   public state:string = "";
   public country:string = "USA";
-  public get zip():string {return this.zipcode;};
-  public set zip(value:string) { this.zipcode = value;};
+  public get zip():string {return this.zipcode;}
+  public set zip(value:string) { this.zipcode = value;}
   public zipcode:string = "";
 
   constructor(inStreet?:Street, inCity?:string, inState?:string, inZip?:string) {
@@ -83,5 +84,5 @@ export class Address {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }

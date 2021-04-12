@@ -1,8 +1,17 @@
 /**
  * Name: Shift domain class
- * Vers: 6.7.2
- * Date: 2019-07-01
+ * Vers: 8.0.1
+ * Date: 2019-08-26
  * Auth: David Sargeant
+ * Logs: 8.0.1 2019-08-21: Added ReportTimeCard capabilities
+ * Logs: 8.0.0 2019-08-20: Changed how getNextReportStartTime() method works to account for all different ReportReals
+ * Logs: 7.3.1 2019-08-16: Added ReportMaintenance capabilities
+ * Logs: 7.2.3 2019-08-13: Changed SiteShiftType types to SiteScheduleType
+ * Logs: 7.2.2 2019-08-07: Added getShiftDateString(),isDate() methods
+ * Logs: 7.2.1 2019-08-05: Added ReportDriving capabilities
+ * Logs: 7.1.2 2019-07-25: Changed how removeLogisticsReport() finds index, and added types
+ * Logs: 7.1.1 2019-07-18: Changed how readFromDoc() method works, although this method is so far unused since Shift is not serialized to database at all
+ * Logs: 7.0.1 2019-07-17: Changed all instances of "bonus" hours to "premium" hours; now using Report class's premium property
  * Logs: 6.7.2 2019-07-01: Added SiteScheduleType import; minor TSLint error fixes
  * Logs: 6.7.1 2019-01-02: Added logistics reports to getShiftStatus() output
  * Logs: 6.6.1 2018-12-13: Refactored imports to remove circular dependencies; added standard OnSite methods
@@ -24,23 +33,24 @@
  * Logs: 4.1.1 2017-08-22: Unknown
  */
 
-/**
- * TODO: 2018-08-08: Premium hours need to be changed to pull from Jobsite property, not just check report client
- */
-
-// import { oo               } from '../config'         ;
-import { sprintf          } from 'sprintf-js'        ;
-import { Log              } from '../config'         ;
-import { Moment           } from '../config'         ;
-import { isMoment         } from '../config'         ;
-import { moment           } from '../config'         ;
-import { Report           } from './report'          ;
-import { ReportOther      } from './reportother'     ;
-import { Jobsite          } from './jobsite'         ;
-import { Employee         } from './employee'        ;
-import { ReportLogistics  } from './reportlogistics' ;
-import { Timesheet        } from './timesheet'       ;
-import { SiteScheduleType } from './jobsite'         ;
+import { oo                } from '../config'           ;
+import { sprintf           } from 'sprintf-js'          ;
+import { Log               } from '../config'           ;
+import { Moment            } from '../config'           ;
+import { isMoment          } from '../config'           ;
+import { moment            } from '../config'           ;
+import { Jobsite           } from './jobsite'           ;
+import { Employee          } from './employee'          ;
+import { Report            } from './report'            ;
+import { ReportOther       } from './reportother'       ;
+import { ReportLogistics   } from './reportlogistics'   ;
+import { ReportDriving     } from './reportdriving'     ;
+import { ReportMaintenance } from './reportmaintenance' ;
+import { ReportTimeCard    } from './reporttimecard'    ;
+import { ReportAny         } from './reportany'         ;
+import { ReportReal        } from './reportany'         ;
+import { Timesheet         } from './timesheet'         ;
+import { SiteScheduleType  } from './jobsite'           ;
 
 const _sortReports = (a:Report, b:Report): number => {
   if(a instanceof Report && b instanceof Report) {
@@ -53,6 +63,22 @@ const _sortReports = (a:Report, b:Report): number => {
     // startA = isMoment(startA) ? startA : moment(startA);
     // startB = isMoment(startB) ? startB : moment(startB);
     return dateA.isBefore(dateB) ? -1  : dateA.isAfter(dateB) ? 1 : startA.isBefore(startB) ? -1 : startA.isAfter(startB) ? 1 : 0;
+  } else {
+    return 0;
+  }
+};
+
+const _sortRealReports = (a:ReportReal, b:ReportReal):number => {
+  if(a && b && a.report_date != undefined && b.report_date != undefined && !(a instanceof ReportOther || b instanceof ReportOther)) {
+    let dateA:any  = moment(a.report_date).startOf('day');
+    let dateB:any  = moment(b.report_date).startOf('day');
+    let startA = a.getLastTimeBlocked();
+    let startB = b.getLastTimeBlocked();
+    // dateA  = isMoment(dateA)  ? dateA  : moment(dateA).startOf('day');
+    // dateB  = isMoment(dateB)  ? dateB  : moment(dateB).startOf('day');
+    // startA = isMoment(startA) ? startA : moment(startA);
+    // startB = isMoment(startB) ? startB : moment(startB);
+    return startA > startB ? 1 : startA < startB ? -1 : 0;
   } else {
     return 0;
   }
@@ -92,21 +118,26 @@ export interface ShiftXLDates {
 // };
 
 export class Shift {
+  public static _sortReports = _sortReports;
+  public static _sortRealReports = _sortRealReports;
   public site_name           :string  = ""              ;
   public shift_id            :number  = -1              ;
   public shift_week_id       :number  = -1              ;
   public payroll_period      :number  = -1              ;
   public shift_week          :Moment                    ;
-  public shift_time          :string             = "AM" ;
+  public shift_time          :SiteScheduleType = "AM"   ;
   public start_time          :Moment                    ;
   public shift_length        :string|number = -1        ;
   public shift_number        :number = -1               ;
   public current_payroll_week:Moment                    ;
   public shift_serial        :string = ""               ;
   public shift_hours         :number = 0                ;
-  public shift_reports       :Report[]      = []     ;
-  public other_reports       :ReportOther[] = []     ;
+  public shift_reports       :Report[]      = []        ;
+  public other_reports       :ReportOther[] = []        ;
   public logistics_reports   :ReportLogistics[]  = []   ;
+  public driving_reports     :ReportDriving[]  = []     ;
+  public maintenance_reports :ReportMaintenance[]  = [] ;
+  public timecard_reports    :ReportTimeCard[]  = []    ;
   public site                :Jobsite                   ;
   public tech                :Employee                  ;
   public timesheet           :Timesheet                 ;
@@ -146,7 +177,7 @@ export class Shift {
     }
   }
 
-  public initializeShift(site_name?:string, shift_week?:Moment, shift_time?:string, start_time?:Moment, shift_length?:string|number):Shift {
+  public initializeShift(site_name?:string, shift_week?:Moment, shift_time?:SiteScheduleType, start_time?:Moment, shift_length?:string|number):Shift {
     this.site_name    = site_name    != undefined ? site_name    : this.site_name    ;
     this.shift_week   = shift_week   != undefined ? shift_week   : this.shift_week   ;
     this.shift_time   = shift_time   != undefined ? shift_time   : this.shift_time   ;
@@ -164,8 +195,22 @@ export class Shift {
   }
 
   public readFromDoc(doc:any):Shift {
-    for(let prop in doc) {
-      this[prop] = doc[prop];
+    // for(let prop in doc) {
+    //   this[prop] = doc[prop];
+    // }
+    // this.getShiftColor();
+    // return this;
+    let docKeys = Object.keys(doc);
+    let myKeys = Object.keys(this);
+    for(let docKey of docKeys) {
+      if(myKeys.includes(docKey)) {
+        let value:any = doc[docKey];
+        if(docKey === 'start_date' || docKey === 'end_date') {
+          this[docKey] = moment(value);
+        } else {
+          this[docKey] = value;
+        }
+      }
     }
     this.getShiftColor();
     return this;
@@ -291,6 +336,12 @@ export class Shift {
   public getShiftDate():Moment {
     let date = moment().fromExcel(this.getShiftID());
     return date;
+  }
+
+  public getShiftDateString(format?:string):string {
+    let date = this.getShiftDate();
+    let fmt = typeof format === 'string' ? format : "YYYY-MM-DD";
+    return date.format(fmt);
   }
 
   public getShiftWeek() {
@@ -453,24 +504,36 @@ export class Shift {
   }
 
   public getNextReportStartTime():Moment {
-    let reports = this.getShiftReports();
-    reports.sort(_sortReports);
     let start = this.getStartTime();
     let begin = moment(start);
-    let debugString = ` START: ${start.format("YYYY-MM-DDTHH:mm")}\n`;
-    for(let report of reports) {
-      let hours = report.getRepairHours();
-      let hrs = Math.trunc(hours);
-      let min = (hours - hrs) * 60;
-      let out = sprintf("%02d:%02d", hrs, min);
-      // let duration = moment.duration(hours, 'hours');
-      // debugString += `   ADD: ${duration.hours()}:${duration.minutes()}\n`
-      debugString += `    ADD:             ${out}\n`
-      begin.add(hours, 'hours');
-      debugString += ` RESULT: ${begin.format("YYYY-MM-DDTHH:mm")}\n`;
+    let all = this.getRealShiftReports();
+    all.sort(_sortRealReports);
+    let lastReport:ReportReal = all[all.length - 1];
+    if(lastReport) {
+      let end = lastReport.getLastTimeBlocked();
+      let lastTime = moment(end);
+      Log.l(`Shift.getNextReportStartTime(): next start time is '${lastTime.format()}'`);
+      return lastTime;
+    } else {
+      Log.l(`Shift.getNextReportStartTime(): No reports found, next start time is '${begin.format()}'`);
+      return begin;
     }
-    Log.l(`Shift.getNextReportStartTime(): next start time is '${begin.format("YYYY-MM-DDTHH:mm")}'. Debug chain:\n`, debugString);
-    return begin;
+    // let reports = this.getShiftReports();
+    // reports.sort(_sortReports);
+    // let debugString = ` START: ${start.format("YYYY-MM-DDTHH:mm")}\n`;
+    // for(let report of reports) {
+    //   let hours = report.getRepairHours();
+    //   let hrs = Math.trunc(hours);
+    //   let min = (hours - hrs) * 60;
+    //   let out = sprintf("%02d:%02d", hrs, min);
+    //   // let duration = moment.duration(hours, 'hours');
+    //   // debugString += `   ADD: ${duration.hours()}:${duration.minutes()}\n`
+    //   debugString += `    ADD:             ${out}\n`;
+    //   begin.add(hours, 'hours');
+    //   debugString += ` RESULT: ${begin.format("YYYY-MM-DDTHH:mm")}\n`;
+    // }
+    // Log.l(`Shift.getNextReportStartTime(): next start time is '${begin.format("YYYY-MM-DDTHH:mm")}'. Debug chain:\n`, debugString);
+    // return begin;
   }
 
   public getShiftLength(newHours?:number|string) {
@@ -481,6 +544,7 @@ export class Shift {
     /* 2019-07-02 TODO */
     /* This might have been updated for Payroll in console, not sure if isNaN() should be in there */
 //    if(retVal == 0) {
+    // tslint:disable-next-line: triple-equals
     if(retVal == 0 || isNaN(retVal)) {
       return 'off';
     } else {
@@ -506,11 +570,11 @@ export class Shift {
     let shiftTime = (tech.getShiftType() as SiteScheduleType);
     let rotation  = tech.getShiftRotation();
     let date = moment(this.start_time).startOf('day');
-    let shiftLength = site.getShiftLengthForDate(rotation, shiftTime, date);
+    let shiftLength = site.getShiftLengthForDate(date, rotation, shiftTime);
     this.setShiftLength(shiftLength);
     let sst = site.getShiftStartTime(shiftTime);
     let startHours = sst.numeric();
-    // let hours = moment.duration(startHours, 'hours');d
+    // let hours = moment.duration(startHours, 'hours');
     // let startTime = moment(date).add(hours.hours(), 'hours').add(hours.minutes(), 'minutes');
     let startTime:Moment = moment(date).add(startHours, 'hours');
     this.start_time = moment(startTime);
@@ -524,6 +588,7 @@ export class Shift {
     let nowXL = this.XL.today_XL;
     let weekXL = this.XL.shift_week;
     let prWeek = this.XL.current_payroll_week;
+    // tslint:disable-next-line: triple-equals
     if(dayXL == nowXL) {
       colorClass = "green";
     } else if(dayXL < prWeek) {
@@ -559,30 +624,33 @@ export class Shift {
 
   public getTotalPayrollHoursForShift() {
     let shiftTotal = this.getTotalShiftHours();
-    let bonusHours = this.getTotalBonusHoursForShift();
-    shiftTotal += bonusHours;
-    // Log.l("getTotalPayrollHoursForShift(): For shift %s, %d reports, %f hours, %f hours eligible, so bonus hours = %f.\nShift total: %f hours.", this.getShiftSerial(), this.shift_reports.length, shiftTotal, countsForBonusHours, bonusHours, shiftTotal);
+    let premiumHours = this.getTotalPremiumHoursForShift();
+    shiftTotal += premiumHours;
+    // Log.l("getTotalPayrollHoursForShift(): For shift %s, %d reports, %f hours, %f hours eligible, so premium hours = %f.\nShift total: %f hours.", this.getShiftSerial(), this.shift_reports.length, shiftTotal, countsForPremiumHours, premiumHours, shiftTotal);
     return shiftTotal;
   }
 
-  public getTotalBonusHoursForShift() {
-    let shiftTotal = 0, bonusHours = 0, countsForBonusHours = 0;
-    for(let report of this.shift_reports) {
-      if(!report['type'] || (report['type'] as string) === 'Work Report' || report['type'] === 'work_report') {
+  public getTotalPremiumHoursForShift():number {
+    let shiftTotal = 0, premiumHours = 0, countsForPremiumHours = 0;
+    let reports = this.getShiftReports();
+    for(let report of reports) {
+      // if(!report['type'] || (report['type'] as string) === 'Work Report' || report['type'] === 'work_report') {
+      if(report instanceof Report) {
         let subtotal = report.getRepairHours();
         shiftTotal += subtotal;
-        if(report.client !== "SESA" && report.client !== 'SE') {
-          countsForBonusHours += subtotal;
+        // if(report.client !== "SESA" && report.client !== 'SE') {
+        if(report.isPremiumEligible()) {
+          countsForPremiumHours += subtotal;
         }
       }
     }
-    if(countsForBonusHours >= 8 && countsForBonusHours <= 11) {
-      bonusHours = 3;
-    } else if(countsForBonusHours > 11) {
-      bonusHours = 3 + (countsForBonusHours - 11);
+    if(countsForPremiumHours >= 8 && countsForPremiumHours <= 11) {
+      premiumHours = 3;
+    } else if(countsForPremiumHours > 11) {
+      premiumHours = 3 + (countsForPremiumHours - 11);
     }
-    // Log.l("getTotalPayrollHoursForShift(): For shift %s, %d reports, %f hours, %f hours eligible, so bonus hours = %f.\nShift total: %f hours.", this.getShiftSerial(), this.shift_reports.length, shiftTotal, countsForBonusHours, bonusHours, shiftTotal);
-    return bonusHours;
+    // Log.l("getTotalPayrollHoursForShift(): For shift %s, %d reports, %f hours, %f hours eligible, so premium hours = %f.\nShift total: %f hours.", this.getShiftSerial(), this.shift_reports.length, shiftTotal, countsForPremiumHours, premiumHours, shiftTotal);
+    return premiumHours;
   }
 
   public getNormalHours():number {
@@ -602,14 +670,30 @@ export class Shift {
         total += report.getTotalTravelHours(15);
       }
     }
+    let drivings:ReportDriving[] = this.getShiftDrivingReports();
+    for(let report of drivings) {
+      if(report instanceof ReportDriving) {
+        total += report.getTotalTime(15);
+      }
+    }
+    let maints:ReportMaintenance[] = this.getShiftMaintenanceReports();
+    for(let report of maints) {
+      if(report instanceof ReportMaintenance) {
+        // total += report.getTotalWorkHours(15);
+        total += report.getTotalTime(15);
+      }
+    }
     return total;
   }
 
   public getBillableHours() {
     let total = 0;
-    for(let report of this.shift_reports) {
-      if(!report['type'] || (report['type'] as string) === 'Work Report' || report['type'] === 'work_report') {
-        if(report.client !== 'SE' && report.client !== 'SESA') {
+    let reports = this.getShiftReports();
+    for(let report of reports) {
+      // if(!report['type'] || (report['type'] as string) === 'Work Report' || report['type'] === 'work_report') {
+      if(report instanceof Report) {
+        // if(report.client !== 'SE' && report.client !== 'SESA') {
+        if(report.isBillable()) {
           total += report.getRepairHours();
         }
       }
@@ -621,8 +705,8 @@ export class Shift {
     return this.getTotalPayrollHoursForShift();
   }
 
-  public getBonusHours() {
-    return this.getTotalBonusHoursForShift();
+  public getPremiumHours() {
+    return this.getTotalPremiumHoursForShift();
   }
 
   public getTrainingHours() {
@@ -685,11 +769,11 @@ export class Shift {
     return total;
   }
 
-  public getShiftTimeline():Array<any> {
+  public getShiftTimeline():any[] {
     return [];
   }
 
-  public setShiftReports(reports:Array<Report>) {
+  public setShiftReports(reports:Report[]) {
     this.shift_reports = reports;
     return this.shift_reports;
   }
@@ -735,11 +819,11 @@ export class Shift {
     return this.shift_reports;
   }
 
-  public getShiftReports():Array<Report> {
+  public getShiftReports():Report[] {
     return this.shift_reports;
   }
 
-  public getShiftOtherReports():Array<ReportOther> {
+  public getShiftOtherReports():ReportOther[] {
     return this.other_reports;
   }
 
@@ -747,25 +831,67 @@ export class Shift {
     return this.logistics_reports;
   }
 
-  public getAllShiftReports(): Array<Report|ReportOther|ReportLogistics> {
-    let output:Array<Report|ReportOther|ReportLogistics> = [];
-    for(let report of this.getShiftReports()) {
-      output.push(report);
-    }
+  public getShiftDrivingReports():ReportDriving[] {
+    return this.driving_reports;
+  }
+
+  public getShiftMaintenanceReports():ReportMaintenance[] {
+    return this.maintenance_reports;
+  }
+
+  public getShiftTimeCardReports():ReportTimeCard[] {
+    return this.timecard_reports;
+  }
+
+  public getAllShiftReports():ReportAny[] {
+    let output:ReportAny[] = [];
+    // for(let report of this.getShiftReports()) {
+    //   output.push(report);
+    // }
+    // for(let other of this.getShiftOtherReports()) {
+    //   output.push(other);
+    // }
+    // for(let report of this.getShiftLogisticsReports()) {
+    //   output.push(report);
+    // }
+    // for(let report of this.getShiftDrivingReports()) {
+    //   output.push(report);
+    // }
+    // for(let report of this.getShiftMaintenanceReports()) {
+    //   output.push(report);
+    // }
+    output = this.getRealShiftReports();
     for(let other of this.getShiftOtherReports()) {
       output.push(other);
     }
+    return output;
+  }
+
+  public getRealShiftReports():ReportReal[] {
+    let output:ReportReal[] = [];
+    for(let report of this.getShiftReports()) {
+      output.push(report);
+    }
     for(let report of this.getShiftLogisticsReports()) {
+      output.push(report);
+    }
+    for(let report of this.getShiftDrivingReports()) {
+      output.push(report);
+    }
+    for(let report of this.getShiftMaintenanceReports()) {
+      output.push(report);
+    }
+    for(let report of this.getShiftTimeCardReports()) {
       output.push(report);
     }
     return output;
   }
 
-  public getOtherReports():Array<ReportOther> {
+  public getOtherReports():ReportOther[] {
     return this.other_reports;
   }
 
-  public setOtherReports(others:Array<ReportOther>) {
+  public setOtherReports(others:ReportOther[]):ReportOther[] {
     this.other_reports = [];
     for(let other of others) {
       this.other_reports.push(other);
@@ -773,7 +899,7 @@ export class Shift {
     return this.other_reports;
   }
 
-  public addOtherReport(other:ReportOther) {
+  public addOtherReport(other:ReportOther):ReportOther[] {
     let j = 0, i = -1;
     let others = this.getShiftOtherReports();
     for(let oth of others) {
@@ -794,7 +920,7 @@ export class Shift {
     return this.other_reports;
   }
 
-  public removeOtherReport(other:ReportOther) {
+  public removeOtherReport(other:ReportOther):ReportOther[] {
     let others = this.getShiftOtherReports();
     let j = 0, i = -1;
     for(let oth of others) {
@@ -806,7 +932,7 @@ export class Shift {
       }
     }
     if(i > -1) {
-      Log.l(`removeOtherReport(): Removing report #${i} from shift ${this.getShiftSerial()}:\n`, others[i])
+      Log.l(`removeOtherReport(): Removing report #${i} from shift ${this.getShiftSerial()}:`, others[i]);
       window['onsitesplicedreport'] = others.splice(i, 1)[0];
     } else {
       Log.w(`SHIFT.removeOtherReport(): Report '${other._id}' not found in shift '${this.shift_serial}'.`);
@@ -815,11 +941,11 @@ export class Shift {
     return this.other_reports;
   }
 
-  public getLogisticsReports():Array<ReportLogistics> {
+  public getLogisticsReports():ReportLogistics[] {
     return this.logistics_reports;
   }
 
-  public setLogisticsReports(reports:Array<ReportLogistics>) {
+  public setLogisticsReports(reports:ReportLogistics[]):ReportLogistics[] {
     this.logistics_reports = [];
     for(let report of reports) {
       this.logistics_reports.push(report);
@@ -827,7 +953,7 @@ export class Shift {
     return this.logistics_reports;
   }
 
-  public addLogisticsReport(report:ReportLogistics) {
+  public addLogisticsReport(report:ReportLogistics):ReportLogistics[] {
     let j = 0, i = -1;
     let reports:ReportLogistics[] = this.getShiftLogisticsReports();
     for(let rpt of reports) {
@@ -848,19 +974,21 @@ export class Shift {
     return this.logistics_reports;
   }
 
-  public removeLogisticsReport(report:ReportLogistics) {
+  public removeLogisticsReport(report:ReportLogistics):ReportLogistics[] {
     let reports:ReportLogistics[] = this.getShiftLogisticsReports();
-    let j = 0, i = -1;
-    for(let rpt of reports) {
-      if(rpt === report || (rpt._id && report._id && rpt._id === report._id)) {
-        i = j;
-        break;
-      } else {
-        j++;
-      }
-    }
+    let i = reports.findIndex(rpt => {
+      return report === rpt || (rpt._id && report._id && rpt._id === report._id);
+    });
+    // for(let rpt of reports) {
+    //   if(rpt === report || (rpt._id && report._id && rpt._id === report._id)) {
+    //     i = j;
+    //     break;
+    //   } else {
+    //     j++;
+    //   }
+    // }
     if(i > -1) {
-      Log.l(`removeLogisticsReport(): Removing report #${i} from shift ${this.getShiftSerial()}:\n`, reports[i])
+      Log.l(`Shift.removeLogisticsReport(): Removing report #${i} from shift ${this.getShiftSerial()}:`, reports[i]);
       window['onsitesplicedreportlogistics'] = reports.splice(i, 1)[0];
     } else {
       Log.w(`SHIFT.removeLogisticsReport(): Report '${report._id}' not found in shift '${this.shift_serial}'.`);
@@ -879,6 +1007,180 @@ export class Shift {
     return total;
   }
 
+  public getDrivingReports():ReportDriving[] {
+    return this.driving_reports;
+  }
+
+  public setDrivingReports(reports:ReportDriving[]):ReportDriving[] {
+    this.driving_reports = [];
+    for(let report of reports) {
+      this.driving_reports.push(report);
+    }
+    return this.driving_reports;
+  }
+
+  public addDrivingReport(report:ReportDriving):ReportDriving[] {
+    let j = 0, i = -1;
+    let reports:ReportDriving[] = this.getShiftDrivingReports();
+    for(let rpt of reports) {
+      if(rpt === report || (rpt._id && report._id && rpt._id === report._id)) {
+        i = j;
+        break;
+      } else {
+        j++;
+      }
+    }
+    if(i > -1) {
+      Log.l(`SHIFT.addDrivingReport(): ReportDriving '${report._id}' already exists in shift '${this.getShiftSerial()}'.`);
+    } else {
+      // Log.w(`SHIFT.addLogisticsReport(): ReportLogistics '${report._id}' not found in shift '${this.shift_serial}'.`);
+      reports.push(report);
+    }
+    this.driving_reports = reports;
+    return this.driving_reports;
+  }
+
+  public removeDrivingReport(report:ReportDriving):ReportDriving[] {
+    let reports:ReportDriving[] = this.getShiftDrivingReports();
+    let i = reports.findIndex(rpt => {
+      return report === rpt || (rpt._id && report._id && rpt._id === report._id);
+    });
+    if(i > -1) {
+      Log.l(`Shift.removeDrivingReport(): Removing report #${i} from shift ${this.getShiftSerial()}:`, reports[i]);
+      window['onsitesplicedreportdriving'] = reports.splice(i, 1)[0];
+    } else {
+      Log.w(`SHIFT.removeDrivingReport(): Report '${report._id}' not found in shift '${this.shift_serial}'.`);
+    }
+    this.driving_reports = reports;
+    return this.driving_reports;
+  }
+
+  public getShiftDrivingHours():number {
+    let reports:ReportDriving[] = this.getShiftDrivingReports();
+    let total:number = 0;
+    for(let report of reports) {
+      let hours:number = report.getTotalTime();
+      total += hours;
+    }
+    return total;
+  }
+
+  public getMaintenanceReports():ReportMaintenance[] {
+    return this.maintenance_reports;
+  }
+
+  public setMaintenanceReports(reports:ReportMaintenance[]):ReportMaintenance[] {
+    this.maintenance_reports = [];
+    for(let report of reports) {
+      this.maintenance_reports.push(report);
+    }
+    return this.maintenance_reports;
+  }
+
+  public addMaintenanceReport(report:ReportMaintenance):ReportMaintenance[] {
+    let j = 0, i = -1;
+    let reports:ReportMaintenance[] = this.getShiftMaintenanceReports();
+    for(let rpt of reports) {
+      if(rpt === report || (rpt._id && report._id && rpt._id === report._id)) {
+        i = j;
+        break;
+      } else {
+        j++;
+      }
+    }
+    if(i > -1) {
+      Log.l(`SHIFT.addMaintenanceReport(): ReportMaintenance '${report._id}' already exists in shift '${this.getShiftSerial()}'.`);
+    } else {
+      // Log.w(`SHIFT.addMaintenanceReport(): ReportMaintenance '${report._id}' not found in shift '${this.shift_serial}'.`);
+      reports.push(report);
+    }
+    this.maintenance_reports = reports;
+    return this.maintenance_reports;
+  }
+
+  public removeMaintenanceReport(report:ReportMaintenance):ReportMaintenance[] {
+    let reports:ReportMaintenance[] = this.getShiftMaintenanceReports();
+    let i = reports.findIndex(rpt => {
+      return report === rpt || (rpt._id && report._id && rpt._id === report._id);
+    });
+    if(i > -1) {
+      Log.l(`Shift.removeMaintenanceReport(): Removing report #${i} from shift ${this.getShiftSerial()}:`, reports[i]);
+      window['onsitesplicedreportmaintenance'] = reports.splice(i, 1)[0];
+    } else {
+      Log.w(`SHIFT.removeMaintenanceReport(): Report '${report._id}' not found in shift '${this.shift_serial}'.`);
+    }
+    this.maintenance_reports = reports;
+    return this.maintenance_reports;
+  }
+
+  public getShiftMaintenanceHours():number {
+    let reports:ReportMaintenance[] = this.getShiftMaintenanceReports();
+    let total:number = 0;
+    for(let report of reports) {
+      let hours:number = report.getTotalWorkHours();
+      total += hours;
+    }
+    return total;
+  }
+
+  public getTimeCardReports():ReportTimeCard[] {
+    return this.timecard_reports;
+  }
+
+  public setTimeCardReports(reports:ReportTimeCard[]):ReportTimeCard[] {
+    this.maintenance_reports = [];
+    for(let report of reports) {
+      this.timecard_reports.push(report);
+    }
+    return this.timecard_reports;
+  }
+
+  public addTimeCardReport(report:ReportTimeCard):ReportTimeCard[] {
+    let j = 0, i = -1;
+    let reports:ReportTimeCard[] = this.getShiftTimeCardReports();
+    for(let rpt of reports) {
+      if(rpt === report || (rpt._id && report._id && rpt._id === report._id)) {
+        i = j;
+        break;
+      } else {
+        j++;
+      }
+    }
+    if(i > -1) {
+      Log.l(`SHIFT.addTimeCardReport(): ReportTimeCard '${report._id}' already exists in shift '${this.getShiftSerial()}'.`);
+    } else {
+      // Log.w(`SHIFT.addTimeCardReport(): ReportTimeCard '${report._id}' not found in shift '${this.shift_serial}'.`);
+      reports.push(report);
+    }
+    this.timecard_reports = reports;
+    return this.timecard_reports;
+  }
+
+  public removeTimeCardReport(report:ReportTimeCard):ReportTimeCard[] {
+    let reports:ReportTimeCard[] = this.getShiftTimeCardReports();
+    let i = reports.findIndex(rpt => {
+      return report === rpt || (rpt._id && report._id && rpt._id === report._id);
+    });
+    if(i > -1) {
+      Log.l(`Shift.removeTimeCardReport(): Removing report #${i} from shift ${this.getShiftSerial()}:`, reports[i]);
+      window['onsitesplicedreporttimecard'] = reports.splice(i, 1)[0];
+    } else {
+      Log.w(`SHIFT.removeTimeCardReport(): Report '${report._id}' not found in shift '${this.shift_serial}'.`);
+    }
+    this.timecard_reports = reports;
+    return this.timecard_reports;
+  }
+
+  public getShiftTimeCardHours():number {
+    let reports:ReportTimeCard[] = this.getShiftTimeCardReports();
+    let total:number = 0;
+    for(let report of reports) {
+      let hours:number = report.getTotalWorkHours();
+      total += hours;
+    }
+    return total;
+  }
+
   public getShiftStats(complete?:boolean) {
     return this.getShiftReportsStatus(complete);
   }
@@ -887,6 +1189,8 @@ export class Shift {
     let others  = this.getShiftOtherReports() ;
     let reports = this.getShiftReports();
     let logistics = this.getShiftLogisticsReports();
+    let drivings = this.getShiftDrivingReports();
+    let maints = this.getShiftMaintenanceReports();
     let output  = []                    ;
     let data    = { status: 0, hours: 0, workHours: 0, otherReportHours: 0, code: "" };
     // M Training and Travel
@@ -897,30 +1201,29 @@ export class Shift {
     // V Vacation
     // H Holiday
     for(let other of others) {
-      let type = other.type;
-      if(type === 'Training') {
+      if(other.isType('training')) {
         output.push("T");
         data.otherReportHours += other.time;
-      } else if(type === 'Travel') {
+     } else if(other.isType('travel')) {
         output.push("Q");
         data.otherReportHours += other.time;
-      } else if(type === 'Standby') {
+      } else if(other.isType('standby')) {
         output.push("B");
         data.otherReportHours += other.time;
-      } else if(type === 'Standby: HB Duncan') {
+      } else if(other.isType('standby: hb duncan')) {
         output.push("S");
-      } else if(type === 'Sick') {
+      } else if(other.isType('sick')) {
         output.push("E");
         data.otherReportHours += other.time;
-      } else if(type === 'Vacation') {
+      } else if(other.isType('vacation')) {
         output.push("V");
         data.otherReportHours += other.time;
-      } else if(type === 'Holiday') {
+      } else if(other.isType('holiday')) {
         output.push("H");
         data.otherReportHours += other.time;
       }
     }
-    if(reports.length > 0 || logistics.length > 0) {
+    if(reports.length > 0 || logistics.length > 0 || drivings.length > 0 || maints.length > 0) {
       let hrs = this.getNormalHours();
       data.workHours = hrs;
     }
@@ -1084,13 +1387,14 @@ export class Shift {
         if(hours) {
           retVal = 'hoursComplete';
         } else {
-          retVal = 'hoursUnder'
+          retVal = 'hoursUnder';
         }
       } else {
         if(hours > total) {
           retVal = "hoursOver";
         } else if(hours < total) {
           retVal = "hoursUnder";
+        // tslint:disable-next-line: triple-equals
         } else if(hours == total) {
           retVal = "hoursComplete";
         } else {
@@ -1135,13 +1439,33 @@ export class Shift {
     return this.timesheet;
   }
 
+  /**
+   * Check if this shift matches the given date. If no date provided, uses current date.
+   *
+   * @param {(Moment|Date|string)} date A date to check, either as a Moment/Date object or a YYYY-MM-DD string
+   * @returns {boolean} True if this shift matches the provided date
+   * @memberof Shift
+   */
+  public isDate(date:Moment|Date|string):boolean {
+    let shiftDate = this.getShiftDateString();
+    let dateToCheck:string;
+    if(!date) {
+      dateToCheck = moment().format("YYYY-MM-DD");
+    } else if(typeof date === 'string') {
+      dateToCheck = date;
+    } else {
+      dateToCheck = moment(date).format("YYYY-MM-DD");
+    }
+    return dateToCheck === shiftDate;
+  }
+
   public toString(translate?:any):string {
     let strOut:string = null;
     let start:string = moment(this.start_time).format("MMM DD");
     let weekID = this.getShiftWeekID();
     let weekStart = moment(this.shift_week).format("MMM DD");
     let payrollWeek = "Payroll week";
-    if(translate) {
+    if(translate && typeof translate.instant === 'function') {
       payrollWeek = translate.instant('payroll_week');
     }
     // strOut = `${start} (${payrollWeek} ${weekStart})`;
@@ -1173,5 +1497,5 @@ export class Shift {
   }
   public get [Symbol.toStringTag]():string {
     return this.getClassName();
-  };
+  }
 }

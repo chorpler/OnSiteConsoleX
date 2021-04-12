@@ -1,0 +1,108 @@
+<!-- <div class="report-maintenance-wrapper">
+  <p-dialog #reportViewDialog styleClass="report-maintenance-dialog" [class.time-error]="report.times_error" [class.date-error]="report.date_error" [header]="header" [(visible)]="visible" [contentStyle]="{'overflow':'visible'}" [modal]="false" [responsive]="true" [draggable]="true" [resizable]="true" [positionLeft]="dialogLeft" [positionTop]="dialogTop" (onHide)="cancelClicked($event)">
+    <table class="report-maintenance-button-table top">
+      <tr class="report-maintenance-button-row">
+        <td class="cell-button-like" (click)="splitReport($event)"  title="Split work report" *ngIf="data.status.role==='dev'"><i class="icomoon-split icon-button-like button-dev"></i></td>
+        <td class="cell-button-like" (click)="deleteReport($event)" title="Delete work report"                                ><i class="fal fa-trash-alt icon-button-like"></i></td>
+        <td class="cell-button-like" (click)="saveNoExitClicked($event)"   title="Save, don't exit"                                  ><i class="fa fa-save icon-button-like"   ></i></td>
+        <div *ngIf="idx+1 > 1; then previousAvailable; else previousUnavailable"></div>
+        <div *ngIf="idx+1 < count; then nextAvailable; else nextUnavailable"></div>
+        <ng-template #previousAvailable>
+          <td class="cell-button-like" (click)="previous($event)" title="Previous work report">
+            <i class="icon-button-like fa fa-chevron-circle-left"></i>
+          </td>
+        </ng-template>
+        <ng-template #previousUnavailable>
+          <td class="cell-button-disabled" title="No previous work reports">
+            <i class="fa fa-chevron-circle-left icon-greyed-out"></i>
+          </td>
+        </ng-template>
+        <ng-template #nextAvailable>
+          <td class="cell-button-like" (click)="next($event)" title="Next work report">
+            <i class="icon-button-like fa fa-chevron-circle-right"></i>
+          </td>
+        </ng-template>
+        <ng-template #nextUnavailable>
+          <td class="cell-button-disabled" title="No next work report">
+            <i class="fa fa-chevron-circle-right icon-greyed-out"></i>
+          </td>
+        </ng-template>
+      </tr>
+    </table>
+    <table class="report-maintenance-table">
+      <tr class="report-maintenance-row">
+        <td class="label">ID</td>
+        <td class="data" ><input class="report-maintenance-input" [(ngModel)]="report._id" /></td>
+      </tr>
+      <tr class="report-maintenance-row">
+        <td class="label">Rev</td>
+        <td class="data" ><input class="report-maintenance-input" [readonly]="true" [(ngModel)]="report._rev" /></td>
+      </tr>
+      <tr class="report-maintenance-row">
+        <td class="label">Timestamp</td>
+        <td class="data" ><input class="report-maintenance-input" [(ngModel)]="report.timestamp" /></td>
+      </tr>
+      <tr class="report-maintenance-row" [class.date-error]="report.date_error">
+        <td class="label">Date</td>
+        <td class="data" ><p-calendar [class.report-maintenance-calendar]="true" dateFormat="dd M yy" [(ngModel)]="report_date" (onSelect)="updateDate(report_date)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar></td>
+      </tr>
+      <tr class="report-maintenance-row" [class.time-error]="report.times_error">
+        <td class="label">Repair Time</td>
+        <td class="data"><input class="report-maintenance-input" type="number" min="0" step="0.5" [(ngModel)]="report.repair_hours" (ngModelChange)="updateRepairHours()"/></td>
+      </tr>
+      <tr class="report-maintenance-row" [class.time-error]="report.times_error" [class.date-error]="report.date_error">
+        <td class="label">Start Time</td>
+        <td class="data">
+          <p-calendar #startTimeCal [class.report-maintenance-calendar]="true" dateFormat="dd M yy" showTime="true" [stepMinute]="stepMinute" [(ngModel)]="time_start" (onSelect)="selectTime(1, $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar>
+        </td>
+      </tr>
+      <tr class="report-maintenance-row" [class.time-error]="report.times_error">
+        <td class="label">End Time</td>
+        <td class="data">
+          <p-calendar #endTimeCal [class.report-maintenance-calendar]="true" dateFormat="dd M yy" showTime="true" [stepMinute]="stepMinute" [(ngModel)]="time_end" (onSelect)="selectTime(2, $event)" readonlyInput="true" showOtherMonths="true" selectOtherMonths="true" showIcon="true"></p-calendar>
+        </td>
+      </tr>
+      <tr class="report-maintenance-row">
+        <td class="label">Technician</td>
+        <td class="data" ><input class="report-maintenance-input" [(ngModel)]="report.technician" /></td>
+      </tr>
+      <tr class="report-maintenance-row">
+        <td class="label detailed-button" (click)="toggleDetailedSiteView($event)" title="Toggle client/location/locID editing"><span class="label-text">Work Site</span></td>
+        <td class="data" ><p-dropdown [class.report-maintenance-dropdown]="true" [disabled]="detailedSite" [options]="siteList" [(ngModel)]="site" (onChange)="updateReportSite(site)" [scrollHeight]="dropdownScroll"></p-dropdown></td>
+      </tr>
+      <tr class="report-maintenance-row">
+        <td class="label">Client</td>
+        <td class="data" ><p-dropdown [class.report-maintenance-dropdown]="true" [disabled]="!detailedSite" [options]="clientList" [(ngModel)]="client" (onChange)="updateReportCLL('client', client)" [scrollHeight]="dropdownScroll"></p-dropdown></td>
+      </tr>
+      <tr class="report-maintenance-row">
+        <td class="label">Location</td>
+        <td class="data" ><p-dropdown [class.report-maintenance-dropdown]="true" [disabled]="!detailedSite" [options]="locationList" [(ngModel)]="location" (onChange)="updateReportCLL('location', location)" [scrollHeight]="dropdownScroll"></p-dropdown></td>
+      </tr>
+      <tr class="report-maintenance-row">
+        <td class="label">LocID</td>
+        <td class="data" ><p-dropdown [class.report-maintenance-dropdown]="true" [disabled]="!detailedSite" [options]="locIDList" [(ngModel)]="locID" (onChange)="updateReportCLL('locID', locID)" [scrollHeight]="dropdownScroll"></p-dropdown></td>
+      </tr>
+      <tr class="report-maintenance-row">
+        <td class="label">Unit No.</td>
+        <td class="data" ><input class="report-maintenance-input" [(ngModel)]="report.unit_number" /></td>
+      </tr>
+      <tr class="report-maintenance-row">
+        <td class="label">Work Order No.</td>
+        <td class="data" ><input class="report-maintenance-input" [(ngModel)]="report.work_order_number" /></td>
+      </tr>
+      <tr class="report-maintenance-row">
+        <td class="label">Notes</td>
+        <td class="data" ><textarea pInputTextArea [class.report-maintenance-textarea]="true" [(ngModel)]="report.notes"></textarea></td>
+      </tr>
+    </table>
+    <table class="report-maintenance-button-table bottom">
+      <tr class="report-maintenance-button-row">
+        <td class="report-maintenance-button-td cell-button-like" (click)="cancelClicked($event)" title="Cancel without saving"><i class="fal fa-times-circle icon-button-like"></i></td>
+        <td class="report-maintenance-button-td"></td>
+        <td class="report-maintenance-button-td cell-button-like" (click)="saveNoExitClicked($event)" title="Save but keep report open"><i class="fal fa-save icon-button-like"></i></td>
+        <td class="report-maintenance-button-td"></td>
+        <td class="report-maintenance-button-td cell-button-like" (click)="saveClicked($event)" title="Save and close report viewer"><i class="fal fa-check-circle icon-button-like"></i></td>
+      </tr>
+    </table>
+  </p-dialog>
+</div> -->
